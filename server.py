@@ -15,7 +15,7 @@ from urllib.parse import urlsplit
 from lead_timeline import add_current_evidence, monitoring_issues, timeline
 from quota_history import collect, history
 from owner_attention import pending_owner_decisions
-from session_markers import admin_markers, claude_markers
+from session_markers import admin_markers, claude_markers, handoff_codex_markers
 from r10_projection import project_health, project_learning, project_learning_attention, project_roster
 
 PROJECT = Path(__file__).resolve().parent
@@ -122,9 +122,14 @@ def overview():
     for row in projected:
         row['game'] = 'FFXI'
     home = Path.home()
-    marker_reports = [admin_markers(home / '.codex/state_5.sqlite', home / '.codex/sessions', PROJECT),
-                      claude_markers(home / '.claude', home / 'dev/dit-human-behavior-platform',
-                                     'claude-dit-human-behavior-platform', 'DIT v2 hub / behavior-platform lead')]
+    hub_project = home / 'dev/dit-human-behavior-platform'
+    hub_report = claude_markers(home / '.claude', hub_project,
+                                'claude-dit-human-behavior-platform', 'DIT v2 hub / behavior-platform lead')
+    if hub_report['coverage'].startswith('Session marker coverage unknown'):
+        takeover = handoff_codex_markers(home / '.codex/state_5.sqlite', home / '.codex/sessions', hub_project,
+                                        home / '.local/share/devbox-failover/claude-dit-human-behavior-platform.json', hub_report['lead'])
+        hub_report = takeover
+    marker_reports = [admin_markers(home / '.codex/state_5.sqlite', home / '.codex/sessions', PROJECT), hub_report]
     marker_issues = [{'title': f"{report['lead']}: {m['kind']}",
                       'detail': 'Historical heuristic from a native system event; current goal and quota state remain unknown.',
                       'scope': 'Leads', 'status': 'Heuristic', 'source': m['source'], 'updatedAt': m['observedAt']}
