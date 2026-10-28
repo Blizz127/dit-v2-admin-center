@@ -14,6 +14,7 @@ from urllib.parse import urlsplit
 
 from lead_timeline import add_current_evidence, monitoring_issues, timeline
 from quota_history import collect, history
+from owner_attention import pending_owner_decisions
 from session_markers import admin_markers, claude_markers
 from r10_projection import project_health, project_learning, project_learning_attention, project_roster
 
@@ -132,6 +133,7 @@ def overview():
     lead_history = add_current_evidence(timeline(Path.home() / '.local/share/devbox-coordinator-state'), monitoring)
     return {
         "mode": "mock", "generatedAt": datetime.now(timezone.utc).isoformat(),
+        "ownerAttention": pending_owner_decisions(home / ".local/share/devbox-coordinator-state/tasks.sqlite"),
         "bots": [
             {"id": "demo-1", "name": "Aster", "game": "FFXI", "status": "Paused", "source": "Synthetic fixture", "observedAt": "2026-01-01T12:00:00Z", "routing": {"purpose": "conversation", "requested": "Example provider / example model", "effective": None, "version": "example-1", "source": "Synthetic routing example", "observedAt": "2026-01-01T12:00:00Z", "availability": "Unavailable", "reason": "Example identity has not been verified"}},
             {"id": "demo-2", "name": "Vale", "game": "SWTOR", "status": "Unknown", "source": "Synthetic fixture", "observedAt": None},

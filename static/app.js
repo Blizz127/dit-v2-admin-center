@@ -128,8 +128,11 @@ async function load() {
     const response = await fetch('/api/overview', {headers: {Authorization: `Bearer ${token}`}, cache: 'no-store'});
     if (!response.ok) throw new Error(response.status === 401 ? 'Token was not accepted.' : 'Could not load the workspace.');
     const data = await response.json();
-    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls']) document.getElementById(id).replaceChildren();
+    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention']) document.getElementById(id).replaceChildren();
     currentSnapshot = data;
+    item(document.querySelector('#owner-attention'), 'Coverage', data.ownerAttention.coverage, 'Coordinator task board · Read only');
+    if (!data.ownerAttention.items.length) item(document.querySelector('#owner-attention'), 'No records listed', 'Other owner decisions may be tracked elsewhere.', 'Not a complete decision inventory');
+    data.ownerAttention.items.forEach(a => item(document.querySelector('#owner-attention'), a.title, a.project, `Created: ${a.createdAt} · Expires: ${a.expiresAt} · Coordinator approval record`));
     data.bots.forEach(botItem);
     if (selectedBotId !== null) inspectBot(selectedBotId);
     data.serviceHealth.forEach(h => item(document.querySelector('#service-health'), `${h.label} · ${h.game}`, `${h.status} · ${h.detail}`, `${h.source} · Observed: ${h.observedAt || 'unknown'} · May be stale`));
