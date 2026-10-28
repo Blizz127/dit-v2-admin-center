@@ -50,6 +50,17 @@ function renderLeadTimeline() {
     events.forEach(e => item(group, `${e.kind}: ${e.status}`, e.at, e.source));
   });
 }
+function renderIssueCoverage() {
+  const panel = document.querySelector('#issue-coverage');
+  panel.replaceChildren();
+  const groups = new Map();
+  currentSnapshot.issues.forEach(issue => {
+    const scope = typeof issue.scope === 'string' && issue.scope ? issue.scope : 'Unknown';
+    groups.set(scope, (groups.get(scope) || 0) + 1);
+  });
+  if (!groups.size) { item(panel, 'No loaded issue records', 'Coverage is unknown.', 'An empty list does not establish health.'); return; }
+  for (const [scope, count] of groups) item(panel, scope, `${count} loaded issue records`, 'Not a complete incident count; check each source and timestamp.');
+}
 function renderIssues() {
   const panel = document.querySelector('#issues');
   const scope = document.querySelector('#issue-scope').value;
@@ -263,7 +274,7 @@ async function load() {
     if (!response.ok) throw new Error(response.status === 401 ? 'Token was not accepted.' : 'Could not load the workspace.');
     const data = await response.json();
     if (requestId !== requestVersion) return;
-    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage']) document.getElementById(id).replaceChildren();
+    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage']) document.getElementById(id).replaceChildren();
     currentSnapshot = data;
     item(document.querySelector('#owner-attention'), 'Coverage', data.ownerAttention.coverage, 'Coordinator task board · Read only');
     if (!data.ownerAttention.items.length) item(document.querySelector('#owner-attention'), 'No records listed', 'Other owner decisions may be tracked elsewhere.', 'Not a complete decision inventory');
@@ -301,6 +312,7 @@ async function load() {
     renderQuotaHistory();
     data.modelCalls.forEach(c => item(document.querySelector('#model-calls'), `${c.model} · ${c.purpose}`, `Latency: ${typeof c.latencyMs === 'number' ? c.latencyMs + ' ms' : 'Unknown'} · Cost: ${c.cost == null ? 'Unknown' : c.cost} · Quality: ${c.quality == null ? 'Unknown' : c.quality}`, `${c.source} · Observed: ${c.observedAt || 'unknown'}`));
     data.audit.forEach(a => item(document.querySelector('#audit'), `${a.action} · ${a.scope}`, a.result, `${a.actor} · ${a.at || 'unknown time'} · ${a.source}`));
+    renderIssueCoverage();
     renderIssues();
     renderLedger();
     renderLearningCoverage();

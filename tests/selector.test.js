@@ -117,6 +117,7 @@ setImmediate(async () => {
   get('learning-reset').listeners.click();
   assert.equal(get('learning-game').value, '');
   assert.equal(get('learning').children.length, 2);
+  assert.match(get('issue-coverage').children[0].children[2].textContent, /Not a complete incident count/);
   get('issue-scope').value = 'Bots';
   get('issue-scope').listeners.change();
   assert.equal(get('issues').children.length, 1);
