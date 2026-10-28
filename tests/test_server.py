@@ -40,6 +40,22 @@ class ServerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             make_server(0, "")
 
+    def test_global_controls_are_disabled(self):
+        from html.parser import HTMLParser
+        class Controls(HTMLParser):
+            def __init__(self):
+                super().__init__(); self.disabled = False; self.controls = []
+            def handle_starttag(self, tag, attrs):
+                attrs = dict(attrs)
+                if tag == "fieldset": self.disabled = "disabled" in attrs
+                if attrs.get("id") in ("global-model", "global-model-toggle"):
+                    self.controls.append(self.disabled or "disabled" in attrs)
+            def handle_endtag(self, tag):
+                if tag == "fieldset": self.disabled = False
+        page = self.request("GET", "/")[2].decode()
+        parser = Controls(); parser.feed(page)
+        self.assertEqual(parser.controls, [True, True])
+
     def test_mock_and_no_writes(self):
         status, headers, body = self.request("GET", "/api/overview", "test-private-token")
         self.assertEqual(status, 200)
