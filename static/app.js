@@ -12,6 +12,14 @@ function item(parent, title, detail, meta) {
   const small = document.createElement('small'); small.textContent = meta || '';
   row.append(heading, text, small); parent.append(row);
 }
+function renderLearning() {
+  const panel = document.querySelector('#learning');
+  const game = document.querySelector('#learning-game').value;
+  panel.replaceChildren();
+  const records = currentSnapshot.learning.filter(l => !game || l.game === game);
+  if (!records.length) item(panel, 'No matching learning entries', 'No records in this mock snapshot.', 'Coverage is unknown.');
+  records.forEach(l => item(panel, `${l.game} · ${l.topic}`, l.status, `Evidence: ${l.evidence} · Datasets: ${l.datasets} · Policy verification: ${l.policy} · ${l.source}`));
+}
 function renderLedger() {
   const panel = document.querySelector('#ledger');
   panel.replaceChildren();
@@ -82,13 +90,14 @@ async function load() {
     data.leadMonitoring.forEach(m => item(document.querySelector('#lead-monitoring'), m.lead, `Stall: ${m.stall} · Quota: ${m.quota}`, `Session activity: ${m.sessionActivity} (not proof of work or a stall) · ${m.stallReason} · ${m.quotaReason} · Provider pool: ${m.poolCapacity} (${m.poolReason})`));
     data.issues.forEach(i => item(document.querySelector('#issues'), i.title, i.detail, `${i.status} · ${i.source}`));
     renderLedger();
-    data.learning.forEach(l => item(document.querySelector('#learning'), `${l.game} · ${l.topic}`, l.status, `Evidence: ${l.evidence} · Datasets: ${l.datasets} · Policy verification: ${l.policy} · ${l.source}`));
+    renderLearning();
     document.querySelector('#updated').textContent = `Snapshot generated ${data.generatedAt} · Bot and learning data are synthetic; lead task state comes from the coordinator board.`;
     sessionStorage.setItem('dit-admin-token', token); workspace.hidden = false; form.hidden = true;
   } catch (e) { workspace.hidden = true; form.hidden = false; sessionStorage.removeItem('dit-admin-token'); error.textContent = e.message; }
 }
 form.addEventListener('submit', e => { e.preventDefault(); token = document.querySelector('#token').value; document.querySelector('#token').value = ''; load(); });
 document.querySelector('#refresh').addEventListener('click', load);
+document.querySelector('#learning-game').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
 document.querySelector('#trace-search').addEventListener('submit', e => {
   e.preventDefault(); correlationFilter = document.querySelector('#correlation').value.trim();
   if (currentSnapshot) renderLedger();
