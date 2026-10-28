@@ -5,3 +5,5 @@
 fieldset{border:1px solid #34495d;border-radius:8px;margin:12px 0;padding:14px}fieldset input[type=checkbox]{width:auto;margin-right:8px}fieldset label{margin:8px 0}
 
 .updates{padding-left:20px;margin:12px 0 0}.updates li{margin:8px 0;color:#cfdae5}
+
+.quick-links{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 22px}.quick-links a{color:#a2e4e0;border:1px solid #365268;border-radius:20px;padding:5px 12px;text-decoration:none}.quick-links a:focus-visible{outline:2px solid #f2ce8f;outline-offset:2px}
