@@ -18,7 +18,7 @@ function renderIssues() {
   panel.replaceChildren();
   const records = currentSnapshot.issues.filter(i => !scope || i.scope === scope);
   if (!records.length) item(panel, 'No matching issues', 'No records in this mock snapshot.', 'This does not establish a healthy state.');
-  records.forEach(i => item(panel, i.title, i.detail, `${i.scope} · ${i.status} · ${i.source}`));
+  records.forEach(i => item(panel, i.title, i.detail, `${i.scope} · ${i.status} · ${i.source} · Updated: ${i.updatedAt || 'unknown'}`));
 }
 function renderLearning() {
   const panel = document.querySelector('#learning');
