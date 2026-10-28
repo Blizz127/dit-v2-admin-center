@@ -154,7 +154,7 @@ def overview(source='mock'):
         "mode": "mock", "generatedAt": datetime.now(timezone.utc).isoformat(),
         "ownerAttention": owner_attention,
         "bots": [
-            {"id": "demo-1", "name": "Aster", "game": "FFXI", "status": "Paused", "character": "Example job", "level": "12", "bodyKind": "Example body", "source": "Synthetic fixture", "observedAt": "2026-01-01T12:00:00Z", "routing": {"purpose": "conversation", "requested": "Example provider / example model", "effective": None, "version": "example-1", "source": "Synthetic routing example", "observedAt": "2026-01-01T12:00:00Z", "availability": "Unavailable", "reason": "Example identity has not been verified"}},
+            {"id": "demo-1", "name": "Aster", "game": "FFXI", "status": "Paused", "character": "Example job", "level": "12", "bodyKind": "Example body", "personalitySummary": "Example: patient and curious", "source": "Synthetic fixture", "observedAt": "2026-01-01T12:00:00Z", "routing": {"purpose": "conversation", "requested": "Example provider / example model", "effective": None, "version": "example-1", "source": "Synthetic routing example", "observedAt": "2026-01-01T12:00:00Z", "availability": "Unavailable", "reason": "Example identity has not been verified"}},
             {"id": "demo-2", "name": "Vale", "game": "SWTOR", "status": "Unknown", "source": "Synthetic fixture", "observedAt": None},
         ] + project_roster("ffxi", [{"key": "example", "name": "Example roster bot"}]),
         "gameStatus": [

@@ -248,7 +248,8 @@ function inspectBot(id) {
   const bot = currentSnapshot.bots.find(b => b.id === id);
   if (!bot) { panel.textContent = 'Selected bot is no longer in this snapshot.'; return; }
   item(panel, `${bot.name} · ${bot.game}`, rosterDetails(bot), `${bot.source} · Observed: ${bot.observedAt || 'unknown'}`);
-  item(panel, 'Goals, personality and memory', 'Unknown', 'Not included in this view');
+  item(panel, 'Reported personality summary', routingText(bot.personalitySummary), `${bot.source} · Roster metadata, not proof of behavior`);
+  item(panel, 'Goals and memory', 'Unknown', 'Not included in this view');
   const events = currentSnapshot.ledger.filter(e => e.botId === bot.id);
   if (!events.length) item(panel, 'Evidence', 'No matching synthetic records', 'Absence of records does not prove inactivity.');
   events.forEach(e => item(panel, e.request, `Result: ${e.result} · Verification: ${e.verification}`, `Correlation: ${e.correlationId}`));
