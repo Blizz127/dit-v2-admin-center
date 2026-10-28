@@ -47,3 +47,19 @@ class HubReaderTests(unittest.TestCase):
 
 
 if __name__ == '__main__': unittest.main()
+
+class ProjectionTests(unittest.TestCase):
+    def test_partial_failure_keeps_games_scoped_and_presence_unknown(self):
+        from live_hub import read_views
+        class Reader:
+            def get(self, view, game):
+                if game == 'swtor': raise HubReadError('Unavailable')
+                if view == 'bots': return ([{'key': 'one', 'name': 'Example'}], '2026-01-01T00:00:00Z')
+                return ({'gameId': 'ffxi', 'tasks': [{'id': 'a', 'gameId': 'ffxi', 'topic': 'Example', 'status': 'failed'}]}, '2026-01-01T00:00:00Z')
+        result = read_views(Reader())
+        self.assertEqual(result['bots']['ffxi'][0]['status'], 'Unknown')
+        self.assertIsNone(result['bots']['ffxi'][0]['observedAt'])
+        self.assertNotIn('swtor', result['bots'])
+        self.assertEqual(result['learning']['ffxi'][0]['policy'], 'Unknown')
+        self.assertEqual(result['issues']['ffxi'][0]['learningId'], 'live:ffxi:a')
+        self.assertEqual([x['status'] for x in result['feeds']], ['Live response', 'Live response', 'Unavailable', 'Unavailable'])

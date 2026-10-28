@@ -55,3 +55,40 @@ class HubReader:
         except (OSError, ValueError, urllib.error.URLError) as error:
             # Do not include paths, headers, response bodies, or credentials in errors.
             raise HubReadError('Hub read unavailable') from None
+
+
+def read_views(reader, games=('ffxi', 'swtor')):
+    """Project per-game roster and task-only learning reads; failures are isolated."""
+    from r10_projection import project_learning, project_learning_attention
+    result = {'bots': {}, 'learning': {}, 'issues': {}, 'feeds': []}
+    for game in games:
+        for view in ('bots', 'learning'):
+            try:
+                data, fetched = reader.get(view, game)
+                if view == 'bots':
+                    if not isinstance(data, list):
+                        raise ValueError('invalid roster')
+                    rows = []
+                    for row in data:
+                        if not isinstance(row, dict) or not all(isinstance(row.get(k), str) and row[k] for k in ('key', 'name')):
+                            raise ValueError('invalid roster row')
+                        rows.append({'id': f'live:{game}:{row["key"]}', 'name': row['name'], 'game': game.upper(),
+                                     'status': 'Unknown', 'observedAt': None,
+                                     'source': f'Hub r10 roster · fetched {fetched} · registration is not presence'})
+                    result['bots'][game] = rows
+                else:
+                    rows = project_learning(data)
+                    if data.get('gameId') != game:
+                        raise ValueError('mismatched game')
+                    for row in rows:
+                        row['id'] = f'live:{game}:{row["id"]}'
+                        row['game'] = game.upper()
+                        row['source'] = f'Hub r10 light learning tasks · fetched {fetched}'
+                    result['learning'][game] = rows
+                    result['issues'][game] = project_learning_attention(rows)
+                result['feeds'].append({'game': game.upper(), 'view': view, 'status': 'Live response', 'at': fetched,
+                                        'note': 'Coverage and deployed revision not verified'})
+            except (HubReadError, ValueError, TypeError, KeyError):
+                result['feeds'].append({'game': game.upper(), 'view': view, 'status': 'Unavailable', 'at': None,
+                                        'note': 'Synthetic fallback; no current hub data'})
+    return result
