@@ -11,6 +11,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from lead_timeline import timeline
 from r10_projection import project_health, project_learning, project_learning_attention, project_roster
 
 ROOT = Path(__file__).resolve().parent / "static"
@@ -122,6 +123,7 @@ def overview():
             {'id': 'fixture-feed', 'game': 'ffxi', 'label': 'Example adapter feed', 'state': 'quiet', 'detail': 'Example only'}]}),
         "leads": lead_inventory(),
         "leadMonitoring": lead_monitoring(),
+        "leadTimeline": timeline(Path.home() / ".local/share/devbox-coordinator-state"),
         "audit": [
             {"actor": "Example operator", "action": "Simulated model selection", "scope": "Example FFXI bot",
              "result": "Example only; no change applied", "at": "2026-01-01T12:00:00Z", "source": "Synthetic audit fixture"},
