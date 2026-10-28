@@ -169,6 +169,15 @@ function renderLedger() {
   if (!records.length) item(panel, 'No matching evidence', 'No records in this mock snapshot.', 'This is not proof that an action did or did not occur.');
   records.forEach(e => item(panel, `${e.bot} · ${e.request}`, `Result: ${e.result} · Verification: ${e.verification}`, `Correlation: ${e.correlationId}`));
 }
+function renderBotCoverage() {
+  const panel = document.querySelector('#bot-coverage');
+  panel.replaceChildren();
+  for (const game of ['FFXI', 'SWTOR']) {
+    const rows = currentSnapshot.bots.filter(b => b.game === game);
+    const unknown = rows.filter(b => !b.status || b.status.toLowerCase() === 'unknown').length;
+    item(panel, `${game} · loaded roster`, `${rows.length} records · ${unknown} with unknown status`, 'Loaded records may be incomplete; registration does not establish online presence. Check each source.');
+  }
+}
 function renderBots() {
   const panel = document.querySelector('#bots');
   const game = document.querySelector('#bot-game').value;
@@ -274,7 +283,7 @@ async function load() {
     if (!response.ok) throw new Error(response.status === 401 ? 'Token was not accepted.' : 'Could not load the workspace.');
     const data = await response.json();
     if (requestId !== requestVersion) return;
-    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage']) document.getElementById(id).replaceChildren();
+    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage', 'bot-coverage']) document.getElementById(id).replaceChildren();
     currentSnapshot = data;
     item(document.querySelector('#owner-attention'), 'Coverage', data.ownerAttention.coverage, 'Coordinator task board · Read only');
     if (!data.ownerAttention.items.length) item(document.querySelector('#owner-attention'), 'No records listed', 'Other owner decisions may be tracked elsewhere.', 'Not a complete decision inventory');
@@ -288,6 +297,7 @@ async function load() {
     else if (feeds.length && feeds.every(f => f.status === 'Live response')) banner.textContent = 'Hub reads available. Coverage and deployed revision remain unverified.';
     else banner.textContent = 'Hub status unknown. Check source labels for each view.';
     data.hubFeeds.forEach(f => item(document.querySelector('#hub-feeds'), `${f.game} · ${f.view}`, f.status, `${f.note} · Fetched: ${f.at || 'unknown'}`));
+    renderBotCoverage();
     renderBots();
     if (selectedBotId !== null) inspectBot(selectedBotId);
     else { renderAssignments(); renderReplySource(); }

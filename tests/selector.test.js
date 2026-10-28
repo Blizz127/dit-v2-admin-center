@@ -22,6 +22,7 @@ vm.runInNewContext(fs.readFileSync('static/app.js', 'utf8'), context);
 setImmediate(async () => {
   assert.equal(get('owner-attention').children[1].children[0].textContent, 'Review example');
   assert.match(get('hub-banner').textContent, /Hub not configured.*synthetic fallback/);
+  assert.match(get('bot-coverage').children[0].children[2].textContent, /registration does not establish online presence/);
   get('bot-search').value = 'absent';
   get('bot-search').listeners.input();
   assert.equal(get('bots').children[0].children[0].textContent, 'No matching roster records');
