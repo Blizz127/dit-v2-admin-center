@@ -12,10 +12,13 @@ class MockRoutingTests(unittest.TestCase):
         self.assertEqual(simulation.apply([a, b], 'example-model-2', 1, 'fixture-owner', 'example all'), 2)
         result = simulation.snapshot()
         self.assertEqual(result['policies'], {a: 'example-model-2', b: 'example-model-2'})
+        self.assertTrue(result['audit'][1]['at'].endswith('+00:00'))
         self.assertEqual(result['audit'][1]['changes'], ((a, 'example-model-1', 'example-model-2'), (b, None, 'example-model-2')))
         with self.assertRaises(ValueError):
             simulation.apply([a], 'example-model-1', 1, 'fixture-owner', 'stale')
         self.assertEqual(simulation.snapshot(), result)
+        result['audit'][0]['actor'] = 'tampered'
+        self.assertEqual(simulation.snapshot()['audit'][0]['actor'], 'fixture-owner')
 
     def test_invalid_batch_does_not_partially_apply(self):
         a = BotKey('ffxi', 'synthetic-realm', 'a', 'conversation')

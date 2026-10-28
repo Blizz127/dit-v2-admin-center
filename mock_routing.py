@@ -3,6 +3,7 @@
 This is an offline example, not a hub contract, authorization layer, or audit system.
 """
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from threading import Lock
 
 
@@ -25,7 +26,7 @@ class MockRouting:
 
     def snapshot(self):
         with self._lock:
-            return {'version': self._version, 'policies': dict(self._policies), 'audit': list(self._audit)}
+            return {'version': self._version, 'policies': dict(self._policies), 'audit': [dict(entry) for entry in self._audit]}
 
     def apply(self, keys, model, expected_version, actor, reason):
         """Atomically update explicit fixture keys, once, with compare-and-set."""
@@ -42,5 +43,6 @@ class MockRouting:
             for key in keys:
                 self._policies[key] = model
             self._audit.append({'version': self._version, 'actor': actor, 'reason': reason,
+                                'at': datetime.now(timezone.utc).isoformat(),
                                 'changes': tuple((key, before[key], model) for key in keys)})
             return self._version
