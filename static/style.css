@@ -3,3 +3,5 @@
 .routing{margin-top:12px!important;color:#a7b7c8;font-size:.88rem}select{display:block;margin:6px 0;background:#172636;color:#a7b7c8;border:1px solid #466078;border-radius:6px;padding:8px 10px;min-width:180px}select:disabled{opacity:.8}
 
 fieldset{border:1px solid #34495d;border-radius:8px;margin:12px 0;padding:14px}fieldset input[type=checkbox]{width:auto;margin-right:8px}fieldset label{margin:8px 0}
+
+.updates{padding-left:20px;margin:12px 0 0}.updates li{margin:8px 0;color:#cfdae5}

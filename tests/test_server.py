@@ -40,6 +40,12 @@ class ServerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             make_server(0, "")
 
+    def test_workspace_changelog_is_visible_and_labeled(self):
+        page = self.request("GET", "/")[2].decode()
+        self.assertIn("What's new", page)
+        self.assertIn('curated changelog, not a live activity feed', page)
+        self.assertIn('model controls remain disabled', page)
+
     def test_global_controls_are_disabled(self):
         from html.parser import HTMLParser
         class Controls(HTMLParser):
