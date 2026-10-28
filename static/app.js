@@ -318,6 +318,10 @@ document.querySelector('#issue-reset').addEventListener('click', () => {
 document.querySelector('#learning-game').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
 document.querySelector('#learning-status').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
 document.querySelector('#learning-search').addEventListener('input', () => { if (currentSnapshot) renderLearning(); });
+document.querySelector('#learning-reset').addEventListener('click', () => {
+  for (const id of ['learning-game', 'learning-status', 'learning-search']) document.getElementById(id).value = '';
+  if (currentSnapshot) renderLearning();
+});
 document.querySelector('#trace-search').addEventListener('submit', e => {
   e.preventDefault(); correlationFilter = document.querySelector('#correlation').value.trim();
   if (currentSnapshot) renderLedger();
