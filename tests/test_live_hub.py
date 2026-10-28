@@ -62,6 +62,18 @@ class HubReaderTests(unittest.TestCase):
 
 
 class ProjectionTests(unittest.TestCase):
+    def test_settings_snapshot_preserves_unknown_and_scope(self):
+        from live_hub import project_server_status
+        with self.assertRaises(ValueError):
+            project_server_status({'gameId': 'swtor', 'status': {}}, 'ffxi', 'time')
+        row = project_server_status({'gameId': 'ffxi', 'status': {'xpRate': 0, 'checkedAtUtc': 'time', 'motd': 'private'}}, 'ffxi', 'time')
+        self.assertEqual(row['xpRate'], 0)
+        self.assertEqual(row['liveness'], 'Unknown')
+        self.assertNotIn('private', str(row))
+        absent = project_server_status({'gameId': 'ffxi', 'status': None}, 'ffxi', 'time')
+        self.assertIsNone(absent['checkedAt'])
+        self.assertIsNone(absent['xpRate'])
+
     def test_trace_projection_rejects_invalid_and_discards_bodies(self):
         from live_hub import project_trace
         with self.assertRaises(ValueError): project_trace({'not': 'a list'})
