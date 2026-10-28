@@ -13,6 +13,14 @@ function item(parent, title, detail, meta) {
   const small = document.createElement('small'); small.textContent = meta || '';
   row.append(heading, text, small); parent.append(row);
 }
+function renderQuotaHistory() {
+  const panel = document.querySelector('#quota-history');
+  const window = document.querySelector('#quota-window').value;
+  const records = currentSnapshot.quotaHistory.filter(q => !window || q.window === window);
+  panel.replaceChildren();
+  if (!records.length) item(panel, 'No matching observations', 'Quota history for this filter is unknown.', 'No account refresh is performed.');
+  records.forEach(q => item(panel, `Account ${q.account} · ${q.window}`, `Remaining: ${q.remainingPercent}% at observation`, `Observed: ${q.observedAt} · Cached Codex state; may be stale`));
+}
 function renderLeadTimeline() {
   const panel = document.querySelector('#lead-timeline');
   const filter = document.querySelector('#timeline-kind').value;
@@ -188,8 +196,7 @@ async function load() {
       item(document.querySelector('#session-markers'), report.lead, report.coverage, 'Heuristic; no rollout text is displayed');
       report.markers.forEach(m => item(document.querySelector('#session-markers'), m.kind, m.observedAt, `${m.source} · Historical; current state unknown`));
     });
-    if (!data.quotaHistory.length) item(document.querySelector('#quota-history'), 'No recorded observations', 'Quota history is unknown.', 'No account refresh is performed.');
-    data.quotaHistory.forEach(q => item(document.querySelector('#quota-history'), `Account ${q.account} · ${q.window}`, `Remaining: ${q.remainingPercent}% at observation`, `Observed: ${q.observedAt} · Cached Codex state; may be stale`));
+    renderQuotaHistory();
     data.modelCalls.forEach(c => item(document.querySelector('#model-calls'), `${c.model} · ${c.purpose}`, `Latency: ${typeof c.latencyMs === 'number' ? c.latencyMs + ' ms' : 'Unknown'} · Cost: ${c.cost == null ? 'Unknown' : c.cost} · Quality: ${c.quality == null ? 'Unknown' : c.quality}`, `${c.source} · Observed: ${c.observedAt || 'unknown'}`));
     data.audit.forEach(a => item(document.querySelector('#audit'), `${a.action} · ${a.scope}`, a.result, `${a.actor} · ${a.at || 'unknown time'} · ${a.source}`));
     renderIssues();
@@ -201,6 +208,7 @@ async function load() {
 }
 form.addEventListener('submit', e => { e.preventDefault(); token = document.querySelector('#token').value; document.querySelector('#token').value = ''; load(); });
 document.querySelector('#refresh').addEventListener('click', load);
+document.querySelector('#quota-window').addEventListener('change', () => { if (currentSnapshot) renderQuotaHistory(); });
 document.querySelector('#timeline-kind').addEventListener('change', () => { if (currentSnapshot) renderLeadTimeline(); });
 document.querySelector('#issue-scope').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
 document.querySelector('#issue-search').addEventListener('input', () => { if (currentSnapshot) renderIssues(); });
