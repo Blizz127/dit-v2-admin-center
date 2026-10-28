@@ -108,6 +108,11 @@ setImmediate(async () => {
   assert.equal(get('issues').children.length, 1);
   assert.equal(get('issues').children[0].children[0].textContent, 'Bot issue');
   assert.match(get('issues').children[0].children[2].textContent, /Updated: unknown/);
+  get('issue-status').value = 'Unknown';
+  get('issue-status').listeners.change();
+  assert.equal(get('issues').children[0].children[0].textContent, 'No matching issues');
+  get('issue-status').value = '';
+  get('issue-status').listeners.change();
   get('issue-search').value = 'not found';
   get('issue-search').listeners.input();
   assert.equal(get('issues').children[0].children[0].textContent, 'No matching issues');
