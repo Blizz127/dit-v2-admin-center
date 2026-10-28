@@ -134,6 +134,14 @@ function inspectLearning(id) {
   if (!issues.length) item(panel, 'Related issues', 'No matching issue records in this view.', 'This does not establish a resolved learning gap.');
   issues.forEach(i => item(panel, `Related issue · ${i.title}`, `${i.status} · ${i.detail}`, `${i.source} · ${i.timeLabel || 'Updated'}: ${i.updatedAt || 'unknown'}`));
 }
+function renderLearningArtifacts() {
+  const panel = document.querySelector('#learning-artifacts');
+  const game = document.querySelector('#learning-game').value;
+  const rows = currentSnapshot.learningArtifacts.filter(a => !game || a.game === game);
+  panel.replaceChildren();
+  if (!rows.length) item(panel, 'No artifact examples', 'No matching synthetic records.', 'This does not establish real artifact coverage.');
+  rows.forEach(a => item(panel, `${a.game} · ${a.kind} · ${a.name}`, `Validation: ${a.validation} · Adoption: ${a.adoption} · Demonstrated outcome: ${a.outcome}`, `Version: ${a.version || 'unknown'} · ${a.source} · Observed: ${a.observedAt || 'unknown'}`));
+}
 function renderLearningPlan() {
   const panel = document.querySelector('#learning-plan');
   const game = document.querySelector('#learning-game').value;
@@ -338,7 +346,7 @@ async function load() {
     if (!response.ok) throw new Error(response.status === 401 ? 'Token was not accepted.' : 'Could not load the workspace.');
     const data = await response.json();
     if (requestId !== requestVersion) return;
-    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage', 'bot-coverage', 'learning-plan', 'game-status', 'spend-example']) document.getElementById(id).replaceChildren();
+    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage', 'bot-coverage', 'learning-plan', 'game-status', 'spend-example', 'learning-artifacts']) document.getElementById(id).replaceChildren();
     currentSnapshot = data;
     item(document.querySelector('#owner-attention'), 'Coverage', data.ownerAttention.coverage, 'Coordinator task board · Read only');
     if (!data.ownerAttention.items.length) item(document.querySelector('#owner-attention'), 'No records listed', 'Other owner decisions may be tracked elsewhere.', 'Not a complete decision inventory');
@@ -386,6 +394,7 @@ async function load() {
     renderLedger();
     renderLearningCoverage();
     renderLearningPlan();
+    renderLearningArtifacts();
     renderLearning();
     document.querySelector('#updated').textContent = `Snapshot generated ${data.generatedAt} · Sources are labeled per view; lead task state comes from the coordinator board.`;
     sessionStorage.setItem('dit-admin-token', token); workspace.hidden = false; form.hidden = true; loadBridge();
@@ -427,14 +436,14 @@ document.querySelector('#issue-reset').addEventListener('click', () => {
   document.querySelector('#issue-selected-bot').checked = false;
   if (currentSnapshot) renderIssues();
 });
-document.querySelector('#learning-game').addEventListener('change', () => { if (currentSnapshot) { renderLearningPlan(); renderLearning(); } });
+document.querySelector('#learning-game').addEventListener('change', () => { if (currentSnapshot) { renderLearningPlan(); renderLearningArtifacts(); renderLearning(); } });
 document.querySelector('#learning-status').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
 document.querySelector('#learning-attention').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
 document.querySelector('#learning-search').addEventListener('input', () => { if (currentSnapshot) renderLearning(); });
 document.querySelector('#learning-reset').addEventListener('click', () => {
   for (const id of ['learning-game', 'learning-status', 'learning-search']) document.getElementById(id).value = '';
   document.querySelector('#learning-attention').checked = false;
-  if (currentSnapshot) { renderLearningPlan(); renderLearning(); }
+  if (currentSnapshot) { renderLearningPlan(); renderLearningArtifacts(); renderLearning(); }
 });
 for (const id of ['trace-game', 'correlation']) {
   document.getElementById(id).addEventListener(id === 'correlation' ? 'input' : 'change', () => {
