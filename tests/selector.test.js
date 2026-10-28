@@ -227,6 +227,13 @@ setImmediate(async () => {
   assert.match(get('hub-trace').children[1].children[2].textContent, /Raw envelope body omitted/);
   get('correlation').listeners.input();
   assert.equal(get('hub-trace').children.length, 0);
+  get('learning-status').value = 'failed'; get('learning-search').value = 'hidden'; get('learning-attention').checked = true;
+  get('ffxi-learning').listeners.click();
+  assert.equal(get('learning-game').value, 'FFXI');
+  assert.equal(get('learning-status').value, '');
+  assert.equal(get('learning-search').value, '');
+  assert.equal(get('learning-attention').checked, false);
+  assert.match(get('learning-count').textContent, /Showing 1 of 2/);
   context.fetch = async () => { throw new Error('offline'); };
   await get('bridge-refresh').listeners.click();
   assert.equal(get('ffxi-focus-bridge').children.length, 0);

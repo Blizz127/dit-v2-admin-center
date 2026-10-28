@@ -460,6 +460,13 @@ document.querySelector('#issue-reset').addEventListener('click', () => {
   document.querySelector('#issue-selected-bot').checked = false;
   if (currentSnapshot) renderIssues();
 });
+document.querySelector('#ffxi-learning').addEventListener('click', () => {
+  for (const id of ['learning-status', 'learning-search']) document.getElementById(id).value = '';
+  document.querySelector('#learning-attention').checked = false;
+  document.querySelector('#learning-game').value = 'FFXI';
+  if (currentSnapshot) { renderLearningPlan(); renderLearningArtifacts(); renderLearning(); }
+  document.querySelector('#learning').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+});
 document.querySelector('#learning-game').addEventListener('change', () => { if (currentSnapshot) { renderLearningPlan(); renderLearningArtifacts(); renderLearning(); } });
 document.querySelector('#learning-status').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
 document.querySelector('#learning-attention').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
