@@ -50,6 +50,7 @@ class HubReaderTests(unittest.TestCase):
                 self.assertEqual(Stub.requests[0][1], 'Bearer test-token')
                 self.assertIn('light=true', Stub.requests[1][0])
                 with self.assertRaises(ValueError): reader.get('goals', 'ffxi')
+                with self.assertRaises(ValueError): reader.get('ai-spend', 'ffxi')
                 with self.assertRaises(ValueError): reader.get('bots', '../other')
                 token.unlink()
                 with self.assertRaises(HubReadError) as error: reader.get('bots', 'ffxi')
