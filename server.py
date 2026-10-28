@@ -175,6 +175,10 @@ def overview(source='mock'):
                                       'claude-dit-human-behavior-platform': home / 'dev/dit-human-behavior-platform'}),
         "sessionMarkers": marker_reports,
         "quotaHistory": history(LOCAL_DATA),
+        "safetyRecords": [
+            {"scope": "Network example", "botId": None, "gate": "Off", "killSwitch": "Unknown", "source": "Synthetic safety fixture", "observedAt": "2026-01-01T12:00:00Z"},
+            {"scope": "Bot example", "botId": "demo-1", "gate": "Off", "killSwitch": "Unknown", "source": "Synthetic safety fixture", "observedAt": "2026-01-01T12:00:00Z"},
+        ],
         "botDetails": [
             {"botId": "demo-1", "source": "Synthetic bot detail fixture", "observedAt": "2026-01-01T12:00:00Z",
              "goals": [{"text": "Example: explore a safe area", "status": "Proposed", "evidence": "Not verified"}],

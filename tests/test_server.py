@@ -102,6 +102,13 @@ class ServerTests(unittest.TestCase):
         self.assertTrue(all(r['evidence'] == 'Unknown' and r['datasets'] == 'Unknown' and r['policy'] == 'Unknown' for r in rows))
         self.assertTrue(all('not a live finding' in r['source'] for r in rows))
 
+    def test_safety_records_are_synthetic_and_do_not_assert_kill_state(self):
+        status, _, body = self.request("GET", "/api/overview?source=mock", "test-private-token")
+        self.assertEqual(status, 200)
+        records = json.loads(body)['safetyRecords']
+        self.assertTrue(all('Synthetic' in row['source'] for row in records))
+        self.assertTrue(all(row['killSwitch'] == 'Unknown' for row in records))
+
     def test_bot_details_are_synthetic_and_unverified(self):
         status, _, body = self.request("GET", "/api/overview?source=mock", "test-private-token")
         self.assertEqual(status, 200)
