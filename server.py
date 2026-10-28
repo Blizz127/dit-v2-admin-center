@@ -27,12 +27,12 @@ def overview():
             {"correlationId": "demo-episode-2", "bot": "Aster", "request": "Move to camp", "result": "Rejected: gate disabled", "verification": "Not applicable"},
         ],
         "learning": [
-            {"game": "FFXI", "topic": "Navigation and grounded social memory", "status": "Needs evidence", "evidence": "Not instrumented"},
-            {"game": "SWTOR", "topic": "Adapter and game-specific behavior", "status": "Not started", "evidence": "Unknown"},
+            {"game": "FFXI", "topic": "Navigation, party behavior and grounded social memory", "status": "Needs evidence", "evidence": "Not instrumented", "datasets": "Unknown", "policy": "Unknown", "source": "Synthetic planning example"},
+            {"game": "SWTOR", "topic": "Adapter coverage, missions and social behavior", "status": "Needs inventory", "evidence": "Unknown", "datasets": "Unknown", "policy": "Unknown", "source": "Synthetic planning example"},
         ],
         "issues": [
-            {"title": "Hub contract awaiting coordination", "detail": "This view uses fixtures; no hub connection is configured."},
-            {"title": "Controls unavailable", "detail": "Bot commands, gates and model changes are not connected."},
+            {"title": "Hub contract awaiting coordination", "detail": "This view uses fixtures; no hub connection is configured.", "status": "Open", "source": "Synthetic planning example"},
+            {"title": "Controls unavailable", "detail": "Bot commands, gates and model changes are not connected.", "status": "Open", "source": "Synthetic planning example"},
         ],
     }
 

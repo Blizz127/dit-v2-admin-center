@@ -18,9 +18,9 @@ async function load() {
     for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning']) document.getElementById(id).replaceChildren();
     data.bots.forEach(b => item(document.querySelector('#bots'), `${b.name} · ${b.game}`, b.status, `${b.source} · Observed: ${b.observedAt || 'unknown'}`));
     data.leads.forEach(l => item(document.querySelector('#leads'), `${l.name} · ${l.scope}`, l.status, `${l.source} · Observed: ${l.observedAt || 'unknown'}`));
-    data.issues.forEach(i => item(document.querySelector('#issues'), i.title, i.detail));
+    data.issues.forEach(i => item(document.querySelector('#issues'), i.title, i.detail, `${i.status} · ${i.source}`));
     data.ledger.forEach(e => item(document.querySelector('#ledger'), `${e.bot} · ${e.request}`, `Result: ${e.result} · Verification: ${e.verification}`, `Correlation: ${e.correlationId}`));
-    data.learning.forEach(l => item(document.querySelector('#learning'), `${l.game} · ${l.topic}`, l.status, `Evidence: ${l.evidence}`));
+    data.learning.forEach(l => item(document.querySelector('#learning'), `${l.game} · ${l.topic}`, l.status, `Evidence: ${l.evidence} · Datasets: ${l.datasets} · Policy verification: ${l.policy} · ${l.source}`));
     document.querySelector('#updated').textContent = `Mock snapshot generated ${data.generatedAt}`;
     sessionStorage.setItem('dit-admin-token', token); workspace.hidden = false; form.hidden = true;
   } catch (e) { workspace.hidden = true; form.hidden = false; sessionStorage.removeItem('dit-admin-token'); error.textContent = e.message; }
