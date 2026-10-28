@@ -12,7 +12,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from lead_timeline import timeline
+from lead_timeline import add_current_evidence, timeline
 from quota_history import collect, history
 from r10_projection import project_health, project_learning, project_learning_attention, project_roster
 
@@ -92,7 +92,7 @@ def lead_monitoring():
         records, state = [], {}
     result = []
     for name, project, agent, provider, session in targets:
-        item = {"lead": name, "stall": "Unknown", "stallReason": "No available matching watcher classification", "quota": "Unknown", "quotaReason": "No per-lead quota source connected"}
+        item = {"lead": name, "stall": "Unknown", "stallReason": "No available matching watcher classification", "quota": "Unknown", "quotaReason": "No per-lead quota source connected", "stallObservedAt": None}
         item["poolCapacity"], item["poolReason"] = capacity_context(root, provider)
         item["sessionActivity"] = session_activity(session)
         matches = [t for t in records if isinstance(t, dict) and t.get("project") == project and t.get("agent") == agent and t.get("enabled", True)]
@@ -101,6 +101,7 @@ def lead_monitoring():
             if isinstance(entry, dict) and entry.get("kind") in ("STALLED", "STOPPED", "OFF-TRACK", "OK") and isinstance(entry.get("checked"), (int, float)):
                 try:
                     at = datetime.fromtimestamp(entry["checked"], timezone.utc).isoformat()
+                    item["stallObservedAt"] = at
                     item["stall"] = entry["kind"]
                     item["stallReason"] = "Coordinator watcher classification checked " + at + "; may be stale"
                 except (ValueError, OverflowError, OSError):
@@ -118,6 +119,8 @@ def overview():
     }]})
     for row in projected:
         row['game'] = 'FFXI'
+    monitoring = lead_monitoring()
+    lead_history = add_current_evidence(timeline(Path.home() / '.local/share/devbox-coordinator-state'), monitoring)
     return {
         "mode": "mock", "generatedAt": datetime.now(timezone.utc).isoformat(),
         "bots": [
@@ -127,8 +130,8 @@ def overview():
         "serviceHealth": project_health({'utc': '2026-01-01T12:00:00Z', 'services': [
             {'id': 'fixture-feed', 'game': 'ffxi', 'label': 'Example adapter feed', 'state': 'quiet', 'detail': 'Example only'}]}),
         "leads": lead_inventory(),
-        "leadMonitoring": lead_monitoring(),
-        "leadTimeline": timeline(Path.home() / ".local/share/devbox-coordinator-state"),
+        "leadMonitoring": monitoring,
+        "leadTimeline": lead_history,
         "quotaHistory": history(LOCAL_DATA),
         "audit": [
             {"actor": "Example operator", "action": "Simulated model selection", "scope": "Example FFXI bot",

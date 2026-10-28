@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from lead_timeline import timeline
+from lead_timeline import add_current_evidence, timeline
 
 
 class LeadTimelineTests(unittest.TestCase):
@@ -27,6 +27,14 @@ class LeadTimelineTests(unittest.TestCase):
             self.assertEqual(rows[0]['watchCoverage'], 'Recent watcher alerts only')
             self.assertIn('unknown', rows[1]['coverage'])
             self.assertEqual(rows[1]['events'], [])
+
+    def test_session_activity_and_watcher_remain_distinct(self):
+        rows = [{'lead': 'Example', 'events': []}]
+        add_current_evidence(rows, [{'lead': 'Example', 'sessionActivity': '2026-01-01T01:00:00+00:00',
+                                    'stall': 'STOPPED', 'stallObservedAt': '2026-01-01T02:00:00+00:00'}])
+        self.assertEqual(rows[0]['events'][0]['kind'], 'Watcher classification')
+        self.assertEqual(rows[0]['events'][1]['status'], 'Activity observed; idle state unknown')
+        self.assertIn('may be stale', rows[0]['events'][0]['source'])
 
     def test_missing_database_is_unknown(self):
         with tempfile.TemporaryDirectory() as directory:

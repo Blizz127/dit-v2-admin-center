@@ -38,3 +38,21 @@ def timeline(root):
         # Never present partial history as a successful complete query.
         return [{'lead': name, 'events': [], 'coverage': 'Coordinator history unavailable', 'watchCoverage': 'Unknown'} for name, _, _ in LEADS]
     return result
+
+
+def add_current_evidence(history_rows, monitoring):
+    """Add session activity and watcher snapshots, not inferred idle or goal state."""
+    by_lead = {item['lead']: item for item in monitoring}
+    for row in history_rows:
+        info = by_lead.get(row['lead'], {})
+        activity = info.get('sessionActivity')
+        if isinstance(activity, str) and activity != 'Unknown':
+            row['events'].append({'kind': 'Session activity', 'status': 'Activity observed; idle state unknown',
+                                  'at': activity, 'source': 'tmux session activity'})
+        checked = info.get('stallObservedAt')
+        classification = info.get('stall')
+        if checked and classification in ('STALLED', 'STOPPED', 'OFF-TRACK', 'OK'):
+            row['events'].append({'kind': 'Watcher classification', 'status': classification,
+                                  'at': checked, 'source': 'Coordinator watcher; may be stale'})
+        row['events'].sort(key=lambda event: event['at'], reverse=True)
+    return history_rows
