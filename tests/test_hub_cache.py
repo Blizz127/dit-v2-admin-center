@@ -23,6 +23,20 @@ class HubCacheTests(unittest.TestCase):
             results[0]['feeds'][0]['at'] = 'changed'
             self.assertEqual(cache.get('url', token)['feeds'][0]['at'], 'original-time')
 
+    def test_failed_refresh_never_reuses_expired_snapshot(self):
+        with tempfile.TemporaryDirectory() as directory:
+            token = Path(directory) / 'token'; token.write_text('fixture')
+            now = [0]; calls = []
+            def load(*_):
+                calls.append(1)
+                if len(calls) > 1: raise ValueError('unavailable')
+                return {'feeds': [{'status': 'old'}]}
+            cache = HubViewsCache(load, clock=lambda: now[0])
+            self.assertEqual(cache.get('url', token)['feeds'][0]['status'], 'old')
+            now[0] = 16
+            with self.assertRaises(ValueError): cache.get('url', token)
+            self.assertIsNone(cache.value)
+
     def test_expiry_and_token_file_change_invalidate(self):
         with tempfile.TemporaryDirectory() as directory:
             token = Path(directory) / 'token'; token.write_text('fixture')
