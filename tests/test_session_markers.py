@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import uuid
 import sqlite3
 import tempfile
@@ -26,7 +27,7 @@ class SessionMarkerTests(unittest.TestCase):
     def test_claude_requires_exact_live_binding_and_system_event(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory); project = root / 'project'; session = str(uuid.uuid4())
-            (root / 'sessions').mkdir(); slug = str(project).replace('/', '-')
+            (root / 'sessions').mkdir(); slug = re.sub(r'[^A-Za-z0-9]', '-', str(project))
             transcript = root / 'projects' / slug / (session + '.jsonl'); transcript.parent.mkdir(parents=True)
             transcript.write_text(json.dumps({'type': 'system', 'subtype': 'error', 'timestamp': '2026-01-01T00:00:00Z', 'content': 'Usage limit reached'}))
             info = {'pid': os.getpid(), 'sessionId': session, 'cwd': str(project), 'tmux': 'lead:0', 'peerProtocol': 1, 'messagingSocketPath': '/example'}
