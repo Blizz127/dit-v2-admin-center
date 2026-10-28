@@ -9,6 +9,26 @@ function item(parent, title, detail, meta) {
   const small = document.createElement('small'); small.textContent = meta || '';
   row.append(heading, text, small); parent.append(row);
 }
+function botItem(bot) {
+  const parent = document.querySelector('#bots');
+  item(parent, `${bot.name} · ${bot.game}`, bot.status, `${bot.source} · Observed: ${bot.observedAt || 'unknown'}`);
+  const row = parent.lastElementChild;
+  const details = document.createElement('p');
+  details.className = 'routing';
+  details.textContent = 'Requested model: Unknown · Effective model: Unknown';
+  const label = document.createElement('label');
+  label.textContent = `Model for ${bot.name}`;
+  const select = document.createElement('select');
+  select.disabled = true;
+  select.setAttribute('aria-label', `Model for ${bot.name}`);
+  const option = document.createElement('option');
+  option.textContent = 'Unavailable';
+  select.append(option);
+  const note = document.createElement('small');
+  note.textContent = 'Model selection awaits a hub contract and owner authorization.';
+  label.append(select);
+  row.append(details, label, note);
+}
 async function load() {
   error.textContent = '';
   try {
@@ -16,7 +36,7 @@ async function load() {
     if (!response.ok) throw new Error(response.status === 401 ? 'Token was not accepted.' : 'Could not load the workspace.');
     const data = await response.json();
     for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning']) document.getElementById(id).replaceChildren();
-    data.bots.forEach(b => item(document.querySelector('#bots'), `${b.name} · ${b.game}`, b.status, `${b.source} · Observed: ${b.observedAt || 'unknown'}`));
+    data.bots.forEach(botItem);
     data.leads.forEach(l => item(document.querySelector('#leads'), `${l.name} · ${l.scope}`, l.status, `${l.source} · Observed: ${l.observedAt || 'unknown'}`));
     data.issues.forEach(i => item(document.querySelector('#issues'), i.title, i.detail, `${i.status} · ${i.source}`));
     data.ledger.forEach(e => item(document.querySelector('#ledger'), `${e.bot} · ${e.request}`, `Result: ${e.result} · Verification: ${e.verification}`, `Correlation: ${e.correlationId}`));
