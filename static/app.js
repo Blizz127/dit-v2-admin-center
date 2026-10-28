@@ -2,6 +2,7 @@ const form = document.querySelector('#login');
 const error = document.querySelector('#error');
 const workspace = document.querySelector('#workspace');
 let currentSnapshot = null;
+let requestVersion = 0;
 let selectedBotId = null;
 let correlationFilter = '';
 let selectedLearningId = null;
@@ -160,12 +161,16 @@ function botItem(bot) {
   row.append(details, routingMeta, scope, purposeLabel, label, note);
 }
 async function load() {
+  const requestId = ++requestVersion;
   error.textContent = '';
+  document.querySelector('#hub-banner').textContent = 'Loading selected data source…';
   try {
     const source = document.querySelector('#data-source').value === 'hub' ? 'hub' : 'mock';
     const response = await fetch(`/api/overview?source=${source}`, {headers: {Authorization: `Bearer ${token}`}, cache: 'no-store'});
+    if (requestId !== requestVersion) return;
     if (!response.ok) throw new Error(response.status === 401 ? 'Token was not accepted.' : 'Could not load the workspace.');
     const data = await response.json();
+    if (requestId !== requestVersion) return;
     for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary']) document.getElementById(id).replaceChildren();
     currentSnapshot = data;
     item(document.querySelector('#owner-attention'), 'Coverage', data.ownerAttention.coverage, 'Coordinator task board · Read only');
@@ -209,7 +214,7 @@ async function load() {
     renderLearning();
     document.querySelector('#updated').textContent = `Snapshot generated ${data.generatedAt} · Sources are labeled per view; lead task state comes from the coordinator board.`;
     sessionStorage.setItem('dit-admin-token', token); workspace.hidden = false; form.hidden = true;
-  } catch (e) { workspace.hidden = true; form.hidden = false; sessionStorage.removeItem('dit-admin-token'); error.textContent = e.message; }
+  } catch (e) { if (requestId !== requestVersion) return; workspace.hidden = true; form.hidden = false; sessionStorage.removeItem('dit-admin-token'); error.textContent = e.message; }
 }
 form.addEventListener('submit', e => { e.preventDefault(); token = document.querySelector('#token').value; document.querySelector('#token').value = ''; load(); });
 document.querySelector('#refresh').addEventListener('click', load);
