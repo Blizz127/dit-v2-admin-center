@@ -1,5 +1,6 @@
 """Optional bounded read-only hub client; only an explicitly configured loopback tunnel."""
 import json
+import math
 import re
 import urllib.error
 import urllib.parse
@@ -34,7 +35,7 @@ class HubReader:
         self.opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
 
     def get(self, view, game):
-        if view not in ('bots', 'learning') or not GAME.fullmatch(game):
+        if view not in ('bots', 'learning', 'server-status') or not GAME.fullmatch(game):
             raise ValueError('Unsupported read')
         query = {'gameId': game}
         if view == 'learning':
@@ -69,9 +70,9 @@ class HubReader:
 def read_views(reader, games=('ffxi', 'swtor')):
     """Project per-game roster and task-only learning reads; failures are isolated."""
     from r10_projection import project_learning, project_learning_attention
-    result = {'bots': {}, 'learning': {}, 'issues': {}, 'feeds': []}
+    result = {'bots': {}, 'learning': {}, 'issues': {}, 'gameStatus': {}, 'feeds': []}
     for game in games:
-        for view in ('bots', 'learning'):
+        for view in ('bots', 'learning', 'server-status'):
             try:
                 data, fetched = reader.get(view, game)
                 if view == 'bots':
@@ -85,7 +86,7 @@ def read_views(reader, games=('ffxi', 'swtor')):
                                      'status': 'Unknown', 'observedAt': None,
                                      'source': f'Hub roster (r10-shaped projection) · fetched {fetched} · registration is not presence'})
                     result['bots'][game] = rows
-                else:
+                elif view == 'learning':
                     rows = project_learning(data)
                     if data.get('gameId') != game:
                         raise ValueError('mismatched game')
@@ -95,8 +96,10 @@ def read_views(reader, games=('ffxi', 'swtor')):
                         row['source'] = f'Hub light learning tasks (r10-shaped projection) · fetched {fetched}'
                     result['learning'][game] = rows
                     result['issues'][game] = project_learning_attention(rows)
+                else:
+                    result['gameStatus'][game] = project_server_status(data, game, fetched)
                 result['feeds'].append({'game': game.upper(), 'view': view, 'status': 'Live response', 'at': fetched,
-                                        'note': 'Light task list; curriculum and evidence omitted; deployed revision unverified' if view == 'learning' else 'Registration only; presence, coverage and deployed revision unverified'})
+                                        'note': {'learning': 'Light task list; curriculum and evidence omitted; deployed revision unverified', 'bots': 'Registration only; presence, coverage and deployed revision unverified', 'server-status': 'Stored settings snapshot; not server liveness; deployed revision unverified'}[view]})
             except (HubReadError, ValueError, TypeError, KeyError):
                 result['feeds'].append({'game': game.upper(), 'view': view, 'status': 'Unavailable', 'at': None,
                                         'note': 'Synthetic fallback; no current hub data'})
@@ -110,8 +113,10 @@ def merge_views(snapshot, live):
     for game, learning in live['learning'].items():
         snapshot['learning'] = [r for r in snapshot['learning'] if r.get('game', '').lower() != game] + learning
         snapshot['issues'] = [i for i in snapshot['issues'] if not (i.get('learningId') and i.get('scope', '').lower() == game)] + live['issues'][game]
+    for game, status in live.get('gameStatus', {}).items():
+        snapshot['gameStatus'] = [s for s in snapshot['gameStatus'] if s.get('game', '').lower() != game] + [status]
     snapshot['hubFeeds'] = live['feeds']
-    snapshot['mode'] = 'mixed' if live['bots'] or live['learning'] else 'mock'
+    snapshot['mode'] = 'mixed' if live['bots'] or live['learning'] or live.get('gameStatus') else 'mock'
     return snapshot
 
 
@@ -138,3 +143,22 @@ def project_trace(data):
                      'classification': safe(body.get('classification')), 'disposition': safe(body.get('disposition')),
                      'isFinal': body.get('isFinal') if type(body.get('isFinal')) is bool else None})
     return rows
+
+
+def project_server_status(data, game, fetched):
+    """Only a stored configuration snapshot, never an assertion of liveness."""
+    if not isinstance(data, dict) or data.get('gameId') != game:
+        raise ValueError('invalid game status scope')
+    status = data.get('status')
+    if status is not None and not isinstance(status, dict):
+        raise ValueError('invalid game status')
+    status = status or {}
+    rate = status.get('xpRate')
+    if type(rate) not in (int, float) or not math.isfinite(rate) or rate < 0:
+        rate = None
+    checked = status.get('checkedAtUtc')
+    if not isinstance(checked, str) or len(checked) > 64:
+        checked = None
+    return {'game': game.upper(), 'xpRate': rate, 'checkedAt': checked,
+            'source': f'Hub stored server settings (r10-shaped projection) · fetched {fetched}',
+            'liveness': 'Unknown'}

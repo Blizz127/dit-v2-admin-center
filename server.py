@@ -151,6 +151,10 @@ def overview(source='mock'):
             {"id": "demo-1", "name": "Aster", "game": "FFXI", "status": "Paused", "source": "Synthetic fixture", "observedAt": "2026-01-01T12:00:00Z", "routing": {"purpose": "conversation", "requested": "Example provider / example model", "effective": None, "version": "example-1", "source": "Synthetic routing example", "observedAt": "2026-01-01T12:00:00Z", "availability": "Unavailable", "reason": "Example identity has not been verified"}},
             {"id": "demo-2", "name": "Vale", "game": "SWTOR", "status": "Unknown", "source": "Synthetic fixture", "observedAt": None},
         ] + project_roster("ffxi", [{"key": "example", "name": "Example roster bot"}]),
+        "gameStatus": [
+            {"game": "FFXI", "xpRate": None, "checkedAt": None, "liveness": "Unknown", "source": "Synthetic fallback"},
+            {"game": "SWTOR", "xpRate": None, "checkedAt": None, "liveness": "Unknown", "source": "Synthetic fallback"},
+        ],
         "serviceHealth": project_health({'utc': '2026-01-01T12:00:00Z', 'services': [
             {'id': 'fixture-feed', 'game': 'ffxi', 'label': 'Example adapter feed', 'state': 'quiet', 'detail': 'Example only'}]}),
         "leads": lead_inventory(),

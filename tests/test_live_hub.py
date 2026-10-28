@@ -16,6 +16,8 @@ class Stub(BaseHTTPRequestHandler):
         Stub.requests.append((self.path, self.headers.get('Authorization')))
         if self.path.startswith('/v1/control/bots'):
             self.send_response(200); self.end_headers(); self.wfile.write(b'[{"key":"fixture","name":"Fixture bot"}]')
+        elif self.path.startswith('/v1/control/server-status'):
+            self.send_response(200); self.end_headers(); self.wfile.write(b'{"gameId":"ffxi","status":{"checkedAtUtc":"2026-01-01T00:00:00Z","xpRate":2}}')
         elif self.path.startswith('/v1/control/trace'):
             self.send_response(200); self.end_headers(); self.wfile.write(json.dumps([{'kind': 'outcome', 'type': 'example.outcome', 'occurredAtUtc': '2026-01-01T00:00:00Z', 'body': json.dumps({'classification': 'queued_for_native_delivery', 'disposition': 'pending', 'isFinal': False, 'private': 'must not appear'})}]).encode())
         elif self.path.startswith('/v1/control/learning'):
@@ -73,8 +75,8 @@ class ProjectionTests(unittest.TestCase):
 
     def test_merge_replaces_only_successful_scope(self):
         from live_hub import merge_views
-        snapshot = {'bots': [{'game': 'FFXI'}, {'game': 'SWTOR'}], 'learning': [{'game': 'FFXI'}, {'game': 'SWTOR'}], 'issues': []}
-        live = {'bots': {'ffxi': [{'game': 'FFXI', 'source': 'Live'}]}, 'learning': {}, 'issues': {}, 'feeds': []}
+        snapshot = {'bots': [{'game': 'FFXI'}, {'game': 'SWTOR'}], 'learning': [{'game': 'FFXI'}, {'game': 'SWTOR'}], 'issues': [], 'gameStatus': []}
+        live = {'bots': {'ffxi': [{'game': 'FFXI', 'source': 'Live'}]}, 'learning': {}, 'issues': {}, 'gameStatus': {}, 'feeds': []}
         result = merge_views(snapshot, live)
         self.assertEqual(result['mode'], 'mixed')
         self.assertEqual(len(result['bots']), 2)
@@ -87,14 +89,17 @@ class ProjectionTests(unittest.TestCase):
             def get(self, view, game):
                 if game == 'swtor': raise HubReadError('Unavailable')
                 if view == 'bots': return ([{'key': 'one', 'name': 'Example'}], '2026-01-01T00:00:00Z')
+                if view == 'server-status': return ({'gameId': 'ffxi', 'status': None}, '2026-01-01T00:00:00Z')
                 return ({'gameId': 'ffxi', 'tasks': [{'id': 'a', 'gameId': 'ffxi', 'topic': 'Example', 'status': 'failed'}]}, '2026-01-01T00:00:00Z')
         result = read_views(Reader())
         self.assertEqual(result['bots']['ffxi'][0]['status'], 'Unknown')
         self.assertIsNone(result['bots']['ffxi'][0]['observedAt'])
         self.assertNotIn('swtor', result['bots'])
         self.assertEqual(result['learning']['ffxi'][0]['policy'], 'Unknown')
+        self.assertEqual(result['gameStatus']['ffxi']['liveness'], 'Unknown')
+        self.assertIsNone(result['gameStatus']['ffxi']['xpRate'])
         self.assertEqual(result['issues']['ffxi'][0]['learningId'], 'live:ffxi:a')
-        self.assertEqual([x['status'] for x in result['feeds']], ['Live response', 'Live response', 'Unavailable', 'Unavailable'])
+        self.assertEqual([x['status'] for x in result['feeds']], ['Live response', 'Live response', 'Live response', 'Unavailable', 'Unavailable', 'Unavailable'])
 
 class EndToEndTests(unittest.TestCase):
     def test_mock_source_never_initializes_upstream_reader(self):
