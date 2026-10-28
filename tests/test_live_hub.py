@@ -16,6 +16,8 @@ class Stub(BaseHTTPRequestHandler):
         Stub.requests.append((self.path, self.headers.get('Authorization')))
         if self.path.startswith('/v1/control/bots'):
             self.send_response(200); self.end_headers(); self.wfile.write(b'[{"key":"fixture","name":"Fixture bot"}]')
+        elif self.path.startswith('/v1/control/trace'):
+            self.send_response(200); self.end_headers(); self.wfile.write(json.dumps([{'kind': 'outcome', 'type': 'example.outcome', 'occurredAtUtc': '2026-01-01T00:00:00Z', 'body': json.dumps({'classification': 'queued_for_native_delivery', 'disposition': 'pending', 'isFinal': False, 'private': 'must not appear'})}]).encode())
         elif self.path.startswith('/v1/control/learning'):
             self.send_response(200); self.end_headers(); self.wfile.write(json.dumps({'gameId': 'ffxi', 'tasks': [{'id': 'fixture-one', 'gameId': 'ffxi', 'topic': 'Fixture learning gap', 'status': 'unverified', 'reason': 'Example missing evidence', 'updatedAtUtc': '2026-01-01T00:00:00Z'}]}).encode())
         else:
@@ -34,6 +36,13 @@ class HubReaderTests(unittest.TestCase):
                 reader = HubReader(f'http://127.0.0.1:{server.server_port}', token)
                 data, stamp = reader.get('bots', 'ffxi'); self.assertEqual(data[0]['name'], 'Fixture bot'); self.assertTrue(stamp)
                 reader.get('learning', 'ffxi')
+                trace, _ = reader.trace('ffxi', 'demo-id')
+                from live_hub import project_trace
+                projected = project_trace(trace)
+                self.assertEqual(projected[0]['disposition'], 'pending')
+                self.assertFalse(projected[0]['isFinal'])
+                self.assertNotIn('must not appear', str(projected))
+                with self.assertRaises(ValueError): reader.trace('ffxi', 'bad id')
                 self.assertEqual(Stub.requests[0][1], 'Bearer test-token')
                 self.assertIn('light=true', Stub.requests[1][0])
                 with self.assertRaises(ValueError): reader.get('goals', 'ffxi')

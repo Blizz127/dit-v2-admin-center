@@ -9,6 +9,7 @@ from pathlib import Path
 
 MAX_RESPONSE = 1_000_000
 GAME = re.compile(r'^[a-z][a-z0-9_]{1,31}$')
+CORRELATION = re.compile(r'^[A-Za-z0-9_.:-]{1,128}$')
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -38,6 +39,14 @@ class HubReader:
         query = {'gameId': game}
         if view == 'learning':
             query.update({'light': 'true', 'tasksOnly': 'true'})
+        return self._request(view, query)
+
+    def trace(self, game, correlation):
+        if game not in ('ffxi', 'swtor') or not isinstance(correlation, str) or not CORRELATION.fullmatch(correlation):
+            raise ValueError('Invalid trace scope')
+        return self._request('trace', {'gameId': game, 'correlationId': correlation})
+
+    def _request(self, view, query):
         try:
             if self.token_file.stat().st_size > 4096:
                 raise HubReadError('Hub token unavailable')
@@ -104,3 +113,28 @@ def merge_views(snapshot, live):
     snapshot['hubFeeds'] = live['feeds']
     snapshot['mode'] = 'mixed' if live['bots'] or live['learning'] else 'mock'
     return snapshot
+
+
+def project_trace(data):
+    """Keep bounded envelope metadata only; never expose the original body."""
+    if not isinstance(data, list) or len(data) > 250:
+        raise ValueError('invalid trace response')
+    rows = []
+    for record in data:
+        if not isinstance(record, dict):
+            raise ValueError('invalid envelope')
+        kind, event_type = record.get('kind'), record.get('type')
+        if not isinstance(kind, str) or not kind or not isinstance(event_type, str) or not event_type:
+            raise ValueError('invalid envelope metadata')
+        body = record.get('body')
+        try:
+            body = json.loads(body) if isinstance(body, str) else {}
+        except ValueError:
+            body = {}
+        body = body if isinstance(body, dict) else {}
+        def safe(value):
+            return value if isinstance(value, str) and 0 < len(value) <= 128 else None
+        rows.append({'kind': safe(kind), 'type': safe(event_type), 'occurredAt': safe(record.get('occurredAtUtc')),
+                     'classification': safe(body.get('classification')), 'disposition': safe(body.get('disposition')),
+                     'isFinal': body.get('isFinal') if type(body.get('isFinal')) is bool else None})
+    return rows
