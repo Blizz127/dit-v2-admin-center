@@ -4,9 +4,9 @@ Status: draft for joint review with the DIT v2 hub lead. The hub owns its contra
 
 ## Boundary
 
-The browser talks only to this application's same-origin backend. An owner token authenticates access to data; future hub credentials remain on the backend. The initial development backend binds exclusively to 127.0.0.1, serves synthetic fixtures, has no connection to the hub or games, and exposes no mutation endpoints. It must not be treated as a production or tailnet deployment.
+The browser talks only to this application's same-origin backend. An owner token authenticates access to data; hub credentials remain on the backend. The development backend binds exclusively to 127.0.0.1, serves synthetic fixtures by default, and exposes no mutation endpoints. Optional allowlisted read-only hub requests require an explicitly configured trusted loopback tunnel and an existing token file. It must not be treated as a production or tailnet deployment.
 
-A future hub adapter translates confirmed, versioned hub responses into the local presentation contract in [API.md](API.md); it must not invent hub endpoints or imply that a mock field is supported upstream. Game adapters retain authority over game state and validation. The admin center does not access game databases, saves or characters. Start, stop, pause, model changes, gates and kill switches stay unavailable until their upstream contracts, authorization, audit, and safety behavior are established. Gates default off; unknown is never represented as off.
+The optional hub adapter translates source-reviewed r10-shaped responses into the local presentation contract in [API.md](API.md); it must not invent hub endpoints or imply that a mock field is supported upstream. Game adapters retain authority over game state and validation. The admin center does not access game databases, saves or characters. Start, stop, pause, model changes, gates and kill switches stay unavailable until their upstream contracts, authorization, audit, and safety behavior are established. Gates default off; unknown is never represented as off.
 
 ## Operator experience
 
@@ -16,7 +16,7 @@ Per-bot goals, personality, grounded memory, model routing and controls; global 
 
 ## Security and operation
 
-Owner authentication is mandatory for data. Secrets come from the environment or untracked local files, never git. Do not log tokens, expose provider or hub credentials to the browser, use SBISD accounts/models or the Grok pool. No FFXI writes, real saves or live characters. No connection to the v1 hub. No live integration or deployment is authorized by this mock scaffold. Before live use, design secure sessions, CSRF and origin controls, transport, audit, expiry, rate limits and fail-closed behavior against the agreed hub API.
+Owner authentication is mandatory for data. Secrets come from the environment or untracked local files, never git. Do not log tokens, expose provider or hub credentials to the browser, use SBISD accounts/models or the Grok pool. No FFXI writes, real saves or live characters. No connection to the v1 hub. Blizz authorized read-only hub integration; no live write or deployment is authorized. Before live use, design secure sessions, CSRF and origin controls, transport, audit, expiry, rate limits and fail-closed behavior against the agreed hub API.
 
 References read: sister project's `docs/architecture/PLATFORM_BOUNDARIES.md`, `CONTRACTS_V0.md`, `CONTROL_CENTER_INFORMATION_ARCHITECTURE.md`, and `ADMINISTRATOR_MISSION_CONTROL.md`. Those documents contain historical deployment claims; none were checked against a running service. Contract review with the hub lead remains pending.
 
