@@ -6,15 +6,20 @@ import sqlite3
 import math
 import time
 import subprocess
+import threading
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 
 from lead_timeline import timeline
+from quota_history import collect, history
 from r10_projection import project_health, project_learning, project_learning_attention, project_roster
 
-ROOT = Path(__file__).resolve().parent / "static"
+PROJECT = Path(__file__).resolve().parent
+ROOT = PROJECT / "static"
+LOCAL_DATA = PROJECT / "data" / "local"
+QUOTA_SOURCE = Path.home() / ".local/share/devbox-codex-accounts/state.json"
 ASSETS = {"/": ("index.html", "text/html; charset=utf-8"), "/app.js": ("app.js", "text/javascript; charset=utf-8"), "/style.css": ("style.css", "text/css; charset=utf-8")}
 
 
@@ -124,6 +129,7 @@ def overview():
         "leads": lead_inventory(),
         "leadMonitoring": lead_monitoring(),
         "leadTimeline": timeline(Path.home() / ".local/share/devbox-coordinator-state"),
+        "quotaHistory": history(LOCAL_DATA),
         "audit": [
             {"actor": "Example operator", "action": "Simulated model selection", "scope": "Example FFXI bot",
              "result": "Example only; no change applied", "at": "2026-01-01T12:00:00Z", "source": "Synthetic audit fixture"},
@@ -188,11 +194,27 @@ def make_server(port, token):
     return server
 
 
+def run_quota_collector(stop):
+    while not stop.is_set():
+        try:
+            collect(QUOTA_SOURCE, LOCAL_DATA)
+        except (OSError, sqlite3.Error):
+            pass
+        stop.wait(60)
+
+
 if __name__ == "__main__":
     token = os.environ.get("ADMIN_TOKEN", "")
     if not token.strip():
         raise SystemExit("Set ADMIN_TOKEN to a private, non-empty token before starting.")
     port = int(os.environ.get("PORT", "7391"))
     with make_server(port, token) as server:
+        stop = threading.Event()
+        worker = threading.Thread(target=run_quota_collector, args=(stop,), daemon=True)
+        worker.start()
         print(f"Mock Admin Center listening on http://127.0.0.1:{server.server_port}", flush=True)
-        server.serve_forever()
+        try:
+            server.serve_forever()
+        finally:
+            stop.set()
+            worker.join(timeout=3)

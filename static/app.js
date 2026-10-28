@@ -128,7 +128,7 @@ async function load() {
     const response = await fetch('/api/overview', {headers: {Authorization: `Bearer ${token}`}, cache: 'no-store'});
     if (!response.ok) throw new Error(response.status === 401 ? 'Token was not accepted.' : 'Could not load the workspace.');
     const data = await response.json();
-    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline']) document.getElementById(id).replaceChildren();
+    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history']) document.getElementById(id).replaceChildren();
     currentSnapshot = data;
     data.bots.forEach(botItem);
     if (selectedBotId !== null) inspectBot(selectedBotId);
@@ -141,6 +141,8 @@ async function load() {
       const group = panel.lastElementChild;
       t.events.forEach(e => item(group, `${e.kind}: ${e.status}`, e.at, e.source));
     });
+    if (!data.quotaHistory.length) item(document.querySelector('#quota-history'), 'No recorded observations', 'Quota history is unknown.', 'No account refresh is performed.');
+    data.quotaHistory.forEach(q => item(document.querySelector('#quota-history'), `Account ${q.account} · ${q.window}`, `Remaining: ${q.remainingPercent}% at observation`, `Observed: ${q.observedAt} · Cached Codex state; may be stale`));
     data.audit.forEach(a => item(document.querySelector('#audit'), `${a.action} · ${a.scope}`, a.result, `${a.actor} · ${a.at || 'unknown time'} · ${a.source}`));
     renderIssues();
     renderLedger();
