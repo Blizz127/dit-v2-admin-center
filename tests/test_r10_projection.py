@@ -7,11 +7,13 @@ class ProjectionTests(unittest.TestCase):
     def test_light_response_does_not_claim_evidence_or_policy(self):
         payload = {'gameId': 'ffxi', 'tasks': [
             {'id': 'one', 'gameId': 'ffxi', 'topic': 'Navigation', 'status': 'verified', 'updatedAtUtc': '2026-01-01T00:00:00Z'},
-            {'id': 'two', 'gameId': 'ffxi', 'topic': 'Missions', 'status': 'failed', 'reason': 'Insufficient evidence'},
+            {'id': 'two', 'gameId': 'ffxi', 'topic': 'Missions', 'status': 'failed', 'reason': 'Insufficient evidence', 'phase': 'check', 'escalation': 'needs-info', 'retryAtUtc': '2026-01-02T00:00:00Z'},
         ]}
         rows = project_learning(payload)
         self.assertEqual(rows[0]['evidence'], 'Not included')
         self.assertEqual(rows[0]['policy'], 'Unknown')
+        self.assertEqual((rows[1]['phase'], rows[1]['escalation'], rows[1]['retryAt']), ('check', 'needs-info', '2026-01-02T00:00:00Z'))
+        self.assertIsNone(rows[0]['phase'])
         self.assertEqual(project_learning_attention(rows)[0]['detail'], 'Insufficient evidence')
         self.assertEqual(project_learning_attention(rows)[0]['learningId'], 'two')
         self.assertEqual(len(project_learning_attention(rows)), 1)

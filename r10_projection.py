@@ -20,7 +20,10 @@ def project_learning(payload):
         rows.append({
             'id': task['id'], 'game': game, 'topic': task['topic'],
             'status': task['status'], 'updatedAt': task.get('updatedAtUtc'),
-            'reason': task.get('reason'),
+            'reason': task.get('reason') if isinstance(task.get('reason'), str) else None,
+            'phase': task.get('phase') if isinstance(task.get('phase'), str) else None,
+            'retryAt': task.get('retryAtUtc') if isinstance(task.get('retryAtUtc'), str) else None,
+            'escalation': task.get('escalation') if isinstance(task.get('escalation'), str) else None,
             # Light responses omit evidence, and a verified task is not a verified policy.
             'evidence': 'Not included' if 'evidence' not in task else 'Present' if task['evidence'] is not None else 'Unknown',
             'datasets': 'Unknown', 'policy': 'Unknown',

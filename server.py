@@ -119,7 +119,7 @@ def overview(source='mock'):
     # Synthetic r10 light/task-only shape; never fetched from the hub.
     projected = project_learning({'gameId': 'ffxi', 'tasks': [{
         'id': 'fixture-learning-1', 'gameId': 'ffxi', 'topic': 'Example route evidence',
-        'status': 'unverified', 'reason': 'Example evidence needs review',
+        'status': 'unverified', 'reason': 'Example evidence needs review', 'phase': 'example review', 'escalation': 'needs-info',
         'updatedAtUtc': '2026-01-01T12:00:00Z',
     }]})
     for row in projected:

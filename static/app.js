@@ -65,7 +65,7 @@ function inspectLearning(id) {
   panel.replaceChildren();
   const need = currentSnapshot.learning.find(l => l.id === id);
   if (!need) { panel.textContent = 'Selected learning need is no longer in this snapshot.'; return; }
-  item(panel, `Learning detail · ${need.game} · ${need.topic}`, `Status: ${need.status} · Reason: ${need.reason || 'Not reported'}`,
+  item(panel, `Learning detail · ${need.game} · ${need.topic}`, `Status: ${need.status} · Phase: ${need.phase || 'Not reported'} · Reason: ${need.reason || 'Not reported'} · Escalation: ${need.escalation || 'Not reported'} · Retry at: ${need.retryAt || 'Not reported'}`,
     `Evidence: ${need.evidence} · Datasets: ${need.datasets} · Policy verification: ${need.policy} · Updated: ${need.updatedAt || 'unknown'} · ${need.source}`);
 }
 function renderLearning() {
