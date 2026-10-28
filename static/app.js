@@ -139,6 +139,7 @@ function renderIssues() {
 }
 function inspectLearning(id) {
   selectedLearningId = id;
+  updateLearningCount(filteredLearning());
   const panel = document.querySelector('#learning-inspector');
   panel.replaceChildren();
   const need = currentSnapshot.learning.find(l => l.id === id);
@@ -174,16 +175,23 @@ function renderLearningCoverage() {
     item(panel, `${game} · loaded learning records`, `${rows.length} loaded · ${verifiedTasks} marked as verified tasks`, 'Loaded records may be incomplete; task verification does not establish verified datasets, policies, adoption or game outcomes. Check individual sources.');
   }
 }
-function renderLearning() {
-  const panel = document.querySelector('#learning');
+function filteredLearning() {
   const game = document.querySelector('#learning-game').value;
   const status = document.querySelector('#learning-status').value;
   const attention = document.querySelector('#learning-attention').checked;
   const attentionStatuses = new Set(['Needs evidence', 'Needs inventory', 'unverified', 'failed', 'canceled', 'cancelled']);
   const query = (document.querySelector('#learning-search').value || '').trim().toLowerCase();
+  return currentSnapshot.learning.filter(l => (!game || l.game === game) && (!status || l.status === status) && (!attention || attentionStatuses.has(l.status)) && (!query || `${l.topic} ${l.reason || ''}`.toLowerCase().includes(query)));
+}
+function updateLearningCount(records) {
+  const selectedHidden = selectedLearningId !== null && !records.some(l => l.id === selectedLearningId);
+  document.querySelector('#learning-count').textContent = `Showing ${records.length} of ${currentSnapshot.learning.length} loaded learning records; coverage may be incomplete.${selectedHidden ? ' Selected need is outside this filtered list; its inspector remains selected.' : ''}`;
+}
+function renderLearning() {
+  const panel = document.querySelector('#learning');
   panel.replaceChildren();
-  const records = currentSnapshot.learning.filter(l => (!game || l.game === game) && (!status || l.status === status) && (!attention || attentionStatuses.has(l.status)) && (!query || `${l.topic} ${l.reason || ''}`.toLowerCase().includes(query)));
-  document.querySelector('#learning-count').textContent = `Showing ${records.length} of ${currentSnapshot.learning.length} loaded learning records; coverage may be incomplete.`;
+  const records = filteredLearning();
+  updateLearningCount(records);
   if (!records.length) item(panel, 'No matching learning entries', 'No matching records in the loaded data.', 'Coverage is unknown.');
   records.forEach(l => {
     item(panel, `${l.game} · ${l.topic}`, l.status, `Evidence: ${l.evidence} · Datasets: ${l.datasets} · Policy verification: ${l.policy} · Updated: ${l.updatedAt || 'unknown'} · ${l.source}`);

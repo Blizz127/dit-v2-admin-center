@@ -253,6 +253,10 @@ setImmediate(async () => {
   assert.match(get('bot-count').textContent, /Selected bot is outside this filtered roster/);
   get('clear-bot').listeners.click();
   assert.doesNotMatch(get('bot-count').textContent, /Selected bot is outside/);
+  get('learning-search').value = 'not present'; get('learning-search').listeners.input();
+  assert.match(get('learning-count').textContent, /Selected need is outside this filtered list/);
+  get('learning-reset').listeners.click();
+  assert.doesNotMatch(get('learning-count').textContent, /Selected need is outside/);
   context.fetch = async () => { throw new Error('offline'); };
   await get('bridge-refresh').listeners.click();
   assert.equal(get('ffxi-focus-bridge').children.length, 0);
