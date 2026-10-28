@@ -14,6 +14,7 @@ from urllib.parse import urlsplit
 
 from lead_timeline import add_current_evidence, monitoring_issues, timeline
 from quota_history import collect, history
+from session_markers import admin_markers
 from r10_projection import project_health, project_learning, project_learning_attention, project_roster
 
 PROJECT = Path(__file__).resolve().parent
@@ -119,6 +120,12 @@ def overview():
     }]})
     for row in projected:
         row['game'] = 'FFXI'
+    home = Path.home()
+    marker_report = admin_markers(home / '.codex/state_5.sqlite', home / '.codex/sessions', PROJECT)
+    marker_issues = [{'title': f"Admin Center lead: {m['kind']}",
+                      'detail': 'Historical heuristic from a native system event; current goal and quota state remain unknown.',
+                      'scope': 'Leads', 'status': 'Heuristic', 'source': m['source'], 'updatedAt': m['observedAt']}
+                     for m in marker_report['markers']]
     monitoring = lead_monitoring()
     lead_history = add_current_evidence(timeline(Path.home() / '.local/share/devbox-coordinator-state'), monitoring)
     return {
@@ -132,6 +139,7 @@ def overview():
         "leads": lead_inventory(),
         "leadMonitoring": monitoring,
         "leadTimeline": lead_history,
+        "sessionMarkers": marker_report,
         "quotaHistory": history(LOCAL_DATA),
         "audit": [
             {"actor": "Example operator", "action": "Simulated model selection", "scope": "Example FFXI bot",
@@ -151,7 +159,7 @@ def overview():
             {"title": "Controls unavailable", "detail": "Bot commands, gates and model changes are not connected.", "status": "Open", "scope": "Network", "source": "Synthetic planning example"},
             {"title": "Example routing identity is unverified", "detail": "The synthetic routing record cannot select a model.", "status": "Open", "scope": "Bots", "source": "Synthetic routing example", "updatedAt": "2026-01-01T12:00:00Z"},
             {"title": "Bot presence lacks current evidence", "detail": "Mock bot statuses cannot establish current game presence.", "status": "Open", "scope": "Bots", "source": "Synthetic planning example"},
-        ] + project_learning_attention(projected) + monitoring_issues(monitoring),
+        ] + project_learning_attention(projected) + monitoring_issues(monitoring) + marker_issues,
     }
 
 
