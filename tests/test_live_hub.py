@@ -15,7 +15,7 @@ class Stub(BaseHTTPRequestHandler):
     def do_GET(self):
         Stub.requests.append((self.path, self.headers.get('Authorization')))
         if self.path.startswith('/v1/control/bots'):
-            self.send_response(200); self.end_headers(); self.wfile.write(b'[{"key":"fixture","name":"Fixture bot","character":"Example job","level":"12","bodyKind":"example"}]')
+            self.send_response(200); self.end_headers(); self.wfile.write(b'[{"key":"fixture","name":"Fixture bot","character":"Example job","level":"12","bodyKind":"example","summary":"Example personality"}]')
         elif self.path.startswith('/v1/control/health'):
             self.send_response(200); self.end_headers(); self.wfile.write(json.dumps({'utc': '2026-01-01T00:00:00Z', 'services': [{'game': 'ffxi', 'label': 'Example feed', 'state': 'quiet', 'target': '/private/path'}, {'game': 'other', 'label': 'Other', 'state': 'running'}]}).encode())
         elif self.path.startswith('/v1/control/ai-spend'):
@@ -130,10 +130,11 @@ class ProjectionTests(unittest.TestCase):
         class Reader:
             def get(self, view, game):
                 if view != 'bots': raise HubReadError('Unavailable')
-                return ([{'key': 'one', 'name': 'Example', 'level': 'high', 'character': 'bad\ntext'}], 'time')
+                return ([{'key': 'one', 'name': 'Example', 'level': 'high', 'character': 'bad\ntext', 'summary': 'x' * 513}], 'time')
         row = read_views(Reader(), ('ffxi',))['bots']['ffxi'][0]
         self.assertIsNone(row['level'])
         self.assertIsNone(row['character'])
+        self.assertIsNone(row['personalitySummary'])
         self.assertEqual(row['status'], 'Unknown')
 
     def test_partial_failure_keeps_games_scoped_and_presence_unknown(self):
@@ -184,6 +185,7 @@ class EndToEndTests(unittest.TestCase):
                 self.assertEqual(bot['status'], 'Unknown')
                 self.assertNotIn('routing', bot)
                 self.assertEqual((bot['character'], bot['level'], bot['bodyKind']), ('Example job', '12', 'example'))
+                self.assertEqual(bot['personalitySummary'], 'Example personality')
                 self.assertTrue(any(f['status'] == 'Unavailable' for f in payload['hubFeeds']))
                 self.assertTrue(any(f['status'] == 'Live response' for f in payload['hubFeeds']))
                 need = next(row for row in payload['learning'] if row.get('id') == 'live:ffxi:fixture-one')

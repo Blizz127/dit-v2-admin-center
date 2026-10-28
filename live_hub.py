@@ -85,13 +85,14 @@ def read_views(reader, games=('ffxi', 'swtor')):
                     for row in data:
                         if not isinstance(row, dict) or not all(isinstance(row.get(k), str) and row[k] for k in ('key', 'name')):
                             raise ValueError('invalid roster row')
-                        def bounded(value):
-                            return value if isinstance(value, str) and 0 < len(value) <= 128 and not any(ord(c) < 32 for c in value) else None
+                        def bounded(value, limit=128):
+                            return value if isinstance(value, str) and 0 < len(value) <= limit and not any(ord(c) < 32 for c in value) else None
                         level = bounded(row.get('level'))
                         if level is not None and not re.fullmatch(r'[0-9]{1,4}', level):
                             level = None
                         rows.append({'id': f'live:{game}:{row["key"]}', 'name': row['name'], 'game': game.upper(),
                                      'character': bounded(row.get('character')), 'level': level, 'bodyKind': bounded(row.get('bodyKind')),
+                                     'personalitySummary': bounded(row.get('summary'), 512),
                                      'status': 'Unknown', 'observedAt': None,
                                      'source': f'Hub roster (r10-shaped projection) · fetched {fetched} · registration is not presence'})
                     result['bots'][game] = rows
