@@ -197,6 +197,13 @@ class EndToEndTests(unittest.TestCase):
                     response = conn.getresponse(); trace_body = response.read(); conn.close()
                 self.assertEqual(response.status, 200)
                 self.assertNotIn(b'must not appear', trace_body)
+                with patch.dict(os.environ, {'HUB_READONLY_URL': f'http://127.0.0.1:{hub.server_port}', 'HUB_TOKEN_FILE': str(token)}):
+                    conn = http.client.HTTPConnection(*app.server_address, timeout=8)
+                    conn.request('GET', '/api/hub-health', headers={'Authorization': 'Bearer synthetic-owner-token'})
+                    response = conn.getresponse(); health_body = response.read(); conn.close()
+                self.assertEqual(response.status, 200)
+                self.assertNotIn(b'/private/path', health_body)
+                self.assertEqual(json.loads(health_body)['services'][0]['state'], 'quiet')
                 self.assertEqual(json.loads(trace_body)['records'][0]['disposition'], 'pending')
             finally:
                 app.shutdown(); app.server_close(); app_thread.join()

@@ -69,6 +69,15 @@ class ServerTests(unittest.TestCase):
         parser = Controls(); parser.feed(page)
         self.assertEqual(parser.controls, [True, True])
 
+    def test_hub_health_requires_auth_and_uses_projection(self):
+        from unittest.mock import patch
+        import os
+        self.assertEqual(self.request("GET", "/api/hub-health")[0], 401)
+        with patch.dict(os.environ, {'HUB_READONLY_URL': 'http://127.0.0.1:7390', 'HUB_TOKEN_FILE': '/fixture'}), patch('server.HUB_HEALTH.get', return_value={'services': [], 'coverage': 'fixture'}):
+            status, _, body = self.request("GET", "/api/hub-health", "test-private-token")
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(body)['coverage'], 'fixture')
+
     def test_bridge_status_requires_auth_and_uses_observer(self):
         from unittest.mock import patch
         self.assertEqual(self.request("GET", "/api/bridge-status")[0], 401)
