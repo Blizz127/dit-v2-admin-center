@@ -18,7 +18,16 @@ See [docs/BRIEF.md](docs/BRIEF.md) for the full brief, security rules and first 
 
 ## Status
 
-Scaffolding has not started. The project lead adds the app, tests and the local mock-data dev instance.
+A local, synthetic-data-only scaffold is available. Hub integration and the joint API review are pending; all operational controls are unavailable. See [architecture](docs/ARCHITECTURE.md), [mock API](docs/API.md), and [learning and issues](docs/LEARNING-AND-ISSUES.md).
+
+Run with Python 3 (no third-party dependencies):
+
+```sh
+export ADMIN_TOKEN='choose-a-private-token'
+python3 server.py
+```
+
+Open `http://127.0.0.1:7391` on the same machine and enter the token. Set `PORT` to change the port; the bind address is always loopback. The token is kept in browser session storage for the tab. This development server is not a production or tailnet service. Run focused tests with `python3 -m unittest discover -s tests -v`.
 
 ## Security
 
