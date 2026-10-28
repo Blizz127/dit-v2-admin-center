@@ -143,7 +143,7 @@ async function load() {
     const response = await fetch('/api/overview', {headers: {Authorization: `Bearer ${token}`}, cache: 'no-store'});
     if (!response.ok) throw new Error(response.status === 401 ? 'Token was not accepted.' : 'Could not load the workspace.');
     const data = await response.json();
-    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history']) document.getElementById(id).replaceChildren();
+    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history']) document.getElementById(id).replaceChildren();
     currentSnapshot = data;
     item(document.querySelector('#owner-attention'), 'Coverage', data.ownerAttention.coverage, 'Coordinator task board · Read only');
     if (!data.ownerAttention.items.length) item(document.querySelector('#owner-attention'), 'No records listed', 'Other owner decisions may be tracked elsewhere.', 'Not a complete decision inventory');
@@ -159,6 +159,13 @@ async function load() {
       item(panel, t.lead, t.coverage, t.watchCoverage);
       const group = panel.lastElementChild;
       t.events.forEach(e => item(group, `${e.kind}: ${e.status}`, e.at, e.source));
+    });
+    data.nudgeHistory.forEach(lead => {
+      const panel = document.querySelector('#nudge-history');
+      item(panel, lead.lead, lead.coverage, 'Read-only coordinator metadata');
+      const group = panel.lastElementChild;
+      if (!lead.nudges.length) item(group, 'No matching records', 'Coverage may be incomplete.', 'Resume state unknown');
+      lead.nudges.forEach(n => item(group, `Nudge · ${n.messageStatus}`, `Created: ${n.createdAt} · Delivered: ${n.deliveredAt || 'unknown'} · Reply: ${n.repliedAt || 'unknown'}`, `Time to reply: ${n.replySeconds == null ? 'unknown' : n.replySeconds + ' s'} · Time to resume: unknown · ${n.source}`));
     });
     data.sessionMarkers.forEach(report => {
       item(document.querySelector('#session-markers'), report.lead, report.coverage, 'Heuristic; no rollout text is displayed');

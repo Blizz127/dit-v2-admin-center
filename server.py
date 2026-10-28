@@ -15,6 +15,7 @@ from urllib.parse import urlsplit
 from lead_timeline import add_current_evidence, monitoring_issues, timeline
 from quota_history import collect, history
 from owner_attention import pending_owner_decisions
+from nudge_history import nudge_history
 from session_markers import admin_markers, binding_issues, claude_markers, handoff_codex_markers
 from r10_projection import project_health, project_learning, project_learning_attention, project_roster
 
@@ -148,6 +149,7 @@ def overview():
         "leads": lead_inventory(),
         "leadMonitoring": monitoring,
         "leadTimeline": lead_history,
+        "nudgeHistory": nudge_history(home / ".local/share/devbox-coordinator-state/tasks.sqlite"),
         "sessionMarkers": marker_reports,
         "quotaHistory": history(LOCAL_DATA),
         "assignmentHistory": [
