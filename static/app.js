@@ -165,7 +165,7 @@ async function load() {
       item(panel, lead.lead, lead.coverage, 'Read-only coordinator metadata');
       const group = panel.lastElementChild;
       if (!lead.nudges.length) item(group, 'No matching records', 'Coverage may be incomplete.', 'Resume state unknown');
-      lead.nudges.forEach(n => item(group, `Nudge · ${n.messageStatus}`, `Created: ${n.createdAt} · Delivered: ${n.deliveredAt || 'unknown'} · Reply: ${n.repliedAt || 'unknown'}`, `Time to reply: ${n.replySeconds == null ? 'unknown' : n.replySeconds + ' s'} · Time to resume: unknown · ${n.source}`));
+      lead.nudges.forEach(n => item(group, `Nudge · ${n.messageStatus}`, `Created: ${n.createdAt} · Delivered: ${n.deliveredAt || 'unknown'} · Reply: ${n.repliedAt || 'unknown'}`, `Time to reply: ${n.replySeconds == null ? 'unknown' : n.replySeconds + ' s'} · Time to resume: unknown${n.resumeSignal ? ` · ${n.resumeSignal.label}: ${n.resumeSignal.seconds} s at ${n.resumeSignal.observedAt}` : ' · Tool activity heuristic: unknown'} · ${n.source}`));
     });
     data.sessionMarkers.forEach(report => {
       item(document.querySelector('#session-markers'), report.lead, report.coverage, 'Heuristic; no rollout text is displayed');

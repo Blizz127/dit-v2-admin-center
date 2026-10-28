@@ -10,12 +10,12 @@ class NudgeHistoryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'tasks.sqlite'
             with sqlite3.connect(path) as db:
-                db.executescript('CREATE TABLE messages(id TEXT, project TEXT, origin TEXT, text TEXT, created REAL, delivered REAL, status TEXT); CREATE TABLE replies(message_id TEXT, time REAL);')
-                db.executemany('INSERT INTO messages VALUES (?,?,?,?,?,?,?)', [
-                    ('a', 'claude-dit-v2-admin-center', 'coordinator:relay', 'stall watch: private message', 100, 110, 'replied'),
-                    ('b', 'claude-dit-v2-admin-center', 'watcher', 'private alert', 200, None, 'queued'),
-                    ('c', 'other', 'watcher', 'private', 300, None, 'queued'),
-                    ('d', 'claude-dit-v2-admin-center', 'untrusted', 'stall watch', 400, None, 'queued'),
+                db.executescript('CREATE TABLE messages(id TEXT, project TEXT, origin TEXT, text TEXT, created REAL, delivered REAL, status TEXT, agent TEXT, session TEXT); CREATE TABLE replies(message_id TEXT, time REAL);')
+                db.executemany('INSERT INTO messages VALUES (?,?,?,?,?,?,?,?,?)', [
+                    ('a', 'claude-dit-v2-admin-center', 'coordinator:relay', 'stall watch: private message', 100, 110, 'replied', 'codex', 'thread'),
+                    ('b', 'claude-dit-v2-admin-center', 'watcher', 'private alert', 200, None, 'queued', 'codex', 'thread'),
+                    ('c', 'other', 'watcher', 'private', 300, None, 'queued', 'codex', 'thread'),
+                    ('d', 'claude-dit-v2-admin-center', 'untrusted', 'stall watch', 400, None, 'queued', 'codex', 'thread'),
                 ])
                 db.executemany('INSERT INTO replies VALUES (?,?)', [('a', 90), ('a', 145)])
             records = nudge_history(path)[1]['nudges']

@@ -149,7 +149,9 @@ def overview():
         "leads": lead_inventory(),
         "leadMonitoring": monitoring,
         "leadTimeline": lead_history,
-        "nudgeHistory": nudge_history(home / ".local/share/devbox-coordinator-state/tasks.sqlite"),
+        "nudgeHistory": nudge_history(home / ".local/share/devbox-coordinator-state/tasks.sqlite", home / '.codex/state_5.sqlite',
+                                      home / '.codex/sessions', {'claude-dit-v2-admin-center': PROJECT,
+                                      'claude-dit-human-behavior-platform': home / 'dev/dit-human-behavior-platform'}),
         "sessionMarkers": marker_reports,
         "quotaHistory": history(LOCAL_DATA),
         "assignmentHistory": [
