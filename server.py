@@ -2,6 +2,7 @@
 import hmac
 import json
 import os
+import sqlite3
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -11,6 +12,27 @@ ROOT = Path(__file__).resolve().parent / "static"
 ASSETS = {"/": ("index.html", "text/html; charset=utf-8"), "/app.js": ("app.js", "text/javascript; charset=utf-8"), "/style.css": ("style.css", "text/css; charset=utf-8")}
 
 
+def lead_inventory():
+    """Read only the DIT hub's latest coordinator task; absence is not idleness."""
+    db = Path.home() / ".local/share/devbox-coordinator-state/tasks.sqlite"
+    leads = [
+        {"name": "DIT v2 hub lead", "scope": "Human behavior platform", "status": "Unknown", "source": "Coordinator task board", "observedAt": None},
+        {"name": "Admin Center lead", "scope": "Admin Center", "status": "Unknown", "source": "Coordinator task board", "observedAt": None},
+    ]
+    try:
+        with sqlite3.connect(db.as_uri() + "?mode=ro", uri=True, timeout=2) as connection:
+            row = connection.execute(
+                "SELECT status, updated FROM tasks WHERE project = ? AND agent = ? ORDER BY updated DESC LIMIT 1",
+                ("claude-dit-human-behavior-platform", "claude"),
+            ).fetchone()
+        if row:
+            leads[0]["status"] = "Latest tracked task: " + row[0]
+            leads[0]["observedAt"] = datetime.fromtimestamp(row[1], timezone.utc).isoformat()
+    except (OSError, sqlite3.Error, ValueError, OverflowError):
+        pass
+    return leads
+
+
 def overview():
     return {
         "mode": "mock", "generatedAt": datetime.now(timezone.utc).isoformat(),
@@ -18,10 +40,7 @@ def overview():
             {"id": "demo-1", "name": "Aster", "game": "FFXI", "status": "Paused", "source": "Synthetic fixture", "observedAt": "2026-01-01T12:00:00Z"},
             {"id": "demo-2", "name": "Vale", "game": "SWTOR", "status": "Unknown", "source": "Synthetic fixture", "observedAt": None},
         ],
-        "leads": [
-            {"name": "Mira", "scope": "FFXI learning", "status": "Unknown", "source": "Synthetic fixture", "observedAt": None},
-            {"name": "Rowan", "scope": "SWTOR adapter", "status": "Unknown", "source": "Synthetic fixture", "observedAt": None},
-        ],
+        "leads": lead_inventory(),
         "ledger": [
             {"correlationId": "demo-episode-1", "bot": "Aster", "request": "Observe surroundings", "result": "Accepted", "verification": "Pending"},
             {"correlationId": "demo-episode-2", "bot": "Aster", "request": "Move to camp", "result": "Rejected: gate disabled", "verification": "Not applicable"},
