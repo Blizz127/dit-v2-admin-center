@@ -1,9 +1,11 @@
 import http.client
 import json
 import threading
+import tempfile
+from pathlib import Path
 import unittest
 
-from server import make_server
+from server import capacity_context, make_server
 
 
 class ServerTests(unittest.TestCase):
@@ -47,6 +49,20 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(data["ledger"][0]["verification"], "Pending")
         self.assertEqual(self.request("POST", "/api/overview", "test-private-token")[0], 501)
         self.assertEqual(self.request("GET", "/api/missing", "test-private-token")[0], 404)
+
+
+class CapacityTests(unittest.TestCase):
+    def test_pool_scope_and_stale_fail_closed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "routing-capacity.json").write_text(json.dumps({
+                "checked_at": 1000, "providers": {"claude": {"remaining": 0.75}}
+            }))
+            value, reason = capacity_context(root, "claude", now=1010)
+            self.assertEqual(value, "75%")
+            self.assertIn("not the lead's own quota", reason)
+            self.assertEqual(capacity_context(root, "claude", now=1181)[0], "Unknown")
+            self.assertEqual(capacity_context(root, None, now=1010)[0], "Unknown")
 
 
 if __name__ == "__main__":
