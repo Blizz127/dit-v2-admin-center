@@ -1,4 +1,7 @@
 import json
+import http.client
+import os
+from unittest.mock import patch
 import tempfile
 import threading
 import unittest
@@ -72,5 +75,30 @@ class ProjectionTests(unittest.TestCase):
         self.assertEqual(result['learning']['ffxi'][0]['policy'], 'Unknown')
         self.assertEqual(result['issues']['ffxi'][0]['learningId'], 'live:ffxi:a')
         self.assertEqual([x['status'] for x in result['feeds']], ['Live response', 'Live response', 'Unavailable', 'Unavailable'])
+
+class EndToEndTests(unittest.TestCase):
+    def test_admin_response_uses_stub_live_reads_and_fallback(self):
+        from server import make_server
+        with tempfile.TemporaryDirectory() as directory:
+            token = Path(directory) / 'hub-token'; token.write_text('synthetic-hub-token')
+            hub = ThreadingHTTPServer(('127.0.0.1', 0), Stub)
+            hub_thread = threading.Thread(target=hub.serve_forever, daemon=True); hub_thread.start()
+            app = make_server(0, 'synthetic-owner-token')
+            app_thread = threading.Thread(target=app.serve_forever, daemon=True); app_thread.start()
+            try:
+                with patch.dict(os.environ, {'HUB_READONLY_URL': f'http://127.0.0.1:{hub.server_port}', 'HUB_TOKEN_FILE': str(token)}):
+                    conn = http.client.HTTPConnection(*app.server_address, timeout=8)
+                    conn.request('GET', '/api/overview', headers={'Authorization': 'Bearer synthetic-owner-token'})
+                    response = conn.getresponse(); body = response.read(); conn.close()
+                self.assertEqual(response.status, 200)
+                self.assertNotIn(b'synthetic-hub-token', body)
+                payload = json.loads(body)
+                self.assertEqual(payload['mode'], 'mixed')
+                self.assertTrue(any(f['status'] == 'Unavailable' for f in payload['hubFeeds']))
+                self.assertTrue(any(f['status'] == 'Live response' for f in payload['hubFeeds']))
+            finally:
+                app.shutdown(); app.server_close(); app_thread.join()
+                hub.shutdown(); hub.server_close(); hub_thread.join()
+
 
 if __name__ == '__main__': unittest.main()
