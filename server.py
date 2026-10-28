@@ -11,6 +11,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from r10_projection import project_learning, project_learning_attention
+
 ROOT = Path(__file__).resolve().parent / "static"
 ASSETS = {"/": ("index.html", "text/html; charset=utf-8"), "/app.js": ("app.js", "text/javascript; charset=utf-8"), "/style.css": ("style.css", "text/css; charset=utf-8")}
 
@@ -102,6 +104,14 @@ def lead_monitoring():
 
 
 def overview():
+    # Synthetic r10 light/task-only shape; never fetched from the hub.
+    projected = project_learning({'gameId': 'ffxi', 'tasks': [{
+        'id': 'fixture-learning-1', 'gameId': 'ffxi', 'topic': 'Example route evidence',
+        'status': 'unverified', 'reason': 'Example evidence needs review',
+        'updatedAtUtc': '2026-01-01T12:00:00Z',
+    }]})
+    for row in projected:
+        row['game'] = 'FFXI'
     return {
         "mode": "mock", "generatedAt": datetime.now(timezone.utc).isoformat(),
         "bots": [
@@ -118,12 +128,12 @@ def overview():
             {"game": "FFXI", "topic": "Navigation, party behavior and grounded social memory", "status": "Needs evidence", "evidence": "Not instrumented", "datasets": "Unknown", "policy": "Unknown", "source": "Synthetic planning example"},
             {"game": "FFXI", "topic": "Mission progression and current quest evidence", "status": "Needs inventory", "evidence": "Unknown", "datasets": "Unknown", "policy": "Unknown", "source": "Synthetic planning example"},
             {"game": "SWTOR", "topic": "Adapter coverage, missions and social behavior", "status": "Needs inventory", "evidence": "Unknown", "datasets": "Unknown", "policy": "Unknown", "source": "Synthetic planning example"},
-        ],
+        ] + projected,
         "issues": [
             {"title": "Hub contract awaiting coordination", "detail": "This view uses fixtures; no hub connection is configured.", "status": "Open", "scope": "Network", "source": "Synthetic planning example"},
             {"title": "Controls unavailable", "detail": "Bot commands, gates and model changes are not connected.", "status": "Open", "scope": "Network", "source": "Synthetic planning example"},
             {"title": "Bot presence lacks current evidence", "detail": "Mock bot statuses cannot establish current game presence.", "status": "Open", "scope": "Bots", "source": "Synthetic planning example"},
-        ],
+        ] + project_learning_attention(projected),
     }
 
 

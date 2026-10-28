@@ -24,7 +24,7 @@ def project_learning(payload):
             # Light responses omit evidence, and a verified task is not a verified policy.
             'evidence': 'Not included' if 'evidence' not in task else 'Present' if task['evidence'] is not None else 'Unknown',
             'datasets': 'Unknown', 'policy': 'Unknown',
-            'source': 'r10 task-only response; offline projection',
+            'source': 'Synthetic r10 task-only fixture; offline projection',
         })
     return rows
 
