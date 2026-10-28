@@ -55,7 +55,7 @@ function renderLearning() {
   const records = currentSnapshot.learning.filter(l => (!game || l.game === game) && (!status || l.status === status));
   if (!records.length) item(panel, 'No matching learning entries', 'No records in this mock snapshot.', 'Coverage is unknown.');
   records.forEach(l => {
-    item(panel, `${l.game} · ${l.topic}`, l.status, `Evidence: ${l.evidence} · Datasets: ${l.datasets} · Policy verification: ${l.policy} · ${l.source}`);
+    item(panel, `${l.game} · ${l.topic}`, l.status, `Evidence: ${l.evidence} · Datasets: ${l.datasets} · Policy verification: ${l.policy} · Updated: ${l.updatedAt || 'unknown'} · ${l.source}`);
     if (l.id) {
       const button = document.createElement('button'); button.type = 'button';
       button.textContent = `Inspect ${l.topic}`; button.addEventListener('click', () => inspectLearning(l.id));

@@ -17,7 +17,7 @@ class Stub(BaseHTTPRequestHandler):
         if self.path.startswith('/v1/control/bots'):
             self.send_response(200); self.end_headers(); self.wfile.write(b'[]')
         elif self.path.startswith('/v1/control/learning'):
-            self.send_response(200); self.end_headers(); self.wfile.write(b'{"gameId":"ffxi","tasks":[]}')
+            self.send_response(200); self.end_headers(); self.wfile.write(json.dumps({'gameId': 'ffxi', 'tasks': [{'id': 'fixture-one', 'gameId': 'ffxi', 'topic': 'Fixture learning gap', 'status': 'unverified', 'reason': 'Example missing evidence', 'updatedAtUtc': '2026-01-01T00:00:00Z'}]}).encode())
         else:
             self.send_response(302); self.send_header('Location', 'http://example.invalid/'); self.end_headers()
     def log_message(self, *args): pass
@@ -96,6 +96,11 @@ class EndToEndTests(unittest.TestCase):
                 self.assertEqual(payload['mode'], 'mixed')
                 self.assertTrue(any(f['status'] == 'Unavailable' for f in payload['hubFeeds']))
                 self.assertTrue(any(f['status'] == 'Live response' for f in payload['hubFeeds']))
+                need = next(row for row in payload['learning'] if row.get('id') == 'live:ffxi:fixture-one')
+                issue = next(row for row in payload['issues'] if row.get('learningId') == need['id'])
+                self.assertEqual((need['evidence'], need['policy']), ('Not included', 'Unknown'))
+                self.assertEqual(issue['detail'], 'Example missing evidence')
+                self.assertEqual(issue['updatedAt'], '2026-01-01T00:00:00Z')
             finally:
                 app.shutdown(); app.server_close(); app_thread.join()
                 hub.shutdown(); hub.server_close(); hub_thread.join()

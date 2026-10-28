@@ -87,7 +87,7 @@ def read_views(reader, games=('ffxi', 'swtor')):
                     result['learning'][game] = rows
                     result['issues'][game] = project_learning_attention(rows)
                 result['feeds'].append({'game': game.upper(), 'view': view, 'status': 'Live response', 'at': fetched,
-                                        'note': 'Coverage and deployed revision not verified'})
+                                        'note': 'Light task list; curriculum and evidence omitted; deployed revision unverified' if view == 'learning' else 'Registration only; presence, coverage and deployed revision unverified'})
             except (HubReadError, ValueError, TypeError, KeyError):
                 result['feeds'].append({'game': game.upper(), 'view': view, 'status': 'Unavailable', 'at': None,
                                         'note': 'Synthetic fallback; no current hub data'})
