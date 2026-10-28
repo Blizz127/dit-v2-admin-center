@@ -57,7 +57,7 @@ function renderIssues() {
   panel.replaceChildren();
   const records = currentSnapshot.issues.filter(i => (!scope || i.scope === scope) && (!status || i.status === status) && (!query || `${i.title} ${i.detail}`.toLowerCase().includes(query)));
   document.querySelector('#issue-count').textContent = `Showing ${records.length} of ${currentSnapshot.issues.length} loaded issue records; coverage may be incomplete.`;
-  if (!records.length) item(panel, 'No matching issues', 'No records in this mock snapshot.', 'This does not establish a healthy state.');
+  if (!records.length) item(panel, 'No matching issues', 'No matching records in the loaded data.', 'This does not establish a healthy state.');
   records.forEach(i => {
     item(panel, i.title, i.detail, `${i.scope} · ${i.status} · ${i.source} · ${i.timeLabel || 'Updated'}: ${i.updatedAt || 'unknown'}`);
     if (i.ownerAttention) {
@@ -108,7 +108,7 @@ function renderLearning() {
   panel.replaceChildren();
   const records = currentSnapshot.learning.filter(l => (!game || l.game === game) && (!status || l.status === status) && (!query || `${l.topic} ${l.reason || ''}`.toLowerCase().includes(query)));
   document.querySelector('#learning-count').textContent = `Showing ${records.length} of ${currentSnapshot.learning.length} loaded learning records; coverage may be incomplete.`;
-  if (!records.length) item(panel, 'No matching learning entries', 'No records in this mock snapshot.', 'Coverage is unknown.');
+  if (!records.length) item(panel, 'No matching learning entries', 'No matching records in the loaded data.', 'Coverage is unknown.');
   records.forEach(l => {
     item(panel, `${l.game} · ${l.topic}`, l.status, `Evidence: ${l.evidence} · Datasets: ${l.datasets} · Policy verification: ${l.policy} · Updated: ${l.updatedAt || 'unknown'} · ${l.source}`);
     if (l.id) {

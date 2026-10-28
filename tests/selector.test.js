@@ -97,6 +97,7 @@ setImmediate(async () => {
   get('learning-search').value = 'no match';
   get('learning-search').listeners.input();
   assert.equal(get('learning').children[0].children[0].textContent, 'No matching learning entries');
+  assert.match(get('learning').children[0].children[1].textContent, /loaded data/);
   get('learning-search').value = '';
   get('learning-search').listeners.input();
   get('learning-status').value = 'unverified';
