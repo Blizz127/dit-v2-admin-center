@@ -15,6 +15,7 @@ from urllib.parse import parse_qs, urlsplit
 from lead_timeline import add_checkout_history, add_current_evidence, monitoring_issues, timeline
 from lead_activity import lead_activity
 from live_hub import HubReader, merge_views, read_views
+from issue_evidence import bridge_fault_issue, pending_decision_issues
 from quota_history import collect, history
 from owner_attention import pending_owner_decisions
 from nudge_history import nudge_history
@@ -137,12 +138,13 @@ def overview(source='mock'):
                       'detail': 'Historical heuristic from a native system event; current goal and quota state remain unknown.',
                       'scope': 'Leads', 'status': 'Heuristic', 'source': m['source'], 'updatedAt': m['observedAt']}
                      for report in marker_reports for m in report['markers']]
+    owner_attention = pending_owner_decisions(home / '.local/share/devbox-coordinator-state/tasks.sqlite')
     monitoring = lead_monitoring()
     lead_history = add_current_evidence(timeline(Path.home() / '.local/share/devbox-coordinator-state'), monitoring)
     add_checkout_history(lead_history, {'DIT v2 hub lead': hub_project, 'Admin Center lead': PROJECT})
     snapshot = {
         "mode": "mock", "generatedAt": datetime.now(timezone.utc).isoformat(),
-        "ownerAttention": pending_owner_decisions(home / ".local/share/devbox-coordinator-state/tasks.sqlite"),
+        "ownerAttention": owner_attention,
         "bots": [
             {"id": "demo-1", "name": "Aster", "game": "FFXI", "status": "Paused", "source": "Synthetic fixture", "observedAt": "2026-01-01T12:00:00Z", "routing": {"purpose": "conversation", "requested": "Example provider / example model", "effective": None, "version": "example-1", "source": "Synthetic routing example", "observedAt": "2026-01-01T12:00:00Z", "availability": "Unavailable", "reason": "Example identity has not been verified"}},
             {"id": "demo-2", "name": "Vale", "game": "SWTOR", "status": "Unknown", "source": "Synthetic fixture", "observedAt": None},
@@ -187,7 +189,7 @@ def overview(source='mock'):
             {"title": "Controls unavailable", "detail": "Bot commands, gates and model changes are not connected.", "status": "Open", "scope": "Network", "source": "Synthetic planning example"},
             {"title": "Example routing identity is unverified", "botId": "demo-1", "detail": "The synthetic routing record cannot select a model.", "status": "Open", "scope": "Bots", "source": "Synthetic routing example", "updatedAt": "2026-01-01T12:00:00Z"},
             {"title": "Bot presence lacks current evidence", "detail": "Mock bot statuses cannot establish current game presence.", "status": "Open", "scope": "Bots", "source": "Synthetic planning example"},
-        ] + project_learning_attention(projected) + monitoring_issues(monitoring) + marker_issues + binding_issues(hub_report),
+        ] + project_learning_attention(projected) + monitoring_issues(monitoring) + marker_issues + binding_issues(hub_report) + [bridge_fault_issue()] + pending_decision_issues(owner_attention),
     }
     url, token_file = os.environ.get('HUB_READONLY_URL'), os.environ.get('HUB_TOKEN_FILE')
     if not url or not token_file:
