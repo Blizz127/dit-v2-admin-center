@@ -14,7 +14,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from lead_timeline import add_checkout_history, add_current_evidence, monitoring_issues, timeline
 from lead_activity import lead_activity
-from live_hub import HubReadError, HubReader, merge_views, project_trace, read_views
+from live_hub import HubReadError, HubReader, merge_views, project_spend, project_trace, read_views
 from bridge_status import BridgeObserver
 from issue_evidence import bridge_fault_issue, pending_decision_issues
 from quota_history import collect, history
@@ -141,6 +141,9 @@ def overview(source='mock'):
                       'scope': 'Leads', 'status': 'Heuristic', 'source': m['source'], 'updatedAt': m['observedAt']}
                      for report in marker_reports for m in report['markers']]
     owner_attention = pending_owner_decisions(home / '.local/share/devbox-coordinator-state/tasks.sqlite')
+    synthetic_spend = project_spend({'configured': True, 'month': '2026-01', 'settledUsd': 0.42,
+                                     'reservedOpenUsd': 0.10, 'pricingError': 'example unknown'}, '2026-01-01T12:00:00Z')
+    synthetic_spend['source'] = 'Synthetic ledger fixture; no live spend read'
     monitoring = lead_monitoring()
     lead_history = add_current_evidence(timeline(Path.home() / '.local/share/devbox-coordinator-state'), monitoring)
     add_checkout_history(lead_history, {'DIT v2 hub lead': hub_project, 'Admin Center lead': PROJECT})
@@ -179,6 +182,7 @@ def overview(source='mock'):
             {"botId": "demo-1", "purpose": "conversation", "requested": "Example provider / example model",
              "effective": None, "version": "example-1", "at": "2026-01-01T12:00:00Z", "source": "Synthetic assignment fixture"},
         ],
+        "spendExample": synthetic_spend,
         "modelCalls": [
             {"id": "example-call-1", "model": "Example model", "purpose": "conversation", "latencyMs": 240,
              "cost": None, "quality": None, "source": "Synthetic example", "observedAt": "2026-01-01T12:00:00Z"},

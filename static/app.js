@@ -298,7 +298,7 @@ async function load() {
     if (!response.ok) throw new Error(response.status === 401 ? 'Token was not accepted.' : 'Could not load the workspace.');
     const data = await response.json();
     if (requestId !== requestVersion) return;
-    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage', 'bot-coverage', 'learning-plan', 'game-status']) document.getElementById(id).replaceChildren();
+    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage', 'bot-coverage', 'learning-plan', 'game-status', 'spend-example']) document.getElementById(id).replaceChildren();
     currentSnapshot = data;
     item(document.querySelector('#owner-attention'), 'Coverage', data.ownerAttention.coverage, 'Coordinator task board · Read only');
     if (!data.ownerAttention.items.length) item(document.querySelector('#owner-attention'), 'No records listed', 'Other owner decisions may be tracked elsewhere.', 'Not a complete decision inventory');
@@ -336,6 +336,9 @@ async function load() {
       report.markers.forEach(m => item(document.querySelector('#session-markers'), m.kind, m.observedAt, `${m.source} · Historical; current state unknown`));
     });
     renderQuotaHistory();
+    const spend = data.spendExample;
+    const usd = value => typeof value === 'number' ? `$${value.toFixed(2)}` : 'Unknown';
+    item(document.querySelector('#spend-example'), `Example month: ${spend.month || 'Unknown'}`, `Settled: ${usd(spend.settledUsd)} · Open reservations: ${usd(spend.reservedOpenUsd)} · Budget: ${usd(spend.budgetUsd)}`, `${spend.source} · ${spend.attribution} · Observed: ${spend.fetchedAt || 'unknown'} · Separate ledgers are not reconciled.`);
     data.modelCalls.forEach(c => item(document.querySelector('#model-calls'), `${c.model} · ${c.purpose}`, `Latency: ${typeof c.latencyMs === 'number' ? c.latencyMs + ' ms' : 'Unknown'} · Cost: ${c.cost == null ? 'Unknown' : c.cost} · Quality: ${c.quality == null ? 'Unknown' : c.quality}`, `${c.source} · Observed: ${c.observedAt || 'unknown'}`));
     data.audit.forEach(a => item(document.querySelector('#audit'), `${a.action} · ${a.scope}`, a.result, `${a.actor} · ${a.at || 'unknown time'} · ${a.source}`));
     renderIssueCoverage();
