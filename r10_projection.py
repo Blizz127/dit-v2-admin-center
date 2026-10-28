@@ -32,7 +32,7 @@ def project_learning(payload):
 def project_learning_attention(rows):
     """Expose task states needing attention without calling them incidents."""
     return [{
-        'scope': row['game'], 'title': row['topic'], 'status': row['status'],
+        'scope': row['game'], 'title': row['topic'], 'status': row['status'], 'learningId': row['id'],
         'detail': row['reason'] or 'No reason reported', 'updatedAt': row['updatedAt'],
         'source': row['source'],
     } for row in rows if row['status'] in ('unverified', 'failed', 'canceled', 'cancelled')]

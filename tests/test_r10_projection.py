@@ -13,6 +13,7 @@ class ProjectionTests(unittest.TestCase):
         self.assertEqual(rows[0]['evidence'], 'Not included')
         self.assertEqual(rows[0]['policy'], 'Unknown')
         self.assertEqual(project_learning_attention(rows)[0]['detail'], 'Insufficient evidence')
+        self.assertEqual(project_learning_attention(rows)[0]['learningId'], 'two')
         self.assertEqual(len(project_learning_attention(rows)), 1)
 
     def test_rejects_missing_or_mismatched_scope(self):

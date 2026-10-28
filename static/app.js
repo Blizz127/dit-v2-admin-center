@@ -19,7 +19,18 @@ function renderIssues() {
   panel.replaceChildren();
   const records = currentSnapshot.issues.filter(i => !scope || i.scope === scope);
   if (!records.length) item(panel, 'No matching issues', 'No records in this mock snapshot.', 'This does not establish a healthy state.');
-  records.forEach(i => item(panel, i.title, i.detail, `${i.scope} · ${i.status} · ${i.source} · Updated: ${i.updatedAt || 'unknown'}`));
+  records.forEach(i => {
+    item(panel, i.title, i.detail, `${i.scope} · ${i.status} · ${i.source} · Updated: ${i.updatedAt || 'unknown'}`);
+    if (i.learningId && currentSnapshot.learning.some(l => l.id === i.learningId)) {
+      const button = document.createElement('button'); button.type = 'button';
+      button.textContent = `Inspect learning need: ${i.title}`;
+      button.addEventListener('click', () => {
+        inspectLearning(i.learningId);
+        document.querySelector('#learning-inspector').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+      });
+      panel.lastElementChild.append(button);
+    }
+  });
 }
 function inspectLearning(id) {
   selectedLearningId = id;
