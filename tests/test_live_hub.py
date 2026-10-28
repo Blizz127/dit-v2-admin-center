@@ -16,6 +16,8 @@ class Stub(BaseHTTPRequestHandler):
         Stub.requests.append((self.path, self.headers.get('Authorization')))
         if self.path.startswith('/v1/control/bots'):
             self.send_response(200); self.end_headers(); self.wfile.write(b'[{"key":"fixture","name":"Fixture bot","character":"Example job","level":"12","bodyKind":"example"}]')
+        elif self.path.startswith('/v1/control/health'):
+            self.send_response(200); self.end_headers(); self.wfile.write(json.dumps({'utc': '2026-01-01T00:00:00Z', 'services': [{'game': 'ffxi', 'label': 'Example feed', 'state': 'quiet', 'target': '/private/path'}, {'game': 'other', 'label': 'Other', 'state': 'running'}]}).encode())
         elif self.path.startswith('/v1/control/ai-spend'):
             self.send_response(200); self.end_headers(); self.wfile.write(b'{"configured":true,"month":"2026-10","settledUsd":1.25,"reservedOpenUsd":0,"budgetUsd":10,"pricingError":null}')
         elif self.path.startswith('/v1/control/server-status'):
@@ -40,6 +42,12 @@ class HubReaderTests(unittest.TestCase):
                 reader = HubReader(f'http://127.0.0.1:{server.server_port}', token)
                 data, stamp = reader.get('bots', 'ffxi'); self.assertEqual(data[0]['name'], 'Fixture bot'); self.assertTrue(stamp)
                 reader.get('learning', 'ffxi')
+                from live_hub import project_hub_health
+                health, fetched = reader.health()
+                projected_health = project_hub_health(health, fetched)
+                self.assertEqual(len(projected_health['services']), 1)
+                self.assertEqual(projected_health['services'][0]['state'], 'quiet')
+                self.assertNotIn('/private/path', str(projected_health))
                 trace, _ = reader.trace('ffxi', 'demo-id')
                 from live_hub import project_trace
                 projected = project_trace(trace)
@@ -65,6 +73,13 @@ class HubReaderTests(unittest.TestCase):
 
 
 class ProjectionTests(unittest.TestCase):
+    def test_health_rejects_bad_data_and_unknown_state(self):
+        from live_hub import project_hub_health
+        with self.assertRaises(ValueError): project_hub_health({'services': None}, 'time')
+        result = project_hub_health({'utc': None, 'services': [{'game': 'ffxi', 'label': 'Example', 'state': 'unexpected'}]}, 'time')
+        self.assertEqual(result['services'][0]['state'], 'Unknown')
+        self.assertIsNone(result['services'][0]['observedAt'])
+
     def test_spend_unknown_is_not_zero(self):
         from live_hub import project_spend
         absent = project_spend({'configured': False, 'settledUsd': 0}, 'time')

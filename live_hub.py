@@ -42,6 +42,9 @@ class HubReader:
             query.update({'light': 'true', 'tasksOnly': 'true'})
         return self._request(view, query)
 
+    def health(self):
+        return self._request('health', {})
+
     def trace(self, game, correlation):
         if game not in ('ffxi', 'swtor') or not isinstance(correlation, str) or not CORRELATION.fullmatch(correlation):
             raise ValueError('Invalid trace scope')
@@ -188,3 +191,31 @@ def project_spend(data, fetched):
             'reservedOpenUsd': money('reservedOpenUsd'), 'budgetUsd': money('budgetUsd', True),
             'source': 'Single hub ledger (r10-shaped projection); revision and environment unverified',
             'fetchedAt': fetched, 'attribution': 'Not available per game, bot, party or call'}
+
+
+def project_hub_health(data, fetched):
+    """Project only FFXI/SWTOR service states; no paths, environment or logs."""
+    if not isinstance(data, dict) or not isinstance(data.get('services'), list) or len(data['services']) > 500:
+        raise ValueError('invalid health response')
+    observed = data.get('utc')
+    if not isinstance(observed, str) or len(observed) > 64:
+        observed = None
+    states = {'running', 'stopped', 'failed', 'restarting', 'degraded', 'missing', 'live', 'quiet', 'log', 'done'}
+    rows = []
+    for service in data['services']:
+        if not isinstance(service, dict):
+            raise ValueError('invalid health record')
+        game = service.get('game')
+        if not isinstance(game, str) or game.lower() not in ('ffxi', 'swtor'):
+            continue
+        label = service.get('label')
+        if not isinstance(label, str) or not 0 < len(label) <= 128 or any(ord(c) < 32 for c in label):
+            label = 'Unknown service'
+        state = service.get('state')
+        state = state if isinstance(state, str) and state in states else 'Unknown'
+        rows.append({'game': game.upper(), 'label': label, 'state': state, 'observedAt': observed})
+        if len(rows) >= 50:
+            break
+    return {'services': rows, 'fetchedAt': fetched,
+            'coverage': 'FFXI/SWTOR services only; maximum 50 records. Service state does not establish bot presence or delivery.',
+            'source': 'Hub service-health response (r10-shaped projection); revision unverified'}
