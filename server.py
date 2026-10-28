@@ -3,6 +3,8 @@ import hmac
 import json
 import os
 import sqlite3
+import math
+import time
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -33,10 +35,32 @@ def lead_inventory():
     return leads
 
 
+def capacity_context(root, provider, now=None):
+    """A shared provider estimate is context, not an individual lead's quota."""
+    if not provider:
+        return "Unknown", "Lead provider identity is not established"
+    try:
+        snapshot = json.loads((root / "routing-capacity.json").read_text())
+        checked = snapshot["checked_at"]
+        entry = snapshot["providers"][provider]
+        if type(checked) not in (int, float) or not math.isfinite(checked):
+            raise ValueError("invalid timestamp")
+        age = (time.time() if now is None else now) - checked
+        at = datetime.fromtimestamp(checked, timezone.utc).isoformat()
+        if not 0 <= age <= 180:
+            return "Unknown", "Coordinator provider pool estimate stale; checked " + at
+        value = entry.get("remaining")
+        if type(value) not in (int, float) or not math.isfinite(value) or not 0 <= value <= 1:
+            return "Unknown", "Coordinator provider pool estimate unavailable; checked " + at
+        return f"{value * 100:.0f}%", "Coordinator provider pool estimate; checked " + at + "; not the lead's own quota"
+    except (OSError, ValueError, KeyError, TypeError, OverflowError):
+        return "Unknown", "Coordinator provider pool estimate unavailable"
+
+
 def lead_monitoring():
     root = Path.home() / ".local/share/devbox-coordinator-state"
-    targets = [("DIT v2 hub lead", "claude-dit-human-behavior-platform", "claude"),
-               ("Admin Center lead", "claude-dit-v2-admin-center", "codex")]
+    targets = [("DIT v2 hub lead", "claude-dit-human-behavior-platform", "claude", "claude"),
+               ("Admin Center lead", "claude-dit-v2-admin-center", "codex", None)]
     try:
         config = json.loads((root / "watch.json").read_text())
         state = json.loads((root / "watch-state.json").read_text())
@@ -46,8 +70,9 @@ def lead_monitoring():
     except (OSError, ValueError, KeyError, TypeError):
         records, state = [], {}
     result = []
-    for name, project, agent in targets:
+    for name, project, agent, provider in targets:
         item = {"lead": name, "stall": "Unknown", "stallReason": "No available matching watcher classification", "quota": "Unknown", "quotaReason": "No per-lead quota source connected"}
+        item["poolCapacity"], item["poolReason"] = capacity_context(root, provider)
         matches = [t for t in records if isinstance(t, dict) and t.get("project") == project and t.get("agent") == agent and t.get("enabled", True)]
         if len(matches) == 1:
             entry = state.get(matches[0].get("name"), {})
