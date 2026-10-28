@@ -25,3 +25,19 @@ class ProjectionTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+class RosterAndHealthTests(unittest.TestCase):
+    def test_roster_registration_does_not_prove_presence(self):
+        from r10_projection import project_roster
+        bot = project_roster('ffxi', [{'key': 'example', 'name': 'Example', 'bodyKind': 'fixture'}])[0]
+        self.assertEqual(bot['status'], 'Unknown')
+        self.assertIsNone(bot['observedAt'])
+        self.assertIn('not presence', bot['source'])
+
+    def test_service_state_is_not_bot_health_and_omits_target(self):
+        from r10_projection import project_health
+        health = project_health({'utc': '2026-01-01T00:00:00Z', 'services': [
+            {'id': 'example', 'label': 'Example feed', 'game': 'ffxi', 'state': 'quiet', 'target': '/private/path'}]})[0]
+        self.assertEqual(health['status'], 'quiet')
+        self.assertEqual(health['observedAt'], '2026-01-01T00:00:00Z')
+        self.assertNotIn('target', health)

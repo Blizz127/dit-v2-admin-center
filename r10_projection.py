@@ -36,3 +36,31 @@ def project_learning_attention(rows):
         'detail': row['reason'] or 'No reason reported', 'updatedAt': row['updatedAt'],
         'source': row['source'],
     } for row in rows if row['status'] in ('unverified', 'failed', 'canceled', 'cancelled')]
+
+
+def project_roster(game, rows):
+    """r10 persona/body listing: never infer online status from registration."""
+    if not isinstance(game, str) or not game or not isinstance(rows, list):
+        raise ValueError('game and roster list required')
+    result = []
+    for row in rows:
+        if not isinstance(row, dict) or not all(isinstance(row.get(k), str) and row[k] for k in ('key', 'name')):
+            raise ValueError('roster key and name required')
+        result.append({'id': f'fixture:{game}:{row["key"]}', 'name': row['name'], 'game': game.upper(),
+                       'status': 'Unknown', 'source': 'Synthetic r10 roster fixture; registration is not presence',
+                       'observedAt': None, 'identityNote': 'Fixture key; native identity is not verified'})
+    return result
+
+
+def project_health(payload):
+    """Project service health only, preserving time and raw state; omit paths."""
+    if not isinstance(payload, dict) or not isinstance(payload.get('services'), list):
+        raise ValueError('services list required')
+    result = []
+    for service in payload['services']:
+        if not isinstance(service, dict) or not all(isinstance(service.get(k), str) and service[k] for k in ('id', 'label', 'state')):
+            raise ValueError('service id, label and state required')
+        result.append({'label': service['label'], 'game': service.get('game') or 'Unknown',
+                       'status': service['state'], 'detail': service.get('detail') or 'Not reported',
+                       'observedAt': payload.get('utc'), 'source': 'Synthetic r10 health fixture'})
+    return result
