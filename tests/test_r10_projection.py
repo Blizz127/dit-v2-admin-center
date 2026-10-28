@@ -22,10 +22,6 @@ class ProjectionTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             project_learning({'gameId': 'ffxi'})
 
-
-if __name__ == '__main__':
-    unittest.main()
-
 class RosterAndHealthTests(unittest.TestCase):
     def test_roster_registration_does_not_prove_presence(self):
         from r10_projection import project_roster
@@ -41,3 +37,7 @@ class RosterAndHealthTests(unittest.TestCase):
         self.assertEqual(health['status'], 'quiet')
         self.assertEqual(health['observedAt'], '2026-01-01T00:00:00Z')
         self.assertNotIn('target', health)
+
+
+if __name__ == '__main__':
+    unittest.main()

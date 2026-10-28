@@ -11,7 +11,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from r10_projection import project_learning, project_learning_attention
+from r10_projection import project_health, project_learning, project_learning_attention, project_roster
 
 ROOT = Path(__file__).resolve().parent / "static"
 ASSETS = {"/": ("index.html", "text/html; charset=utf-8"), "/app.js": ("app.js", "text/javascript; charset=utf-8"), "/style.css": ("style.css", "text/css; charset=utf-8")}
@@ -117,7 +117,9 @@ def overview():
         "bots": [
             {"id": "demo-1", "name": "Aster", "game": "FFXI", "status": "Paused", "source": "Synthetic fixture", "observedAt": "2026-01-01T12:00:00Z", "routing": {"purpose": "conversation", "requested": "Example provider / example model", "effective": None, "version": "example-1", "source": "Synthetic routing example", "observedAt": "2026-01-01T12:00:00Z", "availability": "Unavailable", "reason": "Example identity has not been verified"}},
             {"id": "demo-2", "name": "Vale", "game": "SWTOR", "status": "Unknown", "source": "Synthetic fixture", "observedAt": None},
-        ],
+        ] + project_roster("ffxi", [{"key": "example", "name": "Example roster bot"}]),
+        "serviceHealth": project_health({'utc': '2026-01-01T12:00:00Z', 'services': [
+            {'id': 'fixture-feed', 'game': 'ffxi', 'label': 'Example adapter feed', 'state': 'quiet', 'detail': 'Example only'}]}),
         "leads": lead_inventory(),
         "leadMonitoring": lead_monitoring(),
         "audit": [
