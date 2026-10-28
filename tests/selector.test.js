@@ -7,6 +7,7 @@ class Element {
   constructor(tag) { this.tag = tag; this.children = []; this.attributes = {}; this.textContent = ''; this.listeners = {}; }
   append(...children) { this.children.push(...children); }
   replaceChildren() { this.children = []; }
+  scrollIntoView() {}
   addEventListener(name, fn) { this.listeners[name] = fn; }
   setAttribute(name, value) { this.attributes[name] = value; }
   get lastElementChild() { return this.children.at(-1); }
@@ -14,7 +15,7 @@ class Element {
 const elements = new Map();
 const get = id => { if (!elements.has(id)) elements.set(id, new Element('div')); return elements.get(id); };
 const document = {querySelector: selector => get(selector.slice(1)), getElementById: get, createElement: tag => new Element(tag)};
-const data = {generatedAt: 'test', bots: [{id: 'one', name: 'Example', game: 'FFXI', status: 'Unknown', source: 'Fixture', observedAt: null}, {id: 'two', name: 'Other', game: 'FFXI', status: 'Unknown', source: 'Fixture', observedAt: null, routing: {purpose: 'conversation', requested: 'Example provider / example model', effective: null, version: 'example-1', availability: 'Unavailable', reason: 'Identity unverified', source: 'Synthetic example', observedAt: '2026-01-01T00:00:00Z'}}], leads: [], leadMonitoring: [], issues: [{title: 'Bot issue', detail: 'Example', scope: 'Bots', status: 'Open', source: 'Fixture'}, {title: 'Network issue', detail: 'Example', scope: 'Network', status: 'Open', source: 'Fixture'}], ledger: [{botId: 'one', request: 'Observe', result: 'Accepted', verification: 'Pending', correlationId: 'one'}, {botId: 'another', request: 'Other bot action', result: 'Accepted', verification: 'Verified', correlationId: 'two'}], learning: [{game: 'FFXI', topic: 'Example FFXI', status: 'Unknown', evidence: 'Unknown', datasets: 'Unknown', policy: 'Unknown', source: 'Fixture'}, {game: 'SWTOR', topic: 'Example SWTOR', status: 'Unknown', evidence: 'Unknown', datasets: 'Unknown', policy: 'Unknown', source: 'Fixture'}]};
+const data = {generatedAt: 'test', bots: [{id: 'one', name: 'Example', game: 'FFXI', status: 'Unknown', source: 'Fixture', observedAt: null}, {id: 'two', name: 'Other', game: 'FFXI', status: 'Unknown', source: 'Fixture', observedAt: null, routing: {purpose: 'conversation', requested: 'Example provider / example model', effective: null, version: 'example-1', availability: 'Unavailable', reason: 'Identity unverified', source: 'Synthetic example', observedAt: '2026-01-01T00:00:00Z'}}], leads: [], leadMonitoring: [], issues: [{title: 'Bot issue', detail: 'Example', scope: 'Bots', status: 'Open', source: 'Fixture', learningId: 'need-one'}, {title: 'Network issue', detail: 'Example', scope: 'Network', status: 'Open', source: 'Fixture'}], ledger: [{botId: 'one', request: 'Observe', result: 'Accepted', verification: 'Pending', correlationId: 'one'}, {botId: 'another', request: 'Other bot action', result: 'Accepted', verification: 'Verified', correlationId: 'two'}], learning: [{id: 'need-one', game: 'FFXI', topic: 'Example FFXI', reason: 'Missing evidence', status: 'Unknown', evidence: 'Unknown', datasets: 'Unknown', policy: 'Unknown', source: 'Fixture'}, {game: 'SWTOR', topic: 'Example SWTOR', status: 'Unknown', evidence: 'Unknown', datasets: 'Unknown', policy: 'Unknown', source: 'Fixture'}]};
 const context = {document, sessionStorage: {getItem: () => 'test', setItem() {}, removeItem() {}}, fetch: async () => ({ok: true, json: async () => data})};
 vm.runInNewContext(fs.readFileSync('static/app.js', 'utf8'), context);
 setImmediate(() => {
@@ -60,5 +61,10 @@ setImmediate(() => {
   assert.equal(get('issues').children.length, 1);
   assert.equal(get('issues').children[0].children[0].textContent, 'Bot issue');
   assert.match(get('issues').children[0].children[2].textContent, /Updated: unknown/);
+  get('issues').children[0].children.find(child => child.tag === 'button').listeners.click();
+  const learningDetail = get('learning-inspector').children[0];
+  assert.match(learningDetail.children[0].textContent, /Example FFXI/);
+  assert.match(learningDetail.children[1].textContent, /Missing evidence/);
+  assert.match(learningDetail.children[2].textContent, /Policy verification: Unknown/);
   console.log('Disabled selector, bot inspection and filters passed.');
 });
