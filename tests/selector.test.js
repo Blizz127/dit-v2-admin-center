@@ -28,8 +28,9 @@ setImmediate(async () => {
   get('bot-search').listeners.input();
   assert.equal(get('bots').children[0].children[0].textContent, 'No matching roster records');
   assert.match(get('bot-count').textContent, /Showing 0 of 2 loaded roster records/);
-  get('bot-search').value = '';
-  get('bot-search').listeners.input();
+  get('bot-reset').listeners.click();
+  assert.equal(get('bot-search').value, '');
+  assert.equal(get('bots').children.length, 2);
   assert.equal(requestedUrl, '/api/overview?source=mock');
   assert.match(get('lead-summary').children[0].children[1].textContent, /Stall: Unknown · Lead quota: Unknown/);
   assert.match(get('lead-summary').children[0].children[2].textContent, /Shared provider pool: 75% \(Shared pool only\)/);

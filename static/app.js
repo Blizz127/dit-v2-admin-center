@@ -352,6 +352,11 @@ document.querySelector('#clear-bot').addEventListener('click', () => {
 });
 document.querySelector('#bot-game').addEventListener('change', () => { if (currentSnapshot) renderBots(); });
 document.querySelector('#bot-search').addEventListener('input', () => { if (currentSnapshot) renderBots(); });
+document.querySelector('#bot-reset').addEventListener('click', () => {
+  document.querySelector('#bot-game').value = '';
+  document.querySelector('#bot-search').value = '';
+  if (currentSnapshot) renderBots();
+});
 document.querySelector('#issue-scope').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
 document.querySelector('#issue-status').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
 document.querySelector('#issue-search').addEventListener('input', () => { if (currentSnapshot) renderIssues(); });
