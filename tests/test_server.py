@@ -94,6 +94,15 @@ class ServerTests(unittest.TestCase):
         self.assertTrue(all(r['evidence'] == 'Unknown' and r['datasets'] == 'Unknown' and r['policy'] == 'Unknown' for r in rows))
         self.assertTrue(all('not a live finding' in r['source'] for r in rows))
 
+    def test_bot_details_are_synthetic_and_unverified(self):
+        status, _, body = self.request("GET", "/api/overview?source=mock", "test-private-token")
+        self.assertEqual(status, 200)
+        details = json.loads(body)['botDetails'][0]
+        self.assertIn('Synthetic', details['source'])
+        self.assertEqual(details['goals'][0]['status'], 'Proposed')
+        self.assertEqual(details['goals'][0]['evidence'], 'Not verified')
+        self.assertEqual(details['memories'][0]['grounding'], 'Not verified')
+
     def test_reply_source_fixture_keeps_delivery_independent(self):
         status, _, body = self.request("GET", "/api/overview?source=mock", "test-private-token")
         self.assertEqual(status, 200)

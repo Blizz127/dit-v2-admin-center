@@ -175,6 +175,11 @@ def overview(source='mock'):
                                       'claude-dit-human-behavior-platform': home / 'dev/dit-human-behavior-platform'}),
         "sessionMarkers": marker_reports,
         "quotaHistory": history(LOCAL_DATA),
+        "botDetails": [
+            {"botId": "demo-1", "source": "Synthetic bot detail fixture", "observedAt": "2026-01-01T12:00:00Z",
+             "goals": [{"text": "Example: explore a safe area", "status": "Proposed", "evidence": "Not verified"}],
+             "memories": [{"text": "Example: greeting a nearby traveler", "grounding": "Not verified"}]},
+        ],
         "replyEvents": [
             {"botId": "demo-1", "correlationId": "demo-reply-1", "wordingOrigin": "Fallback",
              "fallbackPolicy": "Deterministic wording", "fallbackReason": "Example provider timeout",
