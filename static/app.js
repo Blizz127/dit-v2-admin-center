@@ -165,7 +165,7 @@ async function load() {
     data.leadActivity.forEach(a => item(document.querySelector('#lead-activity'), a.lead, `Task: ${a.taskStatus} · ${a.taskSummary}`, `Task updated: ${a.taskUpdatedAt || 'unknown'} · ${a.taskSource} · Checkout HEAD commit: ${a.commitAt || 'unknown'} · ${a.commitSource}`));
     data.leadTimeline.forEach(t => {
       const panel = document.querySelector('#lead-timeline');
-      item(panel, t.lead, t.coverage, t.watchCoverage);
+      item(panel, t.lead, t.coverage, `${t.watchCoverage} · ${t.commitCoverage}`);
       const group = panel.lastElementChild;
       t.events.forEach(e => item(group, `${e.kind}: ${e.status}`, e.at, e.source));
     });

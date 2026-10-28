@@ -12,7 +12,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from lead_timeline import add_current_evidence, monitoring_issues, timeline
+from lead_timeline import add_checkout_history, add_current_evidence, monitoring_issues, timeline
 from lead_activity import lead_activity
 from live_hub import HubReader, merge_views, read_views
 from quota_history import collect, history
@@ -139,6 +139,7 @@ def overview():
                      for report in marker_reports for m in report['markers']]
     monitoring = lead_monitoring()
     lead_history = add_current_evidence(timeline(Path.home() / '.local/share/devbox-coordinator-state'), monitoring)
+    add_checkout_history(lead_history, {'DIT v2 hub lead': hub_project, 'Admin Center lead': PROJECT})
     snapshot = {
         "mode": "mock", "generatedAt": datetime.now(timezone.utc).isoformat(),
         "ownerAttention": pending_owner_decisions(home / ".local/share/devbox-coordinator-state/tasks.sqlite"),
