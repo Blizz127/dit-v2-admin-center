@@ -89,6 +89,7 @@ setImmediate(async () => {
   get('learning-game').value = 'FFXI';
   get('learning-game').listeners.change();
   assert.equal(get('learning').children.length, 1);
+  assert.match(get('learning-count').textContent, /Showing 1 of 2 loaded learning records; coverage may be incomplete/);
   assert.match(get('learning').children[0].children[0].textContent, /FFXI/);
   get('learning-search').value = 'missing evidence';
   get('learning-search').listeners.input();
@@ -106,6 +107,7 @@ setImmediate(async () => {
   get('issue-scope').value = 'Bots';
   get('issue-scope').listeners.change();
   assert.equal(get('issues').children.length, 1);
+  assert.match(get('issue-count').textContent, /Showing 1 of 4 loaded issue records; coverage may be incomplete/);
   assert.equal(get('issues').children[0].children[0].textContent, 'Bot issue');
   assert.match(get('issues').children[0].children[2].textContent, /Updated: unknown/);
   get('issue-status').value = 'Unknown';
