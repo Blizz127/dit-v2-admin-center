@@ -60,6 +60,14 @@ class HubReaderTests(unittest.TestCase):
 
 
 class ProjectionTests(unittest.TestCase):
+    def test_trace_projection_rejects_invalid_and_discards_bodies(self):
+        from live_hub import project_trace
+        with self.assertRaises(ValueError): project_trace({'not': 'a list'})
+        with self.assertRaises(ValueError): project_trace([{'kind': 'outcome'}])
+        result = project_trace([{'kind': 'observation', 'type': 'ffxi.test', 'body': 'invalid JSON'}])
+        self.assertIsNone(result[0]['disposition'])
+        self.assertNotIn('body', result[0])
+
     def test_merge_replaces_only_successful_scope(self):
         from live_hub import merge_views
         snapshot = {'bots': [{'game': 'FFXI'}, {'game': 'SWTOR'}], 'learning': [{'game': 'FFXI'}, {'game': 'SWTOR'}], 'issues': []}

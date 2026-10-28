@@ -245,13 +245,20 @@ class Handler(BaseHTTPRequestHandler):
                     return
                 try:
                     result, fetched = HubReader(url, token_file).trace(query['gameId'][0], query['correlationId'][0])
-                    body = {'records': project_trace(result), 'fetchedAt': fetched,
-                            'coverage': 'Recent hub trace window, maximum 250 records; missing records do not prove no action.'}
-                    self.send_content(200, "application/json", json.dumps(body).encode())
                 except ValueError:
                     self.send_content(400, "application/json", b'{"error":"invalid trace scope or configuration"}')
+                    return
                 except HubReadError:
                     self.send_content(503, "application/json", b'{"error":"hub read unavailable"}')
+                    return
+                try:
+                    records = project_trace(result)
+                except ValueError:
+                    self.send_content(502, "application/json", b'{"error":"invalid hub trace response"}')
+                    return
+                body = {'records': records, 'fetchedAt': fetched,
+                        'coverage': 'Recent hub trace window, maximum 250 records; missing records do not prove no action.'}
+                self.send_content(200, "application/json", json.dumps(body).encode())
             elif path == "/api/bridge-status":
                 self.send_content(200, "application/json", json.dumps(BRIDGE.read()).encode())
             elif path == "/api/overview":
