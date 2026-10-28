@@ -249,7 +249,15 @@ function inspectBot(id) {
   if (!bot) { panel.textContent = 'Selected bot is no longer in this snapshot.'; return; }
   item(panel, `${bot.name} · ${bot.game}`, rosterDetails(bot), `${bot.source} · Observed: ${bot.observedAt || 'unknown'}`);
   item(panel, 'Reported personality summary', routingText(bot.personalitySummary), `${bot.source} · Roster metadata, not proof of behavior`);
-  item(panel, 'Goals and memory', 'Unknown', 'Not included in this view');
+  const details = currentSnapshot.botDetails.find(d => d.botId === bot.id);
+  if (!details) item(panel, 'Goals and memory', 'Unknown', 'No bot detail record in this view; missing data does not establish absence.');
+  else {
+    const meta = `${details.source} · Observed: ${details.observedAt || 'unknown'}`;
+    if (!details.goals.length) item(panel, 'Goals', 'Unknown', meta);
+    details.goals.forEach(g => item(panel, `Goal · ${g.text}`, `Status: ${g.status} · Evidence: ${g.evidence}`, meta));
+    if (!details.memories.length) item(panel, 'Memory', 'Unknown', meta);
+    details.memories.forEach(m => item(panel, `Memory · ${m.text}`, `Grounding: ${m.grounding}`, meta));
+  }
   const events = currentSnapshot.ledger.filter(e => e.botId === bot.id);
   if (!events.length) item(panel, 'Evidence', 'No matching synthetic records', 'Absence of records does not prove inactivity.');
   events.forEach(e => item(panel, e.request, `Result: ${e.result} · Verification: ${e.verification}`, `Correlation: ${e.correlationId}`));
