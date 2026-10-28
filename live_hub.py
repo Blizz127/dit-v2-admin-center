@@ -92,3 +92,15 @@ def read_views(reader, games=('ffxi', 'swtor')):
                 result['feeds'].append({'game': game.upper(), 'view': view, 'status': 'Unavailable', 'at': None,
                                         'note': 'Synthetic fallback; no current hub data'})
     return result
+
+
+def merge_views(snapshot, live):
+    """Replace only successful game/view slices; leave explicit synthetic fallback elsewhere."""
+    for game, bots in live['bots'].items():
+        snapshot['bots'] = [b for b in snapshot['bots'] if b.get('game', '').lower() != game] + bots
+    for game, learning in live['learning'].items():
+        snapshot['learning'] = [r for r in snapshot['learning'] if r.get('game', '').lower() != game] + learning
+        snapshot['issues'] = [i for i in snapshot['issues'] if not (i.get('learningId') and i.get('scope', '').lower() == game)] + live['issues'][game]
+    snapshot['hubFeeds'] = live['feeds']
+    snapshot['mode'] = 'mixed' if live['bots'] or live['learning'] else 'mock'
+    return snapshot

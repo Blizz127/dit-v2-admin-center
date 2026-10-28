@@ -46,9 +46,18 @@ class HubReaderTests(unittest.TestCase):
             with self.assertRaises(ValueError): HubReader(url, '/tmp/no-token')
 
 
-if __name__ == '__main__': unittest.main()
 
 class ProjectionTests(unittest.TestCase):
+    def test_merge_replaces_only_successful_scope(self):
+        from live_hub import merge_views
+        snapshot = {'bots': [{'game': 'FFXI'}, {'game': 'SWTOR'}], 'learning': [{'game': 'FFXI'}, {'game': 'SWTOR'}], 'issues': []}
+        live = {'bots': {'ffxi': [{'game': 'FFXI', 'source': 'Live'}]}, 'learning': {}, 'issues': {}, 'feeds': []}
+        result = merge_views(snapshot, live)
+        self.assertEqual(result['mode'], 'mixed')
+        self.assertEqual(len(result['bots']), 2)
+        self.assertEqual(len(result['learning']), 2)
+        self.assertEqual(result['bots'][-1]['source'], 'Live')
+
     def test_partial_failure_keeps_games_scoped_and_presence_unknown(self):
         from live_hub import read_views
         class Reader:
@@ -63,3 +72,5 @@ class ProjectionTests(unittest.TestCase):
         self.assertEqual(result['learning']['ffxi'][0]['policy'], 'Unknown')
         self.assertEqual(result['issues']['ffxi'][0]['learningId'], 'live:ffxi:a')
         self.assertEqual([x['status'] for x in result['feeds']], ['Live response', 'Live response', 'Unavailable', 'Unavailable'])
+
+if __name__ == '__main__': unittest.main()
