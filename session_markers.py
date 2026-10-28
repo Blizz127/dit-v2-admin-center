@@ -7,6 +7,8 @@ from datetime import datetime
 import json
 from pathlib import Path
 import re
+import os
+import uuid
 import sqlite3
 
 MAX_TAIL = 256 * 1024
@@ -30,9 +32,12 @@ def scan(path):
             try:
                 record = json.loads(raw)
                 payload = record.get('payload') or {}
-                if record.get('type') != 'event_msg' or not isinstance(payload, dict):
+                if record.get('type') == 'event_msg' and isinstance(payload, dict):
+                    kind, message = payload.get('type'), payload.get('message')
+                elif record.get('type') == 'system':
+                    kind, message = record.get('subtype'), record.get('content')
+                else:
                     continue
-                kind = payload.get('type')
                 at = record.get('timestamp')
                 if not isinstance(at, str):
                     continue
@@ -44,8 +49,8 @@ def scan(path):
                     marker = 'Possible goal stop'
                 elif kind == 'usage_limit_reached':
                     marker = 'Possible usage limit'
-                elif kind in ('error', 'warning', 'notice') and isinstance(payload.get('message'), str):
-                    marker = next((name for name, pattern in PATTERNS if pattern.search(payload['message'])), None)
+                elif kind in ('error', 'api_error', 'warning', 'notice') and isinstance(message, str):
+                    marker = next((name for name, pattern in PATTERNS if pattern.search(message)), None)
                 if marker:
                     hits.append({'kind': marker, 'observedAt': at, 'source': 'Codex system event heuristic'})
             except (ValueError, TypeError, AttributeError):
@@ -70,4 +75,36 @@ def admin_markers(database, sessions_root, project):
             return unknown
         return {'lead': 'Admin Center lead', 'coverage': 'Recent rollout tail only; no current goal-state guarantee', 'markers': markers}
     except (OSError, ValueError, TypeError, sqlite3.Error):
+        return unknown
+
+
+def claude_markers(native_root, project, tmux_session, lead):
+    """Accept one live native binding whose tmux, cwd and protocol match exactly."""
+    unknown = {'lead': lead, 'coverage': 'Session marker coverage unknown', 'markers': []}
+    try:
+        candidates = []
+        for file in (native_root / 'sessions').glob('*.json'):
+            try:
+                data = json.loads(file.read_text())
+                pid, session = data.get('pid'), data.get('sessionId')
+                if type(pid) is not int or pid <= 1 or not data.get('messagingSocketPath') or data.get('peerProtocol') != 1:
+                    continue
+                os.kill(pid, 0)
+                if data.get('cwd') != str(project) or (data.get('tmux') or '').split(':', 1)[0] != tmux_session:
+                    continue
+                uuid.UUID(session)
+                candidates.append(session)
+            except (OSError, ValueError, TypeError, AttributeError):
+                continue
+        if len(candidates) != 1:
+            return unknown
+        slug = re.sub(r'[^A-Za-z0-9]', '-', str(project))
+        projects = (native_root / 'projects').resolve(strict=True)
+        path = (projects / slug / (candidates[0] + '.jsonl')).resolve(strict=True)
+        path.relative_to(projects)
+        markers = scan(path)
+        if markers is None:
+            return unknown
+        return {'lead': lead, 'coverage': 'Recent rollout tail only; no current goal-state guarantee', 'markers': markers}
+    except (OSError, ValueError, TypeError):
         return unknown

@@ -1,10 +1,12 @@
 import json
+import os
+import uuid
 import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
 
-from session_markers import admin_markers, scan
+from session_markers import admin_markers, claude_markers, scan
 
 
 class SessionMarkerTests(unittest.TestCase):
@@ -20,6 +22,19 @@ class SessionMarkerTests(unittest.TestCase):
             hits = scan(path)
             self.assertEqual([h['kind'] for h in hits], ['Possible usage limit', 'Possible goal stop'])
             self.assertNotIn('private details', str(hits))
+
+    def test_claude_requires_exact_live_binding_and_system_event(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); project = root / 'project'; session = str(uuid.uuid4())
+            (root / 'sessions').mkdir(); slug = str(project).replace('/', '-')
+            transcript = root / 'projects' / slug / (session + '.jsonl'); transcript.parent.mkdir(parents=True)
+            transcript.write_text(json.dumps({'type': 'system', 'subtype': 'error', 'timestamp': '2026-01-01T00:00:00Z', 'content': 'Usage limit reached'}))
+            info = {'pid': os.getpid(), 'sessionId': session, 'cwd': str(project), 'tmux': 'lead:0', 'peerProtocol': 1, 'messagingSocketPath': '/example'}
+            (root / 'sessions' / 'one.json').write_text(json.dumps(info))
+            report = claude_markers(root, project, 'lead', 'Example')
+            self.assertEqual(report['markers'][0]['kind'], 'Possible usage limit')
+            (root / 'sessions' / 'two.json').write_text(json.dumps(info))
+            self.assertEqual(claude_markers(root, project, 'lead', 'Example')['coverage'], 'Session marker coverage unknown')
 
     def test_ambiguous_or_outside_session_remains_unknown(self):
         with tempfile.TemporaryDirectory() as directory:
