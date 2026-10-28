@@ -82,6 +82,14 @@ setImmediate(() => {
   get('learning-game').listeners.change();
   assert.equal(get('learning').children.length, 1);
   assert.match(get('learning').children[0].children[0].textContent, /FFXI/);
+  get('learning-search').value = 'missing evidence';
+  get('learning-search').listeners.input();
+  assert.equal(get('learning').children.length, 1);
+  get('learning-search').value = 'no match';
+  get('learning-search').listeners.input();
+  assert.equal(get('learning').children[0].children[0].textContent, 'No matching learning entries');
+  get('learning-search').value = '';
+  get('learning-search').listeners.input();
   get('learning-status').value = 'unverified';
   get('learning-status').listeners.change();
   assert.equal(get('learning').children[0].children[0].textContent, 'No matching learning entries');

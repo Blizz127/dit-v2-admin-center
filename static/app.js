@@ -72,8 +72,9 @@ function renderLearning() {
   const panel = document.querySelector('#learning');
   const game = document.querySelector('#learning-game').value;
   const status = document.querySelector('#learning-status').value;
+  const query = (document.querySelector('#learning-search').value || '').trim().toLowerCase();
   panel.replaceChildren();
-  const records = currentSnapshot.learning.filter(l => (!game || l.game === game) && (!status || l.status === status));
+  const records = currentSnapshot.learning.filter(l => (!game || l.game === game) && (!status || l.status === status) && (!query || `${l.topic} ${l.reason || ''}`.toLowerCase().includes(query)));
   if (!records.length) item(panel, 'No matching learning entries', 'No records in this mock snapshot.', 'Coverage is unknown.');
   records.forEach(l => {
     item(panel, `${l.game} · ${l.topic}`, l.status, `Evidence: ${l.evidence} · Datasets: ${l.datasets} · Policy verification: ${l.policy} · Updated: ${l.updatedAt || 'unknown'} · ${l.source}`);
@@ -214,6 +215,7 @@ document.querySelector('#issue-scope').addEventListener('change', () => { if (cu
 document.querySelector('#issue-search').addEventListener('input', () => { if (currentSnapshot) renderIssues(); });
 document.querySelector('#learning-game').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
 document.querySelector('#learning-status').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
+document.querySelector('#learning-search').addEventListener('input', () => { if (currentSnapshot) renderLearning(); });
 document.querySelector('#trace-search').addEventListener('submit', e => {
   e.preventDefault(); correlationFilter = document.querySelector('#correlation').value.trim();
   if (currentSnapshot) renderLedger();
