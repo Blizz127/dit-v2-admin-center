@@ -111,8 +111,8 @@ def overview():
         "leads": lead_inventory(),
         "leadMonitoring": lead_monitoring(),
         "ledger": [
-            {"correlationId": "demo-episode-1", "bot": "Aster", "request": "Observe surroundings", "result": "Accepted", "verification": "Pending"},
-            {"correlationId": "demo-episode-2", "bot": "Aster", "request": "Move to camp", "result": "Rejected: gate disabled", "verification": "Not applicable"},
+            {"correlationId": "demo-episode-1", "botId": "demo-1", "bot": "Aster", "request": "Observe surroundings", "result": "Accepted", "verification": "Pending"},
+            {"correlationId": "demo-episode-2", "botId": "demo-1", "bot": "Aster", "request": "Move to camp", "result": "Rejected: gate disabled", "verification": "Not applicable"},
         ],
         "learning": [
             {"game": "FFXI", "topic": "Navigation, party behavior and grounded social memory", "status": "Needs evidence", "evidence": "Not instrumented", "datasets": "Unknown", "policy": "Unknown", "source": "Synthetic planning example"},
