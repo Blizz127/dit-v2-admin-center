@@ -65,11 +65,12 @@ function renderIssues() {
   const panel = document.querySelector('#issues');
   const scope = document.querySelector('#issue-scope').value;
   const status = document.querySelector('#issue-status').value;
+  const selectedOnly = document.querySelector('#issue-selected-bot').checked;
   const query = (document.querySelector('#issue-search').value || '').trim().toLowerCase();
   panel.replaceChildren();
-  const records = currentSnapshot.issues.filter(i => (!scope || i.scope === scope) && (!status || i.status === status) && (!query || `${i.title} ${i.detail}`.toLowerCase().includes(query)));
+  const records = currentSnapshot.issues.filter(i => (!scope || i.scope === scope) && (!status || i.status === status) && (!selectedOnly || (selectedBotId !== null && i.botId === selectedBotId)) && (!query || `${i.title} ${i.detail}`.toLowerCase().includes(query)));
   document.querySelector('#issue-count').textContent = `Showing ${records.length} of ${currentSnapshot.issues.length} loaded issue records; coverage may be incomplete.`;
-  if (!records.length) item(panel, 'No matching issues', 'No matching records in the loaded data.', 'This does not establish a healthy state.');
+  if (!records.length) item(panel, 'No matching issues', selectedOnly && selectedBotId === null ? 'Select a bot to use this filter.' : 'No matching records in the loaded data.', 'This does not establish a healthy state.');
   records.forEach(i => {
     item(panel, i.title, i.detail, `${i.scope} · ${i.status} · ${i.source} · ${i.timeLabel || 'Updated'}: ${i.updatedAt || 'unknown'}`);
     if (i.ownerAttention) {
@@ -210,6 +211,7 @@ function renderAssignments() {
 }
 function inspectBot(id) {
   selectedBotId = id;
+  if (document.querySelector('#issue-selected-bot').checked) renderIssues();
   renderAssignments();
   renderReplySource();
   const panel = document.querySelector('#bot-inspector');
@@ -350,7 +352,7 @@ document.querySelector('#clear-bot').addEventListener('click', () => {
   selectedBotId = null;
   const panel = document.querySelector('#bot-inspector');
   panel.replaceChildren(); panel.textContent = 'No bot selected.';
-  if (currentSnapshot) { renderAssignments(); renderReplySource(); }
+  if (currentSnapshot) { renderAssignments(); renderReplySource(); if (document.querySelector('#issue-selected-bot').checked) renderIssues(); }
 });
 document.querySelector('#bot-game').addEventListener('change', () => { if (currentSnapshot) renderBots(); });
 document.querySelector('#bot-search').addEventListener('input', () => { if (currentSnapshot) renderBots(); });
@@ -361,9 +363,11 @@ document.querySelector('#bot-reset').addEventListener('click', () => {
 });
 document.querySelector('#issue-scope').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
 document.querySelector('#issue-status').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
+document.querySelector('#issue-selected-bot').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
 document.querySelector('#issue-search').addEventListener('input', () => { if (currentSnapshot) renderIssues(); });
 document.querySelector('#issue-reset').addEventListener('click', () => {
   for (const id of ['issue-scope', 'issue-status', 'issue-search']) document.getElementById(id).value = '';
+  document.querySelector('#issue-selected-bot').checked = false;
   if (currentSnapshot) renderIssues();
 });
 document.querySelector('#learning-game').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
