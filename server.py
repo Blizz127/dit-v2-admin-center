@@ -41,6 +41,10 @@ def overview():
             {"id": "demo-2", "name": "Vale", "game": "SWTOR", "status": "Unknown", "source": "Synthetic fixture", "observedAt": None},
         ],
         "leads": lead_inventory(),
+        "leadMonitoring": [
+            {"lead": "DIT v2 hub lead", "stall": "Unknown", "stallReason": "No configured coordinator watcher target", "quota": "Unknown", "quotaReason": "No per-lead quota source connected"},
+            {"lead": "Admin Center lead", "stall": "Unknown", "stallReason": "No configured coordinator watcher target", "quota": "Unknown", "quotaReason": "No per-lead quota source connected"},
+        ],
         "ledger": [
             {"correlationId": "demo-episode-1", "bot": "Aster", "request": "Observe surroundings", "result": "Accepted", "verification": "Pending"},
             {"correlationId": "demo-episode-2", "bot": "Aster", "request": "Move to camp", "result": "Rejected: gate disabled", "verification": "Not applicable"},
