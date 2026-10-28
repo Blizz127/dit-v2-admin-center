@@ -13,6 +13,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from lead_timeline import add_current_evidence, monitoring_issues, timeline
+from lead_activity import lead_activity
 from quota_history import collect, history
 from owner_attention import pending_owner_decisions
 from nudge_history import nudge_history
@@ -148,6 +149,10 @@ def overview():
             {'id': 'fixture-feed', 'game': 'ffxi', 'label': 'Example adapter feed', 'state': 'quiet', 'detail': 'Example only'}]}),
         "leads": lead_inventory(),
         "leadMonitoring": monitoring,
+        "leadActivity": lead_activity(home / '.local/share/devbox-coordinator-state/tasks.sqlite', [
+            ('DIT v2 hub lead', 'claude-dit-human-behavior-platform', 'claude', hub_project),
+            ('Admin Center lead', 'claude-dit-v2-admin-center', 'codex', PROJECT),
+        ]),
         "leadTimeline": lead_history,
         "nudgeHistory": nudge_history(home / ".local/share/devbox-coordinator-state/tasks.sqlite", home / '.codex/state_5.sqlite',
                                       home / '.codex/sessions', {'claude-dit-v2-admin-center': PROJECT,

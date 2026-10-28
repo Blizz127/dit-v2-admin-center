@@ -143,7 +143,7 @@ async function load() {
     const response = await fetch('/api/overview', {headers: {Authorization: `Bearer ${token}`}, cache: 'no-store'});
     if (!response.ok) throw new Error(response.status === 401 ? 'Token was not accepted.' : 'Could not load the workspace.');
     const data = await response.json();
-    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history']) document.getElementById(id).replaceChildren();
+    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity']) document.getElementById(id).replaceChildren();
     currentSnapshot = data;
     item(document.querySelector('#owner-attention'), 'Coverage', data.ownerAttention.coverage, 'Coordinator task board · Read only');
     if (!data.ownerAttention.items.length) item(document.querySelector('#owner-attention'), 'No records listed', 'Other owner decisions may be tracked elsewhere.', 'Not a complete decision inventory');
@@ -154,6 +154,7 @@ async function load() {
     data.serviceHealth.forEach(h => item(document.querySelector('#service-health'), `${h.label} · ${h.game}`, `${h.status} · ${h.detail}`, `${h.source} · Observed: ${h.observedAt || 'unknown'} · May be stale`));
     data.leads.forEach(l => item(document.querySelector('#leads'), `${l.name} · ${l.scope}`, l.status, `${l.source} · Observed: ${l.observedAt || 'unknown'}`));
     data.leadMonitoring.forEach(m => item(document.querySelector('#lead-monitoring'), m.lead, `Stall: ${m.stall} · Quota: ${m.quota}`, `Session activity: ${m.sessionActivity} (not proof of work or a stall) · ${m.stallReason} · ${m.quotaReason} · Provider pool: ${m.poolCapacity} (${m.poolReason})`));
+    data.leadActivity.forEach(a => item(document.querySelector('#lead-activity'), a.lead, `Task: ${a.taskStatus} · ${a.taskSummary}`, `Task updated: ${a.taskUpdatedAt || 'unknown'} · ${a.taskSource} · Checkout HEAD commit: ${a.commitAt || 'unknown'} · ${a.commitSource}`));
     data.leadTimeline.forEach(t => {
       const panel = document.querySelector('#lead-timeline');
       item(panel, t.lead, t.coverage, t.watchCoverage);
