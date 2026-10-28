@@ -236,7 +236,8 @@ function renderBots() {
   const query = (document.querySelector('#bot-search').value || '').trim().toLowerCase();
   const bots = currentSnapshot.bots.filter(b => (!game || b.game === game) && (!query || b.name.toLowerCase().includes(query)));
   panel.replaceChildren();
-  document.querySelector('#bot-count').textContent = `Showing ${bots.length} of ${currentSnapshot.bots.length} loaded roster records; coverage and presence may be unknown.`;
+  const selectedHidden = selectedBotId !== null && !bots.some(b => b.id === selectedBotId);
+  document.querySelector('#bot-count').textContent = `Showing ${bots.length} of ${currentSnapshot.bots.length} loaded roster records; coverage and presence may be unknown.${selectedHidden ? ' Selected bot is outside this filtered roster; its inspector remains selected.' : ''}`;
   if (!bots.length) item(panel, 'No matching roster records', 'No matches in the loaded data.', 'This does not establish that a bot is offline.');
   else bots.forEach(botItem);
 }
@@ -270,6 +271,7 @@ function rosterDetails(bot) {
 }
 function inspectBot(id) {
   selectedBotId = id;
+  renderBots();
   renderSafety();
   if (document.querySelector('#issue-selected-bot').checked) renderIssues();
   renderAssignments();
@@ -446,6 +448,7 @@ document.querySelector('#hide-routing').addEventListener('click', () => {
 });
 document.querySelector('#clear-bot').addEventListener('click', () => {
   selectedBotId = null;
+  if (currentSnapshot) renderBots();
   const panel = document.querySelector('#bot-inspector');
   panel.replaceChildren(); panel.textContent = 'No bot selected.';
   if (currentSnapshot) { renderAssignments(); renderReplySource(); renderSafety(); if (document.querySelector('#issue-selected-bot').checked) renderIssues(); }

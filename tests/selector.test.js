@@ -248,6 +248,11 @@ setImmediate(async () => {
   assert.equal(get('bot-game').value, 'FFXI');
   assert.equal(get('bot-search').value, '');
   assert.match(get('bot-count').textContent, /Showing 2 of 2/);
+  get('bots').children[0].children.find(child => child.tag === 'button').listeners.click();
+  get('bot-search').value = 'missing'; get('bot-search').listeners.input();
+  assert.match(get('bot-count').textContent, /Selected bot is outside this filtered roster/);
+  get('clear-bot').listeners.click();
+  assert.doesNotMatch(get('bot-count').textContent, /Selected bot is outside/);
   context.fetch = async () => { throw new Error('offline'); };
   await get('bridge-refresh').listeners.click();
   assert.equal(get('ffxi-focus-bridge').children.length, 0);
