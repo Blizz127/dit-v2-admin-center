@@ -260,7 +260,20 @@ function inspectBot(id) {
   }
   const events = currentSnapshot.ledger.filter(e => e.botId === bot.id);
   if (!events.length) item(panel, 'Evidence', 'No matching synthetic records', 'Absence of records does not prove inactivity.');
-  events.forEach(e => item(panel, e.request, `Result: ${e.result} · Verification: ${e.verification}`, `Correlation: ${e.correlationId}`));
+  events.forEach(e => {
+    item(panel, e.request, `Result: ${e.result} · Verification: ${e.verification}`, `Correlation: ${e.correlationId}`);
+    if (typeof e.correlationId === 'string' && e.correlationId) {
+      const button = document.createElement('button'); button.type = 'button'; button.textContent = 'View example episode in ledger';
+      button.addEventListener('click', () => {
+        correlationFilter = e.correlationId;
+        document.querySelector('#correlation').value = e.correlationId;
+        if (['FFXI', 'SWTOR'].includes(bot.game)) document.querySelector('#trace-game').value = bot.game.toLowerCase();
+        traceVersion++; document.querySelector('#hub-trace').replaceChildren();
+        renderLedger(); document.querySelector('#ledger').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+      });
+      panel.lastElementChild.append(button);
+    }
+  });
   const issues = currentSnapshot.issues.filter(i => i.botId === bot.id);
   if (!issues.length) item(panel, 'Bot-linked issues', 'No matching records in this view.', 'This does not establish a healthy state.');
   issues.forEach(i => item(panel, `Issue · ${i.title}`, `${i.status} · ${i.detail}`, `${i.source} · Updated: ${i.updatedAt || 'unknown'}`));

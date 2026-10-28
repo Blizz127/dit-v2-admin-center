@@ -99,6 +99,12 @@ setImmediate(async () => {
   assert.match(inspector.children[3].children[1].textContent, /Grounding: Not verified/);
   assert.equal(inspector.children[4].children[0].textContent, 'Observe');
   assert.match(inspector.children[4].children[1].textContent, /Verification: Pending/);
+  inspector.children[4].children.find(child => child.tag === 'button').listeners.click();
+  assert.equal(get('correlation').value, 'one');
+  assert.equal(get('trace-game').value, 'ffxi');
+  assert.equal(get('ledger').children.length, 1);
+  assert.match(get('ledger').children[0].children[0].textContent, /Observe/);
+  get('trace-clear').listeners.click();
   get('clear-bot').listeners.click();
   assert.equal(get('bot-inspector').textContent, 'No bot selected.');
   assert.equal(get('assignment-history').children[0].children[0].textContent, 'No bot selected');
