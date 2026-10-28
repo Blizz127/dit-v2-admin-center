@@ -69,6 +69,14 @@ class ServerTests(unittest.TestCase):
         parser = Controls(); parser.feed(page)
         self.assertEqual(parser.controls, [True, True])
 
+    def test_bridge_status_requires_auth_and_uses_observer(self):
+        from unittest.mock import patch
+        self.assertEqual(self.request("GET", "/api/bridge-status")[0], 401)
+        with patch('server.BRIDGE.read', return_value={'unit': 'unknown', 'marker': 'unknown'}):
+            status, _, body = self.request("GET", "/api/bridge-status", "test-private-token")
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(body)['marker'], 'unknown')
+
     def test_source_parameter_rejects_invalid_values(self):
         self.assertEqual(self.request("GET", "/api/overview?source=unknown", "test-private-token")[0], 400)
         self.assertEqual(self.request("GET", "/api/overview?source=mock&source=hub", "test-private-token")[0], 400)

@@ -5,6 +5,7 @@ let currentSnapshot = null;
 let requestVersion = 0;
 let selectedBotId = null;
 let correlationFilter = '';
+let bridgePending = false;
 let selectedLearningId = null;
 let token = sessionStorage.getItem('dit-admin-token') || '';
 function item(parent, title, detail, meta) {
@@ -13,6 +14,19 @@ function item(parent, title, detail, meta) {
   const text = document.createElement('p'); text.textContent = detail;
   const small = document.createElement('small'); small.textContent = meta || '';
   row.append(heading, text, small); parent.append(row);
+}
+async function loadBridge() {
+  if (bridgePending || !token || workspace.hidden) return;
+  bridgePending = true;
+  const panel = document.querySelector('#bridge-status');
+  try {
+    const response = await fetch('/api/bridge-status', {headers: {Authorization: `Bearer ${token}`}, cache: 'no-store'});
+    if (!response.ok) throw new Error('unavailable');
+    const data = await response.json();
+    panel.replaceChildren();
+    item(panel, `Unit: ${data.unit} · ${data.substate}`, `Result: ${data.result} · Fault marker: ${data.marker}`, `${data.source} · Observed: ${data.observedAt || 'unknown'} · Marker absence does not prove delivery`);
+  } catch (_) { panel.textContent = 'Bridge status unknown; read-only observation unavailable.'; }
+  finally { bridgePending = false; }
 }
 function renderQuotaHistory() {
   const panel = document.querySelector('#quota-history');
@@ -236,11 +250,13 @@ async function load() {
     renderLedger();
     renderLearning();
     document.querySelector('#updated').textContent = `Snapshot generated ${data.generatedAt} · Sources are labeled per view; lead task state comes from the coordinator board.`;
-    sessionStorage.setItem('dit-admin-token', token); workspace.hidden = false; form.hidden = true;
+    sessionStorage.setItem('dit-admin-token', token); workspace.hidden = false; form.hidden = true; loadBridge();
   } catch (e) { if (requestId !== requestVersion) return; workspace.hidden = true; form.hidden = false; sessionStorage.removeItem('dit-admin-token'); error.textContent = e.message; }
 }
 form.addEventListener('submit', e => { e.preventDefault(); token = document.querySelector('#token').value; document.querySelector('#token').value = ''; load(); });
 document.querySelector('#refresh').addEventListener('click', load);
+document.querySelector('#bridge-refresh').addEventListener('click', loadBridge);
+if (typeof setInterval === 'function') setInterval(() => { if (document.visibilityState !== 'hidden') loadBridge(); }, 15000);
 document.querySelector('#data-source').addEventListener('change', load);
 document.querySelector('#quota-window').addEventListener('change', () => { if (currentSnapshot) renderQuotaHistory(); });
 document.querySelector('#timeline-kind').addEventListener('change', () => { if (currentSnapshot) renderLeadTimeline(); });
