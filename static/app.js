@@ -217,6 +217,9 @@ function renderAssignments() {
   if (!bot || !rows.length) { item(panel, 'No matching examples', 'No synthetic assignment history is available for this bot.', 'This does not prove no real assignment exists.'); return; }
   rows.forEach(a => item(panel, `${bot.name} · ${routingText(a.purpose)}`, `Requested: ${routingText(a.requested)} · Effective: ${routingText(a.effective)}`, `Version: ${routingText(a.version)} · Recorded: ${routingText(a.at, 'unknown')} · ${routingText(a.source)}`));
 }
+function rosterDetails(bot) {
+  return `Status: ${routingText(bot.status)} · Character: ${routingText(bot.character)} · Level: ${routingText(bot.level)} · Body kind: ${routingText(bot.bodyKind)}`;
+}
 function inspectBot(id) {
   selectedBotId = id;
   if (document.querySelector('#issue-selected-bot').checked) renderIssues();
@@ -226,7 +229,7 @@ function inspectBot(id) {
   panel.replaceChildren();
   const bot = currentSnapshot.bots.find(b => b.id === id);
   if (!bot) { panel.textContent = 'Selected bot is no longer in this snapshot.'; return; }
-  item(panel, `${bot.name} · ${bot.game}`, `Status: ${bot.status}`, `${bot.source} · Observed: ${bot.observedAt || 'unknown'}`);
+  item(panel, `${bot.name} · ${bot.game}`, rosterDetails(bot), `${bot.source} · Observed: ${bot.observedAt || 'unknown'}`);
   item(panel, 'Goals, personality and memory', 'Unknown', 'Not included in this view');
   const events = currentSnapshot.ledger.filter(e => e.botId === bot.id);
   if (!events.length) item(panel, 'Evidence', 'No matching synthetic records', 'Absence of records does not prove inactivity.');
@@ -240,7 +243,7 @@ function routingText(value, fallback = 'Unknown') {
 }
 function botItem(bot) {
   const parent = document.querySelector('#bots');
-  item(parent, `${bot.name} · ${bot.game}`, bot.status, `${bot.source} · Observed: ${bot.observedAt || 'unknown'}`);
+  item(parent, `${bot.name} · ${bot.game}`, rosterDetails(bot), `${bot.source} · Observed: ${bot.observedAt || 'unknown'}`);
   const row = parent.lastElementChild;
   const inspect = document.createElement('button');
   inspect.type = 'button';
