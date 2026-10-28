@@ -88,7 +88,7 @@ function inspectBot(id) {
   const bot = currentSnapshot.bots.find(b => b.id === id);
   if (!bot) { panel.textContent = 'Selected bot is no longer in this snapshot.'; return; }
   item(panel, `${bot.name} · ${bot.game}`, `Status: ${bot.status}`, `${bot.source} · Observed: ${bot.observedAt || 'unknown'}`);
-  item(panel, 'Goals, personality and memory', 'Unknown', 'No hub connection');
+  item(panel, 'Goals, personality and memory', 'Unknown', 'Not included in this view');
   const events = currentSnapshot.ledger.filter(e => e.botId === bot.id);
   if (!events.length) item(panel, 'Evidence', 'No matching synthetic records', 'Absence of records does not prove inactivity.');
   events.forEach(e => item(panel, e.request, `Result: ${e.result} · Verification: ${e.verification}`, `Correlation: ${e.correlationId}`));
@@ -143,11 +143,12 @@ async function load() {
     const response = await fetch('/api/overview', {headers: {Authorization: `Bearer ${token}`}, cache: 'no-store'});
     if (!response.ok) throw new Error(response.status === 401 ? 'Token was not accepted.' : 'Could not load the workspace.');
     const data = await response.json();
-    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity']) document.getElementById(id).replaceChildren();
+    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds']) document.getElementById(id).replaceChildren();
     currentSnapshot = data;
     item(document.querySelector('#owner-attention'), 'Coverage', data.ownerAttention.coverage, 'Coordinator task board · Read only');
     if (!data.ownerAttention.items.length) item(document.querySelector('#owner-attention'), 'No records listed', 'Other owner decisions may be tracked elsewhere.', 'Not a complete decision inventory');
     data.ownerAttention.items.forEach(a => item(document.querySelector('#owner-attention'), a.title, a.project, `Created: ${a.createdAt} · Expires: ${a.expiresAt} · Coordinator approval record`));
+    data.hubFeeds.forEach(f => item(document.querySelector('#hub-feeds'), `${f.game} · ${f.view}`, f.status, `${f.note} · Fetched: ${f.at || 'unknown'}`));
     data.bots.forEach(botItem);
     if (selectedBotId !== null) inspectBot(selectedBotId);
     else renderAssignments();
@@ -179,7 +180,7 @@ async function load() {
     renderIssues();
     renderLedger();
     renderLearning();
-    document.querySelector('#updated').textContent = `Snapshot generated ${data.generatedAt} · Bot and learning data are synthetic; lead task state comes from the coordinator board.`;
+    document.querySelector('#updated').textContent = `Snapshot generated ${data.generatedAt} · Sources are labeled per view; lead task state comes from the coordinator board.`;
     sessionStorage.setItem('dit-admin-token', token); workspace.hidden = false; form.hidden = true;
   } catch (e) { workspace.hidden = true; form.hidden = false; sessionStorage.removeItem('dit-admin-token'); error.textContent = e.message; }
 }

@@ -14,6 +14,7 @@ from urllib.parse import urlsplit
 
 from lead_timeline import add_current_evidence, monitoring_issues, timeline
 from lead_activity import lead_activity
+from live_hub import HubReader, merge_views, read_views
 from quota_history import collect, history
 from owner_attention import pending_owner_decisions
 from nudge_history import nudge_history
@@ -138,7 +139,7 @@ def overview():
                      for report in marker_reports for m in report['markers']]
     monitoring = lead_monitoring()
     lead_history = add_current_evidence(timeline(Path.home() / '.local/share/devbox-coordinator-state'), monitoring)
-    return {
+    snapshot = {
         "mode": "mock", "generatedAt": datetime.now(timezone.utc).isoformat(),
         "ownerAttention": pending_owner_decisions(home / ".local/share/devbox-coordinator-state/tasks.sqlite"),
         "bots": [
@@ -181,12 +182,23 @@ def overview():
             {"id": "fixture-need-3", "game": "SWTOR", "topic": "Adapter coverage, missions and social behavior", "status": "Needs inventory", "evidence": "Unknown", "datasets": "Unknown", "policy": "Unknown", "source": "Synthetic planning example"},
         ] + projected,
         "issues": [
-            {"title": "Hub contract awaiting coordination", "detail": "This view uses fixtures; no hub connection is configured.", "status": "Open", "scope": "Network", "source": "Synthetic planning example"},
+            {"title": "Hub contract awaiting coordination", "detail": "Hub contract remains under review; each data source is labeled separately.", "status": "Open", "scope": "Network", "source": "Synthetic planning example"},
             {"title": "Controls unavailable", "detail": "Bot commands, gates and model changes are not connected.", "status": "Open", "scope": "Network", "source": "Synthetic planning example"},
             {"title": "Example routing identity is unverified", "detail": "The synthetic routing record cannot select a model.", "status": "Open", "scope": "Bots", "source": "Synthetic routing example", "updatedAt": "2026-01-01T12:00:00Z"},
             {"title": "Bot presence lacks current evidence", "detail": "Mock bot statuses cannot establish current game presence.", "status": "Open", "scope": "Bots", "source": "Synthetic planning example"},
         ] + project_learning_attention(projected) + monitoring_issues(monitoring) + marker_issues + binding_issues(hub_report),
     }
+    url, token_file = os.environ.get('HUB_READONLY_URL'), os.environ.get('HUB_TOKEN_FILE')
+    if not url or not token_file:
+        snapshot['hubFeeds'] = [{'game': 'All', 'view': 'hub', 'status': 'Not configured', 'at': None,
+                                 'note': 'Synthetic fallback; no live hub connection'}]
+        return snapshot
+    try:
+        return merge_views(snapshot, read_views(HubReader(url, token_file)))
+    except ValueError:
+        snapshot['hubFeeds'] = [{'game': 'All', 'view': 'hub', 'status': 'Invalid configuration', 'at': None,
+                                 'note': 'Synthetic fallback; loopback tunnel required'}]
+        return snapshot
 
 
 class Handler(BaseHTTPRequestHandler):
