@@ -4,6 +4,7 @@ const workspace = document.querySelector('#workspace');
 let currentSnapshot = null;
 let selectedBotId = null;
 let correlationFilter = '';
+let selectedLearningId = null;
 let token = sessionStorage.getItem('dit-admin-token') || '';
 function item(parent, title, detail, meta) {
   const row = document.createElement('div'); row.className = 'row';
@@ -20,13 +21,30 @@ function renderIssues() {
   if (!records.length) item(panel, 'No matching issues', 'No records in this mock snapshot.', 'This does not establish a healthy state.');
   records.forEach(i => item(panel, i.title, i.detail, `${i.scope} · ${i.status} · ${i.source} · Updated: ${i.updatedAt || 'unknown'}`));
 }
+function inspectLearning(id) {
+  selectedLearningId = id;
+  const panel = document.querySelector('#learning-inspector');
+  panel.replaceChildren();
+  const need = currentSnapshot.learning.find(l => l.id === id);
+  if (!need) { panel.textContent = 'Selected learning need is no longer in this snapshot.'; return; }
+  item(panel, `Learning detail · ${need.game} · ${need.topic}`, `Status: ${need.status} · Reason: ${need.reason || 'Not reported'}`,
+    `Evidence: ${need.evidence} · Datasets: ${need.datasets} · Policy verification: ${need.policy} · Updated: ${need.updatedAt || 'unknown'} · ${need.source}`);
+}
 function renderLearning() {
   const panel = document.querySelector('#learning');
   const game = document.querySelector('#learning-game').value;
   panel.replaceChildren();
   const records = currentSnapshot.learning.filter(l => !game || l.game === game);
   if (!records.length) item(panel, 'No matching learning entries', 'No records in this mock snapshot.', 'Coverage is unknown.');
-  records.forEach(l => item(panel, `${l.game} · ${l.topic}`, l.status, `Evidence: ${l.evidence} · Datasets: ${l.datasets} · Policy verification: ${l.policy} · ${l.source}`));
+  records.forEach(l => {
+    item(panel, `${l.game} · ${l.topic}`, l.status, `Evidence: ${l.evidence} · Datasets: ${l.datasets} · Policy verification: ${l.policy} · ${l.source}`);
+    if (l.id) {
+      const button = document.createElement('button'); button.type = 'button';
+      button.textContent = `Inspect ${l.topic}`; button.addEventListener('click', () => inspectLearning(l.id));
+      panel.lastElementChild.append(button);
+    }
+  });
+  if (selectedLearningId !== null) inspectLearning(selectedLearningId);
 }
 function renderLedger() {
   const panel = document.querySelector('#ledger');
