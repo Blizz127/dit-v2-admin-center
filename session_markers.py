@@ -136,3 +136,15 @@ def handoff_codex_markers(database, sessions_root, project, lane_path, lead):
         return {'lead': lead, 'coverage': 'Coordinator handoff binds one thread; live process unverified. Recent rollout tail only.', 'markers': markers}
     except (OSError, ValueError, TypeError, sqlite3.Error):
         return unknown('handoff metadata or bound rollout is unavailable')
+
+
+def binding_issues(report):
+    """Report coverage ambiguity without suggesting recovery actions."""
+    coverage = report.get('coverage')
+    if not isinstance(coverage, str) or not coverage.startswith('Session marker coverage unknown'):
+        return []
+    return [{'title': 'Hub lead session marker binding unavailable',
+             'detail': coverage,
+             'suggestedFix': 'Ask the coordinator to verify the configured project, handoff marker and native thread identity read-only; do not infer a match from activity alone.',
+             'scope': 'Leads', 'status': 'Unknown', 'source': 'Coordinator handoff and native thread metadata',
+             'updatedAt': None}]

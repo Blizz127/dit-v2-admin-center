@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from session_markers import admin_markers, claude_markers, handoff_codex_markers, scan
+from session_markers import admin_markers, binding_issues, claude_markers, handoff_codex_markers, scan
 
 
 class SessionMarkerTests(unittest.TestCase):
@@ -52,6 +52,14 @@ class SessionMarkerTests(unittest.TestCase):
             with sqlite3.connect(db) as connection:
                 connection.execute('INSERT INTO threads VALUES (?,?,0,?,?)', ('two', str(project), str(rollout), 'assignment UNIQUE'))
             self.assertIn('exactly one', handoff_codex_markers(db, sessions, project, lane, 'Lead')['coverage'])
+
+    def test_unknown_binding_is_an_issue_with_read_only_verification(self):
+        report = {'coverage': 'Session marker coverage unknown: handoff marker does not identify exactly one matching native thread'}
+        issue = binding_issues(report)[0]
+        self.assertEqual(issue['status'], 'Unknown')
+        self.assertIn('read-only', issue['suggestedFix'])
+        self.assertIn('exactly one', issue['detail'])
+        self.assertEqual(binding_issues({'coverage': 'Recent rollout tail only'}), [])
 
     def test_ambiguous_or_outside_session_remains_unknown(self):
         with tempfile.TemporaryDirectory() as directory:

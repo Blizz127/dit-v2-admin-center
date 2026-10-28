@@ -22,6 +22,11 @@ function renderIssues() {
   if (!records.length) item(panel, 'No matching issues', 'No records in this mock snapshot.', 'This does not establish a healthy state.');
   records.forEach(i => {
     item(panel, i.title, i.detail, `${i.scope} · ${i.status} · ${i.source} · Updated: ${i.updatedAt || 'unknown'}`);
+    if (i.suggestedFix) {
+      const fix = document.createElement('p');
+      fix.textContent = `Suggested verification: ${i.suggestedFix}`;
+      panel.lastElementChild.append(fix);
+    }
     if (i.learningId && currentSnapshot.learning.some(l => l.id === i.learningId)) {
       const button = document.createElement('button'); button.type = 'button';
       button.textContent = `Inspect learning need: ${i.title}`;
