@@ -96,6 +96,7 @@ setImmediate(async () => {
   assert.equal(get('ledger').children[0].children[0].textContent, 'No matching evidence');
   get('trace-clear').listeners.click();
   assert.equal(get('ledger').children.length, 2);
+  assert.match(get('learning-coverage').children[0].children[2].textContent, /task verification does not establish verified datasets, policies/);
   get('learning-game').value = 'FFXI';
   get('learning-game').listeners.change();
   assert.equal(get('learning').children.length, 1);

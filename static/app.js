@@ -104,6 +104,15 @@ function inspectLearning(id) {
   if (!issues.length) item(panel, 'Related issues', 'No matching issue records in this view.', 'This does not establish a resolved learning gap.');
   issues.forEach(i => item(panel, `Related issue · ${i.title}`, `${i.status} · ${i.detail}`, `${i.source} · ${i.timeLabel || 'Updated'}: ${i.updatedAt || 'unknown'}`));
 }
+function renderLearningCoverage() {
+  const panel = document.querySelector('#learning-coverage');
+  panel.replaceChildren();
+  for (const game of ['FFXI', 'SWTOR']) {
+    const rows = currentSnapshot.learning.filter(l => l.game === game);
+    const verifiedTasks = rows.filter(l => l.status === 'verified').length;
+    item(panel, `${game} · loaded learning records`, `${rows.length} loaded · ${verifiedTasks} marked as verified tasks`, 'Loaded records may be incomplete; task verification does not establish verified datasets, policies, adoption or game outcomes. Check individual sources.');
+  }
+}
 function renderLearning() {
   const panel = document.querySelector('#learning');
   const game = document.querySelector('#learning-game').value;
@@ -254,7 +263,7 @@ async function load() {
     if (!response.ok) throw new Error(response.status === 401 ? 'Token was not accepted.' : 'Could not load the workspace.');
     const data = await response.json();
     if (requestId !== requestVersion) return;
-    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source']) document.getElementById(id).replaceChildren();
+    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage']) document.getElementById(id).replaceChildren();
     currentSnapshot = data;
     item(document.querySelector('#owner-attention'), 'Coverage', data.ownerAttention.coverage, 'Coordinator task board · Read only');
     if (!data.ownerAttention.items.length) item(document.querySelector('#owner-attention'), 'No records listed', 'Other owner decisions may be tracked elsewhere.', 'Not a complete decision inventory');
@@ -294,6 +303,7 @@ async function load() {
     data.audit.forEach(a => item(document.querySelector('#audit'), `${a.action} · ${a.scope}`, a.result, `${a.actor} · ${a.at || 'unknown time'} · ${a.source}`));
     renderIssues();
     renderLedger();
+    renderLearningCoverage();
     renderLearning();
     document.querySelector('#updated').textContent = `Snapshot generated ${data.generatedAt} · Sources are labeled per view; lead task state comes from the coordinator board.`;
     sessionStorage.setItem('dit-admin-token', token); workspace.hidden = false; form.hidden = true; loadBridge();
