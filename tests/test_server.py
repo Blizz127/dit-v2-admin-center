@@ -121,6 +121,14 @@ class ServerTests(unittest.TestCase):
         self.assertTrue(all(r['evidence'] == 'Unknown' and r['datasets'] == 'Unknown' and r['policy'] == 'Unknown' for r in rows))
         self.assertTrue(all('not a live finding' in r['source'] for r in rows))
 
+    def test_ffxi_focus_does_not_claim_delivery_or_toggle(self):
+        status, _, body = self.request("GET", "/api/overview?source=mock", "test-private-token")
+        self.assertEqual(status, 200)
+        focus = json.loads(body)['ffxiFocus']
+        self.assertIn('unverified', focus['closest'])
+        self.assertIn('No behavior or model toggle', focus['toggle'])
+        self.assertIn('delivery', focus['unverified'])
+
     def test_safety_records_are_synthetic_and_do_not_assert_kill_state(self):
         status, _, body = self.request("GET", "/api/overview?source=mock", "test-private-token")
         self.assertEqual(status, 200)

@@ -153,6 +153,13 @@ def overview(source='mock'):
     snapshot = {
         "mode": "mock", "generatedAt": datetime.now(timezone.utc).isoformat(),
         "ownerAttention": owner_attention,
+        "ffxiFocus": {
+            "closest": "Party-greeting fallback is the closest documented player-facing slice; its active source is unverified here.",
+            "whatToLookFor": "After the DIT/FFXI lead confirms the build is ready, follow their in-game test instructions and confirm whether speech is visible.",
+            "toggle": "No behavior or model toggle is connected in this Admin Center. Gate state is unknown.",
+            "unverified": "Player-visible reply delivery, current bridge source and exact gate state have not been verified by this view.",
+            "source": "Project evidence and coordinator report of ef097b2 approval, October 28, 2026; deployment receipt pending",
+        },
         "bots": [
             {"id": "demo-1", "name": "Aster", "game": "FFXI", "status": "Paused", "character": "Example job", "level": "12", "bodyKind": "Example body", "personalitySummary": "Example: patient and curious", "source": "Synthetic fixture", "observedAt": "2026-01-01T12:00:00Z", "routing": {"purpose": "conversation", "requested": "Example provider / example model", "effective": None, "version": "example-1", "source": "Synthetic routing example", "observedAt": "2026-01-01T12:00:00Z", "availability": "Unavailable", "reason": "Example identity has not been verified"}},
             {"id": "demo-2", "name": "Vale", "game": "SWTOR", "status": "Unknown", "source": "Synthetic fixture", "observedAt": None},
