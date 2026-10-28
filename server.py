@@ -5,6 +5,7 @@ import os
 import sqlite3
 import math
 import time
+import subprocess
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -57,10 +58,22 @@ def capacity_context(root, provider, now=None):
         return "Unknown", "Coordinator provider pool estimate unavailable"
 
 
+def session_activity(session):
+    if not session:
+        return "Unknown"
+    try:
+        result = subprocess.run(["tmux", "display-message", "-p", "-t", "=" + session, "#{session_activity}"],
+                                capture_output=True, text=True, timeout=1, check=True)
+        timestamp = int(result.stdout.strip())
+        return datetime.fromtimestamp(timestamp, timezone.utc).isoformat()
+    except (OSError, ValueError, OverflowError, subprocess.SubprocessError):
+        return "Unknown"
+
+
 def lead_monitoring():
     root = Path.home() / ".local/share/devbox-coordinator-state"
-    targets = [("DIT v2 hub lead", "claude-dit-human-behavior-platform", "claude", "claude"),
-               ("Admin Center lead", "claude-dit-v2-admin-center", "codex", None)]
+    targets = [("DIT v2 hub lead", "claude-dit-human-behavior-platform", "claude", "claude", "claude-dit-human-behavior-platform"),
+               ("Admin Center lead", "claude-dit-v2-admin-center", "codex", None, None)]
     try:
         config = json.loads((root / "watch.json").read_text())
         state = json.loads((root / "watch-state.json").read_text())
@@ -70,9 +83,10 @@ def lead_monitoring():
     except (OSError, ValueError, KeyError, TypeError):
         records, state = [], {}
     result = []
-    for name, project, agent, provider in targets:
+    for name, project, agent, provider, session in targets:
         item = {"lead": name, "stall": "Unknown", "stallReason": "No available matching watcher classification", "quota": "Unknown", "quotaReason": "No per-lead quota source connected"}
         item["poolCapacity"], item["poolReason"] = capacity_context(root, provider)
+        item["sessionActivity"] = session_activity(session)
         matches = [t for t in records if isinstance(t, dict) and t.get("project") == project and t.get("agent") == agent and t.get("enabled", True)]
         if len(matches) == 1:
             entry = state.get(matches[0].get("name"), {})

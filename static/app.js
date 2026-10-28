@@ -38,7 +38,7 @@ async function load() {
     for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring']) document.getElementById(id).replaceChildren();
     data.bots.forEach(botItem);
     data.leads.forEach(l => item(document.querySelector('#leads'), `${l.name} · ${l.scope}`, l.status, `${l.source} · Observed: ${l.observedAt || 'unknown'}`));
-    data.leadMonitoring.forEach(m => item(document.querySelector('#lead-monitoring'), m.lead, `Stall: ${m.stall} · Quota: ${m.quota}`, `${m.stallReason} · ${m.quotaReason} · Provider pool: ${m.poolCapacity} (${m.poolReason})`));
+    data.leadMonitoring.forEach(m => item(document.querySelector('#lead-monitoring'), m.lead, `Stall: ${m.stall} · Quota: ${m.quota}`, `Session activity: ${m.sessionActivity} (not proof of work or a stall) · ${m.stallReason} · ${m.quotaReason} · Provider pool: ${m.poolCapacity} (${m.poolReason})`));
     data.issues.forEach(i => item(document.querySelector('#issues'), i.title, i.detail, `${i.status} · ${i.source}`));
     data.ledger.forEach(e => item(document.querySelector('#ledger'), `${e.bot} · ${e.request}`, `Result: ${e.result} · Verification: ${e.verification}`, `Correlation: ${e.correlationId}`));
     data.learning.forEach(l => item(document.querySelector('#learning'), `${l.game} · ${l.topic}`, l.status, `Evidence: ${l.evidence} · Datasets: ${l.datasets} · Policy verification: ${l.policy} · ${l.source}`));
