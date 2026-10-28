@@ -128,9 +128,11 @@ function renderLearning() {
   const panel = document.querySelector('#learning');
   const game = document.querySelector('#learning-game').value;
   const status = document.querySelector('#learning-status').value;
+  const attention = document.querySelector('#learning-attention').checked;
+  const attentionStatuses = new Set(['Needs evidence', 'Needs inventory', 'unverified', 'failed', 'canceled', 'cancelled']);
   const query = (document.querySelector('#learning-search').value || '').trim().toLowerCase();
   panel.replaceChildren();
-  const records = currentSnapshot.learning.filter(l => (!game || l.game === game) && (!status || l.status === status) && (!query || `${l.topic} ${l.reason || ''}`.toLowerCase().includes(query)));
+  const records = currentSnapshot.learning.filter(l => (!game || l.game === game) && (!status || l.status === status) && (!attention || attentionStatuses.has(l.status)) && (!query || `${l.topic} ${l.reason || ''}`.toLowerCase().includes(query)));
   document.querySelector('#learning-count').textContent = `Showing ${records.length} of ${currentSnapshot.learning.length} loaded learning records; coverage may be incomplete.`;
   if (!records.length) item(panel, 'No matching learning entries', 'No matching records in the loaded data.', 'Coverage is unknown.');
   records.forEach(l => {
@@ -366,9 +368,11 @@ document.querySelector('#issue-reset').addEventListener('click', () => {
 });
 document.querySelector('#learning-game').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
 document.querySelector('#learning-status').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
+document.querySelector('#learning-attention').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
 document.querySelector('#learning-search').addEventListener('input', () => { if (currentSnapshot) renderLearning(); });
 document.querySelector('#learning-reset').addEventListener('click', () => {
   for (const id of ['learning-game', 'learning-status', 'learning-search']) document.getElementById(id).value = '';
+  document.querySelector('#learning-attention').checked = false;
   if (currentSnapshot) renderLearning();
 });
 document.querySelector('#trace-search').addEventListener('submit', e => {
