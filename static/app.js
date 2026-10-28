@@ -43,7 +43,13 @@ function renderIssues() {
   const records = currentSnapshot.issues.filter(i => (!scope || i.scope === scope) && (!query || `${i.title} ${i.detail}`.toLowerCase().includes(query)));
   if (!records.length) item(panel, 'No matching issues', 'No records in this mock snapshot.', 'This does not establish a healthy state.');
   records.forEach(i => {
-    item(panel, i.title, i.detail, `${i.scope} · ${i.status} · ${i.source} · Updated: ${i.updatedAt || 'unknown'}`);
+    item(panel, i.title, i.detail, `${i.scope} · ${i.status} · ${i.source} · ${i.timeLabel || 'Updated'}: ${i.updatedAt || 'unknown'}`);
+    if (i.ownerAttention) {
+      const button = document.createElement('button'); button.type = 'button';
+      button.textContent = 'View owner decision summary';
+      button.addEventListener('click', () => document.querySelector('#owner-attention').scrollIntoView({behavior: 'smooth', block: 'nearest'}));
+      panel.lastElementChild.append(button);
+    }
     if (i.suggestedFix) {
       const fix = document.createElement('p');
       fix.textContent = `Suggested verification: ${i.suggestedFix}`;

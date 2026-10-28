@@ -8,7 +8,7 @@ def bridge_fault_issue():
         'detail': 'The project evidence reports a delayed-delivery fault and failed bridge at 09:41 CDT on October 28, 2026. The exact exception was not observed and the reply outcome is uncertain.',
         'suggestedFix': 'Review the project evidence and current owner decision read-only. Preserve the fault marker and uncertain reply; do not replay or restart based on this card.',
         'source': 'DIT platform evidence: ffxi-relative-inbox-20261028/README.md',
-        'updatedAt': '2026-10-28T14:41:24Z',
+        'updatedAt': '2026-10-28T14:41:24Z', 'timeLabel': 'Reported',
     }
 
 
@@ -18,5 +18,5 @@ def pending_decision_issues(owner_attention):
         result.append({'title': 'Pending owner decision: ' + item['title'],
                        'detail': 'Coordinator approval record for ' + item['project'] + '; expires ' + item['expiresAt'] + '. Other decisions may be tracked elsewhere.',
                        'scope': 'Decisions', 'status': 'Pending record', 'source': 'Coordinator approval records',
-                       'updatedAt': item['createdAt'], 'ownerAttention': True})
+                       'updatedAt': item['createdAt'], 'timeLabel': 'Created', 'ownerAttention': True})
     return result
