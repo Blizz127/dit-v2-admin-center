@@ -114,7 +114,7 @@ function botItem(bot) {
   routingMeta.textContent = `Purpose: ${routingText(routing.purpose)} · Version: ${routingText(routing.version)} · Reported availability: ${routingText(routing.availability)} · Reason: ${routingText(routing.reason, 'Not reported')} · Source: ${routingText(routing.source)} · Observed: ${routingText(routing.observedAt, 'unknown')} · Freshness: Unknown`;
   const scope = document.createElement('p');
   scope.className = 'routing';
-  scope.textContent = 'Game, realm and native bot identity must be verified before routing is available.';
+  scope.textContent = bot.id.startsWith('live:') ? 'The hub roster does not provide an implemented per-bot routing policy or verified routing identity.' : 'Game, realm and native bot identity must be verified before routing is available.';
   const purposeLabel = document.createElement('label');
   purposeLabel.textContent = 'Purpose';
   const purpose = document.createElement('select');

@@ -15,7 +15,7 @@ class Stub(BaseHTTPRequestHandler):
     def do_GET(self):
         Stub.requests.append((self.path, self.headers.get('Authorization')))
         if self.path.startswith('/v1/control/bots'):
-            self.send_response(200); self.end_headers(); self.wfile.write(b'[]')
+            self.send_response(200); self.end_headers(); self.wfile.write(b'[{"key":"fixture","name":"Fixture bot"}]')
         elif self.path.startswith('/v1/control/learning'):
             self.send_response(200); self.end_headers(); self.wfile.write(json.dumps({'gameId': 'ffxi', 'tasks': [{'id': 'fixture-one', 'gameId': 'ffxi', 'topic': 'Fixture learning gap', 'status': 'unverified', 'reason': 'Example missing evidence', 'updatedAtUtc': '2026-01-01T00:00:00Z'}]}).encode())
         else:
@@ -32,7 +32,7 @@ class HubReaderTests(unittest.TestCase):
             thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
             try:
                 reader = HubReader(f'http://127.0.0.1:{server.server_port}', token)
-                data, stamp = reader.get('bots', 'ffxi'); self.assertEqual(data, []); self.assertTrue(stamp)
+                data, stamp = reader.get('bots', 'ffxi'); self.assertEqual(data[0]['name'], 'Fixture bot'); self.assertTrue(stamp)
                 reader.get('learning', 'ffxi')
                 self.assertEqual(Stub.requests[0][1], 'Bearer test-token')
                 self.assertIn('light=true', Stub.requests[1][0])
@@ -94,6 +94,9 @@ class EndToEndTests(unittest.TestCase):
                 self.assertNotIn(b'synthetic-hub-token', body)
                 payload = json.loads(body)
                 self.assertEqual(payload['mode'], 'mixed')
+                bot = next(row for row in payload['bots'] if row['id'] == 'live:ffxi:fixture')
+                self.assertEqual(bot['status'], 'Unknown')
+                self.assertNotIn('routing', bot)
                 self.assertTrue(any(f['status'] == 'Unavailable' for f in payload['hubFeeds']))
                 self.assertTrue(any(f['status'] == 'Live response' for f in payload['hubFeeds']))
                 need = next(row for row in payload['learning'] if row.get('id') == 'live:ffxi:fixture-one')
