@@ -26,6 +26,13 @@ setImmediate(() => {
   assert.match(timeline.children[2].textContent, /Watcher unknown · Checkout ancestry only/);
   assert.match(timeline.children[3].children[2].textContent, /not attributed to lead/);
   assert.match(timeline.children[4].children[0].textContent, /Watcher alert: STALLED/);
+  get('timeline-kind').value = 'watcher';
+  get('timeline-kind').listeners.change();
+  assert.equal(get('lead-timeline').children[0].children[3].children[0].textContent, 'Watcher alert: STALLED');
+  assert.equal(get('lead-timeline').children[0].children.length, 4);
+  get('timeline-kind').value = 'session';
+  get('timeline-kind').listeners.change();
+  assert.equal(get('lead-timeline').children[0].children[3].children[0].textContent, 'No matching evidence');
   assert.match(get('nudge-history').children[0].children[3].children[2].textContent, /Time to reply: 30 s · Time to resume: unknown/);
   const row = get('bots').children[0];
   const labels = row.children.filter(child => child.tag === 'label');

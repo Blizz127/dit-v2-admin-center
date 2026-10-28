@@ -13,6 +13,19 @@ function item(parent, title, detail, meta) {
   const small = document.createElement('small'); small.textContent = meta || '';
   row.append(heading, text, small); parent.append(row);
 }
+function renderLeadTimeline() {
+  const panel = document.querySelector('#lead-timeline');
+  const filter = document.querySelector('#timeline-kind').value;
+  const kinds = {watcher: ['Watcher alert', 'Watcher classification'], task: ['Task status'], session: ['Session activity'], commit: ['Checkout commit']};
+  panel.replaceChildren();
+  currentSnapshot.leadTimeline.forEach(t => {
+    item(panel, t.lead, t.coverage, `${t.watchCoverage} · ${t.commitCoverage}`);
+    const group = panel.lastElementChild;
+    const events = t.events.filter(e => !filter || (kinds[filter] || []).includes(e.kind));
+    if (!events.length) item(group, 'No matching evidence', 'This filter has no records in the available history.', 'Current activity remains unknown.');
+    events.forEach(e => item(group, `${e.kind}: ${e.status}`, e.at, e.source));
+  });
+}
 function renderIssues() {
   const panel = document.querySelector('#issues');
   const scope = document.querySelector('#issue-scope').value;
@@ -163,12 +176,7 @@ async function load() {
     data.leads.forEach(l => item(document.querySelector('#leads'), `${l.name} · ${l.scope}`, l.status, `${l.source} · Observed: ${l.observedAt || 'unknown'}`));
     data.leadMonitoring.forEach(m => item(document.querySelector('#lead-monitoring'), m.lead, `Stall: ${m.stall} · Quota: ${m.quota}`, `Session activity: ${m.sessionActivity} (not proof of work or a stall) · ${m.stallReason} · ${m.quotaReason} · Provider pool: ${m.poolCapacity} (${m.poolReason})`));
     data.leadActivity.forEach(a => item(document.querySelector('#lead-activity'), a.lead, `Task: ${a.taskStatus} · ${a.taskSummary}`, `Task updated: ${a.taskUpdatedAt || 'unknown'} · ${a.taskSource} · Checkout HEAD commit: ${a.commitAt || 'unknown'} · ${a.commitSource}`));
-    data.leadTimeline.forEach(t => {
-      const panel = document.querySelector('#lead-timeline');
-      item(panel, t.lead, t.coverage, `${t.watchCoverage} · ${t.commitCoverage}`);
-      const group = panel.lastElementChild;
-      t.events.forEach(e => item(group, `${e.kind}: ${e.status}`, e.at, e.source));
-    });
+    renderLeadTimeline();
     data.nudgeHistory.forEach(lead => {
       const panel = document.querySelector('#nudge-history');
       item(panel, lead.lead, lead.coverage, 'Read-only coordinator metadata');
@@ -193,6 +201,7 @@ async function load() {
 }
 form.addEventListener('submit', e => { e.preventDefault(); token = document.querySelector('#token').value; document.querySelector('#token').value = ''; load(); });
 document.querySelector('#refresh').addEventListener('click', load);
+document.querySelector('#timeline-kind').addEventListener('change', () => { if (currentSnapshot) renderLeadTimeline(); });
 document.querySelector('#issue-scope').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
 document.querySelector('#issue-search').addEventListener('input', () => { if (currentSnapshot) renderIssues(); });
 document.querySelector('#learning-game').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
