@@ -328,6 +328,12 @@ if (typeof setInterval === 'function') setInterval(() => { if (document.visibili
 document.querySelector('#data-source').addEventListener('change', () => { traceVersion++; document.querySelector('#hub-trace').replaceChildren(); return load(); });
 document.querySelector('#quota-window').addEventListener('change', () => { if (currentSnapshot) renderQuotaHistory(); });
 document.querySelector('#timeline-kind').addEventListener('change', () => { if (currentSnapshot) renderLeadTimeline(); });
+document.querySelector('#clear-bot').addEventListener('click', () => {
+  selectedBotId = null;
+  const panel = document.querySelector('#bot-inspector');
+  panel.replaceChildren(); panel.textContent = 'No bot selected.';
+  if (currentSnapshot) { renderAssignments(); renderReplySource(); }
+});
 document.querySelector('#bot-game').addEventListener('change', () => { if (currentSnapshot) renderBots(); });
 document.querySelector('#bot-search').addEventListener('input', () => { if (currentSnapshot) renderBots(); });
 document.querySelector('#issue-scope').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });

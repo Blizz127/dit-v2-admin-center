@@ -85,6 +85,11 @@ setImmediate(async () => {
   assert.equal(inspector.children.length, 4);
   assert.equal(inspector.children[2].children[0].textContent, 'Observe');
   assert.match(inspector.children[2].children[1].textContent, /Verification: Pending/);
+  get('clear-bot').listeners.click();
+  assert.equal(get('bot-inspector').textContent, 'No bot selected.');
+  assert.equal(get('assignment-history').children[0].children[0].textContent, 'No bot selected');
+  assert.equal(get('reply-source').children[0].children[0].textContent, 'No bot selected');
+  row.children.find(child => child.tag === 'button').listeners.click();
   assert.equal(inspector.children.some(child => child.children[0].textContent === 'Other bot action'), false);
   assert.equal(inspector.children[3].children[0].textContent, 'Issue · Bot issue');
   get('correlation').value = 'two';
