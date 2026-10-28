@@ -32,4 +32,4 @@ A future separately authorized administrative change requires versioned compare-
 4. How are provider/model/account allowlists, budgets and fallback approved without exposing credentials, and how are unknowns handled?
 5. Which ledger provides request-to-attempt attribution, and how will version, availability and reconciliation be established without merging separate stores?
 
-No live health polling, tokens or service writes are approved by this draft. Ask the owning hub lead to review before treating any proposed shape as authoritative; Blizz's contract approval remains outstanding.
+No live health polling, tokens or service writes are approved by this draft. Blizz approved the design draft; the owning hub lead must review its unresolved details before any proposed shape is treated as an implemented authoritative contract. Separate authorization is needed for future live changes.
