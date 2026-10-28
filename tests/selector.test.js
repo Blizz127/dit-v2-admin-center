@@ -19,8 +19,11 @@ const context = {document, sessionStorage: {getItem: () => 'test', setItem() {},
 vm.runInNewContext(fs.readFileSync('static/app.js', 'utf8'), context);
 setImmediate(() => {
   const row = get('bots').children[0];
-  const label = row.children.find(child => child.tag === 'label');
-  const selector = label.children[0];
+  const labels = row.children.filter(child => child.tag === 'label');
+  const purpose = labels[0].children[0];
+  assert.equal(purpose.disabled, true);
+  assert.equal(purpose.children[0].textContent, 'Unavailable');
+  const selector = labels[1].children[0];
   assert.equal(selector.tag, 'select');
   assert.equal(selector.disabled, true);
   assert.equal(selector.children.length, 1);

@@ -16,6 +16,18 @@ function botItem(bot) {
   const details = document.createElement('p');
   details.className = 'routing';
   details.textContent = 'Requested model: Unknown · Effective model: Unknown';
+  const scope = document.createElement('p');
+  scope.className = 'routing';
+  scope.textContent = 'Game, realm and native bot identity must be verified before routing is available.';
+  const purposeLabel = document.createElement('label');
+  purposeLabel.textContent = 'Purpose';
+  const purpose = document.createElement('select');
+  purpose.disabled = true;
+  purpose.setAttribute('aria-label', `Purpose for ${bot.name}`);
+  const purposeOption = document.createElement('option');
+  purposeOption.textContent = 'Unavailable';
+  purpose.append(purposeOption);
+  purposeLabel.append(purpose);
   const label = document.createElement('label');
   label.textContent = `Model for ${bot.name}`;
   const select = document.createElement('select');
@@ -27,7 +39,7 @@ function botItem(bot) {
   const note = document.createElement('small');
   note.textContent = 'Model selection awaits a hub contract and owner authorization.';
   label.append(select);
-  row.append(details, label, note);
+  row.append(details, scope, purposeLabel, label, note);
 }
 async function load() {
   error.textContent = '';
