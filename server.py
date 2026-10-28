@@ -165,6 +165,12 @@ def overview(source='mock'):
                                       'claude-dit-human-behavior-platform': home / 'dev/dit-human-behavior-platform'}),
         "sessionMarkers": marker_reports,
         "quotaHistory": history(LOCAL_DATA),
+        "replyEvents": [
+            {"botId": "demo-1", "correlationId": "demo-reply-1", "wordingOrigin": "Fallback",
+             "fallbackPolicy": "Deterministic wording", "fallbackReason": "Example provider timeout",
+             "generationStatus": "Timed out", "delivery": "Unknown", "verification": "Pending",
+             "observedAt": "2026-01-01T12:00:00Z", "source": "Synthetic reply example"},
+        ],
         "assignmentHistory": [
             {"botId": "demo-1", "purpose": "conversation", "requested": "Example provider / example model",
              "effective": None, "version": "example-1", "at": "2026-01-01T12:00:00Z", "source": "Synthetic assignment fixture"},

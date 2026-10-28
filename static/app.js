@@ -126,6 +126,15 @@ function renderLedger() {
   if (!records.length) item(panel, 'No matching evidence', 'No records in this mock snapshot.', 'This is not proof that an action did or did not occur.');
   records.forEach(e => item(panel, `${e.bot} · ${e.request}`, `Result: ${e.result} · Verification: ${e.verification}`, `Correlation: ${e.correlationId}`));
 }
+function renderReplySource() {
+  const panel = document.querySelector('#reply-source');
+  panel.replaceChildren();
+  if (!selectedBotId) { item(panel, 'No bot selected', 'Select a bot to inspect reply examples.', 'No live reply data is connected.'); return; }
+  const bot = currentSnapshot.bots.find(b => b.id === selectedBotId);
+  const rows = currentSnapshot.replyEvents.filter(r => r.botId === selectedBotId);
+  if (!bot || !rows.length) { item(panel, 'No matching reply evidence', 'Source, fallback and delivery are unknown.', 'Absence of records does not prove no reply occurred.'); return; }
+  rows.forEach(r => item(panel, `${bot.name} · ${r.wordingOrigin || 'Unknown source'}`, `Generation: ${r.generationStatus || 'Unknown'} · Fallback: ${r.fallbackPolicy || 'Unknown'} · Reason: ${r.fallbackReason || 'Not reported'}`, `Delivery: ${r.delivery || 'Unknown'} · Verification: ${r.verification || 'Unknown'} · Correlation: ${r.correlationId || 'unknown'} · ${r.source} · Observed: ${r.observedAt || 'unknown'}`));
+}
 function renderAssignments() {
   const panel = document.querySelector('#assignment-history');
   panel.replaceChildren();
@@ -138,6 +147,7 @@ function renderAssignments() {
 function inspectBot(id) {
   selectedBotId = id;
   renderAssignments();
+  renderReplySource();
   const panel = document.querySelector('#bot-inspector');
   panel.replaceChildren();
   const bot = currentSnapshot.bots.find(b => b.id === id);
@@ -211,7 +221,7 @@ async function load() {
     if (!response.ok) throw new Error(response.status === 401 ? 'Token was not accepted.' : 'Could not load the workspace.');
     const data = await response.json();
     if (requestId !== requestVersion) return;
-    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary']) document.getElementById(id).replaceChildren();
+    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source']) document.getElementById(id).replaceChildren();
     currentSnapshot = data;
     item(document.querySelector('#owner-attention'), 'Coverage', data.ownerAttention.coverage, 'Coordinator task board · Read only');
     if (!data.ownerAttention.items.length) item(document.querySelector('#owner-attention'), 'No records listed', 'Other owner decisions may be tracked elsewhere.', 'Not a complete decision inventory');
@@ -227,7 +237,7 @@ async function load() {
     data.hubFeeds.forEach(f => item(document.querySelector('#hub-feeds'), `${f.game} · ${f.view}`, f.status, `${f.note} · Fetched: ${f.at || 'unknown'}`));
     data.bots.forEach(botItem);
     if (selectedBotId !== null) inspectBot(selectedBotId);
-    else renderAssignments();
+    else { renderAssignments(); renderReplySource(); }
     data.serviceHealth.forEach(h => item(document.querySelector('#service-health'), `${h.label} · ${h.game}`, `${h.status} · ${h.detail}`, `${h.source} · Observed: ${h.observedAt || 'unknown'} · May be stale`));
     data.leads.forEach(l => item(document.querySelector('#leads'), `${l.name} · ${l.scope}`, l.status, `${l.source} · Observed: ${l.observedAt || 'unknown'}`));
     if (!data.leadMonitoring.length) item(document.querySelector('#lead-summary'), 'No lead observations', 'Stall and quota are unknown.', 'Coordinator data unavailable or empty');
