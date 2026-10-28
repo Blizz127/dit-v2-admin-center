@@ -100,6 +100,12 @@ function renderIssues() {
   if (!records.length) item(panel, 'No matching issues', selectedOnly && selectedBotId === null ? 'Select a bot to use this filter.' : 'No matching records in the loaded data.', 'This does not establish a healthy state.');
   records.forEach(i => {
     item(panel, i.title, i.detail, `${i.scope} · ${i.status} · ${i.source} · ${i.timeLabel || 'Updated'}: ${i.updatedAt || 'unknown'}`);
+    if (i.bridgeObservation) {
+      const button = document.createElement('button'); button.type = 'button';
+      button.textContent = 'View current bridge observation';
+      button.addEventListener('click', () => document.querySelector('#bridge-status').scrollIntoView({behavior: 'smooth', block: 'nearest'}));
+      panel.lastElementChild.append(button);
+    }
     if (i.ownerAttention) {
       const button = document.createElement('button'); button.type = 'button';
       button.textContent = 'View owner decision summary';
