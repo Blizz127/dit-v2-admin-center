@@ -58,7 +58,11 @@ function botItem(bot) {
   row.append(inspect);
   const details = document.createElement('p');
   details.className = 'routing';
-  details.textContent = 'Requested model: Unknown · Effective model: Unknown';
+  const routing = bot.routing || {};
+  details.textContent = `Requested model: ${routing.requested || 'Unknown'} · Effective model: ${routing.effective || 'Unknown'}`;
+  const routingMeta = document.createElement('p');
+  routingMeta.className = 'routing';
+  routingMeta.textContent = `Purpose: ${routing.purpose || 'Unknown'} · Version: ${routing.version || 'Unknown'} · Availability: ${routing.availability || 'Unknown'} · Reason: ${routing.reason || 'Not reported'} · Source: ${routing.source || 'Unknown'} · Observed: ${routing.observedAt || 'unknown'}`;
   const scope = document.createElement('p');
   scope.className = 'routing';
   scope.textContent = 'Game, realm and native bot identity must be verified before routing is available.';
@@ -82,7 +86,7 @@ function botItem(bot) {
   const note = document.createElement('small');
   note.textContent = 'Model selection awaits a hub contract and owner authorization.';
   label.append(select);
-  row.append(details, scope, purposeLabel, label, note);
+  row.append(details, routingMeta, scope, purposeLabel, label, note);
 }
 async function load() {
   error.textContent = '';
