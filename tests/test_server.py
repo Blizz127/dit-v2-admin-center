@@ -62,6 +62,11 @@ class ServerTests(unittest.TestCase):
         parser = Controls(); parser.feed(page)
         self.assertEqual(parser.controls, [True, True])
 
+    def test_source_parameter_rejects_invalid_values(self):
+        self.assertEqual(self.request("GET", "/api/overview?source=unknown", "test-private-token")[0], 400)
+        self.assertEqual(self.request("GET", "/api/overview?source=mock&source=hub", "test-private-token")[0], 400)
+        self.assertEqual(self.request("GET", "/api/overview?unrecognized=1", "test-private-token")[0], 400)
+
     def test_mock_and_no_writes(self):
         status, headers, body = self.request("GET", "/api/overview", "test-private-token")
         self.assertEqual(status, 200)
