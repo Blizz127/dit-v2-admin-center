@@ -15,7 +15,7 @@ class Stub(BaseHTTPRequestHandler):
     def do_GET(self):
         Stub.requests.append((self.path, self.headers.get('Authorization')))
         if self.path.startswith('/v1/control/bots'):
-            self.send_response(200); self.end_headers(); self.wfile.write(b'[{"key":"fixture","name":"Fixture bot"}]')
+            self.send_response(200); self.end_headers(); self.wfile.write(b'[{"key":"fixture","name":"Fixture bot","character":"Example job","level":"12","bodyKind":"example"}]')
         elif self.path.startswith('/v1/control/server-status'):
             self.send_response(200); self.end_headers(); self.wfile.write(b'{"gameId":"ffxi","status":{"checkedAtUtc":"2026-01-01T00:00:00Z","xpRate":2}}')
         elif self.path.startswith('/v1/control/trace'):
@@ -95,6 +95,17 @@ class ProjectionTests(unittest.TestCase):
         self.assertEqual(len(result['learning']), 2)
         self.assertEqual(result['bots'][-1]['source'], 'Live')
 
+    def test_roster_invalid_metadata_remains_unknown(self):
+        from live_hub import read_views
+        class Reader:
+            def get(self, view, game):
+                if view != 'bots': raise HubReadError('Unavailable')
+                return ([{'key': 'one', 'name': 'Example', 'level': 'high', 'character': 'bad\ntext'}], 'time')
+        row = read_views(Reader(), ('ffxi',))['bots']['ffxi'][0]
+        self.assertIsNone(row['level'])
+        self.assertIsNone(row['character'])
+        self.assertEqual(row['status'], 'Unknown')
+
     def test_partial_failure_keeps_games_scoped_and_presence_unknown(self):
         from live_hub import read_views
         class Reader:
@@ -142,6 +153,7 @@ class EndToEndTests(unittest.TestCase):
                 bot = next(row for row in payload['bots'] if row['id'] == 'live:ffxi:fixture')
                 self.assertEqual(bot['status'], 'Unknown')
                 self.assertNotIn('routing', bot)
+                self.assertEqual((bot['character'], bot['level'], bot['bodyKind']), ('Example job', '12', 'example'))
                 self.assertTrue(any(f['status'] == 'Unavailable' for f in payload['hubFeeds']))
                 self.assertTrue(any(f['status'] == 'Live response' for f in payload['hubFeeds']))
                 need = next(row for row in payload['learning'] if row.get('id') == 'live:ffxi:fixture-one')
