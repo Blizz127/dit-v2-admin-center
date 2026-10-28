@@ -15,6 +15,7 @@ from urllib.parse import parse_qs, urlsplit
 from lead_timeline import add_checkout_history, add_current_evidence, monitoring_issues, timeline
 from lead_activity import lead_activity
 from live_hub import HubReadError, HubReader, merge_views, project_spend, project_trace, read_views
+from hub_cache import HubViewsCache
 from bridge_status import BridgeObserver
 from issue_evidence import bridge_fault_issue, pending_decision_issues
 from quota_history import collect, history
@@ -27,6 +28,7 @@ PROJECT = Path(__file__).resolve().parent
 ROOT = PROJECT / "static"
 LOCAL_DATA = PROJECT / "data" / "local"
 BRIDGE = BridgeObserver()
+HUB_VIEWS = HubViewsCache(lambda url, token_file: read_views(HubReader(url, token_file)))
 QUOTA_SOURCE = Path.home() / ".local/share/devbox-codex-accounts/state.json"
 ASSETS = {"/": ("index.html", "text/html; charset=utf-8"), "/playtest": ("playtest.html", "text/html; charset=utf-8"), "/app.js": ("app.js", "text/javascript; charset=utf-8"), "/style.css": ("style.css", "text/css; charset=utf-8")}
 
@@ -224,7 +226,7 @@ def overview(source='mock'):
                                  'note': 'Synthetic data selected; no hub read attempted'}]
         return snapshot
     try:
-        return merge_views(snapshot, read_views(HubReader(url, token_file)))
+        return merge_views(snapshot, HUB_VIEWS.get(url, token_file))
     except ValueError:
         snapshot['hubFeeds'] = [{'game': 'All', 'view': 'hub', 'status': 'Invalid configuration', 'at': None,
                                  'note': 'Synthetic fallback; loopback tunnel required'}]
