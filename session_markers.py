@@ -18,7 +18,7 @@ PATTERNS = (
 )
 
 
-def scan(path):
+def scan(path, source='Codex system event heuristic'):
     try:
         with path.open('rb') as stream:
             stream.seek(0, 2)
@@ -52,7 +52,7 @@ def scan(path):
                 elif kind in ('error', 'api_error', 'warning', 'notice') and isinstance(message, str):
                     marker = next((name for name, pattern in PATTERNS if pattern.search(message)), None)
                 if marker:
-                    hits.append({'kind': marker, 'observedAt': at, 'source': 'Codex system event heuristic'})
+                    hits.append({'kind': marker, 'observedAt': at, 'source': source})
             except (ValueError, TypeError, AttributeError):
                 continue
         return hits[-10:]
@@ -102,7 +102,7 @@ def claude_markers(native_root, project, tmux_session, lead):
         projects = (native_root / 'projects').resolve(strict=True)
         path = (projects / slug / (candidates[0] + '.jsonl')).resolve(strict=True)
         path.relative_to(projects)
-        markers = scan(path)
+        markers = scan(path, 'Claude system event heuristic')
         if markers is None:
             return unknown
         return {'lead': lead, 'coverage': 'Recent rollout tail only; no current goal-state guarantee', 'markers': markers}

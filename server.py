@@ -14,7 +14,7 @@ from urllib.parse import urlsplit
 
 from lead_timeline import add_current_evidence, monitoring_issues, timeline
 from quota_history import collect, history
-from session_markers import admin_markers
+from session_markers import admin_markers, claude_markers
 from r10_projection import project_health, project_learning, project_learning_attention, project_roster
 
 PROJECT = Path(__file__).resolve().parent
@@ -121,11 +121,13 @@ def overview():
     for row in projected:
         row['game'] = 'FFXI'
     home = Path.home()
-    marker_report = admin_markers(home / '.codex/state_5.sqlite', home / '.codex/sessions', PROJECT)
-    marker_issues = [{'title': f"Admin Center lead: {m['kind']}",
+    marker_reports = [admin_markers(home / '.codex/state_5.sqlite', home / '.codex/sessions', PROJECT),
+                      claude_markers(home / '.claude', home / 'dev/dit-human-behavior-platform',
+                                     'claude-dit-human-behavior-platform', 'DIT v2 hub / behavior-platform lead')]
+    marker_issues = [{'title': f"{report['lead']}: {m['kind']}",
                       'detail': 'Historical heuristic from a native system event; current goal and quota state remain unknown.',
                       'scope': 'Leads', 'status': 'Heuristic', 'source': m['source'], 'updatedAt': m['observedAt']}
-                     for m in marker_report['markers']]
+                     for report in marker_reports for m in report['markers']]
     monitoring = lead_monitoring()
     lead_history = add_current_evidence(timeline(Path.home() / '.local/share/devbox-coordinator-state'), monitoring)
     return {
@@ -139,7 +141,7 @@ def overview():
         "leads": lead_inventory(),
         "leadMonitoring": monitoring,
         "leadTimeline": lead_history,
-        "sessionMarkers": marker_report,
+        "sessionMarkers": marker_reports,
         "quotaHistory": history(LOCAL_DATA),
         "modelCalls": [
             {"id": "example-call-1", "model": "Example model", "purpose": "conversation", "latencyMs": 240,

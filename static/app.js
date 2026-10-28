@@ -141,8 +141,10 @@ async function load() {
       const group = panel.lastElementChild;
       t.events.forEach(e => item(group, `${e.kind}: ${e.status}`, e.at, e.source));
     });
-    item(document.querySelector('#session-markers'), data.sessionMarkers.lead, data.sessionMarkers.coverage, 'Heuristic; no rollout text is displayed');
-    data.sessionMarkers.markers.forEach(m => item(document.querySelector('#session-markers'), m.kind, m.observedAt, `${m.source} · Historical; current state unknown`));
+    data.sessionMarkers.forEach(report => {
+      item(document.querySelector('#session-markers'), report.lead, report.coverage, 'Heuristic; no rollout text is displayed');
+      report.markers.forEach(m => item(document.querySelector('#session-markers'), m.kind, m.observedAt, `${m.source} · Historical; current state unknown`));
+    });
     if (!data.quotaHistory.length) item(document.querySelector('#quota-history'), 'No recorded observations', 'Quota history is unknown.', 'No account refresh is performed.');
     data.quotaHistory.forEach(q => item(document.querySelector('#quota-history'), `Account ${q.account} · ${q.window}`, `Remaining: ${q.remainingPercent}% at observation`, `Observed: ${q.observedAt} · Cached Codex state; may be stale`));
     data.modelCalls.forEach(c => item(document.querySelector('#model-calls'), `${c.model} · ${c.purpose}`, `Latency: ${typeof c.latencyMs === 'number' ? c.latencyMs + ' ms' : 'Unknown'} · Cost: ${c.cost == null ? 'Unknown' : c.cost} · Quality: ${c.quality == null ? 'Unknown' : c.quality}`, `${c.source} · Observed: ${c.observedAt || 'unknown'}`));
