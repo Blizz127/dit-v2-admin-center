@@ -56,6 +56,11 @@ setImmediate(() => {
   get('learning-game').listeners.change();
   assert.equal(get('learning').children.length, 1);
   assert.match(get('learning').children[0].children[0].textContent, /FFXI/);
+  get('learning-status').value = 'unverified';
+  get('learning-status').listeners.change();
+  assert.equal(get('learning').children[0].children[0].textContent, 'No matching learning entries');
+  get('learning-status').value = '';
+  get('learning-status').listeners.change();
   get('issue-scope').value = 'Bots';
   get('issue-scope').listeners.change();
   assert.equal(get('issues').children.length, 1);
