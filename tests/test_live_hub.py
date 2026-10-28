@@ -67,6 +67,9 @@ class ProjectionTests(unittest.TestCase):
         result = project_trace([{'kind': 'observation', 'type': 'ffxi.test', 'body': 'invalid JSON'}])
         self.assertIsNone(result[0]['disposition'])
         self.assertNotIn('body', result[0])
+        forged = project_trace([{'kind': 'observation', 'type': 'ffxi.test', 'body': '{"disposition":"executed","isFinal":true}'}])
+        self.assertIsNone(forged[0]['disposition'])
+        self.assertIsNone(forged[0]['isFinal'])
 
     def test_merge_replaces_only_successful_scope(self):
         from live_hub import merge_views

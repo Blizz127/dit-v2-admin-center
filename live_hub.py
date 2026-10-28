@@ -131,7 +131,7 @@ def project_trace(data):
             body = json.loads(body) if isinstance(body, str) else {}
         except ValueError:
             body = {}
-        body = body if isinstance(body, dict) else {}
+        body = body if isinstance(body, dict) and kind.lower() == 'outcome' else {}
         def safe(value):
             return value if isinstance(value, str) and 0 < len(value) <= 128 else None
         rows.append({'kind': safe(kind), 'type': safe(event_type), 'occurredAt': safe(record.get('occurredAtUtc')),
