@@ -42,6 +42,9 @@ setImmediate(() => {
   row.children.find(child => child.tag === 'button').listeners.click();
   const assignment = get('assignment-history').children[0];
   assert.match(assignment.children[1].textContent, /Requested: Example model · Effective: Unknown/);
+  other.children.find(child => child.tag === 'button').listeners.click();
+  assert.equal(get('assignment-history').children[0].children[0].textContent, 'No matching examples');
+  row.children.find(child => child.tag === 'button').listeners.click();
   const inspector = get('bot-inspector');
   assert.equal(inspector.children.length, 3);
   assert.equal(inspector.children[2].children[0].textContent, 'Observe');
