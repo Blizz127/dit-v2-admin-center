@@ -16,6 +16,8 @@ class Stub(BaseHTTPRequestHandler):
         Stub.requests.append((self.path, self.headers.get('Authorization')))
         if self.path.startswith('/v1/control/bots'):
             self.send_response(200); self.end_headers(); self.wfile.write(b'[{"key":"fixture","name":"Fixture bot","character":"Example job","level":"12","bodyKind":"example"}]')
+        elif self.path.startswith('/v1/control/ai-spend'):
+            self.send_response(200); self.end_headers(); self.wfile.write(b'{"configured":true,"month":"2026-10","settledUsd":1.25,"reservedOpenUsd":0,"budgetUsd":10,"pricingError":null}')
         elif self.path.startswith('/v1/control/server-status'):
             self.send_response(200); self.end_headers(); self.wfile.write(b'{"gameId":"ffxi","status":{"checkedAtUtc":"2026-01-01T00:00:00Z","xpRate":2}}')
         elif self.path.startswith('/v1/control/trace'):
@@ -38,6 +40,12 @@ class HubReaderTests(unittest.TestCase):
                 reader = HubReader(f'http://127.0.0.1:{server.server_port}', token)
                 data, stamp = reader.get('bots', 'ffxi'); self.assertEqual(data[0]['name'], 'Fixture bot'); self.assertTrue(stamp)
                 reader.get('learning', 'ffxi')
+                spend, fetched = reader.spend()
+                from live_hub import project_spend
+                projection = project_spend(spend, fetched)
+                self.assertEqual(projection['settledUsd'], 1.25)
+                self.assertEqual(projection['reservedOpenUsd'], 0)
+                self.assertNotIn('providers', projection)
                 trace, _ = reader.trace('ffxi', 'demo-id')
                 from live_hub import project_trace
                 projected = project_trace(trace)
@@ -62,6 +70,18 @@ class HubReaderTests(unittest.TestCase):
 
 
 class ProjectionTests(unittest.TestCase):
+    def test_spend_unknown_is_not_zero(self):
+        from live_hub import project_spend
+        absent = project_spend({'configured': False, 'settledUsd': 0}, 'time')
+        self.assertIsNone(absent['settledUsd'])
+        error = project_spend({'configured': True, 'error': 'failure', 'settledUsd': 0}, 'time')
+        self.assertIsNone(error['settledUsd'])
+        bad_price = project_spend({'configured': True, 'pricingError': 'unavailable', 'budgetUsd': 0}, 'time')
+        self.assertIsNone(bad_price['budgetUsd'])
+        known = project_spend({'configured': True, 'settledUsd': 0}, 'time')
+        self.assertEqual(known['settledUsd'], 0)
+        self.assertIn('Not available', known['attribution'])
+
     def test_settings_snapshot_preserves_unknown_and_scope(self):
         from live_hub import project_server_status
         with self.assertRaises(ValueError):

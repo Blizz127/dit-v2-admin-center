@@ -42,6 +42,9 @@ class HubReader:
             query.update({'light': 'true', 'tasksOnly': 'true'})
         return self._request(view, query)
 
+    def spend(self):
+        return self._request('ai-spend', {})
+
     def trace(self, game, correlation):
         if game not in ('ffxi', 'swtor') or not isinstance(correlation, str) or not CORRELATION.fullmatch(correlation):
             raise ValueError('Invalid trace scope')
@@ -168,3 +171,23 @@ def project_server_status(data, game, fetched):
     return {'game': game.upper(), 'xpRate': rate, 'checkedAt': checked,
             'source': f'Hub stored server settings (r10-shaped projection) · fetched {fetched}',
             'liveness': 'Unknown'}
+
+
+def project_spend(data, fetched):
+    """One hub's aggregate ledger; no provider, account or per-bot attribution."""
+    if not isinstance(data, dict):
+        raise ValueError('invalid spend response')
+    configured = data.get('configured') if type(data.get('configured')) is bool else None
+    readable = configured is True and not data.get('error')
+    def money(field, requires_pricing=False):
+        value = data.get(field)
+        if not readable or (requires_pricing and data.get('pricingError')):
+            return None
+        return value if type(value) in (int, float) and math.isfinite(value) and value >= 0 else None
+    month = data.get('month')
+    if not isinstance(month, str) or not re.fullmatch(r'[0-9]{4}-[0-9]{2}', month):
+        month = None
+    return {'configured': configured, 'month': month, 'settledUsd': money('settledUsd'),
+            'reservedOpenUsd': money('reservedOpenUsd'), 'budgetUsd': money('budgetUsd', True),
+            'source': 'Single hub ledger (r10-shaped projection); revision and environment unverified',
+            'fetchedAt': fetched, 'attribution': 'Not available per game, bot, party or call'}
