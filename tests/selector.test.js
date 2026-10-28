@@ -34,8 +34,9 @@ setImmediate(() => {
   const other = get('bots').children[1];
   const routing = other.children.filter(child => child.className === 'routing');
   assert.match(routing[0].textContent, /Requested model: Example provider \/ example model · Effective model: Unknown/);
-  assert.match(routing[1].textContent, /Availability: Unavailable · Reason: Identity unverified/);
+  assert.match(routing[1].textContent, /Reported availability: Unavailable · Reason: Identity unverified/);
   assert.match(routing[1].textContent, /Synthetic example/);
+  assert.match(routing[1].textContent, /Freshness: Unknown/);
   assert.ok(other.children.filter(child => child.tag === 'label').every(label => label.children[0].disabled));
   row.children.find(child => child.tag === 'button').listeners.click();
   const inspector = get('bot-inspector');

@@ -78,6 +78,9 @@ function inspectBot(id) {
   if (!events.length) item(panel, 'Evidence', 'No matching synthetic records', 'Absence of records does not prove inactivity.');
   events.forEach(e => item(panel, e.request, `Result: ${e.result} · Verification: ${e.verification}`, `Correlation: ${e.correlationId}`));
 }
+function routingText(value, fallback = 'Unknown') {
+  return typeof value === 'string' && value.trim() ? value : fallback;
+}
 function botItem(bot) {
   const parent = document.querySelector('#bots');
   item(parent, `${bot.name} · ${bot.game}`, bot.status, `${bot.source} · Observed: ${bot.observedAt || 'unknown'}`);
@@ -89,11 +92,11 @@ function botItem(bot) {
   row.append(inspect);
   const details = document.createElement('p');
   details.className = 'routing';
-  const routing = bot.routing || {};
-  details.textContent = `Requested model: ${routing.requested || 'Unknown'} · Effective model: ${routing.effective || 'Unknown'}`;
+  const routing = bot.routing && typeof bot.routing === 'object' && !Array.isArray(bot.routing) ? bot.routing : {};
+  details.textContent = `Requested model: ${routingText(routing.requested)} · Effective model: ${routingText(routing.effective)}`;
   const routingMeta = document.createElement('p');
   routingMeta.className = 'routing';
-  routingMeta.textContent = `Purpose: ${routing.purpose || 'Unknown'} · Version: ${routing.version || 'Unknown'} · Availability: ${routing.availability || 'Unknown'} · Reason: ${routing.reason || 'Not reported'} · Source: ${routing.source || 'Unknown'} · Observed: ${routing.observedAt || 'unknown'}`;
+  routingMeta.textContent = `Purpose: ${routingText(routing.purpose)} · Version: ${routingText(routing.version)} · Reported availability: ${routingText(routing.availability)} · Reason: ${routingText(routing.reason, 'Not reported')} · Source: ${routingText(routing.source)} · Observed: ${routingText(routing.observedAt, 'unknown')} · Freshness: Unknown`;
   const scope = document.createElement('p');
   scope.className = 'routing';
   scope.textContent = 'Game, realm and native bot identity must be verified before routing is available.';
