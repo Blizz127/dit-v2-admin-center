@@ -210,7 +210,10 @@ setImmediate(async () => {
   get('trace-game').value = 'ffxi'; get('correlation').value = 'trace-example';
   get('trace-search').listeners.submit({preventDefault() {}});
   await new Promise(resolve => setImmediate(resolve));
+  assert.match(get('hub-trace').children[0].children[0].textContent, /FFXI · trace-example/);
   assert.match(get('hub-trace').children[1].children[1].textContent, /Disposition: pending.*Final: false/);
   assert.match(get('hub-trace').children[1].children[2].textContent, /Raw envelope body omitted/);
+  get('correlation').listeners.input();
+  assert.equal(get('hub-trace').children.length, 0);
   console.log('Disabled selector, source switching, bot inspection and filters passed.');
 });

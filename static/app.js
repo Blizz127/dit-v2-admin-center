@@ -186,7 +186,7 @@ async function loadHubTrace(correlation) {
     const data = await response.json();
     if (id !== traceVersion) return;
     panel.replaceChildren();
-    item(panel, `Hub trace · ${game.toUpperCase()}`, data.coverage, `Fetched: ${data.fetchedAt} · Deployed revision unverified`);
+    item(panel, `Hub trace · ${game.toUpperCase()} · ${correlation}`, data.coverage, `Fetched: ${data.fetchedAt} · Deployed revision unverified`);
     if (!data.records.length) item(panel, 'No matching trace records', 'No matching records in the bounded trace window.', 'This does not prove an action did or did not occur.');
     data.records.forEach(r => item(panel, `${r.kind || 'Unknown'} · ${r.type || 'Unknown'}`, `Disposition: ${r.disposition || 'Unknown'} · Classification: ${r.classification || 'Unknown'} · Final: ${r.isFinal == null ? 'Unknown' : r.isFinal}`, `Occurred: ${r.occurredAt || 'unknown'} · Raw envelope body omitted`));
   } catch (_) { if (id === traceVersion) panel.textContent = 'Hub trace unavailable; no delivery or outcome can be inferred.'; }
@@ -436,6 +436,11 @@ document.querySelector('#learning-reset').addEventListener('click', () => {
   document.querySelector('#learning-attention').checked = false;
   if (currentSnapshot) { renderLearningPlan(); renderLearning(); }
 });
+for (const id of ['trace-game', 'correlation']) {
+  document.getElementById(id).addEventListener(id === 'correlation' ? 'input' : 'change', () => {
+    traceVersion++; document.querySelector('#hub-trace').replaceChildren();
+  });
+}
 document.querySelector('#trace-search').addEventListener('submit', e => {
   e.preventDefault(); correlationFilter = document.querySelector('#correlation').value.trim();
   if (currentSnapshot) renderLedger();
