@@ -19,7 +19,7 @@ const data = {generatedAt: 'test', hubFeeds: [{status: 'Not configured', game: '
 let requestedUrl;
 const context = {document, sessionStorage: {getItem: () => 'test', setItem() {}, removeItem() {}}, fetch: async url => { requestedUrl = url; return {ok: true, json: async () => data}; }};
 vm.runInNewContext(fs.readFileSync('static/app.js', 'utf8'), context);
-setImmediate(() => {
+setImmediate(async () => {
   assert.equal(get('owner-attention').children[1].children[0].textContent, 'Review example');
   assert.match(get('hub-banner').textContent, /Hub not configured.*synthetic fallback/);
   assert.equal(requestedUrl, '/api/overview?source=mock');
@@ -118,5 +118,9 @@ setImmediate(() => {
   assert.match(learningDetail.children[0].textContent, /Example FFXI/);
   assert.match(learningDetail.children[1].textContent, /Missing evidence/);
   assert.match(learningDetail.children[2].textContent, /Policy verification: Unknown/);
-  console.log('Disabled selector, bot inspection and filters passed.');
+  get('data-source').value = 'hub';
+  await get('data-source').listeners.change();
+  assert.equal(requestedUrl, '/api/overview?source=hub');
+  assert.match(get('hub-banner').textContent, /Hub not configured/);
+  console.log('Disabled selector, source switching, bot inspection and filters passed.');
 });
