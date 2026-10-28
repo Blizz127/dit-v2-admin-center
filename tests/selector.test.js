@@ -147,6 +147,7 @@ setImmediate(async () => {
   assert.match(learningDetail.children[0].textContent, /Example FFXI/);
   assert.match(learningDetail.children[1].textContent, /Missing evidence/);
   assert.match(learningDetail.children[2].textContent, /Policy verification: Unknown/);
+  assert.equal(get('learning-inspector').children[1].children[0].textContent, 'Related issue · Bot issue');
   get('data-source').value = 'hub';
   await get('data-source').listeners.change();
   assert.equal(requestedUrl, '/api/overview?source=hub');
