@@ -225,6 +225,13 @@ function renderBots() {
   if (!bots.length) item(panel, 'No matching roster records', 'No matches in the loaded data.', 'This does not establish that a bot is offline.');
   else bots.forEach(botItem);
 }
+function renderSafety() {
+  const panel = document.querySelector('#safety-records');
+  panel.replaceChildren();
+  const records = currentSnapshot.safetyRecords.filter(r => r.botId == null || (selectedBotId !== null && r.botId === selectedBotId));
+  if (!records.length) item(panel, 'No safety examples', 'Actual gate and kill-switch states are unknown.', 'No operational controls connected');
+  records.forEach(r => item(panel, r.scope, `Example gate: ${r.gate || 'Unknown'} · Example kill switch: ${r.killSwitch || 'Unknown'}`, `${r.source} · Observed: ${r.observedAt || 'unknown'} · Actual state unknown`));
+}
 function renderReplySource() {
   const panel = document.querySelector('#reply-source');
   panel.replaceChildren();
@@ -248,6 +255,7 @@ function rosterDetails(bot) {
 }
 function inspectBot(id) {
   selectedBotId = id;
+  renderSafety();
   if (document.querySelector('#issue-selected-bot').checked) renderIssues();
   renderAssignments();
   renderReplySource();
@@ -346,7 +354,7 @@ async function load() {
     if (!response.ok) throw new Error(response.status === 401 ? 'Token was not accepted.' : 'Could not load the workspace.');
     const data = await response.json();
     if (requestId !== requestVersion) return;
-    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage', 'bot-coverage', 'learning-plan', 'game-status', 'spend-example', 'learning-artifacts']) document.getElementById(id).replaceChildren();
+    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage', 'bot-coverage', 'learning-plan', 'game-status', 'spend-example', 'learning-artifacts', 'safety-records']) document.getElementById(id).replaceChildren();
     currentSnapshot = data;
     item(document.querySelector('#owner-attention'), 'Coverage', data.ownerAttention.coverage, 'Coordinator task board · Read only');
     if (!data.ownerAttention.items.length) item(document.querySelector('#owner-attention'), 'No records listed', 'Other owner decisions may be tracked elsewhere.', 'Not a complete decision inventory');
@@ -363,7 +371,7 @@ async function load() {
     renderBotCoverage();
     renderBots();
     if (selectedBotId !== null) inspectBot(selectedBotId);
-    else { renderAssignments(); renderReplySource(); }
+    else { renderAssignments(); renderReplySource(); renderSafety(); }
     data.gameStatus.forEach(s => item(document.querySelector('#game-status'), s.game, `XP rate: ${s.xpRate == null ? 'Unknown' : s.xpRate + '×'} · Server liveness: ${s.liveness}`, `${s.source} · Checked: ${s.checkedAt || 'unknown'} · Freshness unknown`));
     data.serviceHealth.forEach(h => item(document.querySelector('#service-health'), `${h.label} · ${h.game}`, `${h.status} · ${h.detail}`, `${h.source} · Observed: ${h.observedAt || 'unknown'} · May be stale`));
     data.leads.forEach(l => item(document.querySelector('#leads'), `${l.name} · ${l.scope}`, l.status, `${l.source} · Observed: ${l.observedAt || 'unknown'}`));
@@ -418,7 +426,7 @@ document.querySelector('#clear-bot').addEventListener('click', () => {
   selectedBotId = null;
   const panel = document.querySelector('#bot-inspector');
   panel.replaceChildren(); panel.textContent = 'No bot selected.';
-  if (currentSnapshot) { renderAssignments(); renderReplySource(); if (document.querySelector('#issue-selected-bot').checked) renderIssues(); }
+  if (currentSnapshot) { renderAssignments(); renderReplySource(); renderSafety(); if (document.querySelector('#issue-selected-bot').checked) renderIssues(); }
 });
 document.querySelector('#bot-game').addEventListener('change', () => { if (currentSnapshot) renderBots(); });
 document.querySelector('#bot-search').addEventListener('input', () => { if (currentSnapshot) renderBots(); });
