@@ -146,6 +146,16 @@ function renderLedger() {
   if (!records.length) item(panel, 'No matching evidence', 'No records in this mock snapshot.', 'This is not proof that an action did or did not occur.');
   records.forEach(e => item(panel, `${e.bot} · ${e.request}`, `Result: ${e.result} · Verification: ${e.verification}`, `Correlation: ${e.correlationId}`));
 }
+function renderBots() {
+  const panel = document.querySelector('#bots');
+  const game = document.querySelector('#bot-game').value;
+  const query = (document.querySelector('#bot-search').value || '').trim().toLowerCase();
+  const bots = currentSnapshot.bots.filter(b => (!game || b.game === game) && (!query || b.name.toLowerCase().includes(query)));
+  panel.replaceChildren();
+  document.querySelector('#bot-count').textContent = `Showing ${bots.length} of ${currentSnapshot.bots.length} loaded roster records; coverage and presence may be unknown.`;
+  if (!bots.length) item(panel, 'No matching roster records', 'No matches in the loaded data.', 'This does not establish that a bot is offline.');
+  else bots.forEach(botItem);
+}
 function renderReplySource() {
   const panel = document.querySelector('#reply-source');
   panel.replaceChildren();
@@ -255,7 +265,7 @@ async function load() {
     else if (feeds.length && feeds.every(f => f.status === 'Live response')) banner.textContent = 'Hub reads available. Coverage and deployed revision remain unverified.';
     else banner.textContent = 'Hub status unknown. Check source labels for each view.';
     data.hubFeeds.forEach(f => item(document.querySelector('#hub-feeds'), `${f.game} · ${f.view}`, f.status, `${f.note} · Fetched: ${f.at || 'unknown'}`));
-    data.bots.forEach(botItem);
+    renderBots();
     if (selectedBotId !== null) inspectBot(selectedBotId);
     else { renderAssignments(); renderReplySource(); }
     data.serviceHealth.forEach(h => item(document.querySelector('#service-health'), `${h.label} · ${h.game}`, `${h.status} · ${h.detail}`, `${h.source} · Observed: ${h.observedAt || 'unknown'} · May be stale`));
@@ -293,6 +303,8 @@ if (typeof setInterval === 'function') setInterval(() => { if (document.visibili
 document.querySelector('#data-source').addEventListener('change', () => { traceVersion++; document.querySelector('#hub-trace').replaceChildren(); return load(); });
 document.querySelector('#quota-window').addEventListener('change', () => { if (currentSnapshot) renderQuotaHistory(); });
 document.querySelector('#timeline-kind').addEventListener('change', () => { if (currentSnapshot) renderLeadTimeline(); });
+document.querySelector('#bot-game').addEventListener('change', () => { if (currentSnapshot) renderBots(); });
+document.querySelector('#bot-search').addEventListener('input', () => { if (currentSnapshot) renderBots(); });
 document.querySelector('#issue-scope').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
 document.querySelector('#issue-status').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
 document.querySelector('#issue-search').addEventListener('input', () => { if (currentSnapshot) renderIssues(); });

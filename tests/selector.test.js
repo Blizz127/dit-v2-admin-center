@@ -22,6 +22,12 @@ vm.runInNewContext(fs.readFileSync('static/app.js', 'utf8'), context);
 setImmediate(async () => {
   assert.equal(get('owner-attention').children[1].children[0].textContent, 'Review example');
   assert.match(get('hub-banner').textContent, /Hub not configured.*synthetic fallback/);
+  get('bot-search').value = 'absent';
+  get('bot-search').listeners.input();
+  assert.equal(get('bots').children[0].children[0].textContent, 'No matching roster records');
+  assert.match(get('bot-count').textContent, /Showing 0 of 2 loaded roster records/);
+  get('bot-search').value = '';
+  get('bot-search').listeners.input();
   assert.equal(requestedUrl, '/api/overview?source=mock');
   assert.match(get('lead-summary').children[0].children[1].textContent, /Stall: Unknown · Lead quota: Unknown/);
   assert.match(get('lead-summary').children[0].children[2].textContent, /Shared provider pool: 75% \(Shared pool only\)/);
