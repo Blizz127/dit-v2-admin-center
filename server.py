@@ -120,6 +120,10 @@ def overview():
         ],
         "leads": lead_inventory(),
         "leadMonitoring": lead_monitoring(),
+        "audit": [
+            {"actor": "Example operator", "action": "Simulated model selection", "scope": "Example FFXI bot",
+             "result": "Example only; no change applied", "at": "2026-01-01T12:00:00Z", "source": "Synthetic audit fixture"},
+        ],
         "ledger": [
             {"correlationId": "demo-episode-1", "botId": "demo-1", "bot": "Aster", "request": "Observe surroundings", "result": "Accepted", "verification": "Pending"},
             {"correlationId": "demo-episode-2", "botId": "demo-1", "bot": "Aster", "request": "Move to camp", "result": "Rejected: gate disabled", "verification": "Not applicable"},
