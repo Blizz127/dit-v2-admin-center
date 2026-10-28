@@ -43,11 +43,17 @@ async function loadBridge() {
     if (!response.ok) throw new Error('unavailable');
     const data = await response.json();
     panel.replaceChildren();
-    item(panel, `Unit: ${data.unit} · ${data.substate}`, `Result: ${data.result} · Fault marker: ${data.marker}`, `${data.source} · Observed: ${data.observedAt || 'unknown'} · Marker absence does not prove delivery`);
+    item(panel, `Unit: ${data.unit} · ${data.substate}`, `Result: ${data.result} · Fault marker: ${data.marker} · Classification: ${data.markerReason || 'unknown'}`, `${data.source} · Observed: ${data.observedAt || 'unknown'} · Marker absence does not prove delivery`);
     const focus = document.querySelector('#ffxi-focus-bridge');
     focus.replaceChildren();
-    item(focus, `Bridge: ${data.unit} · ${data.substate}`, `Fault marker: ${data.marker}`, `${data.source} · Observed: ${data.observedAt || 'unknown'} · Not proof of delivery`);
-  } catch (_) { panel.textContent = 'Bridge status unknown; read-only observation unavailable.'; document.querySelector('#ffxi-focus-bridge').textContent = 'Bridge observation unknown; delivery remains unverified.'; }
+    item(focus, `Bridge: ${data.unit} · ${data.substate}`, `Fault marker: ${data.marker} · Classification: ${data.markerReason || 'unknown'}`, `${data.source} · Observed: ${data.observedAt || 'unknown'} · Not proof of delivery`);
+  } catch (_) {
+    panel.replaceChildren();
+    panel.textContent = 'Bridge status unknown; read-only observation unavailable.';
+    const focus = document.querySelector('#ffxi-focus-bridge');
+    focus.replaceChildren();
+    focus.textContent = 'Bridge observation unknown; delivery remains unverified.';
+  }
   finally { bridgePending = false; }
 }
 function renderQuotaHistory() {
