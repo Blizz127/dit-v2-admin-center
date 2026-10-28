@@ -14,7 +14,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from lead_timeline import add_checkout_history, add_current_evidence, monitoring_issues, timeline
 from lead_activity import lead_activity
-from live_hub import HubReader, merge_views, read_views
+from live_hub import HubReadError, HubReader, merge_views, project_trace, read_views
 from bridge_status import BridgeObserver
 from issue_evidence import bridge_fault_issue, pending_decision_issues
 from quota_history import collect, history
@@ -234,6 +234,24 @@ class Handler(BaseHTTPRequestHandler):
             expected = "Bearer " + self.server.admin_token
             if not hmac.compare_digest(supplied.encode(), expected.encode()):
                 self.send_content(401, "application/json", b'{"error":"unauthorized"}')
+            elif path == "/api/trace":
+                query = parse_qs(urlsplit(self.path).query, keep_blank_values=True)
+                if set(query) != {'gameId', 'correlationId'} or any(len(v) != 1 for v in query.values()):
+                    self.send_content(400, "application/json", b'{"error":"invalid trace scope"}')
+                    return
+                url, token_file = os.environ.get('HUB_READONLY_URL'), os.environ.get('HUB_TOKEN_FILE')
+                if not url or not token_file:
+                    self.send_content(503, "application/json", b'{"error":"hub not configured"}')
+                    return
+                try:
+                    result, fetched = HubReader(url, token_file).trace(query['gameId'][0], query['correlationId'][0])
+                    body = {'records': project_trace(result), 'fetchedAt': fetched,
+                            'coverage': 'Recent hub trace window, maximum 250 records; missing records do not prove no action.'}
+                    self.send_content(200, "application/json", json.dumps(body).encode())
+                except ValueError:
+                    self.send_content(400, "application/json", b'{"error":"invalid trace scope or configuration"}')
+                except HubReadError:
+                    self.send_content(503, "application/json", b'{"error":"hub read unavailable"}')
             elif path == "/api/bridge-status":
                 self.send_content(200, "application/json", json.dumps(BRIDGE.read()).encode())
             elif path == "/api/overview":

@@ -121,6 +121,13 @@ class EndToEndTests(unittest.TestCase):
                 self.assertEqual((need['evidence'], need['policy']), ('Not included', 'Unknown'))
                 self.assertEqual(issue['detail'], 'Example missing evidence')
                 self.assertEqual(issue['updatedAt'], '2026-01-01T00:00:00Z')
+                with patch.dict(os.environ, {'HUB_READONLY_URL': f'http://127.0.0.1:{hub.server_port}', 'HUB_TOKEN_FILE': str(token)}):
+                    conn = http.client.HTTPConnection(*app.server_address, timeout=8)
+                    conn.request('GET', '/api/trace?gameId=ffxi&correlationId=demo-id', headers={'Authorization': 'Bearer synthetic-owner-token'})
+                    response = conn.getresponse(); trace_body = response.read(); conn.close()
+                self.assertEqual(response.status, 200)
+                self.assertNotIn(b'must not appear', trace_body)
+                self.assertEqual(json.loads(trace_body)['records'][0]['disposition'], 'pending')
             finally:
                 app.shutdown(); app.server_close(); app_thread.join()
                 hub.shutdown(); hub.server_close(); hub_thread.join()
