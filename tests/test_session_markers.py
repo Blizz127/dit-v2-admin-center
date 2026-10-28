@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from session_markers import admin_markers, claude_markers, scan
+from session_markers import admin_markers, claude_markers, handoff_codex_markers, scan
 
 
 class SessionMarkerTests(unittest.TestCase):
@@ -35,7 +35,23 @@ class SessionMarkerTests(unittest.TestCase):
             report = claude_markers(root, project, 'lead', 'Example')
             self.assertEqual(report['markers'][0]['kind'], 'Possible usage limit')
             (root / 'sessions' / 'two.json').write_text(json.dumps(info))
-            self.assertEqual(claude_markers(root, project, 'lead', 'Example')['coverage'], 'Session marker coverage unknown')
+            self.assertIn('no unique live native Claude session', claude_markers(root, project, 'lead', 'Example')['coverage'])
+
+    def test_handoff_requires_unique_marker_and_exact_project(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); sessions = root / 'sessions'; sessions.mkdir(); project = root / 'project'
+            rollout = sessions / 'rollout.jsonl'; rollout.write_text(json.dumps({'type': 'event_msg', 'timestamp': '2026-01-01T00:00:00Z', 'payload': {'type': 'goal_stopped'}}))
+            db = root / 'state.sqlite'; lane = root / 'lane.json'
+            lane.write_text(json.dumps({'provider': 'codex', 'cwd': str(project), 'marker': 'UNIQUE'}))
+            with sqlite3.connect(db) as connection:
+                connection.execute('CREATE TABLE threads(id TEXT, cwd TEXT, archived INTEGER, rollout_path TEXT, first_user_message TEXT)')
+                connection.execute('INSERT INTO threads VALUES (?,?,0,?,?)', ('one', str(project), str(rollout), 'assignment UNIQUE'))
+            result = handoff_codex_markers(db, sessions, project, lane, 'Lead')
+            self.assertEqual(result['markers'][0]['kind'], 'Possible goal stop')
+            self.assertIn('live process unverified', result['coverage'])
+            with sqlite3.connect(db) as connection:
+                connection.execute('INSERT INTO threads VALUES (?,?,0,?,?)', ('two', str(project), str(rollout), 'assignment UNIQUE'))
+            self.assertIn('exactly one', handoff_codex_markers(db, sessions, project, lane, 'Lead')['coverage'])
 
     def test_ambiguous_or_outside_session_remains_unknown(self):
         with tempfile.TemporaryDirectory() as directory:

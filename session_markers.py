@@ -80,7 +80,8 @@ def admin_markers(database, sessions_root, project):
 
 def claude_markers(native_root, project, tmux_session, lead):
     """Accept one live native binding whose tmux, cwd and protocol match exactly."""
-    unknown = {'lead': lead, 'coverage': 'Session marker coverage unknown', 'markers': []}
+    def unknown(reason):
+        return {'lead': lead, 'coverage': 'Session marker coverage unknown: ' + reason, 'markers': []}
     try:
         candidates = []
         for file in (native_root / 'sessions').glob('*.json'):
@@ -97,14 +98,41 @@ def claude_markers(native_root, project, tmux_session, lead):
             except (OSError, ValueError, TypeError, AttributeError):
                 continue
         if len(candidates) != 1:
-            return unknown
+            return unknown('no unique live native Claude session matching configured cwd and tmux')
         slug = re.sub(r'[^A-Za-z0-9]', '-', str(project))
         projects = (native_root / 'projects').resolve(strict=True)
         path = (projects / slug / (candidates[0] + '.jsonl')).resolve(strict=True)
         path.relative_to(projects)
         markers = scan(path, 'Claude system event heuristic')
         if markers is None:
-            return unknown
+            return unknown('bound transcript is unreadable')
         return {'lead': lead, 'coverage': 'Recent rollout tail only; no current goal-state guarantee', 'markers': markers}
     except (OSError, ValueError, TypeError):
-        return unknown
+        return unknown('native session metadata or transcript is unavailable')
+
+
+def handoff_codex_markers(database, sessions_root, project, lane_path, lead):
+    """Use a unique coordinator handoff marker in exact native thread metadata.
+
+    This establishes a historical thread binding, not a live process binding.
+    """
+    def unknown(reason):
+        return {'lead': lead, 'coverage': 'Session marker coverage unknown: ' + reason, 'markers': []}
+    try:
+        lane = json.loads(lane_path.read_text())
+        marker = lane.get('marker')
+        if lane.get('provider') != 'codex' or lane.get('cwd') != str(project) or not isinstance(marker, str) or not marker:
+            return unknown('handoff provider, project, or marker is missing or mismatched')
+        with closing(sqlite3.connect(database.as_uri() + '?mode=ro', uri=True, timeout=2)) as db:
+            rows = db.execute('SELECT id, rollout_path, first_user_message FROM threads WHERE cwd=? AND archived=0', (str(project),)).fetchall()
+        matches = [r for r in rows if isinstance(r[2], str) and marker in r[2]]
+        if len(matches) != 1 or (lane.get('thread') and lane['thread'] != matches[0][0]):
+            return unknown('handoff marker does not identify exactly one matching native thread')
+        path = Path(matches[0][1]).resolve(strict=True)
+        path.relative_to(sessions_root.resolve(strict=True))
+        markers = scan(path)
+        if markers is None:
+            return unknown('bound rollout is unavailable')
+        return {'lead': lead, 'coverage': 'Coordinator handoff binds one thread; live process unverified. Recent rollout tail only.', 'markers': markers}
+    except (OSError, ValueError, TypeError, sqlite3.Error):
+        return unknown('handoff metadata or bound rollout is unavailable')
