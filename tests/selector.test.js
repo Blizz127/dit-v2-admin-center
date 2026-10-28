@@ -36,5 +36,14 @@ setImmediate(() => {
   assert.equal(inspector.children[2].children[0].textContent, 'Observe');
   assert.match(inspector.children[2].children[1].textContent, /Verification: Pending/);
   assert.equal(inspector.children.some(child => child.children[0].textContent === 'Other bot action'), false);
-  console.log('Disabled selector and bot evidence inspection passed.');
+  get('correlation').value = 'two';
+  get('trace-search').listeners.submit({preventDefault() {}});
+  assert.equal(get('ledger').children.length, 1);
+  assert.match(get('ledger').children[0].children[0].textContent, /Other bot action/);
+  get('correlation').value = 'missing';
+  get('trace-search').listeners.submit({preventDefault() {}});
+  assert.equal(get('ledger').children[0].children[0].textContent, 'No matching evidence');
+  get('trace-clear').listeners.click();
+  assert.equal(get('ledger').children.length, 2);
+  console.log('Disabled selector, bot inspection and correlation filter passed.');
 });
