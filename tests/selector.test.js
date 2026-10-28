@@ -243,6 +243,11 @@ setImmediate(async () => {
   assert.equal(get('issue-selected-bot').checked, false);
   assert.equal(get('issues').children[0].children[0].textContent, 'Historical bridge fault');
   assert.ok(get('issues').children[0].children.some(child => child.textContent === 'View current bridge observation'));
+  get('bot-search').value = 'hidden'; get('bot-game').value = 'SWTOR';
+  get('ffxi-bots').listeners.click();
+  assert.equal(get('bot-game').value, 'FFXI');
+  assert.equal(get('bot-search').value, '');
+  assert.match(get('bot-count').textContent, /Showing 2 of 2/);
   context.fetch = async () => { throw new Error('offline'); };
   await get('bridge-refresh').listeners.click();
   assert.equal(get('ffxi-focus-bridge').children.length, 0);

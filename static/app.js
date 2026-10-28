@@ -450,6 +450,12 @@ document.querySelector('#clear-bot').addEventListener('click', () => {
   panel.replaceChildren(); panel.textContent = 'No bot selected.';
   if (currentSnapshot) { renderAssignments(); renderReplySource(); renderSafety(); if (document.querySelector('#issue-selected-bot').checked) renderIssues(); }
 });
+document.querySelector('#ffxi-bots').addEventListener('click', () => {
+  document.querySelector('#bot-search').value = '';
+  document.querySelector('#bot-game').value = 'FFXI';
+  if (currentSnapshot) renderBots();
+  document.querySelector('#bots').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+});
 document.querySelector('#bot-game').addEventListener('change', () => { if (currentSnapshot) renderBots(); });
 document.querySelector('#bot-search').addEventListener('input', () => { if (currentSnapshot) renderBots(); });
 document.querySelector('#bot-reset').addEventListener('click', () => {
