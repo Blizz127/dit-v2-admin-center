@@ -27,7 +27,10 @@ try:
                 if data == {'state': 'failed', 'reason': 'delayed_delivery_failed'}: result['markerReason'] = 'delayed_delivery_failed'
             except (ValueError, UnicodeError): pass
     finally: os.close(fd)
-except FileNotFoundError: result['marker'] = 'absent'
+except FileNotFoundError:
+    try:
+        if stat.S_ISDIR(os.stat(os.path.dirname(path)).st_mode): result['marker'] = 'absent'
+    except OSError: pass
 except OSError: pass
 print(json.dumps(result))
 '''
