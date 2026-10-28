@@ -3,6 +3,7 @@ const error = document.querySelector('#error');
 const workspace = document.querySelector('#workspace');
 let currentSnapshot = null;
 let selectedBotId = null;
+let correlationFilter = '';
 let token = sessionStorage.getItem('dit-admin-token') || '';
 function item(parent, title, detail, meta) {
   const row = document.createElement('div'); row.className = 'row';
@@ -10,6 +11,13 @@ function item(parent, title, detail, meta) {
   const text = document.createElement('p'); text.textContent = detail;
   const small = document.createElement('small'); small.textContent = meta || '';
   row.append(heading, text, small); parent.append(row);
+}
+function renderLedger() {
+  const panel = document.querySelector('#ledger');
+  panel.replaceChildren();
+  const records = currentSnapshot.ledger.filter(e => !correlationFilter || e.correlationId === correlationFilter);
+  if (!records.length) item(panel, 'No matching evidence', 'No records in this mock snapshot.', 'This is not proof that an action did or did not occur.');
+  records.forEach(e => item(panel, `${e.bot} · ${e.request}`, `Result: ${e.result} · Verification: ${e.verification}`, `Correlation: ${e.correlationId}`));
 }
 function inspectBot(id) {
   selectedBotId = id;
@@ -73,7 +81,7 @@ async function load() {
     data.leads.forEach(l => item(document.querySelector('#leads'), `${l.name} · ${l.scope}`, l.status, `${l.source} · Observed: ${l.observedAt || 'unknown'}`));
     data.leadMonitoring.forEach(m => item(document.querySelector('#lead-monitoring'), m.lead, `Stall: ${m.stall} · Quota: ${m.quota}`, `Session activity: ${m.sessionActivity} (not proof of work or a stall) · ${m.stallReason} · ${m.quotaReason} · Provider pool: ${m.poolCapacity} (${m.poolReason})`));
     data.issues.forEach(i => item(document.querySelector('#issues'), i.title, i.detail, `${i.status} · ${i.source}`));
-    data.ledger.forEach(e => item(document.querySelector('#ledger'), `${e.bot} · ${e.request}`, `Result: ${e.result} · Verification: ${e.verification}`, `Correlation: ${e.correlationId}`));
+    renderLedger();
     data.learning.forEach(l => item(document.querySelector('#learning'), `${l.game} · ${l.topic}`, l.status, `Evidence: ${l.evidence} · Datasets: ${l.datasets} · Policy verification: ${l.policy} · ${l.source}`));
     document.querySelector('#updated').textContent = `Snapshot generated ${data.generatedAt} · Bot and learning data are synthetic; lead task state comes from the coordinator board.`;
     sessionStorage.setItem('dit-admin-token', token); workspace.hidden = false; form.hidden = true;
@@ -81,4 +89,12 @@ async function load() {
 }
 form.addEventListener('submit', e => { e.preventDefault(); token = document.querySelector('#token').value; document.querySelector('#token').value = ''; load(); });
 document.querySelector('#refresh').addEventListener('click', load);
+document.querySelector('#trace-search').addEventListener('submit', e => {
+  e.preventDefault(); correlationFilter = document.querySelector('#correlation').value.trim();
+  if (currentSnapshot) renderLedger();
+});
+document.querySelector('#trace-clear').addEventListener('click', () => {
+  correlationFilter = ''; document.querySelector('#correlation').value = '';
+  if (currentSnapshot) renderLedger();
+});
 if (token) load();
