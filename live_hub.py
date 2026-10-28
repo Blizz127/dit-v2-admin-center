@@ -74,7 +74,7 @@ def read_views(reader, games=('ffxi', 'swtor')):
                             raise ValueError('invalid roster row')
                         rows.append({'id': f'live:{game}:{row["key"]}', 'name': row['name'], 'game': game.upper(),
                                      'status': 'Unknown', 'observedAt': None,
-                                     'source': f'Hub r10 roster · fetched {fetched} · registration is not presence'})
+                                     'source': f'Hub roster (r10-shaped projection) · fetched {fetched} · registration is not presence'})
                     result['bots'][game] = rows
                 else:
                     rows = project_learning(data)
@@ -83,7 +83,7 @@ def read_views(reader, games=('ffxi', 'swtor')):
                     for row in rows:
                         row['id'] = f'live:{game}:{row["id"]}'
                         row['game'] = game.upper()
-                        row['source'] = f'Hub r10 light learning tasks · fetched {fetched}'
+                        row['source'] = f'Hub light learning tasks (r10-shaped projection) · fetched {fetched}'
                     result['learning'][game] = rows
                     result['issues'][game] = project_learning_attention(rows)
                 result['feeds'].append({'game': game.upper(), 'view': view, 'status': 'Live response', 'at': fetched,
