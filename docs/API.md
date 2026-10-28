@@ -2,7 +2,11 @@
 
 Status: local presentation contract, draft pending coordination with the DIT v2 lead. Optional live reads use the source-reviewed r10 shapes; actual deployed revision is unverified. These are endpoints of this scaffold, not claims about hub r10 or its ledger. The browser never calls the hub directly. Blizz authorized read-only live hub calls; trusted SSH access has been verified; authenticated reads await the existing plaintext token file location. No live hub call has been made.
 
-All responses are JSON and `Cache-Control: no-store`. Requests to `/api/*` require `Authorization: Bearer <owner token>`; absent or incorrect tokens receive 401. The token must be provided to the process as `ADMIN_TOKEN` and is never included in responses. No mutation endpoints exist. Optional upstream reads are restricted to `/v1/control/bots` and `/v1/control/learning` with `light=true` and `tasksOnly=true`; each game/view has independently labeled synthetic fallback. Unknown API paths return 404. No CORS access is provided.
+All responses are JSON and `Cache-Control: no-store`. Requests to `/api/*` require `Authorization: Bearer <owner token>`; absent or incorrect tokens receive 401. The token must be provided to the process as `ADMIN_TOKEN` and is never included in responses. No mutation endpoints exist. Optional upstream reads are restricted to `/v1/control/bots`, `/v1/control/learning` with `light=true` and `tasksOnly=true`, and explicit `/v1/control/trace` queries; each game/view has independently labeled synthetic fallback. Unknown API paths return 404. No CORS access is provided.
+
+## GET /api/trace?gameId=&correlationId=
+
+Requires the owner token and an explicitly configured hub URL and token file. Fetches an allowlisted read-only upstream trace only on explicit request. Accepts FFXI or SWTOR and a bounded identifier. Returns envelope kind, type, occurrence time and outcome classification/disposition/finality when reported; raw envelope bodies are omitted. At r10 the hub scans a bounded recent window and returns at most 250 records, so an empty result does not prove absence or delivery. Hub access is currently unconfigured pending the token-file decision.
 
 ## GET /api/bridge-status
 
