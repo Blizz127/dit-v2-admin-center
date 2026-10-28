@@ -3,6 +3,7 @@ const error = document.querySelector('#error');
 const workspace = document.querySelector('#workspace');
 let currentSnapshot = null;
 let requestVersion = 0;
+let traceVersion = 0;
 let selectedBotId = null;
 let correlationFilter = '';
 let bridgePending = false;
@@ -118,6 +119,25 @@ function renderLearning() {
     }
   });
   if (selectedLearningId !== null) inspectLearning(selectedLearningId);
+}
+async function loadHubTrace(correlation) {
+  const id = ++traceVersion;
+  const panel = document.querySelector('#hub-trace');
+  panel.replaceChildren();
+  if (!/^[A-Za-z0-9_.:-]{1,128}$/.test(correlation)) { panel.textContent = 'Enter a correlation ID using letters, numbers, dot, dash, underscore or colon.'; return; }
+  const game = document.querySelector('#trace-game').value;
+  if (!['ffxi', 'swtor'].includes(game)) { panel.textContent = 'Choose a supported game.'; return; }
+  panel.textContent = 'Loading read-only trace…';
+  try {
+    const response = await fetch(`/api/trace?gameId=${encodeURIComponent(game)}&correlationId=${encodeURIComponent(correlation)}`, {headers: {Authorization: `Bearer ${token}`}, cache: 'no-store'});
+    if (!response.ok) throw new Error('unavailable');
+    const data = await response.json();
+    if (id !== traceVersion) return;
+    panel.replaceChildren();
+    item(panel, `Hub trace · ${game.toUpperCase()}`, data.coverage, `Fetched: ${data.fetchedAt} · Deployed revision unverified`);
+    if (!data.records.length) item(panel, 'No matching trace records', 'No matching records in the bounded trace window.', 'This does not prove an action did or did not occur.');
+    data.records.forEach(r => item(panel, `${r.kind || 'Unknown'} · ${r.type || 'Unknown'}`, `Disposition: ${r.disposition || 'Unknown'} · Classification: ${r.classification || 'Unknown'} · Final: ${r.isFinal == null ? 'Unknown' : r.isFinal}`, `Occurred: ${r.occurredAt || 'unknown'} · Raw envelope body omitted`));
+  } catch (_) { if (id === traceVersion) panel.textContent = 'Hub trace unavailable; no delivery or outcome can be inferred.'; }
 }
 function renderLedger() {
   const panel = document.querySelector('#ledger');
@@ -270,7 +290,7 @@ form.addEventListener('submit', e => { e.preventDefault(); token = document.quer
 document.querySelector('#refresh').addEventListener('click', load);
 document.querySelector('#bridge-refresh').addEventListener('click', loadBridge);
 if (typeof setInterval === 'function') setInterval(() => { if (document.visibilityState !== 'hidden') loadBridge(); }, 15000);
-document.querySelector('#data-source').addEventListener('change', load);
+document.querySelector('#data-source').addEventListener('change', () => { traceVersion++; document.querySelector('#hub-trace').replaceChildren(); load(); });
 document.querySelector('#quota-window').addEventListener('change', () => { if (currentSnapshot) renderQuotaHistory(); });
 document.querySelector('#timeline-kind').addEventListener('change', () => { if (currentSnapshot) renderLeadTimeline(); });
 document.querySelector('#issue-scope').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
@@ -282,9 +302,10 @@ document.querySelector('#learning-search').addEventListener('input', () => { if 
 document.querySelector('#trace-search').addEventListener('submit', e => {
   e.preventDefault(); correlationFilter = document.querySelector('#correlation').value.trim();
   if (currentSnapshot) renderLedger();
+  if (document.querySelector('#data-source').value === 'hub') loadHubTrace(correlationFilter);
 });
 document.querySelector('#trace-clear').addEventListener('click', () => {
-  correlationFilter = ''; document.querySelector('#correlation').value = '';
+  correlationFilter = ''; document.querySelector('#correlation').value = ''; traceVersion++; document.querySelector('#hub-trace').replaceChildren();
   if (currentSnapshot) renderLedger();
 });
 if (token) load();
