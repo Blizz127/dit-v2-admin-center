@@ -33,6 +33,35 @@ def lead_inventory():
     return leads
 
 
+def lead_monitoring():
+    root = Path.home() / ".local/share/devbox-coordinator-state"
+    targets = [("DIT v2 hub lead", "claude-dit-human-behavior-platform", "claude"),
+               ("Admin Center lead", "claude-dit-v2-admin-center", "codex")]
+    try:
+        config = json.loads((root / "watch.json").read_text())
+        state = json.loads((root / "watch-state.json").read_text())
+        records = config["targets"]
+        if not isinstance(records, list) or not isinstance(state, dict):
+            raise ValueError("invalid watcher data")
+    except (OSError, ValueError, KeyError, TypeError):
+        records, state = [], {}
+    result = []
+    for name, project, agent in targets:
+        item = {"lead": name, "stall": "Unknown", "stallReason": "No available matching watcher classification", "quota": "Unknown", "quotaReason": "No per-lead quota source connected"}
+        matches = [t for t in records if isinstance(t, dict) and t.get("project") == project and t.get("agent") == agent and t.get("enabled", True)]
+        if len(matches) == 1:
+            entry = state.get(matches[0].get("name"), {})
+            if isinstance(entry, dict) and entry.get("kind") in ("STALLED", "STOPPED", "OFF-TRACK", "OK") and isinstance(entry.get("checked"), (int, float)):
+                try:
+                    at = datetime.fromtimestamp(entry["checked"], timezone.utc).isoformat()
+                    item["stall"] = entry["kind"]
+                    item["stallReason"] = "Coordinator watcher classification checked " + at + "; may be stale"
+                except (ValueError, OverflowError, OSError):
+                    pass
+        result.append(item)
+    return result
+
+
 def overview():
     return {
         "mode": "mock", "generatedAt": datetime.now(timezone.utc).isoformat(),
@@ -41,10 +70,7 @@ def overview():
             {"id": "demo-2", "name": "Vale", "game": "SWTOR", "status": "Unknown", "source": "Synthetic fixture", "observedAt": None},
         ],
         "leads": lead_inventory(),
-        "leadMonitoring": [
-            {"lead": "DIT v2 hub lead", "stall": "Unknown", "stallReason": "No configured coordinator watcher target", "quota": "Unknown", "quotaReason": "No per-lead quota source connected"},
-            {"lead": "Admin Center lead", "stall": "Unknown", "stallReason": "No configured coordinator watcher target", "quota": "Unknown", "quotaReason": "No per-lead quota source connected"},
-        ],
+        "leadMonitoring": lead_monitoring(),
         "ledger": [
             {"correlationId": "demo-episode-1", "bot": "Aster", "request": "Observe surroundings", "result": "Accepted", "verification": "Pending"},
             {"correlationId": "demo-episode-2", "bot": "Aster", "request": "Move to camp", "result": "Rejected: gate disabled", "verification": "Not applicable"},
