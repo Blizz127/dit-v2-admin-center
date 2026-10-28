@@ -44,7 +44,10 @@ async function loadBridge() {
     const data = await response.json();
     panel.replaceChildren();
     item(panel, `Unit: ${data.unit} · ${data.substate}`, `Result: ${data.result} · Fault marker: ${data.marker}`, `${data.source} · Observed: ${data.observedAt || 'unknown'} · Marker absence does not prove delivery`);
-  } catch (_) { panel.textContent = 'Bridge status unknown; read-only observation unavailable.'; }
+    const focus = document.querySelector('#ffxi-focus-bridge');
+    focus.replaceChildren();
+    item(focus, `Bridge: ${data.unit} · ${data.substate}`, `Fault marker: ${data.marker}`, `${data.source} · Observed: ${data.observedAt || 'unknown'} · Not proof of delivery`);
+  } catch (_) { panel.textContent = 'Bridge status unknown; read-only observation unavailable.'; document.querySelector('#ffxi-focus-bridge').textContent = 'Bridge observation unknown; delivery remains unverified.'; }
   finally { bridgePending = false; }
 }
 function renderQuotaHistory() {
@@ -354,8 +357,15 @@ async function load() {
     if (!response.ok) throw new Error(response.status === 401 ? 'Token was not accepted.' : 'Could not load the workspace.');
     const data = await response.json();
     if (requestId !== requestVersion) return;
-    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage', 'bot-coverage', 'learning-plan', 'game-status', 'spend-example', 'learning-artifacts', 'safety-records']) document.getElementById(id).replaceChildren();
+    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage', 'bot-coverage', 'learning-plan', 'game-status', 'spend-example', 'learning-artifacts', 'safety-records', 'ffxi-focus']) document.getElementById(id).replaceChildren();
     currentSnapshot = data;
+    if (data.ffxiFocus) {
+      const f = data.ffxiFocus, target = document.querySelector('#ffxi-focus');
+      item(target, 'Closest documented slice', f.closest, f.source);
+      item(target, 'What to look for', f.whatToLookFor, 'Readiness must be confirmed by the owning lead');
+      item(target, 'How to toggle', f.toggle, 'Read only');
+      item(target, 'Not yet verified', f.unverified, 'A bridge observation does not establish delivery');
+    }
     item(document.querySelector('#owner-attention'), 'Coverage', data.ownerAttention.coverage, 'Coordinator task board · Read only');
     if (!data.ownerAttention.items.length) item(document.querySelector('#owner-attention'), 'No records listed', 'Other owner decisions may be tracked elsewhere.', 'Not a complete decision inventory');
     data.ownerAttention.items.forEach(a => item(document.querySelector('#owner-attention'), a.title, a.project, `Created: ${a.createdAt} · Expires: ${a.expiresAt} · Coordinator approval record`));
