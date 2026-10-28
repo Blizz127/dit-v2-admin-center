@@ -1,6 +1,6 @@
 # Proposed hub contract for Admin Center review
 
-**Draft, not implemented or approved.** Prepared for Blizz and the DIT v2 lead from the lead's `custody/per-bot-model-routing-draft.md` and source inspection of r10 `b089a2c` and candidate `e8c81be`. It does not grant access to a hub, credentials, model calls, writes or rollout. The existing r10 endpoints and separately configured admin listener are described in [API.md](API.md); candidate-only changes and the AX41 historical record must not be conflated with r10 or a current live version.
+**Owner-approved design draft, not implemented.** Blizz approved this draft in the conversation; hub-lead technical review and unresolved contract details remain. This approval does not authorize credential changes or live model writes. Prepared for Blizz and the DIT v2 lead from the lead's `custody/per-bot-model-routing-draft.md` and source inspection of r10 `b089a2c` and candidate `e8c81be`. It does not grant access to a hub, credentials, model calls, writes or rollout. The existing r10 endpoints and separately configured admin listener are described in [API.md](API.md); candidate-only changes and the AX41 historical record must not be conflated with r10 or a current live version.
 
 ## Read-only operator data
 

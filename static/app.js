@@ -279,7 +279,7 @@ function botItem(bot) {
   option.textContent = 'Unavailable';
   select.append(option);
   const note = document.createElement('small');
-  note.textContent = 'Model selection awaits a hub contract and owner authorization.';
+  note.textContent = 'The approved design needs a compatible hub implementation and separate authorization for model changes.';
   label.append(select);
   routingPanel.append(details, routingMeta, scope, purposeLabel, label, note);
   row.append(routingPanel);

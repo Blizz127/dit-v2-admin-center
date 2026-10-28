@@ -68,7 +68,7 @@ setImmediate(async () => {
   assert.equal(selector.children.length, 1);
   assert.equal(selector.children[0].textContent, 'Unavailable');
   assert.match(routingPanel.children.find(child => child.className === 'routing').textContent, /Requested model: Unknown · Effective model: Unknown/);
-  assert.match(routingPanel.children.at(-1).textContent, /hub contract and owner authorization/);
+  assert.match(routingPanel.children.at(-1).textContent, /compatible hub implementation and separate authorization/);
   const other = get('bots').children[1];
   const otherPanel = other.children.find(child => child.tag === 'details');
   const routing = otherPanel.children.filter(child => child.className === 'routing');
