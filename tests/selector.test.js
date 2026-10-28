@@ -121,8 +121,12 @@ setImmediate(async () => {
   assert.match(get('learning').children[0].children[0].textContent, /SWTOR/);
   get('learning-attention').checked = false;
   get('learning-attention').listeners.change();
+  get('learning-game').value = 'SWTOR';
+  get('learning-game').listeners.change();
+  assert.equal(get('learning-plan').children[0].children[0].textContent, 'No planning topics');
   get('learning-game').value = 'FFXI';
   get('learning-game').listeners.change();
+  assert.match(get('learning-plan').children[0].children[0].textContent, /Example plan/);
   assert.equal(get('learning').children.length, 1);
   assert.match(get('learning-count').textContent, /Showing 1 of 2 loaded learning records; coverage may be incomplete/);
   assert.match(get('learning').children[0].children[0].textContent, /FFXI/);
