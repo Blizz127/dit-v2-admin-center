@@ -311,6 +311,10 @@ document.querySelector('#bot-search').addEventListener('input', () => { if (curr
 document.querySelector('#issue-scope').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
 document.querySelector('#issue-status').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
 document.querySelector('#issue-search').addEventListener('input', () => { if (currentSnapshot) renderIssues(); });
+document.querySelector('#issue-reset').addEventListener('click', () => {
+  for (const id of ['issue-scope', 'issue-status', 'issue-search']) document.getElementById(id).value = '';
+  if (currentSnapshot) renderIssues();
+});
 document.querySelector('#learning-game').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
 document.querySelector('#learning-status').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
 document.querySelector('#learning-search').addEventListener('input', () => { if (currentSnapshot) renderLearning(); });

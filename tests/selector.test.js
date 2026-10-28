@@ -143,6 +143,9 @@ setImmediate(async () => {
   get('issue-scope').listeners.change();
   assert.match(get('issues').children[0].children[2].textContent, /Created: example time/);
   get('issues').children[0].children.find(child => child.tag === 'button').listeners.click();
+  get('issue-reset').listeners.click();
+  assert.equal(get('issues').children.length, 4);
+  assert.equal(get('issue-scope').value, '');
   const learningDetail = get('learning-inspector').children[0];
   assert.match(learningDetail.children[0].textContent, /Example FFXI/);
   assert.match(learningDetail.children[1].textContent, /Missing evidence/);
