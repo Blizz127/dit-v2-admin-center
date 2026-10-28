@@ -70,3 +70,35 @@ def monitoring_issues(monitoring):
                            'scope': 'Leads', 'status': 'Reported', 'source': 'Coordinator watcher',
                            'updatedAt': info['stallObservedAt']})
     return issues
+
+
+def add_checkout_history(history_rows, projects):
+    """Add bounded checkout HEAD ancestry, not commits attributed to a lead."""
+    import re
+    import subprocess
+
+    for row in history_rows:
+        project = projects.get(row['lead'])
+        row['commitCoverage'] = 'Checkout commit history unavailable'
+        if project is None:
+            continue
+        try:
+            output = subprocess.run(['git', '-C', str(project), 'log', '-10', '--format=%H%x09%cI', 'HEAD'],
+                                    capture_output=True, text=True, timeout=2, check=True).stdout
+            events = []
+            for line in output.splitlines():
+                parts = line.split('\t')
+                if len(parts) != 2 or not re.fullmatch(r'[0-9a-f]{40,64}', parts[0]):
+                    raise ValueError('invalid git output')
+                stamp = datetime.fromisoformat(parts[1].replace('Z', '+00:00'))
+                if stamp.tzinfo is None:
+                    raise ValueError('missing timezone')
+                events.append({'kind': 'Checkout commit', 'status': parts[0][:12],
+                               'at': stamp.astimezone(timezone.utc).isoformat(),
+                               'source': 'Checkout HEAD ancestry; not attributed to lead'})
+            row['events'].extend(events)
+            row['events'].sort(key=lambda event: datetime.fromisoformat(event['at'].replace('Z', '+00:00')).timestamp(), reverse=True)
+            row['commitCoverage'] = 'Up to 10 checkout HEAD commits; other branches and authors are not covered'
+        except (OSError, subprocess.SubprocessError, ValueError, OverflowError):
+            continue
+    return history_rows

@@ -3,8 +3,10 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
+from types import SimpleNamespace
 
-from lead_timeline import add_current_evidence, monitoring_issues, timeline
+from lead_timeline import add_checkout_history, add_current_evidence, monitoring_issues, timeline
 
 
 class LeadTimelineTests(unittest.TestCase):
@@ -42,6 +44,21 @@ class LeadTimelineTests(unittest.TestCase):
         self.assertIn('not a stopped-goal report', issues[1]['detail'])
         self.assertIn('session', issues[1]['title'])
         self.assertEqual(len(monitoring_issues([{'lead': 'Example', 'stall': 'Unknown'}])), 1)
+
+    def test_commit_history_is_bounded_labeled_and_ordered(self):
+        rows = [{'lead': 'Example', 'events': [{'kind': 'Watcher alert', 'status': 'STALLED', 'at': '2026-01-01T00:00:00Z', 'source': 'Watcher'}]}]
+        with patch('subprocess.run', return_value=SimpleNamespace(stdout=('a' * 40 + '\t2026-01-02T00:00:00+00:00\n'))) as run:
+            add_checkout_history(rows, {'Example': Path('/example')})
+        self.assertIn('-10', run.call_args.args[0])
+        self.assertEqual(rows[0]['events'][0]['kind'], 'Checkout commit')
+        self.assertIn('not attributed', rows[0]['events'][0]['source'])
+        self.assertEqual(rows[0]['events'][1]['kind'], 'Watcher alert')
+
+    def test_missing_checkout_does_not_invent_commits(self):
+        rows = [{'lead': 'Example', 'events': []}]
+        add_checkout_history(rows, {})
+        self.assertEqual(rows[0]['events'], [])
+        self.assertEqual(rows[0]['commitCoverage'], 'Checkout commit history unavailable')
 
     def test_missing_database_is_unknown(self):
         with tempfile.TemporaryDirectory() as directory:
