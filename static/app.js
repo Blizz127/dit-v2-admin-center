@@ -338,6 +338,12 @@ if (typeof setInterval === 'function') setInterval(() => { if (document.visibili
 document.querySelector('#data-source').addEventListener('change', () => { traceVersion++; document.querySelector('#hub-trace').replaceChildren(); return load(); });
 document.querySelector('#quota-window').addEventListener('change', () => { if (currentSnapshot) renderQuotaHistory(); });
 document.querySelector('#timeline-kind').addEventListener('change', () => { if (currentSnapshot) renderLeadTimeline(); });
+document.querySelector('#show-routing').addEventListener('click', () => {
+  document.querySelector('#bots').querySelectorAll('details').forEach(panel => { panel.open = true; });
+});
+document.querySelector('#hide-routing').addEventListener('click', () => {
+  document.querySelector('#bots').querySelectorAll('details').forEach(panel => { panel.open = false; });
+});
 document.querySelector('#clear-bot').addEventListener('click', () => {
   selectedBotId = null;
   const panel = document.querySelector('#bot-inspector');

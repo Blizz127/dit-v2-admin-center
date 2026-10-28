@@ -10,6 +10,7 @@ class Element {
   scrollIntoView() {}
   addEventListener(name, fn) { this.listeners[name] = fn; }
   setAttribute(name, value) { this.attributes[name] = value; }
+  querySelectorAll(tag) { return this.children.flatMap(child => [...(child.tag === tag ? [child] : []), ...child.querySelectorAll(tag)]); }
   get lastElementChild() { return this.children.at(-1); }
 }
 const elements = new Map();
@@ -52,6 +53,10 @@ setImmediate(async () => {
   const row = get('bots').children[0];
   const routingPanel = row.children.find(child => child.tag === 'details');
   assert.equal(routingPanel.children[0].textContent, 'Model routing (read-only)');
+  get('show-routing').listeners.click();
+  assert.equal(routingPanel.open, true);
+  get('hide-routing').listeners.click();
+  assert.equal(routingPanel.open, false);
   const labels = routingPanel.children.filter(child => child.tag === 'label');
   const purpose = labels[0].children[0];
   assert.equal(purpose.disabled, true);
