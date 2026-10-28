@@ -18,6 +18,10 @@ def overview():
             {"id": "demo-1", "name": "Aster", "game": "FFXI", "status": "Paused", "source": "Synthetic fixture", "observedAt": "2026-01-01T12:00:00Z"},
             {"id": "demo-2", "name": "Vale", "game": "SWTOR", "status": "Unknown", "source": "Synthetic fixture", "observedAt": None},
         ],
+        "leads": [
+            {"name": "Mira", "scope": "FFXI learning", "status": "Unknown", "source": "Synthetic fixture", "observedAt": None},
+            {"name": "Rowan", "scope": "SWTOR adapter", "status": "Unknown", "source": "Synthetic fixture", "observedAt": None},
+        ],
         "ledger": [
             {"correlationId": "demo-episode-1", "bot": "Aster", "request": "Observe surroundings", "result": "Accepted", "verification": "Pending"},
             {"correlationId": "demo-episode-2", "bot": "Aster", "request": "Move to camp", "result": "Rejected: gate disabled", "verification": "Not applicable"},

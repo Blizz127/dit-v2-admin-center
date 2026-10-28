@@ -6,7 +6,7 @@ All responses are JSON and `Cache-Control: no-store`. Requests to `/api/*` requi
 
 ## GET /api/overview
 
-Returns `{ "mode": "mock", "generatedAt": <UTC ISO timestamp>, "bots": [...], "ledger": [...], "learning": [...], "issues": [...] }`. All examples are synthetic, not hub observations. Each bot has `id`, `name`, `game`, `status`, `source`, and `observedAt`. Ledger records have `correlationId`, `bot`, `request`, `result`, and `verification`; `pending` or `unknown` must not be rendered as success. Learning entries have `game`, `topic`, `status`, and `evidence`; issues have `title` and `detail`.
+Returns `{ "mode": "mock", "generatedAt": <UTC ISO timestamp>, "bots": [...], "leads": [...], "ledger": [...], "learning": [...], "issues": [...] }`. All examples are synthetic, not hub observations. Each bot has `id`, `name`, `game`, `status`, `source`, and `observedAt`. Lead records are synthetic examples with `name`, `scope`, `status`, `source`, and `observedAt`; they do not establish real project assignments. Ledger records have `correlationId`, `bot`, `request`, `result`, and `verification`; `pending` or `unknown` must not be rendered as success. Learning entries have `game`, `topic`, `status`, and `evidence`; issues have `title` and `detail`.
 
 The mock is intentionally small; it is not a substitute for upstream schemas, pagination, complete roster coverage, audit, usage metrics or actual policy verification. Before integration, agree with the hub lead on endpoint versions, authentication, source and freshness, pagination, correlation, error behavior, authorization, audit, and command idempotency. Treat unavailable values as unknown and unavailable actions as disabled.
 
