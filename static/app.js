@@ -49,6 +49,15 @@ function renderIssues() {
       fix.textContent = `Suggested verification: ${i.suggestedFix}`;
       panel.lastElementChild.append(fix);
     }
+    if (i.botId && currentSnapshot.bots.some(b => b.id === i.botId)) {
+      const button = document.createElement('button'); button.type = 'button';
+      button.textContent = `Inspect bot for: ${i.title}`;
+      button.addEventListener('click', () => {
+        inspectBot(i.botId);
+        document.querySelector('#bot-inspector').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+      });
+      panel.lastElementChild.append(button);
+    }
     if (i.learningId && currentSnapshot.learning.some(l => l.id === i.learningId)) {
       const button = document.createElement('button'); button.type = 'button';
       button.textContent = `Inspect learning need: ${i.title}`;

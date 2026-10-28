@@ -113,7 +113,10 @@ setImmediate(async () => {
   assert.equal(get('issues').children[0].children[0].textContent, 'No matching issues');
   get('issue-search').value = '';
   get('issue-search').listeners.input();
-  get('issues').children[0].children.find(child => child.tag === 'button').listeners.click();
+  const issueButtons = get('issues').children[0].children.filter(child => child.tag === 'button');
+  issueButtons.find(button => button.textContent.startsWith('Inspect bot')).listeners.click();
+  assert.match(get('bot-inspector').children[0].children[0].textContent, /Example/);
+  issueButtons.find(button => button.textContent.startsWith('Inspect learning')).listeners.click();
   get('issue-scope').value = 'Leads';
   get('issue-scope').listeners.change();
   assert.equal(get('issues').children[0].children[0].textContent, 'Binding unknown');
