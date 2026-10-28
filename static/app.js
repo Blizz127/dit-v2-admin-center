@@ -131,6 +131,10 @@ function botItem(bot) {
   inspect.textContent = `Inspect ${bot.name}`;
   inspect.addEventListener('click', () => inspectBot(bot.id));
   row.append(inspect);
+  const routingPanel = document.createElement('details');
+  const summary = document.createElement('summary');
+  summary.textContent = 'Model routing (read-only)';
+  routingPanel.append(summary);
   const details = document.createElement('p');
   details.className = 'routing';
   const routing = bot.routing && typeof bot.routing === 'object' && !Array.isArray(bot.routing) ? bot.routing : {};
@@ -161,7 +165,8 @@ function botItem(bot) {
   const note = document.createElement('small');
   note.textContent = 'Model selection awaits a hub contract and owner authorization.';
   label.append(select);
-  row.append(details, routingMeta, scope, purposeLabel, label, note);
+  routingPanel.append(details, routingMeta, scope, purposeLabel, label, note);
+  row.append(routingPanel);
 }
 async function load() {
   const requestId = ++requestVersion;
