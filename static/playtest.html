@@ -3,12 +3,13 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Playtest guide · DIT v2 Admin Center</title><link rel="stylesheet" href="/style.css"></head>
 <body><header><div><span class="eyebrow">DIT v2 / LOCAL DEVELOPMENT</span><h1>What to look for</h1><p>A short guide to the current Admin Center build.</p></div><a class="back-link" href="/">Back to workspace</a></header>
 <main>
-<div class="notice"><strong>Current data:</strong> Bot, learning and model examples are synthetic unless a feed says otherwise. The hub is not configured; lead and coordinator panels use read-only local records. Model changes remain disabled.</div>
+<div class="notice"><strong>Current data:</strong> Bot, learning and model examples are synthetic unless a feed says otherwise. The hub is not configured; lead and coordinator panels use read-only local records; bridge status uses a read-only SSH observation. Model changes remain disabled.</div>
 <section class="panel"><h2>Try these</h2>
 <ol class="guide-list">
 <li><strong>See what changed.</strong> Open the workspace and read “What's new” and the hub status banner. The source selector defaults to synthetic examples; selecting “Try configured read-only hub” currently shows fallback until access is configured.</li>
 <li><strong>Inspect a bot.</strong> Choose “Inspect” on a roster entry. Check its linked example evidence and issues. Open “Model routing (read-only)” to show or hide the picker details; purpose and model controls cannot be changed.</li>
 <li><strong>Explore learning needs.</strong> Filter by game or status, search by topic or reason, and inspect a need for its phase, evidence and policy state. Missing evidence is shown as unknown or not included.</li>
+<li><strong>Watch the bridge.</strong> The FFXI chat bridge card shows the unit and fault marker from a read-only observation, refreshing while the workspace is visible. An absent marker does not prove a reply was delivered.</li>
 <li><strong>Review issues.</strong> Filter by scope or search. The FFXI bridge fault card describes historical project evidence; its current status is unknown. Coordinator decision cards link to the read-only “Needs Blizz” summary.</li>
 <li><strong>Check lead activity.</strong> Compare the lead stall and quota summary with the timeline and nudge history. Shared quota estimates are not individual lead quota, and activity after a nudge is only a heuristic.</li>
 <li><strong>Follow evidence.</strong> Filter the synthetic action ledger by correlation ID. A request, its result and its verification are separate; a dispatched request alone does not prove completion.</li>
