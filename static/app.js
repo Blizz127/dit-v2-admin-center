@@ -1,0 +1,29 @@
+const form = document.querySelector('#login');
+const error = document.querySelector('#error');
+const workspace = document.querySelector('#workspace');
+let token = sessionStorage.getItem('dit-admin-token') || '';
+function item(parent, title, detail, meta) {
+  const row = document.createElement('div'); row.className = 'row';
+  const heading = document.createElement('strong'); heading.textContent = title;
+  const text = document.createElement('p'); text.textContent = detail;
+  const small = document.createElement('small'); small.textContent = meta || '';
+  row.append(heading, text, small); parent.append(row);
+}
+async function load() {
+  error.textContent = '';
+  try {
+    const response = await fetch('/api/overview', {headers: {Authorization: `Bearer ${token}`}, cache: 'no-store'});
+    if (!response.ok) throw new Error(response.status === 401 ? 'Token was not accepted.' : 'Could not load the workspace.');
+    const data = await response.json();
+    for (const id of ['bots', 'issues', 'ledger', 'learning']) document.getElementById(id).replaceChildren();
+    data.bots.forEach(b => item(document.querySelector('#bots'), `${b.name} · ${b.game}`, b.status, `${b.source} · Observed: ${b.observedAt || 'unknown'}`));
+    data.issues.forEach(i => item(document.querySelector('#issues'), i.title, i.detail));
+    data.ledger.forEach(e => item(document.querySelector('#ledger'), `${e.bot} · ${e.request}`, `Result: ${e.result} · Verification: ${e.verification}`, `Correlation: ${e.correlationId}`));
+    data.learning.forEach(l => item(document.querySelector('#learning'), `${l.game} · ${l.topic}`, l.status, `Evidence: ${l.evidence}`));
+    document.querySelector('#updated').textContent = `Mock snapshot generated ${data.generatedAt}`;
+    sessionStorage.setItem('dit-admin-token', token); workspace.hidden = false; form.hidden = true;
+  } catch (e) { workspace.hidden = true; form.hidden = false; sessionStorage.removeItem('dit-admin-token'); error.textContent = e.message; }
+}
+form.addEventListener('submit', e => { e.preventDefault(); token = document.querySelector('#token').value; document.querySelector('#token').value = ''; load(); });
+document.querySelector('#refresh').addEventListener('click', load);
+if (token) load();
