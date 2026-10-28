@@ -14,7 +14,7 @@ class Element {
 const elements = new Map();
 const get = id => { if (!elements.has(id)) elements.set(id, new Element('div')); return elements.get(id); };
 const document = {querySelector: selector => get(selector.slice(1)), getElementById: get, createElement: tag => new Element(tag)};
-const data = {generatedAt: 'test', bots: [{id: 'one', name: 'Example', game: 'FFXI', status: 'Unknown', source: 'Fixture', observedAt: null}], leads: [], leadMonitoring: [], issues: [], ledger: [{botId: 'one', request: 'Observe', result: 'Accepted', verification: 'Pending', correlationId: 'one'}, {botId: 'another', request: 'Other bot action', result: 'Accepted', verification: 'Verified', correlationId: 'two'}], learning: []};
+const data = {generatedAt: 'test', bots: [{id: 'one', name: 'Example', game: 'FFXI', status: 'Unknown', source: 'Fixture', observedAt: null}], leads: [], leadMonitoring: [], issues: [{title: 'Bot issue', detail: 'Example', scope: 'Bots', status: 'Open', source: 'Fixture'}, {title: 'Network issue', detail: 'Example', scope: 'Network', status: 'Open', source: 'Fixture'}], ledger: [{botId: 'one', request: 'Observe', result: 'Accepted', verification: 'Pending', correlationId: 'one'}, {botId: 'another', request: 'Other bot action', result: 'Accepted', verification: 'Verified', correlationId: 'two'}], learning: [{game: 'FFXI', topic: 'Example FFXI', status: 'Unknown', evidence: 'Unknown', datasets: 'Unknown', policy: 'Unknown', source: 'Fixture'}, {game: 'SWTOR', topic: 'Example SWTOR', status: 'Unknown', evidence: 'Unknown', datasets: 'Unknown', policy: 'Unknown', source: 'Fixture'}]};
 const context = {document, sessionStorage: {getItem: () => 'test', setItem() {}, removeItem() {}}, fetch: async () => ({ok: true, json: async () => data})};
 vm.runInNewContext(fs.readFileSync('static/app.js', 'utf8'), context);
 setImmediate(() => {
@@ -45,5 +45,13 @@ setImmediate(() => {
   assert.equal(get('ledger').children[0].children[0].textContent, 'No matching evidence');
   get('trace-clear').listeners.click();
   assert.equal(get('ledger').children.length, 2);
-  console.log('Disabled selector, bot inspection and correlation filter passed.');
+  get('learning-game').value = 'FFXI';
+  get('learning-game').listeners.change();
+  assert.equal(get('learning').children.length, 1);
+  assert.match(get('learning').children[0].children[0].textContent, /FFXI/);
+  get('issue-scope').value = 'Bots';
+  get('issue-scope').listeners.change();
+  assert.equal(get('issues').children.length, 1);
+  assert.equal(get('issues').children[0].children[0].textContent, 'Bot issue');
+  console.log('Disabled selector, bot inspection and filters passed.');
 });

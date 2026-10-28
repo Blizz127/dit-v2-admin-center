@@ -27,7 +27,15 @@ export ADMIN_TOKEN='choose-a-private-token'
 python3 server.py
 ```
 
-Open `http://127.0.0.1:7391` on the same machine and enter the token. Set `PORT` to change the port; the bind address is always loopback. The token is kept in browser session storage for the tab. This development server is not a production or tailnet service. Run focused tests with `python3 -m unittest discover -s tests -v`.
+Open `http://127.0.0.1:7391` on the same machine and enter the token. Set `PORT` to change the port; the bind address is always loopback. The token is kept in browser session storage for the tab. This development server is not a production or tailnet service. Run focused tests with `python3 -m unittest discover -s tests -v` and `node tests/selector.test.js`.
+
+To view the existing localhost instance from a laptop on the tailnet, use an already-authorized SSH login and run this on the laptop, replacing `<ssh-user>` with the normal login name:
+
+```sh
+ssh -N -L 7391:127.0.0.1:7391 <ssh-user>@devbox.tail646ff8.ts.net
+```
+
+Keep the tunnel open and browse to `http://127.0.0.1:7391` on the laptop. This requires existing SSH access; the app does not configure SSH, tailnet serving or credentials. The app's owner token is still required.
 
 ## Security
 
