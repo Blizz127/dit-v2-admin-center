@@ -53,6 +53,25 @@ class ServerTests(unittest.TestCase):
         self.assertIn('curated changelog, not a live activity feed', page)
         self.assertIn('model controls remain disabled', page)
 
+    def test_stop_controls_are_disabled(self):
+        from html.parser import HTMLParser
+        class Controls(HTMLParser):
+            def __init__(self):
+                super().__init__(); self.disabled = False; self.buttons = []; self.in_button = False
+            def handle_starttag(self, tag, attrs):
+                attrs = dict(attrs)
+                if tag == 'fieldset': self.disabled = 'disabled' in attrs
+                if tag == 'button': self.in_button = True
+            def handle_data(self, data):
+                if self.in_button and data.strip() in ('Stop selected bot', 'Stop all bots'):
+                    self.buttons.append(self.disabled)
+            def handle_endtag(self, tag):
+                if tag == 'button': self.in_button = False
+                if tag == 'fieldset': self.disabled = False
+        parser = Controls(); parser.feed(self.request('GET', '/')[2].decode())
+        self.assertEqual(parser.buttons, [True, True])
+        self.assertEqual(self.request('POST', '/api/stop', 'test-private-token')[0], 501)
+
     def test_global_controls_are_disabled(self):
         from html.parser import HTMLParser
         class Controls(HTMLParser):
