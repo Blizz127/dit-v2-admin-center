@@ -113,7 +113,7 @@ setImmediate(async () => {
   assert.equal(get('ledger').children[0].children[0].textContent, 'No matching evidence');
   get('trace-clear').listeners.click();
   assert.equal(get('ledger').children.length, 2);
-  assert.match(get('learning-plan').children[0].children[2].textContent, /Project planning/);
+  assert.match(get('learning-plan').children[0].children[2].textContent, /Datasets: Unknown.*Project planning/);
   assert.match(get('learning-coverage').children[0].children[2].textContent, /task verification does not establish verified datasets, policies/);
   get('learning-attention').checked = true;
   get('learning-attention').listeners.change();

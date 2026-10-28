@@ -82,7 +82,7 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(status, 200)
         rows = json.loads(body)['learningPlan']
         self.assertEqual({r['game'] for r in rows}, {'FFXI', 'SWTOR'})
-        self.assertTrue(all(r['evidence'] == 'Unknown' and r['policy'] == 'Unknown' for r in rows))
+        self.assertTrue(all(r['evidence'] == 'Unknown' and r['datasets'] == 'Unknown' and r['policy'] == 'Unknown' for r in rows))
         self.assertTrue(all('not a live finding' in r['source'] for r in rows))
 
     def test_reply_source_fixture_keeps_delivery_independent(self):

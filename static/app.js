@@ -122,7 +122,7 @@ function renderLearningPlan() {
   const rows = currentSnapshot.learningPlan.filter(p => !game || p.game === game);
   panel.replaceChildren();
   if (!rows.length) item(panel, 'No planning topics', 'No topics for this filter.', 'This does not establish coverage.');
-  rows.forEach(p => item(panel, `${p.game} · ${p.topic}`, p.next, `Evidence: ${p.evidence} · Policy: ${p.policy} · ${p.source}`));
+  rows.forEach(p => item(panel, `${p.game} · ${p.topic}`, p.next, `Evidence: ${p.evidence || 'Unknown'} · Datasets: ${p.datasets || 'Unknown'} · Policy: ${p.policy || 'Unknown'} · ${p.source}`));
 }
 function renderLearningCoverage() {
   const panel = document.querySelector('#learning-coverage');
