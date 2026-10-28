@@ -10,7 +10,7 @@ import threading
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 from lead_timeline import add_checkout_history, add_current_evidence, monitoring_issues, timeline
 from lead_activity import lead_activity
@@ -115,7 +115,7 @@ def lead_monitoring():
     return result
 
 
-def overview():
+def overview(source='mock'):
     # Synthetic r10 light/task-only shape; never fetched from the hub.
     projected = project_learning({'gameId': 'ffxi', 'tasks': [{
         'id': 'fixture-learning-1', 'gameId': 'ffxi', 'topic': 'Example route evidence',
@@ -194,6 +194,10 @@ def overview():
         snapshot['hubFeeds'] = [{'game': 'All', 'view': 'hub', 'status': 'Not configured', 'at': None,
                                  'note': 'Synthetic fallback; no live hub connection'}]
         return snapshot
+    if source == 'mock':
+        snapshot['hubFeeds'] = [{'game': 'All', 'view': 'hub', 'status': 'Mock selected', 'at': None,
+                                 'note': 'Synthetic data selected; no hub read attempted'}]
+        return snapshot
     try:
         return merge_views(snapshot, read_views(HubReader(url, token_file)))
     except ValueError:
@@ -221,7 +225,12 @@ class Handler(BaseHTTPRequestHandler):
             if not hmac.compare_digest(supplied.encode(), expected.encode()):
                 self.send_content(401, "application/json", b'{"error":"unauthorized"}')
             elif path == "/api/overview":
-                self.send_content(200, "application/json", json.dumps(overview()).encode())
+                query = parse_qs(urlsplit(self.path).query, keep_blank_values=True)
+                values = query.get('source', ['mock'])
+                if set(query) - {'source'} or len(values) != 1 or values[0] not in ('mock', 'hub'):
+                    self.send_content(400, "application/json", b'{"error":"invalid source"}')
+                else:
+                    self.send_content(200, "application/json", json.dumps(overview(values[0])).encode())
             else:
                 self.send_content(404, "application/json", b'{"error":"not found"}')
             return

@@ -77,6 +77,14 @@ class ProjectionTests(unittest.TestCase):
         self.assertEqual([x['status'] for x in result['feeds']], ['Live response', 'Live response', 'Unavailable', 'Unavailable'])
 
 class EndToEndTests(unittest.TestCase):
+    def test_mock_source_never_initializes_upstream_reader(self):
+        from server import overview
+        with patch.dict(os.environ, {'HUB_READONLY_URL': 'http://127.0.0.1:7390', 'HUB_TOKEN_FILE': '/nonexistent'}), patch('server.HubReader') as reader:
+            payload = overview('mock')
+        reader.assert_not_called()
+        self.assertEqual(payload['mode'], 'mock')
+        self.assertEqual(payload['hubFeeds'][0]['status'], 'Mock selected')
+
     def test_admin_response_uses_stub_live_reads_and_fallback(self):
         from server import make_server
         with tempfile.TemporaryDirectory() as directory:
@@ -88,7 +96,7 @@ class EndToEndTests(unittest.TestCase):
             try:
                 with patch.dict(os.environ, {'HUB_READONLY_URL': f'http://127.0.0.1:{hub.server_port}', 'HUB_TOKEN_FILE': str(token)}):
                     conn = http.client.HTTPConnection(*app.server_address, timeout=8)
-                    conn.request('GET', '/api/overview', headers={'Authorization': 'Bearer synthetic-owner-token'})
+                    conn.request('GET', '/api/overview?source=hub', headers={'Authorization': 'Bearer synthetic-owner-token'})
                     response = conn.getresponse(); body = response.read(); conn.close()
                 self.assertEqual(response.status, 200)
                 self.assertNotIn(b'synthetic-hub-token', body)
