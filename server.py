@@ -187,6 +187,13 @@ def overview(source='mock'):
             {"correlationId": "demo-episode-1", "botId": "demo-1", "bot": "Aster", "request": "Observe surroundings", "result": "Accepted", "verification": "Pending"},
             {"correlationId": "demo-episode-2", "botId": "demo-1", "bot": "Aster", "request": "Move to camp", "result": "Rejected: gate disabled", "verification": "Not applicable"},
         ],
+        "learningPlan": [
+            {"game": "FFXI", "topic": "Navigation, camps and zones", "next": "Inventory observations and outcome coverage", "evidence": "Unknown", "policy": "Unknown", "source": "Project planning; not a live finding"},
+            {"game": "FFXI", "topic": "Party, jobs, combat and missions", "next": "Identify game-specific examples and native validation coverage", "evidence": "Unknown", "policy": "Unknown", "source": "Project planning; not a live finding"},
+            {"game": "FFXI", "topic": "Grounded social memory", "next": "Identify verified facts and memory evaluation coverage", "evidence": "Unknown", "policy": "Unknown", "source": "Project planning; not a live finding"},
+            {"game": "SWTOR", "topic": "Adapter and observation coverage", "next": "Inventory native identity and available evidence", "evidence": "Unknown", "policy": "Unknown", "source": "Project planning; not a live finding"},
+            {"game": "SWTOR", "topic": "Missions, classes, parties and social behavior", "next": "Identify game-specific data and evaluation needs", "evidence": "Unknown", "policy": "Unknown", "source": "Project planning; not a live finding"},
+        ],
         "learning": [
             {"id": "fixture-need-1", "game": "FFXI", "topic": "Navigation, party behavior and grounded social memory", "status": "Needs evidence", "evidence": "Not instrumented", "datasets": "Unknown", "policy": "Unknown", "source": "Synthetic planning example"},
             {"id": "fixture-need-2", "game": "FFXI", "topic": "Mission progression and current quest evidence", "status": "Needs inventory", "evidence": "Unknown", "datasets": "Unknown", "policy": "Unknown", "source": "Synthetic planning example"},

@@ -77,6 +77,14 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(json.loads(body)['marker'], 'unknown')
 
+    def test_learning_plan_is_labeled_and_not_verified(self):
+        status, _, body = self.request("GET", "/api/overview?source=mock", "test-private-token")
+        self.assertEqual(status, 200)
+        rows = json.loads(body)['learningPlan']
+        self.assertEqual({r['game'] for r in rows}, {'FFXI', 'SWTOR'})
+        self.assertTrue(all(r['evidence'] == 'Unknown' and r['policy'] == 'Unknown' for r in rows))
+        self.assertTrue(all('not a live finding' in r['source'] for r in rows))
+
     def test_reply_source_fixture_keeps_delivery_independent(self):
         status, _, body = self.request("GET", "/api/overview?source=mock", "test-private-token")
         self.assertEqual(status, 200)
