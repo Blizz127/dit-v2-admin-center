@@ -40,6 +40,13 @@ class ServerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             make_server(0, "")
 
+    def test_playtest_guide_is_read_only_and_labels_data(self):
+        status, _, body = self.request("GET", "/playtest")
+        self.assertEqual(status, 200)
+        self.assertIn(b'hub is not configured', body)
+        self.assertIn(b'Model changes remain disabled', body)
+        self.assertEqual(self.request("POST", "/playtest")[0], 501)
+
     def test_workspace_changelog_is_visible_and_labeled(self):
         page = self.request("GET", "/")[2].decode()
         self.assertIn("What's new", page)

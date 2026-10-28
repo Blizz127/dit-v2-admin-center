@@ -26,7 +26,7 @@ PROJECT = Path(__file__).resolve().parent
 ROOT = PROJECT / "static"
 LOCAL_DATA = PROJECT / "data" / "local"
 QUOTA_SOURCE = Path.home() / ".local/share/devbox-codex-accounts/state.json"
-ASSETS = {"/": ("index.html", "text/html; charset=utf-8"), "/app.js": ("app.js", "text/javascript; charset=utf-8"), "/style.css": ("style.css", "text/css; charset=utf-8")}
+ASSETS = {"/": ("index.html", "text/html; charset=utf-8"), "/playtest": ("playtest.html", "text/html; charset=utf-8"), "/app.js": ("app.js", "text/javascript; charset=utf-8"), "/style.css": ("style.css", "text/css; charset=utf-8")}
 
 
 def lead_inventory():

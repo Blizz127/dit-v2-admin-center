@@ -9,3 +9,5 @@ fieldset{border:1px solid #34495d;border-radius:8px;margin:12px 0;padding:14px}f
 .quick-links{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 22px}.quick-links a{color:#a2e4e0;border:1px solid #365268;border-radius:20px;padding:5px 12px;text-decoration:none}.quick-links a:focus-visible{outline:2px solid #f2ce8f;outline-offset:2px}
 
 details{margin-top:12px}summary{color:#a2e4e0;cursor:pointer;font-weight:600}summary:focus-visible{outline:2px solid #f2ce8f;outline-offset:3px}
+
+.back-link{color:#a2e4e0}.guide-list{padding-left:22px}.guide-list li{margin:15px 0}.guide-followup{margin-top:16px}
