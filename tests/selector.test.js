@@ -96,6 +96,11 @@ setImmediate(async () => {
   assert.equal(get('bot-inspector').textContent, 'No bot selected.');
   assert.equal(get('assignment-history').children[0].children[0].textContent, 'No bot selected');
   assert.equal(get('reply-source').children[0].children[0].textContent, 'No bot selected');
+  get('issue-selected-bot').checked = true;
+  get('issue-selected-bot').listeners.change();
+  assert.equal(get('issues').children[0].children[1].textContent, 'Select a bot to use this filter.');
+  get('issue-selected-bot').checked = false;
+  get('issue-selected-bot').listeners.change();
   row.children.find(child => child.tag === 'button').listeners.click();
   assert.equal(inspector.children.some(child => child.children[0].textContent === 'Other bot action'), false);
   assert.equal(inspector.children[3].children[0].textContent, 'Issue · Bot issue');
