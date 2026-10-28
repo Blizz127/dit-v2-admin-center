@@ -4,6 +4,7 @@ const workspace = document.querySelector('#workspace');
 let currentSnapshot = null;
 let requestVersion = 0;
 let traceVersion = 0;
+let healthVersion = 0;
 let selectedBotId = null;
 let correlationFilter = '';
 let bridgePending = false;
@@ -15,6 +16,23 @@ function item(parent, title, detail, meta) {
   const text = document.createElement('p'); text.textContent = detail;
   const small = document.createElement('small'); small.textContent = meta || '';
   row.append(heading, text, small); parent.append(row);
+}
+async function loadHubHealth() {
+  const id = ++healthVersion;
+  const panel = document.querySelector('#hub-health');
+  panel.replaceChildren();
+  if (document.querySelector('#data-source').value !== 'hub') { panel.textContent = 'Select configured hub data before requesting this read-only check.'; return; }
+  panel.textContent = 'Checking hub services…';
+  try {
+    const response = await fetch('/api/hub-health', {headers: {Authorization: `Bearer ${token}`}, cache: 'no-store'});
+    if (!response.ok) throw new Error('unavailable');
+    const data = await response.json();
+    if (id !== healthVersion) return;
+    panel.replaceChildren();
+    item(panel, 'Hub service health', data.coverage, `${data.source} · Fetched: ${data.fetchedAt} · Snapshot may be stale`);
+    if (!data.services.length) item(panel, 'No matching service records', 'Coverage is unknown.', 'Empty data does not establish healthy services.');
+    data.services.forEach(s => item(panel, `${s.game} · ${s.label}`, s.state, `Observed: ${s.observedAt || 'unknown'} · Service state is not bot presence`));
+  } catch (_) { if (id === healthVersion) panel.textContent = 'Hub service health unavailable; current state is unknown.'; }
 }
 async function loadBridge() {
   if (bridgePending || !token || workspace.hidden) return;
@@ -354,8 +372,9 @@ async function load() {
 form.addEventListener('submit', e => { e.preventDefault(); token = document.querySelector('#token').value; document.querySelector('#token').value = ''; load(); });
 document.querySelector('#refresh').addEventListener('click', load);
 document.querySelector('#bridge-refresh').addEventListener('click', loadBridge);
+document.querySelector('#hub-health-refresh').addEventListener('click', loadHubHealth);
 if (typeof setInterval === 'function') setInterval(() => { if (document.visibilityState !== 'hidden') loadBridge(); }, 15000);
-document.querySelector('#data-source').addEventListener('change', () => { traceVersion++; document.querySelector('#hub-trace').replaceChildren(); return load(); });
+document.querySelector('#data-source').addEventListener('change', () => { traceVersion++; healthVersion++; document.querySelector('#hub-trace').replaceChildren(); document.querySelector('#hub-health').textContent = 'Not requested.'; return load(); });
 document.querySelector('#quota-window').addEventListener('change', () => { if (currentSnapshot) renderQuotaHistory(); });
 document.querySelector('#timeline-kind').addEventListener('change', () => { if (currentSnapshot) renderLeadTimeline(); });
 document.querySelector('#show-routing').addEventListener('click', () => {
