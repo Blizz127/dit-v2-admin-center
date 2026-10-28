@@ -15,7 +15,7 @@ Planning inventory, not a claim of live capability. No game, dataset, policy or 
 
 ## Cross-game issues and risks
 
-- Hub r10 endpoints, auth, ledger semantics, coverage and contract version are awaiting the hub lead. The local mock API is not an upstream contract.
+- The hub lead identified r10 and candidate sources; focused review of the updated drafts is pending. Hub coverage and runtime deployment state are unverified. The local mock API is not an upstream contract.
 - Native presence needs source, timestamp and expiry; stale or absent data must not become an offline count or fabricated progress.
 - The action ledger must distinguish request, result and verification, and surface rejection and missing evidence. Correlation is not proof of execution.
 - Model usage and cost, quality evaluation, bake-off methodology and provider routing require real measured data and agreed interfaces. Avoid unapproved providers and spending.
