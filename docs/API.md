@@ -1,6 +1,6 @@
 # Admin Center API
 
-Status: local presentation contract, draft pending coordination with the DIT v2 lead. Optional live reads use the source-reviewed r10 shapes; actual deployed revision is unverified. These are endpoints of this scaffold, not claims about hub r10 or its ledger. The browser never calls the hub directly. Blizz authorized read-only live hub calls; access is currently blocked by SSH host-key verification, and no live call has been made.
+Status: local presentation contract, draft pending coordination with the DIT v2 lead. Optional live reads use the source-reviewed r10 shapes; actual deployed revision is unverified. These are endpoints of this scaffold, not claims about hub r10 or its ledger. The browser never calls the hub directly. Blizz authorized read-only live hub calls; trusted SSH access has been verified; authenticated reads await the existing plaintext token file location. No live hub call has been made.
 
 All responses are JSON and `Cache-Control: no-store`. Requests to `/api/*` require `Authorization: Bearer <owner token>`; absent or incorrect tokens receive 401. The token must be provided to the process as `ADMIN_TOKEN` and is never included in responses. No mutation endpoints exist. Optional upstream reads are restricted to `/v1/control/bots` and `/v1/control/learning` with `light=true` and `tasksOnly=true`; each game/view has independently labeled synthetic fallback. Unknown API paths return 404. No CORS access is provided.
 
