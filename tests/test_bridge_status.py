@@ -27,5 +27,19 @@ class BridgeObserverTests(unittest.TestCase):
         self.assertEqual(result['unit'], 'unknown')
         self.assertNotIn('private', str(result))
 
+    def test_rejects_missing_timestamp_or_fault_without_marker(self):
+        good = {'observedAt': '2026-01-01T00:00:00Z', 'unit': 'active', 'substate': 'running',
+                'result': 'success', 'marker': 'absent', 'markerReason': 'unknown'}
+        for override in ({'observedAt': ''}, {'observedAt': '2026-01-01T00:00:00'},
+                         {'markerReason': 'delayed_delivery_failed'}):
+            payload = {**good, **override}
+            observer = BridgeObserver(lambda *args, **kwargs: SimpleNamespace(stdout=json.dumps(payload)), lambda: 0)
+            with self.subTest(override=override):
+                result = observer.read()
+                self.assertEqual(result['unit'], 'unknown')
+                self.assertEqual(result['markerReason'], 'unknown')
+        observer = BridgeObserver(lambda *args, **kwargs: SimpleNamespace(stdout=json.dumps(good)), lambda: 0)
+        self.assertEqual(observer.read()['marker'], 'absent')
+
 
 if __name__ == '__main__': unittest.main()

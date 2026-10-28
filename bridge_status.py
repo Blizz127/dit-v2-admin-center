@@ -1,5 +1,6 @@
 """Bounded, read-only observation of the explicitly approved FFXI bridge."""
 import json
+from datetime import datetime
 import subprocess
 import threading
 import time
@@ -69,6 +70,11 @@ class BridgeObserver:
                         raise ValueError('unexpected field')
                 if not isinstance(data.get('observedAt'), str) or len(data['observedAt']) > 64:
                     raise ValueError('invalid timestamp')
+                observed = datetime.fromisoformat(data['observedAt'].replace('Z', '+00:00'))
+                if observed.utcoffset() is None:
+                    raise ValueError('timestamp lacks timezone')
+                if data['marker'] != 'present' and data['markerReason'] != 'unknown':
+                    raise ValueError('fault classification without marker')
                 self.cached = {key: data[key] for key in ('observedAt', *allowed)}
                 self.cached['source'] = 'Read-only Banshee SSH; bridge unit and private fault marker'
             except (OSError, subprocess.SubprocessError, ValueError, TypeError, KeyError):
