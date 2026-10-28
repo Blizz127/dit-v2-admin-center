@@ -16,8 +16,9 @@ function item(parent, title, detail, meta) {
 function renderIssues() {
   const panel = document.querySelector('#issues');
   const scope = document.querySelector('#issue-scope').value;
+  const query = (document.querySelector('#issue-search').value || '').trim().toLowerCase();
   panel.replaceChildren();
-  const records = currentSnapshot.issues.filter(i => !scope || i.scope === scope);
+  const records = currentSnapshot.issues.filter(i => (!scope || i.scope === scope) && (!query || `${i.title} ${i.detail}`.toLowerCase().includes(query)));
   if (!records.length) item(panel, 'No matching issues', 'No records in this mock snapshot.', 'This does not establish a healthy state.');
   records.forEach(i => {
     item(panel, i.title, i.detail, `${i.scope} · ${i.status} · ${i.source} · Updated: ${i.updatedAt || 'unknown'}`);
@@ -142,6 +143,7 @@ async function load() {
 form.addEventListener('submit', e => { e.preventDefault(); token = document.querySelector('#token').value; document.querySelector('#token').value = ''; load(); });
 document.querySelector('#refresh').addEventListener('click', load);
 document.querySelector('#issue-scope').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
+document.querySelector('#issue-search').addEventListener('input', () => { if (currentSnapshot) renderIssues(); });
 document.querySelector('#learning-game').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
 document.querySelector('#learning-status').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
 document.querySelector('#trace-search').addEventListener('submit', e => {

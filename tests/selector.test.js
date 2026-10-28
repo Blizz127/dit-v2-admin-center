@@ -66,6 +66,11 @@ setImmediate(() => {
   assert.equal(get('issues').children.length, 1);
   assert.equal(get('issues').children[0].children[0].textContent, 'Bot issue');
   assert.match(get('issues').children[0].children[2].textContent, /Updated: unknown/);
+  get('issue-search').value = 'not found';
+  get('issue-search').listeners.input();
+  assert.equal(get('issues').children[0].children[0].textContent, 'No matching issues');
+  get('issue-search').value = '';
+  get('issue-search').listeners.input();
   get('issues').children[0].children.find(child => child.tag === 'button').listeners.click();
   const learningDetail = get('learning-inspector').children[0];
   assert.match(learningDetail.children[0].textContent, /Example FFXI/);
