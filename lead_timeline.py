@@ -56,3 +56,17 @@ def add_current_evidence(history_rows, monitoring):
                                   'at': checked, 'source': 'Coordinator watcher; may be stale'})
         row['events'].sort(key=lambda event: event['at'], reverse=True)
     return history_rows
+
+
+def monitoring_issues(monitoring):
+    """Flag reported stopped sessions without claiming their goal has stopped."""
+    issues = [{'title': 'Lead goal status unavailable',
+               'detail': 'Coordinator task and watcher data do not report goal status; stopped goals cannot be determined.',
+               'scope': 'Leads', 'status': 'Unknown', 'source': 'Coordinator coverage', 'updatedAt': None}]
+    for info in monitoring:
+        if info.get('stall') == 'STOPPED' and info.get('stallObservedAt'):
+            issues.append({'title': f"{info['lead']}: watcher reported a stopped session",
+                           'detail': 'This is a session classification, not a stopped-goal report; it may be stale.',
+                           'scope': 'Leads', 'status': 'Reported', 'source': 'Coordinator watcher',
+                           'updatedAt': info['stallObservedAt']})
+    return issues

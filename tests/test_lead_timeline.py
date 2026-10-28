@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from lead_timeline import add_current_evidence, timeline
+from lead_timeline import add_current_evidence, monitoring_issues, timeline
 
 
 class LeadTimelineTests(unittest.TestCase):
@@ -35,6 +35,13 @@ class LeadTimelineTests(unittest.TestCase):
         self.assertEqual(rows[0]['events'][0]['kind'], 'Watcher classification')
         self.assertEqual(rows[0]['events'][1]['status'], 'Activity observed; idle state unknown')
         self.assertIn('may be stale', rows[0]['events'][0]['source'])
+
+    def test_stopped_session_is_not_a_stopped_goal(self):
+        issues = monitoring_issues([{'lead': 'Example', 'stall': 'STOPPED', 'stallObservedAt': '2026-01-01T00:00:00Z'}])
+        self.assertEqual(issues[0]['status'], 'Unknown')
+        self.assertIn('not a stopped-goal report', issues[1]['detail'])
+        self.assertIn('session', issues[1]['title'])
+        self.assertEqual(len(monitoring_issues([{'lead': 'Example', 'stall': 'Unknown'}])), 1)
 
     def test_missing_database_is_unknown(self):
         with tempfile.TemporaryDirectory() as directory:
