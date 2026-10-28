@@ -185,7 +185,7 @@ def overview(source='mock'):
         "issues": [
             {"title": "Hub contract awaiting coordination", "detail": "Hub contract remains under review; each data source is labeled separately.", "status": "Open", "scope": "Network", "source": "Synthetic planning example"},
             {"title": "Controls unavailable", "detail": "Bot commands, gates and model changes are not connected.", "status": "Open", "scope": "Network", "source": "Synthetic planning example"},
-            {"title": "Example routing identity is unverified", "detail": "The synthetic routing record cannot select a model.", "status": "Open", "scope": "Bots", "source": "Synthetic routing example", "updatedAt": "2026-01-01T12:00:00Z"},
+            {"title": "Example routing identity is unverified", "botId": "demo-1", "detail": "The synthetic routing record cannot select a model.", "status": "Open", "scope": "Bots", "source": "Synthetic routing example", "updatedAt": "2026-01-01T12:00:00Z"},
             {"title": "Bot presence lacks current evidence", "detail": "Mock bot statuses cannot establish current game presence.", "status": "Open", "scope": "Bots", "source": "Synthetic planning example"},
         ] + project_learning_attention(projected) + monitoring_issues(monitoring) + marker_issues + binding_issues(hub_report),
     }

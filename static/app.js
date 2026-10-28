@@ -115,6 +115,9 @@ function inspectBot(id) {
   const events = currentSnapshot.ledger.filter(e => e.botId === bot.id);
   if (!events.length) item(panel, 'Evidence', 'No matching synthetic records', 'Absence of records does not prove inactivity.');
   events.forEach(e => item(panel, e.request, `Result: ${e.result} · Verification: ${e.verification}`, `Correlation: ${e.correlationId}`));
+  const issues = currentSnapshot.issues.filter(i => i.botId === bot.id);
+  if (!issues.length) item(panel, 'Bot-linked issues', 'No matching records in this view.', 'This does not establish a healthy state.');
+  issues.forEach(i => item(panel, `Issue · ${i.title}`, `${i.status} · ${i.detail}`, `${i.source} · Updated: ${i.updatedAt || 'unknown'}`));
 }
 function routingText(value, fallback = 'Unknown') {
   return typeof value === 'string' && value.trim() ? value : fallback;
