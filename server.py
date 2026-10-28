@@ -150,6 +150,10 @@ def overview():
         "leadTimeline": lead_history,
         "sessionMarkers": marker_reports,
         "quotaHistory": history(LOCAL_DATA),
+        "assignmentHistory": [
+            {"botId": "demo-1", "purpose": "conversation", "requested": "Example provider / example model",
+             "effective": None, "version": "example-1", "at": "2026-01-01T12:00:00Z", "source": "Synthetic assignment fixture"},
+        ],
         "modelCalls": [
             {"id": "example-call-1", "model": "Example model", "purpose": "conversation", "latencyMs": 240,
              "cost": None, "quality": None, "source": "Synthetic example", "observedAt": "2026-01-01T12:00:00Z"},
