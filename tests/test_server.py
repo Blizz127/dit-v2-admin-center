@@ -86,6 +86,14 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(json.loads(body)['marker'], 'unknown')
 
+    def test_learning_artifacts_keep_lifecycle_states_separate(self):
+        status, _, body = self.request("GET", "/api/overview?source=mock", "test-private-token")
+        self.assertEqual(status, 200)
+        artifacts = json.loads(body)['learningArtifacts']
+        policy = next(item for item in artifacts if item['kind'] == 'Policy')
+        self.assertEqual((policy['validation'], policy['adoption'], policy['outcome']), ('Not evaluated', 'Unknown', 'Unknown'))
+        self.assertTrue(all('Synthetic' in item['source'] for item in artifacts))
+
     def test_learning_plan_is_labeled_and_not_verified(self):
         status, _, body = self.request("GET", "/api/overview?source=mock", "test-private-token")
         self.assertEqual(status, 200)

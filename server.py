@@ -203,6 +203,11 @@ def overview(source='mock'):
             {"correlationId": "demo-episode-1", "botId": "demo-1", "bot": "Aster", "request": "Observe surroundings", "result": "Accepted", "verification": "Pending"},
             {"correlationId": "demo-episode-2", "botId": "demo-1", "bot": "Aster", "request": "Move to camp", "result": "Rejected: gate disabled", "verification": "Not applicable"},
         ],
+        "learningArtifacts": [
+            {"game": "FFXI", "kind": "Dataset", "name": "Example observation dataset", "version": "example-1", "validation": "Unknown", "adoption": "Not applicable", "outcome": "Unknown", "source": "Synthetic learning artifact", "observedAt": "2026-01-01T12:00:00Z"},
+            {"game": "FFXI", "kind": "Policy", "name": "Example navigation policy", "version": "example-1", "validation": "Not evaluated", "adoption": "Unknown", "outcome": "Unknown", "source": "Synthetic learning artifact", "observedAt": "2026-01-01T12:00:00Z"},
+            {"game": "SWTOR", "kind": "Dataset", "name": "Example dataset placeholder", "version": None, "validation": "Unknown", "adoption": "Not applicable", "outcome": "Unknown", "source": "Synthetic learning artifact", "observedAt": None},
+        ],
         "learningPlan": [
             {"game": "FFXI", "topic": "Navigation, camps and zones", "next": "Inventory observations and outcome coverage", "evidence": "Unknown", "datasets": "Unknown", "policy": "Unknown", "source": "Project planning; not a live finding"},
             {"game": "FFXI", "topic": "Party, jobs, combat and missions", "next": "Identify game-specific examples and native validation coverage", "evidence": "Unknown", "datasets": "Unknown", "policy": "Unknown", "source": "Project planning; not a live finding"},
