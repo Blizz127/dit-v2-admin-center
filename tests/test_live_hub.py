@@ -40,12 +40,6 @@ class HubReaderTests(unittest.TestCase):
                 reader = HubReader(f'http://127.0.0.1:{server.server_port}', token)
                 data, stamp = reader.get('bots', 'ffxi'); self.assertEqual(data[0]['name'], 'Fixture bot'); self.assertTrue(stamp)
                 reader.get('learning', 'ffxi')
-                spend, fetched = reader.spend()
-                from live_hub import project_spend
-                projection = project_spend(spend, fetched)
-                self.assertEqual(projection['settledUsd'], 1.25)
-                self.assertEqual(projection['reservedOpenUsd'], 0)
-                self.assertNotIn('providers', projection)
                 trace, _ = reader.trace('ffxi', 'demo-id')
                 from live_hub import project_trace
                 projected = project_trace(trace)

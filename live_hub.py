@@ -42,9 +42,6 @@ class HubReader:
             query.update({'light': 'true', 'tasksOnly': 'true'})
         return self._request(view, query)
 
-    def spend(self):
-        return self._request('ai-spend', {})
-
     def trace(self, game, correlation):
         if game not in ('ffxi', 'swtor') or not isinstance(correlation, str) or not CORRELATION.fullmatch(correlation):
             raise ValueError('Invalid trace scope')
