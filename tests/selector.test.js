@@ -234,6 +234,14 @@ setImmediate(async () => {
   assert.equal(get('learning-search').value, '');
   assert.equal(get('learning-attention').checked, false);
   assert.match(get('learning-count').textContent, /Showing 1 of 2/);
+  data.issues.push({title: 'Historical bridge fault', scope: 'FFXI', status: 'Historical', detail: 'Unverified', source: 'Dated evidence'});
+  get('issue-status').value = 'Open'; get('issue-search').value = 'hidden'; get('issue-selected-bot').checked = true;
+  get('ffxi-issues').listeners.click();
+  assert.equal(get('issue-scope').value, 'FFXI');
+  assert.equal(get('issue-status').value, '');
+  assert.equal(get('issue-search').value, '');
+  assert.equal(get('issue-selected-bot').checked, false);
+  assert.equal(get('issues').children[0].children[0].textContent, 'Historical bridge fault');
   context.fetch = async () => { throw new Error('offline'); };
   await get('bridge-refresh').listeners.click();
   assert.equal(get('ffxi-focus-bridge').children.length, 0);

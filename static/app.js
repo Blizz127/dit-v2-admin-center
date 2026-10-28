@@ -451,6 +451,13 @@ document.querySelector('#bot-reset').addEventListener('click', () => {
   document.querySelector('#bot-search').value = '';
   if (currentSnapshot) renderBots();
 });
+document.querySelector('#ffxi-issues').addEventListener('click', () => {
+  for (const id of ['issue-status', 'issue-search']) document.getElementById(id).value = '';
+  document.querySelector('#issue-selected-bot').checked = false;
+  document.querySelector('#issue-scope').value = 'FFXI';
+  if (currentSnapshot) renderIssues();
+  document.querySelector('#issues').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+});
 document.querySelector('#issue-scope').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
 document.querySelector('#issue-status').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
 document.querySelector('#issue-selected-bot').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
