@@ -77,6 +77,15 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(json.loads(body)['marker'], 'unknown')
 
+    def test_reply_source_fixture_keeps_delivery_independent(self):
+        status, _, body = self.request("GET", "/api/overview?source=mock", "test-private-token")
+        self.assertEqual(status, 200)
+        event = json.loads(body)['replyEvents'][0]
+        self.assertEqual(event['wordingOrigin'], 'Fallback')
+        self.assertEqual(event['delivery'], 'Unknown')
+        self.assertEqual(event['verification'], 'Pending')
+        self.assertIn('Synthetic', event['source'])
+
     def test_source_parameter_rejects_invalid_values(self):
         self.assertEqual(self.request("GET", "/api/overview?source=unknown", "test-private-token")[0], 400)
         self.assertEqual(self.request("GET", "/api/overview?source=mock&source=hub", "test-private-token")[0], 400)
