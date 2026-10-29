@@ -54,6 +54,7 @@ const exported=()=>{
  assert.equal(region.attributes.tabindex,'0');assert.equal(region.attributes['aria-label'],'Roster gap candidate comparison');
  const table=region.children[0],head=table.children[1],body=table.children[2];
  assert.equal(head.children[0].children.length,3);
+ assert.equal(table.attributes.style,'--gap-columns: 3','Narrow table width follows actual candidate count');
  assert.ok(head.children[0].children.every(n=>n.attributes.scope==='col'));
  assert.equal(body.children.length,9);assert.ok(body.children.every(row=>row.children[0].attributes.scope==='row'));
  assert.match(get('roster-gap-detail').textContent,/Snapshot row 1.*Snapshot row 2.*game \(differs\).*FFXI.*SWTOR/);

@@ -564,6 +564,7 @@ function appendRosterGapComparison(detail, report) {
   const region = document.createElement('div'); region.className = 'gap-comparison';
   region.setAttribute('role', 'region'); region.setAttribute('aria-label', 'Roster gap candidate comparison'); region.setAttribute('tabindex', '0');
   const table = document.createElement('table');
+  table.setAttribute('style', `--gap-columns: ${report.candidates.length + 1}`);
   const caption = document.createElement('caption'); caption.textContent = 'Reported fields by snapshot row; Unknown does not resolve identity'; table.append(caption);
   const head = document.createElement('thead'), headings = document.createElement('tr');
   for (const label of ['Field', ...report.candidates.map(row => `Snapshot row ${row.snapshotRow}`)]) {

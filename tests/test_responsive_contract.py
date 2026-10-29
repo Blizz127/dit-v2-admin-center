@@ -73,7 +73,9 @@ class ResponsiveContractTests(unittest.TestCase):
         self.assertNotIn('grid-template-columns', declarations('.admin-layout .roster-grid', 1349))
         self.assertEqual(declarations('.admin-layout .roster-grid', 1350)['grid-template-columns'], 'minmax(0,1.6fr) minmax(300px,1fr)')
         self.assertEqual(declarations('.gap-comparison', 390)['overflow-x'], 'auto')
-        self.assertEqual(declarations('.admin-layout .gap-comparison table', 390)['min-width'], '100%')
+        self.assertEqual(declarations('.admin-layout .gap-comparison table', 390)['min-width'], 'calc(var(--gap-columns,3) * 180px)')
+        self.assertEqual(declarations('.admin-layout .gap-comparison table', 390)['table-layout'], 'fixed')
+        self.assertEqual(declarations('.workspace-nav a', 390)['overflow-wrap'], 'anywhere')
         self.assertEqual(declarations('.filter-bar', 390)['flex-wrap'], 'wrap')
         self.assertEqual(declarations('.admin-layout .panel', 390)['min-width'], '0')
 

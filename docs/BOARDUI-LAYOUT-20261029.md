@@ -138,3 +138,11 @@ non-finite/negative levels and whitespace-only snapshot timestamps. Blank timest
 metadata now exports as null (Unknown). Download URI and copy JSON remain identical.
 Three breakpoint contracts and the focused export test passed. Native save-file
 behavior, wrapping/clipping and trusted keyboard input remain unverified.
+
+The following BoardUI slice makes the narrow comparison table use fixed columns
+with a minimum width derived from its actual candidate count. It retains the
+named, focusable horizontal-scroll region and `overflow-wrap:anywhere` cells;
+long identifiers therefore have an explicit column width to wrap within, rather
+than requesting their full unbroken intrinsic width. Sidebar link labels can also
+wrap within their navigation cells. Focused static/table contracts pass; this is
+a CSS implementation change, not evidence that a browser rendered it correctly.
