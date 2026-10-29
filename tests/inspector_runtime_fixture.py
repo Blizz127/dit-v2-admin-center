@@ -35,6 +35,12 @@ def coverage_fixture(scenario):
     elif scenario == 'coverage-unavailable':
         for key in ('bots', 'learning', 'modelCalls'):
             data[key] = None
+    elif scenario == 'coverage-identity-gaps':
+        data['bots'].extend([
+            dict(id='duplicate', name='Same name', game='FFXI', source='FIRST_GAP_SOURCE'),
+            dict(id='duplicate', name='Same name', game='SWTOR', source='SECOND_GAP_SOURCE'),
+            dict(name='Missing identity', game='FFXI'),
+        ])
     elif scenario != 'coverage-loaded':
         raise AssertionError('Unknown coverage scenario')
     return data
@@ -137,7 +143,7 @@ def exchange(request):
                'health-services', 'health-empty', 'health-malformed', 'health-unavailable', 'health-unconfigured',
                'bridge-active', 'bridge-fault', 'bridge-empty', 'bridge-malformed', 'bridge-denied', 'bridge-timeout'}
     allowed.update('interaction:' + name for name in INTERACTION_FIXTURES)
-    allowed.update(('coverage-loaded', 'coverage-partial', 'coverage-unavailable'))
+    allowed.update(('coverage-loaded', 'coverage-partial', 'coverage-unavailable', 'coverage-identity-gaps'))
     if scenario not in allowed:
         raise ValueError('Unknown fixture scenario')
     case = OfflineInspectorHandlerTests()

@@ -150,7 +150,7 @@ This is a snapshot locator, not an entity identifier or persisted mapping.
 
 Focused gap-detail and identity-filter checks passed, including same-name rows,
 missing IDs, exact-row isolation, unchanged bot selection, request-free navigation,
-stale links and session reset. Static naming/disabled-control checks passed. The
+stale links and session reset. The connected coverage test also passes the gap fixture through real in-memory HTTP handler bytes into the UI, checks exact duplicate-row navigation without another request, and verifies authorization reset clears details. Static naming/disabled-control checks passed. The
 artifact scripts the new navigation and leaves four fictional roster records
 (one unique, two repeated, one missing ID) for manual review. Native browser
 execution remains unrun for the documented missing runtime/isolation limitation.
