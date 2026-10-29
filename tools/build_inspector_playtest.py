@@ -96,8 +96,19 @@ def build():
     assert html.count('<link rel="stylesheet" href="/style.css">') == 1
     html = html.replace('<script src="/app.js" defer></script>', '')
     html = html.replace('<link rel="stylesheet" href="/style.css">', '<style>' + css + '</style>')
-    html = html.replace('<body>', '<body><section class="panel" id="harness-results" aria-live="polite"><h1>Offline synthetic inspector playtest</h1><p id="harness-status">NOT RUN — waiting for browser JavaScript.</p><ol id="harness-checks"></ol><p>No server, token file, account or game is used. All data is synthetic. Browser results apply only to this artifact, not the running service. Reload this file to rerun.</p></section>', 1)
-    html = html.replace('</section>', '</section>' + party_review_html(), 1)
+    # Keep the preview recognizably the product. Verification detail is still available,
+    # but does not occupy the first screen or imply that synthetic rows are live.
+    html = html.replace('LOCAL · MIXED SOURCES', 'OFFLINE · SYNTHETIC', 1)
+    html = html.replace('<strong>Local workspace.</strong> Check each data source below; synthetic fallback is labeled. Hub access is read-only, and model controls are unavailable.',
+                        '<strong>Synthetic preview.</strong> Explore the layout with fictional records. No live connection or token is used. Model controls stay disabled. <a href="#harness-results">Preview checks ↓</a>', 1)
+    html = html.replace('<form id="login" class="login-panel">', '<form id="login" class="login-panel" hidden>', 1)
+    html = html.replace('Try configured read-only hub', 'Simulated hub responses (offline)', 1)
+    html = html.replace('Select the hub to request read-only roster and learning data. Missing feeds fall back to examples. Model controls remain disabled.',
+                        'Both sources use only embedded fictional records in this file. No network requests are made.', 1)
+    report = ('<details class="panel preview-report" id="harness-results"><summary>Preview verification &amp; source details</summary>'
+              '<h2>Offline synthetic inspector playtest</h2><p id="harness-status" role="status" aria-live="polite">NOT RUN — waiting for browser JavaScript.</p>'
+              '<ol id="harness-checks"></ol><p>No server, token file, account or game is used. All data is synthetic. Browser results apply only to this artifact, not the running service. Reload this file to rerun.</p></details>')
+    html = html.replace('</main>', party_review_html() + report + '</main>', 1)
     keyboard = '<p id="keyboard-status" role="status" aria-live="polite">NOT RUN — native keyboard check. Automatic DOM checks do not verify keyboard defaults.</p><button id="keyboard-start" type="button" disabled aria-describedby="keyboard-status">Start native assignment keyboard check</button>'
     html = html.replace('<p id="assignment-count"', keyboard + '<p id="assignment-count"', 1)
     fingerprints = html_escape.escape(json.dumps(source_fingerprints(), indent=2))

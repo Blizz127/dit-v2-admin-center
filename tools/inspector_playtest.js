@@ -247,6 +247,9 @@ try {
   });
   document.querySelector('#harness-status').textContent = 'PASS — automatic DOM checks completed with synthetic data. Native keyboard check is separate and has NOT RUN.';
   document.documentElement.dataset.playtest = 'passed';
+  // Scripted inspection navigates through several panels. Start the owner's review
+  // at the dashboard instead of leaving the viewport at the last test action.
+  document.getElementById('main-content').scrollIntoView({block: 'start', behavior: 'instant'});
 } catch (error) {
   document.querySelector('#harness-status').textContent = 'FAIL — ' + error.message;
   document.documentElement.dataset.playtest = 'failed';

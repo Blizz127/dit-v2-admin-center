@@ -1,5 +1,12 @@
 # DIT v2 Admin Center
 
+**October 29 layout preview:** the workspace now has a persistent desktop sidebar,
+eight clearly grouped sections, coverage cards, aligned filters, and a paired
+roster/inspector layout. Narrow screens use a compact two-column navigation menu
+and single-column panels. The existing navy, teal and amber colors are retained.
+The standalone preview opens on the dashboard; its detailed verification report
+is expandable at the bottom. See [design and delivery notes](docs/BOARDUI-LAYOUT-20261029.md).
+
 **2026-10-29 FFXI rollout update:** Blizz authorized DIT/FFXI wiring and the
 necessary bridge restart through the owning leads. DIT receipt `8421f15` records
 the r5-only restart at 14:03:39 UTC after fresh player checks and a current-unit
