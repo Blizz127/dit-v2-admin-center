@@ -55,10 +55,14 @@ under its player/writer/rollback safeguards.
 it is neither a live collector nor a hub/inbox schema. It authenticates no
 claim, establishes no writer lock and changes no state. It emits only fixed
 stage labels and caveats, not raw input strings. Input is bounded to 64 KiB.
+Duplicate JSON fields, nonfinite constants, unreadable/empty/truncated input and
+excessive nesting are rejected with exit 2 and a fixed error, without an
+assessment or echoed input. A valid summary with missing evidence instead
+produces explicit Unknown stages. Neither result authorizes a live action.
 
 ```sh
 timeout -k 2 10 python3 tools/review_party_greeting.py tests/fixtures/party-greeting-review.json
-timeout -k 2 15 python3 -m unittest tests.test_party_greeting_review
+timeout -k 2 15 python3 -m unittest tests.test_party_greeting_review tests.test_party_greeting_cli
 ```
 
 The supplied file is synthetic and describes queue-only evidence: speech and
@@ -81,7 +85,15 @@ source authenticity. Eligibility is not a continuing presence guarantee. A
 reported speech result is not proof of AI and is not promoted to game learning,
 policy verification, deployment approval or an automatic action.
 
-Five focused synthetic checks cover queue/speech separation, stale/wrong-scope
-and malformed evidence, owner-report independence, eligibility and privacy.
+`queueReview` flags mixed positive/negative enqueue claims within the matching
+scope/time window; it does not decide whether they conflict or describe a
+legitimate transition. Review chronology and record identity with the owning
+lead. Repeated positive reports do not establish distinct replies. Negative
+reports alone do not prove absence of a reply. None of these queue cautions
+overrides an independently supplied, scoped owner speech report or proves AI.
+
+Eight focused checks cover queue/speech separation, stale/wrong-scope and mixed
+evidence, owner-report independence, eligibility, redacted CLI failures and
+temporary input-file preservation. No additional files are created by the CLI.
 They are consumer-interpretation checks, not a native party test. No historical
 DIT suite was rerun and no live source was contacted for this preparation.
