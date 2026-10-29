@@ -562,6 +562,24 @@ function inspectBot(id) {
 function routingText(value, fallback = 'Unknown') {
   return typeof value === 'string' && value.trim() ? value : fallback;
 }
+function metricNumber(value) {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+}
+function renderModelCalls() {
+  const panel = document.querySelector('#model-calls');
+  panel.replaceChildren();
+  const calls = currentSnapshot.modelCalls;
+  if (!Array.isArray(calls)) {
+    item(panel, 'Model call coverage', 'Unknown', 'No usable model-call list in this snapshot.');
+    return;
+  }
+  if (!calls.length) item(panel, 'No model call examples', 'No rows supplied.', 'This does not establish zero usage or cost.');
+  const rows = calls.filter(row => row && typeof row === 'object' && !Array.isArray(row));
+  if (rows.length !== calls.length) item(panel, 'Model call coverage', 'Unknown for omitted malformed rows', 'Valid supplied examples are shown below; coverage is incomplete.');
+  rows.forEach(c => item(panel, `${routingText(c.model)} · ${routingText(c.purpose)}`,
+    `Latency: ${metricNumber(c.latencyMs) ? c.latencyMs + ' ms' : 'Unknown'} · Cost: ${metricNumber(c.cost) ? c.cost : 'Unknown'} · Quality: ${metricNumber(c.quality) ? c.quality : 'Unknown'}`,
+    `${routingText(c.source, 'Source unknown')} · Observed: ${routingText(c.observedAt)}`));
+}
 function botItem(bot) {
   const parent = document.querySelector('#bots');
   item(parent, `${bot.name} · ${bot.game}`, rosterDetails(bot), `${bot.source} · Observed: ${bot.observedAt || 'unknown'}`);
@@ -676,7 +694,7 @@ async function load() {
     const spend = data.spendExample;
     const usd = value => typeof value === 'number' ? `$${value.toFixed(2)}` : 'Unknown';
     item(document.querySelector('#spend-example'), `Example month: ${spend.month || 'Unknown'}`, `Settled: ${usd(spend.settledUsd)} · Open reservations: ${usd(spend.reservedOpenUsd)} · Budget: ${usd(spend.budgetUsd)}`, `${spend.source} · ${spend.attribution} · Observed: ${spend.fetchedAt || 'unknown'} · Separate ledgers are not reconciled.`);
-    data.modelCalls.forEach(c => item(document.querySelector('#model-calls'), `${c.model} · ${c.purpose}`, `Latency: ${typeof c.latencyMs === 'number' ? c.latencyMs + ' ms' : 'Unknown'} · Cost: ${c.cost == null ? 'Unknown' : c.cost} · Quality: ${c.quality == null ? 'Unknown' : c.quality}`, `${c.source} · Observed: ${c.observedAt || 'unknown'}`));
+    renderModelCalls();
     renderAudit();
     renderIssueCoverage();
     renderIssues();
