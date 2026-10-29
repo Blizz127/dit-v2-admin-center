@@ -134,6 +134,13 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+Decision-summary follow-up (`8a73941`) fixes an optional-summary failure that
+previously closed the workspace. Missing/null/malformed lists now show Unknown
+coverage locally; valid empty lists retain the incomplete-inventory warning.
+Missing row fields/timestamps are explicit unknowns. The focused overview test
+passes for prior-row clearing, keeping other panels available and recovery.
+No approval is inferred or changed, and no coordinator or ledger read occurred.
+
 FFXI readiness follow-up (`a2ac08c`) replaces blank/missing summary fields with
 explicit Unknown. The focused overview UI check passes for source attribution,
 partial and absent summaries replacing prior text, and SWTOR-only feeds not

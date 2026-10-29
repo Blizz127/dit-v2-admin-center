@@ -229,6 +229,12 @@ of old summaries and exclusion of SWTOR-only feeds from FFXI coverage. The offli
 artifact's default fixture has no readiness summary, so it shows this new empty
 state; no readiness or deployment authorization follows from it.
 
+Needs Blizz now isolates missing or malformed decision-summary metadata to that
+card instead of closing the workspace. Unknown coverage differs from a valid
+empty list; incomplete fields show unknown values. The overview UI check covers
+prior-row clearing, other-panel availability and later recovery. This changes
+display only and neither records nor grants an approval.
+
 To check timeout/partial-feed recovery through the reader, cache and merge:
 
 ```sh
