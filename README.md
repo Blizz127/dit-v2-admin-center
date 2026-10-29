@@ -223,6 +223,12 @@ a loaded-example count and Clear audit filter. Matching ignores case and
 surrounding spaces. Search persists through refresh, makes no service request
 and does not create audit events. No pagination or live audit integration is added.
 
+FFXI playtest focus now renders explicit Unknown readiness for absent summaries
+and missing fields. The focused overview check covers source labels, replacement
+of old summaries and exclusion of SWTOR-only feeds from FFXI coverage. The offline
+artifact's default fixture has no readiness summary, so it shows this new empty
+state; no readiness or deployment authorization follows from it.
+
 To check timeout/partial-feed recovery through the reader, cache and merge:
 
 ```sh

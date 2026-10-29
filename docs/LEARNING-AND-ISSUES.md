@@ -134,6 +134,12 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+FFXI readiness follow-up (`a2ac08c`) replaces blank/missing summary fields with
+explicit Unknown. The focused overview UI check passes for source attribution,
+partial and absent summaries replacing prior text, and SWTOR-only feeds not
+becoming FFXI coverage. The behavior is display-only, adds no toggle and does not
+establish readiness, deployment, presence or delivered game behavior.
+
 Audit filtering (`e2f7026`) adds local actor/action/scope/result search, counts
 and reset over loaded synthetic examples. Focused overview and source-race
 checks passed: case/space handling, empty-match coverage warning, no requests,
