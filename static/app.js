@@ -296,13 +296,13 @@ function renderIssues() {
     if (i.bridgeObservation === true) {
       const button = document.createElement('button'); button.type = 'button';
       button.textContent = 'View current bridge observation';
-      button.addEventListener('click', () => document.querySelector('#bridge-status').scrollIntoView({behavior: 'smooth', block: 'nearest'}));
+      button.addEventListener('click', () => focusWorkspaceTarget('bridge-status'));
       panel.lastElementChild.append(button);
     }
     if (i.ownerAttention === true) {
       const button = document.createElement('button'); button.type = 'button';
       button.textContent = 'View owner decision summary';
-      button.addEventListener('click', () => document.querySelector('#owner-attention').scrollIntoView({behavior: 'smooth', block: 'nearest'}));
+      button.addEventListener('click', () => focusWorkspaceTarget('owner-attention'));
       panel.lastElementChild.append(button);
     }
     if (typeof i.suggestedFix === 'string' && i.suggestedFix.trim()) {
@@ -621,11 +621,11 @@ function renderRosterGaps() {
         document.querySelector('#bot-game').value = '';
         document.querySelector('#bot-search').value = '';
         document.querySelector('#bot-identity').value = 'unavailable';
-        renderBots(); document.querySelector('#bots').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+        renderBots(); focusWorkspaceTarget('bots');
       });
       detail.append(show);
       appendRosterGapComparison(detail, rosterGapReport(snapshot, index));
-      detail.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+      focusWorkspaceTarget('roster-gap-detail');
     });
     panel.lastElementChild.append(button);
   });
@@ -678,7 +678,7 @@ function showBotLedgerExample(bot, correlationId) {
   document.querySelector('#correlation').value = correlationId;
   if (['FFXI', 'SWTOR'].includes(bot.game)) document.querySelector('#trace-game').value = bot.game.toLowerCase();
   traceVersion++; document.querySelector('#hub-trace').replaceChildren();
-  renderLedger(); document.querySelector('#ledger').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+  renderLedger(); focusWorkspaceTarget('ledger');
 }
 function renderReplySource() {
   const panel = document.querySelector('#reply-source');
@@ -851,7 +851,7 @@ function inspectBot(id) {
   issuesButton.addEventListener('click', () => {
     for (const id of ['issue-scope', 'issue-status', 'issue-search']) document.getElementById(id).value = '';
     document.querySelector('#issue-selected-bot').checked = true;
-    renderIssues(); document.querySelector('#issues').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+    renderIssues(); focusWorkspaceTarget('issues');
   });
   panel.lastElementChild.append(issuesButton);
   item(panel, 'Reported personality summary', routingText(bot.personalitySummary), `${routingText(bot.source, 'Source unknown')} · Roster metadata, not proof of behavior`);
@@ -1142,7 +1142,7 @@ document.querySelector('#ffxi-evidence').addEventListener('click', () => {
   correlationFilter = ''; ledgerBotId = null; traceVersion++;
   document.querySelector('#hub-trace').replaceChildren();
   if (currentSnapshot) renderLedger();
-  document.querySelector('#trace-search').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+  focusWorkspaceTarget('trace-search');
 });
 document.querySelector('#ffxi-bots').addEventListener('click', () => {
   rosterRecordIndex = null;
@@ -1150,7 +1150,7 @@ document.querySelector('#ffxi-bots').addEventListener('click', () => {
   document.querySelector('#bot-identity').value = '';
   document.querySelector('#bot-game').value = 'FFXI';
   if (currentSnapshot) renderBots();
-  document.querySelector('#bots').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+  focusWorkspaceTarget('bots');
 });
 document.querySelector('#bot-game').addEventListener('change', () => { rosterRecordIndex = null; if (currentSnapshot) renderBots(); });
 document.querySelector('#bot-identity').addEventListener('change', () => { rosterRecordIndex = null; if (currentSnapshot) renderBots(); });
@@ -1167,7 +1167,7 @@ document.querySelector('#ffxi-issues').addEventListener('click', () => {
   document.querySelector('#issue-selected-bot').checked = false;
   document.querySelector('#issue-scope').value = 'FFXI';
   if (currentSnapshot) renderIssues();
-  document.querySelector('#issues').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+  focusWorkspaceTarget('issues');
 });
 document.querySelector('#issue-scope').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
 document.querySelector('#issue-status').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
@@ -1183,7 +1183,7 @@ function showGameLearning(game) {
   document.querySelector('#learning-attention').checked = false;
   document.querySelector('#learning-game').value = game;
   if (currentSnapshot) { renderLearningPlan(); renderLearningArtifacts(); renderLearning(); }
-  document.querySelector('#learning').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+  focusWorkspaceTarget('learning');
 }
 document.querySelector('#ffxi-learning').addEventListener('click', () => showGameLearning('FFXI'));
 document.querySelector('#clear-learning').addEventListener('click', () => {

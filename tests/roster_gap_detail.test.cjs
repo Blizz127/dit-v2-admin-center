@@ -8,13 +8,17 @@ const bots=[{id:'valid',name:'Selected unique bot',game:'FFXI'},
 const links=()=>get('roster-gaps').children.flatMap(row=>row.children).filter(n=>n.textContent.startsWith('Review gap'));
 const show=()=>get('roster-gap-detail').children.find(n=>n.textContent==='Show matching roster row');
 (async()=>{
+  const focused=[];
+  for(const id of ['roster-gap-detail','bots'])get(id).focus=()=>focused.push(id);
   await refresh({bots});context.inspectBot('valid');
   assert.equal(links().length,3);
   assert.match(get('roster-gaps').textContent,/Snapshot row 5 · Unusable record/);
   const before=requestCount();links()[0].listeners.click();
+  assert.equal(focused.at(-1),'roster-gap-detail');
   assert.match(get('roster-gap-detail').textContent,/Snapshot row 2.*Repeated loaded ID: 2 rows.*FIRST_SOURCE/);
   assert.doesNotMatch(get('roster-gap-detail').children[0].textContent,/SECOND_SOURCE|NO_ID_SOURCE/);
   const oldShow=show(),oldReview=links()[0];oldShow.listeners.click();
+  assert.equal(focused.at(-1),'bots');
   assert.match(get('bot-count').textContent,/Showing 1 of Unknown.*Pinned snapshot row: 2/);
   assert.match(get('bots').textContent,/FIRST_SOURCE/);assert.doesNotMatch(get('bots').textContent,/SECOND_SOURCE|NO_ID_SOURCE/);
   const inspect=get('bots').children.flatMap(row=>row.children).find(n=>n.textContent.startsWith('Inspect'));
