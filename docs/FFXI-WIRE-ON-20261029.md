@@ -4,9 +4,12 @@
 
 Coordinator message `015e8eb8311ca58f`, tag `ditv2wire-0827`, relays Blizz's
 2026-10-29 08:26 CT approval to wire DIT into FFXI and restart the bridge as
-needed. The current assignment names dit-human as DIT owner and claude-ffxi as
-game-server/bridge owner. Admin Center supplies readback and reconciles their
-receipts through the coordinator; it does not start a competing deployment.
+needed. The ownership wording in that message was corrected by coordinator
+message `16b690b0460abcc5`, tag `ditv2own-0836`: **claude-dit-human-behavior-platform
+is the sole chat-bridge installer/restart owner**. Claude-ffxi owns the separate
+fishing r2 map/game-server change. Admin Center is neither writer. It supplies
+handoff information through the coordinator and continues offline work; it
+does not install or restart anything live for this step.
 
 Before any live change, the owning integrator must freshly verify that
 CrazyAsian is offline and retain a backup/rollback point. If online, wait and
@@ -37,6 +40,28 @@ confirm a rollback point, or demonstrate native speech/behavior. No live change
 or restart was performed by this Admin Center lead.
 
 ## Receipt reconciliation still needed
+
+### Candidate handoff sent after ownership correction
+
+Local bytes at
+`/home/blizz/dev/dit-v2-release-20261027/ffxi-bridge-dirfd-r5/ffxi_chat_bridge.py`
+were hashed again, without executing or changing the candidate. SHA-256:
+`3d160be2ea3ffc3fcc2d759cca191fcd9147124cdcbb79a7125e9d23b96aa9b4`.
+
+The adjacent `DEPLOYMENT-RECEIPT-20261028.md` already reports installation of
+those bytes on October 28 and activation at 15:28:09 UTC. It records the old
+unit/marker backup references and preserves `Restart=no`. This is historical
+evidence, not a new rollout, a current hash check on the server or authority to
+replay the old restart commands. The DIT lead must reconcile current state.
+
+DIT's `docs/evidence/ffxi-relative-inbox-20261028/README.md` reports fourteen
+synthetic checks and three directory/permission-pattern checks. Candidate-local
+test files are `test_dirfd.py`, `test_delayed_fault.py`, `test_inbox_scope.py` and
+`test_party_greeting.py`. Admin Center did not rerun these checks or inspect
+live inbox contents. The path, complete hash, historical receipt and evidence
+locations were sent through the coordinator for the sole DIT bridge integrator.
+
+### Current rollout receipts
 
 Requested through the coordinator from the owning leads:
 
