@@ -64,11 +64,14 @@ python3 tools/build_inspector_playtest.py
 Open `build/inspector-playtest.html` locally in a browser. It embeds the actual
 workspace HTML, CSS and JavaScript plus Python-projected synthetic learning
 fixtures. Its header starts at **NOT RUN**, then reports **PASS** or **FAIL**
-after automatic real-DOM inspector, preview, restore and clear checks. Reload
+after automatic real-DOM inspector, preview, restore and clear checks. It also
+exercises synthetic bot goals/memory, safety, reply and assignment cards through
+unavailable, partial, empty and recovered snapshots. Missing safety identities
+must not become network-wide examples, and both model selectors stay disabled. Reload
 the file to repeat, or use the displayed inspector manually. No token entry,
 account or feature activation is needed.
 
-The harness replaces fetch with two in-memory fixture responses, disables
+The harness replaces fetch with allowlisted in-memory fixture responses, disables
 polling, uses temporary in-memory session storage, and blocks network resources
 and form submission with CSP. Other requests fail. It does not test the HTTP
 server, authentication, a deployed revision or live gameplay. The generated

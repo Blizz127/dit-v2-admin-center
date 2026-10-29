@@ -22,6 +22,7 @@
 </ol>
 </section>
 <section class="panel guide-followup" id="selection-refresh"><h2>Selections and filters after refresh</h2>
+<p>Safety examples now distinguish unavailable data from an empty list. Missing scope identity is Unknown, not network-wide. After Refresh, stale examples should disappear; selecting a bot shows only that bot's explicitly linked examples plus explicitly network-wide rows. These are examples, not actual gate or kill-switch observations. No operational toggle is added.</p>
 <p>Bot goals and memory now show Unknown for missing lists or fields. Multiple detail records for the same bot ID are explicitly ambiguous; none is chosen. Valid rows in a partly malformed list remain visible beside an Unknown warning. Reply and assignment cards distinguish unavailable lists from valid empty examples. After Refresh, old detail text should disappear when the new snapshot cannot supply it. Inspecting these cards sends no request and applies no changes.</p>
 <p>If audit example metadata is missing or unusable, the card should show an Unknown count rather than zero, and other panels should remain available. A valid empty list shows 0 loaded examples. Missing actor, scope, result, time or source fields stay Unknown; search and reset do not fetch data.</p>
 <p>Needs Blizz now shows Unknown coverage if decision-summary metadata is missing or unusable, while the rest of the workspace stays available. This differs from a valid empty list. Neither state proves that no decisions are pending, and missing dates remain unknown.</p>

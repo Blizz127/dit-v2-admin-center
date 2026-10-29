@@ -58,6 +58,44 @@ try {
   document.querySelector('#clear-learning').click();
   check(textOf('learning-evidence').includes('No learning record selected'), 'Clear removes assessment context');
   check(requests.length === before, 'Inspector, preview, restore and clear make no fetch requests');
+  // Only synthetic records are changed here; the application remains read-only.
+  fixture.bots = [{id: 'offline-inspector-bot', name: 'Synthetic inspector bot', game: 'FFXI', source: 'Offline fixture', status: 'Unknown'}];
+  const botExamples = {
+    botDetails: [{botId: 'offline-inspector-bot', source: 'Offline fixture', goals: [{text: 'Fixture goal'}], memories: [{text: 'Fixture memory'}]}],
+    safetyRecords: [{botId: null, scope: 'Fixture network safety', source: 'Offline fixture'}, {botId: 'offline-inspector-bot', scope: 'Fixture bot safety', source: 'Offline fixture'}],
+    replyEvents: [{botId: 'offline-inspector-bot', fallbackReason: 'Fixture reply reason', source: 'Offline fixture'}],
+    assignmentHistory: [{botId: 'offline-inspector-bot', requested: 'Fixture requested model', source: 'Offline fixture'}],
+  };
+  Object.assign(fixture, structuredClone(botExamples));
+  await load();
+  const inspectButton = [...document.querySelectorAll('#bots button')].find(b => b.textContent === 'Inspect Synthetic inspector bot');
+  check(!!inspectButton, 'Synthetic bot inspection button is rendered');
+  const beforeBotSelection = requests.length;
+  inspectButton.click();
+  check(textOf('bot-inspector').includes('Fixture memory'), 'Bot detail fixture is selectable');
+  check(requests.length === beforeBotSelection, 'Bot inspection makes no request');
+  for (const key of Object.keys(botExamples)) fixture[key] = null;
+  await load();
+  check(!workspace.hidden && textOf('bot-inspector').includes('Goals and memory'), 'Unavailable detail metadata keeps workspace open');
+  check(textOf('safety-records').includes('Safety example coverage unknown') && !textOf('safety-records').includes('Fixture bot safety'), 'Unavailable safety list clears previous examples');
+  check(textOf('reply-source').includes('Reply evidence coverage unknown') && !textOf('reply-source').includes('Fixture reply reason'), 'Unavailable reply list clears previous examples');
+  check(textOf('assignment-history').includes('Assignment example coverage unknown') && !textOf('assignment-history').includes('Fixture requested model'), 'Unavailable assignment list clears previous examples');
+  fixture.botDetails = [{botId: 'offline-inspector-bot', goals: null, memories: [{text: 'Partial fixture memory'}]}];
+  fixture.safetyRecords = [{scope: 'Unattributed fixture safety'}, {botId: 'offline-inspector-bot', gate: false}];
+  fixture.replyEvents = [{botId: 'offline-inspector-bot', source: {}}];
+  fixture.assignmentHistory = [{botId: 'offline-inspector-bot'}];
+  await load();
+  check(textOf('bot-inspector').includes('Partial fixture memory') && textOf('bot-inspector').includes('Unknown'), 'Partial goals do not erase usable memory');
+  check(textOf('safety-records').includes('Safety example scope unknown') && !textOf('safety-records').includes('Unattributed fixture safety'), 'Missing bot identity is not treated as network scope');
+  check(textOf('reply-source').includes('Source unknown') && textOf('assignment-history').includes('Effective: Unknown'), 'Partial reply and assignment fields stay Unknown');
+  for (const key of Object.keys(botExamples)) fixture[key] = [];
+  await load();
+  check(textOf('safety-records').includes('No safety examples') && textOf('reply-source').includes('No matching reply evidence') && textOf('assignment-history').includes('No matching examples'), 'Valid empty inspector lists differ from unavailable lists');
+  Object.assign(fixture, structuredClone(botExamples));
+  await load();
+  check(textOf('bot-inspector').includes('Fixture goal') && textOf('safety-records').includes('Fixture bot safety') && textOf('reply-source').includes('Fixture reply reason') && textOf('assignment-history').includes('Fixture requested model'), 'Inspector panels recover with current synthetic examples');
+  const botSelectors = [...document.querySelectorAll('#bots select')];
+  check(botSelectors.length === 2 && botSelectors.every(select => select.disabled), 'Per-bot model selectors remain disabled');
   document.querySelector('#data-source').value = 'hub';
   document.querySelector('#data-source').dispatchEvent(new Event('change'));
   await settle(() => loadedSource === 'hub' && !sourceLoading && !bridgePending);

@@ -134,6 +134,21 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+Safety metadata follow-up (`fce4687`) isolates absent/null/malformed collections
+without closing the workspace. Explicit `botId: null` denotes a network example;
+missing, blank or malformed identity is withheld with an Unknown scope warning.
+Partial fields remain Unknown, and valid empty lists retain the actual-state
+warning. The focused overview check passed for these cases, selection without
+requests, clearing, prior-text removal and recovery. No live ledger was read.
+
+The offline artifact driver now includes synthetic bot detail, safety, reply and
+assignment unavailable/partial/empty/recovery scenarios and verifies disabled
+model selectors. Artifact resource/CSP/inline-escaping checks and embedded JS
+syntax passed. These new driver assertions have not executed in a browser or
+jsdom; the separate simulated-DOM overview check is the runtime evidence so far.
+Rebuild with `python3 tools/build_inspector_playtest.py`, open the file locally,
+and read its runtime result; generation alone starts at NOT RUN.
+
 Bot-detail follow-up (`99906b7`) keeps missing/null/malformed detail collections
 and duplicate exact-ID records Unknown instead of throwing or choosing the first
 record. Goals and memories are assessed separately; usable rows in a partial
