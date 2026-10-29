@@ -1,6 +1,6 @@
 # Learning and issues
 
-Planning inventory, not a claim of live capability. No game, dataset, policy or weights were inspected at runtime. The initial Admin Center uses synthetic data only.
+Planning inventory, not a claim of live capability. Bot, learning, dataset and policy examples default to synthetic data. The optional read-only hub adapter is tested with a local stub but is not configured for live hub reads. Coordinator panels use read-only local records, and the FFXI bridge panel uses a read-only service and fault-marker observation. Game datasets and policy weights have not been verified here.
 
 ## FFXI — first
 
@@ -15,7 +15,8 @@ Planning inventory, not a claim of live capability. No game, dataset, policy or 
 
 ## Cross-game issues and risks
 
-- The hub lead identified r10 and candidate sources; focused review of the updated drafts is pending. Hub coverage and runtime deployment state are unverified. The local mock API is not an upstream contract.
+- The hub lead identified r10 and candidate sources; the owner approved the per-bot routing design draft, while compatible hub implementation and separate authorization for actual model changes remain outstanding. Hub coverage and runtime deployment state are unverified. The local mock API is not an upstream contract.
+- The e8c81be candidate `AdminCenter.cs` supports task-only light learning reads; completed history is bounded, while active and attention tasks are not capped by that history limit. Its overview scans whole stores under shared locks, and its providers view includes the spend ledger; neither is polled by this Admin Center. Source inspection is not evidence of the live revision or runtime safety.
 - Native presence needs source, timestamp and expiry; stale or absent data must not become an offline count or fabricated progress.
 - The action ledger must distinguish request, result and verification, and surface rejection and missing evidence. Correlation is not proof of execution.
 - Model usage and cost, quality evaluation, bake-off methodology and provider routing require real measured data and agreed interfaces. Avoid unapproved providers and spending.
