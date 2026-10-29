@@ -84,6 +84,28 @@ No local browser runtime was found during this checkpoint, so only generator,
 JavaScript syntax and simulated-DOM checks were run here. A browser PASS in the
 artifact is still needed to establish its real-browser runtime result.
 
+An offline jsdom runner also executes the generated artifact and its DOM
+assertions without a browser or listener. It requires an already installed
+jsdom module:
+
+```sh
+timeout -k 3 20 node tools/run_inspector_playtest.cjs
+```
+
+If the module is outside this checkout's resolution path, set
+`DIT_JSDOM_MODULE` to its existing absolute package path. The runner never
+downloads dependencies. Missing jsdom exits **2 (BLOCKED)**; assertion failures,
+runtime errors and attempted transports exit nonzero. Success prints JSON with
+the completed check count and zero transport attempts. It always regenerates
+from current source in memory, rather than relying on a stale build artifact.
+
+Node and DOM network transports are blocked independently of the HTML CSP.
+jsdom checks DOM events and rendering logic; it does not establish browser
+layout or CSP enforcement, HTTP authentication, or running-service behavior.
+Current local result: **BLOCKED — jsdom unavailable**. A dependency path or
+approval to obtain one is pending with the coordinator; no DOM-runtime pass is
+claimed.
+
 ## Security
 
 - Owner-only token auth for now.

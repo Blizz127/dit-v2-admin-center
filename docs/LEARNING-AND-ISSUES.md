@@ -87,3 +87,10 @@ existing simulated-DOM checks passed locally. Browser execution remains
 unverified because no local browser runtime was found; the artifact can be
 opened on the owner's laptop without a tunnel, server or credentials. This
 does not establish the running service's status or close game-evidence gaps.
+
+The machine-check runner is `tools/run_inspector_playtest.cjs`. It requires an
+installed jsdom module and blocks Node/DOM transports. A missing module exits
+2, not a skipped success. The local attempt is blocked because no module was
+found; the coordinator has been asked for an existing module path or approval
+for a pinned dependency download. Four artifact/runner checks pass, including
+the missing-dependency failure case. Actual jsdom execution remains pending.
