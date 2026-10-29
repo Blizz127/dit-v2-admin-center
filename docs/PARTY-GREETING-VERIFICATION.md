@@ -97,3 +97,18 @@ evidence, owner-report independence, eligibility, redacted CLI failures and
 temporary input-file preservation. No additional files are created by the CLI.
 They are consumer-interpretation checks, not a native party test. No historical
 DIT suite was rerun and no live source was contacted for this preparation.
+
+## Visual synthetic comparison
+
+Rebuild `build/inspector-playtest.html` with
+`python3 tools/build_inspector_playtest.py` and expand **Synthetic party-evidence
+comparisons**. Four fictional summaries are assessed by the same review function
+and displayed as an escaped static table. It compares queue-only, owner-report
+without queue telemetry, mixed enqueue claims and an old retained row. All
+model-origin states remain Unknown; no live result or overall pass is inferred.
+
+This section is readable without JavaScript and has no input/upload or network
+path. It does not render raw fixture scope/correlation fields. The source and
+fixture fingerprints are included in artifact provenance. Three focused artifact
+checks passed for the comparison semantics, escaping and resource isolation;
+browser appearance and native behavior were not verified by those checks.

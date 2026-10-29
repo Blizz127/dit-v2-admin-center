@@ -88,6 +88,15 @@ not native keyboard activation. Reload
 the file to repeat, or use the displayed inspector manually. No token entry,
 account or feature activation is needed.
 
+Expand **Synthetic party-evidence comparisons** near the top to compare four
+fictional review summaries. Queue-only evidence leaves speech Unknown; a scoped
+owner report remains visible without queue telemetry; mixed claims carry a
+review warning; an old retained row cannot establish a new reply. Model origin
+stays Unknown in every row. This table is computed by the offline reviewer at
+generation, remains readable without JavaScript, and is not a browser-test pass
+or a live receipt. Its fixture and reviewer source hashes are in the provenance
+panel. Collapse the summary to hide it; no request or game action is triggered.
+
 The harness replaces fetch with allowlisted in-memory fixture responses, disables
 polling, uses temporary in-memory session storage, and blocks network resources
 and form submission with CSP. Other requests fail. It does not test the HTTP
