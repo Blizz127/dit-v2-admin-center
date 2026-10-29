@@ -206,3 +206,18 @@ checks pass without changing network or script restrictions. These checks do not
 establish browser-specific Blob download behavior. The exact local artifact is
 recorded in [the native handoff](NATIVE-VERIFICATION-GAP.md); Alienware files remain
 unchanged and the native request is still pending.
+
+## Selected navigation destination
+
+The sidebar now marks the selected section with the existing teal border/inset
+and `aria-current="location"`. The marker follows sidebar activation, local
+cross-panel focus jumps and fragment changes. It survives snapshot refresh,
+clears on session reset and ignores modified clicks. A new session honors a valid
+fragment or starts at Overview. This is the selected navigation destination, not
+a manual-scroll spy. The standalone startup checks restore the Overview marker
+when returning the viewport to the dashboard.
+
+Focused tests use the actual template's section ancestry to verify one selected
+link, cross-panel mapping, fragment handling, filter-preserving navigation and
+reset behavior without extra reads. Card markup checks pass. Native browser
+history behavior and appearance remain for the existing pending verification.

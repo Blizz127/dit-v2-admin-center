@@ -22,9 +22,20 @@ let ledgerBotId = null;
 let bridgePending = false;
 let selectedLearningId = null;
 let token = sessionStorage.getItem('dit-admin-token') || '';
+let selectedWorkspaceSection = null;
+function markWorkspaceSection(section) {
+  selectedWorkspaceSection = workspaceSections.includes(section) ? section : null;
+  for (const key of workspaceSections) document.getElementById('nav-' + key).setAttribute('aria-current',
+    key === selectedWorkspaceSection ? 'location' : 'false');
+}
+function markWorkspaceTarget(id, target) {
+  const section = id.startsWith('view-') ? id : target?.closest?.('.workspace-section')?.id;
+  markWorkspaceSection(section?.replace(/^view-/, '') || null);
+}
 function focusWorkspaceTarget(id, scroll = true) {
   const target = document.getElementById(id);
   if (!target) return;
+  markWorkspaceTarget(id, target);
   // Programmatic destinations are not additional Tab stops. Native links and
   // buttons retain their normal Tab/Enter/Space behavior; no key trap is added.
   target.setAttribute('tabindex', '-1');
@@ -32,6 +43,11 @@ function focusWorkspaceTarget(id, scroll = true) {
   if (scroll) target.scrollIntoView({behavior: 'auto', block: 'start'});
 }
 const workspaceSections = ['overview', 'roster', 'ffxi', 'learning', 'evidence', 'operations', 'models', 'notes'];
+globalThis.addEventListener?.('hashchange', () => {
+  if (workspace.hidden) return;
+  const id = globalThis.location.hash.slice(1);
+  markWorkspaceTarget(id, document.getElementById(id));
+});
 for (const section of workspaceSections) {
   document.getElementById('nav-' + section).addEventListener('click', event => {
     if (workspace.hidden || event.defaultPrevented || event.button > 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
@@ -43,6 +59,7 @@ function panelSessionCurrent(requestToken, session) {
   return !workspace.hidden && token === requestToken && sessionVersion === session;
 }
 function resetPanelSession() {
+  markWorkspaceSection(null);
   sessionVersion++;
   currentSnapshot = null; loadedSource = null;
   selectedBotId = null; selectedLearningId = null;
@@ -1099,6 +1116,11 @@ async function load() {
     document.querySelector('#updated').textContent = `Snapshot generated ${data.generatedAt} · Sources are labeled per view; lead task state comes from the coordinator board.`;
     loadedSource = source; sourceLoading = false;
     sessionStorage.setItem('dit-admin-token', token); workspace.hidden = false; form.hidden = true; loadBridge();
+    if (selectedWorkspaceSection === null) {
+      const id = globalThis.location?.hash?.slice(1);
+      if (id) markWorkspaceTarget(id, document.getElementById(id));
+      else markWorkspaceSection('overview');
+    }
   } catch (e) {
     if (!current()) return;
     sourceLoading = false;

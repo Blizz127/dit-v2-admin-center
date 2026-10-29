@@ -258,6 +258,7 @@ try {
   // Scripted inspection navigates through several panels. Start the owner's review
   // at the dashboard instead of leaving the viewport at the last test action.
   document.getElementById('main-content').scrollIntoView({block: 'start', behavior: 'instant'});
+  markWorkspaceSection('overview');
 } catch (error) {
   document.querySelector('#harness-status').textContent = 'FAIL — ' + error.message;
   document.documentElement.dataset.playtest = 'failed';

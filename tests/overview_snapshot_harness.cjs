@@ -19,10 +19,15 @@ class Element {
 }
 const elements=new Map(Object.entries(template).map(([id,spec])=>[id,new Element(spec)]));
 const get=id=>{assert.ok(elements.has(id),'Missing template ID '+id);return elements.get(id);};
+for(const [id,spec] of Object.entries(template)) {
+  get(id).id=id;
+  get(id).closest=selector=>{assert.equal(selector,'.workspace-section');return spec.section?get(spec.section):null;};
+}
 let data=snapshot;
 let requestCount=0;
 const storage=new Map();
-const context={Blob,URL,document:{querySelector:s=>get(s.slice(1)),getElementById:get,createElement:()=>new Element()},
+const globalEvents={};
+const context={Blob,URL,location:{hash:''},addEventListener:(type,fn)=>{globalEvents[type]=fn;},document:{querySelector:s=>get(s.slice(1)),getElementById:get,createElement:()=>new Element()},
   sessionStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
   fetch:async(path, options)=>{
     requestCount++;
@@ -39,4 +44,4 @@ async function refresh(changes){
   return get('model-calls').textContent;
 }
 
-module.exports = {get, refresh, snapshot, context, requestCount:()=>requestCount};
+module.exports = {get, refresh, snapshot, context, globalEvents, requestCount:()=>requestCount};

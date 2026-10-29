@@ -111,14 +111,18 @@ class Template(HTMLParser):
         self.elements = {}
         self.select = None
         self.first_option = False
+        self.sections = []
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
         identity = attrs.get('id')
+        if tag == 'section':
+            self.sections.append(identity if 'workspace-section' in attrs.get('class', '').split() else None)
         if identity:
             if identity in self.elements:
                 raise ValueError('Duplicate template ID')
-            self.elements[identity] = {'tag': tag, 'attrs': attrs, 'value': attrs.get('value', '')}
+            self.elements[identity] = {'tag': tag, 'attrs': attrs, 'value': attrs.get('value', ''),
+                                       'section': next((s for s in reversed(self.sections) if s), None)}
         if tag == 'select':
             self.select, self.first_option = identity, True
         if tag == 'option' and self.select:
@@ -127,6 +131,8 @@ class Template(HTMLParser):
             self.first_option = False
 
     def handle_endtag(self, tag):
+        if tag == 'section':
+            self.sections.pop()
         if tag == 'select':
             self.select = None
 
