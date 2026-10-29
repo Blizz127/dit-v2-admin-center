@@ -9,7 +9,7 @@ def fixture():
             'freshForSeconds': 30, 'truncated': False, 'scopes': [
                 {'gameId': 'ffxi', 'caller': 'fixture-adapter', 'serverInstanceId': 'fixture-server', 'bots': [
                     {'actorKey': 'fixture-bot', 'fresh': True, 'snapshotFresh': False, 'activity': 'waiting',
-                     'source': 'native report', 'observedAtUtc': '2026-01-01T00:00:00Z', 'ageSeconds': 45,
+                     'source': 'native snapshot', 'observedAtUtc': '2026-01-01T00:00:00Z', 'ageSeconds': 45,
                      'currentOrder': {'requester': 'private text'}, 'hold': {'target': 'private target'}}]}]}
 
 

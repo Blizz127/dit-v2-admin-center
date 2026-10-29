@@ -35,7 +35,7 @@ function renderInteraction(data, source) {
   const freshness = value => value === true ? 'Reported fresh' : value === false ? 'Reported stale' : 'Unknown';
   data.bots.forEach(b => item(panel, b.actorKey,
     `Reconciled view: ${freshness(b.fresh)} · Activity: ${b.fresh === true ? b.activity || 'Unknown' : 'Unknown'} · Raw snapshot: ${freshness(b.snapshotFresh)}`,
-    `Scope: ${b.caller} / ${b.serverInstanceId} · Source: ${b.source || 'unknown'} · Snapshot observed: ${b.observedAt || 'unknown'} · Hub-reported snapshot age: ${b.ageSeconds == null ? 'unknown' : b.ageSeconds + ' s'} · No roster identity join or delivery inference`));
+    `Scope: ${b.caller} / ${b.serverInstanceId} · Raw state source: ${b.source || 'unknown'} · Snapshot observed: ${b.observedAt || 'unknown'} · Hub-reported snapshot age: ${b.ageSeconds == null ? 'unknown' : b.ageSeconds + ' s'} · No roster identity join or delivery inference`));
 }
 async function loadInteraction() {
   const id = ++interactionVersion;
@@ -62,7 +62,7 @@ function previewInteraction() {
     coverage: 'Synthetic illustration only. No hub read, provider call, switch change or game action.',
     fetchedAt: null, freshForSeconds: 30, truncated: false, bots: [
       {actorKey: 'Example current view', caller: 'fixture-adapter', serverInstanceId: 'fixture-server', fresh: true, snapshotFresh: false,
-       activity: 'waiting', source: 'native report', observedAt: '2026-01-01T00:00:00Z', ageSeconds: 45},
+       activity: 'waiting', source: 'native snapshot', observedAt: '2026-01-01T00:00:00Z', ageSeconds: 45},
       {actorKey: 'Example stale view', caller: 'fixture-adapter', serverInstanceId: 'fixture-server', fresh: false, snapshotFresh: false,
        activity: null, source: 'native snapshot', observedAt: '2026-01-01T00:00:00Z', ageSeconds: 45}
     ]}, 'Synthetic interaction preview · not live');
