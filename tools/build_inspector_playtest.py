@@ -36,7 +36,7 @@ def source_fingerprints():
     paths = ('static/index.html', 'static/style.css', 'static/app.js',
              'r10_projection.py', 'tests/fixtures/learning-evidence-e8c81be.json',
              'tests/fixtures/assignment-pages.json',
-             'tools/inspector_playtest.js', 'tools/build_inspector_playtest.py')
+             'tools/inspector_playtest.js', 'tools/assignment_keyboard_playtest.js', 'tools/build_inspector_playtest.py')
     return {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in paths}
 
 
@@ -44,7 +44,7 @@ def build():
     html = (ROOT / 'static/index.html').read_text()
     css = (ROOT / 'static/style.css').read_text()
     app = (ROOT / 'static/app.js').read_text()
-    driver = (ROOT / 'tools/inspector_playtest.js').read_text()
+    driver = (ROOT / 'tools/assignment_keyboard_playtest.js').read_text() + '\n' + (ROOT / 'tools/inspector_playtest.js').read_text()
     data = json.dumps(snapshot()).replace('<', '\\u003c')
     assignment_data = json.dumps(json.loads((ROOT / 'tests/fixtures/assignment-pages.json').read_text())).replace('<', '\\u003c')
     script = '(async function () {\nconst fixture = ' + data + ';\nconst assignmentFixtures = ' + assignment_data + ';\n' + driver.replace('/* APPLICATION */', app) + '\n})();'
@@ -58,6 +58,8 @@ def build():
     html = html.replace('<script src="/app.js" defer></script>', '')
     html = html.replace('<link rel="stylesheet" href="/style.css">', '<style>' + css + '</style>')
     html = html.replace('<body>', '<body><section class="panel" id="harness-results" aria-live="polite"><h1>Offline synthetic inspector playtest</h1><p id="harness-status">NOT RUN — waiting for browser JavaScript.</p><ol id="harness-checks"></ol><p>No server, token file, account or game is used. All data is synthetic. Browser results apply only to this artifact, not the running service. Reload this file to rerun.</p></section>', 1)
+    keyboard = '<p id="keyboard-status" role="status" aria-live="polite">NOT RUN — native keyboard check. Automatic DOM checks do not verify keyboard defaults.</p><button id="keyboard-start" type="button" disabled aria-describedby="keyboard-status">Start native assignment keyboard check</button>'
+    html = html.replace('<p id="assignment-count"', keyboard + '<p id="assignment-count"', 1)
     fingerprints = html_escape.escape(json.dumps(source_fingerprints(), indent=2))
     provenance = '<details id="harness-provenance"><summary>Artifact source fingerprints</summary><p>SHA256 of local inputs at generation; not a deployment revision or browser result.</p><pre>' + fingerprints + '</pre></details>'
     html = html.replace('<ol id="harness-checks"></ol>', '<ol id="harness-checks"></ol>' + provenance, 1)

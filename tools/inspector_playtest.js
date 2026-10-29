@@ -148,7 +148,18 @@ try {
   await refresh('bridge-refresh', () => !bridgePending && textOf('bridge-status').includes('active'));
   check(textOf('ffxi-focus-bridge').includes('Not proof of delivery'), 'Both bridge cards recover without claiming delivery');
   check(unexpected.length === 0, 'Only allowlisted in-memory fixture reads occurred');
-  document.querySelector('#harness-status').textContent = 'PASS — DOM checks completed with synthetic data; runtime identity is reported by the runner.';
+  installAssignmentKeyboardCheck({document,
+    prepare: async () => {
+      fixture.assignmentHistory = assignmentFixtures.populated.map(row => ({...row, botId: row.botId === 'fixture-bot' ? 'offline-inspector-bot' : row.botId}));
+      document.querySelector('#data-source').value = 'mock';
+      await load(); await settle(() => !sourceLoading && !bridgePending);
+      document.querySelector('#clear-bot').click();
+      inspectBot('offline-inspector-bot');
+    },
+    page: () => assignmentPages === 3 ? assignmentPage + 1 : null,
+    requests: () => requests.length,
+  });
+  document.querySelector('#harness-status').textContent = 'PASS — automatic DOM checks completed with synthetic data. Native keyboard check is separate and has NOT RUN.';
   document.documentElement.dataset.playtest = 'passed';
 } catch (error) {
   document.querySelector('#harness-status').textContent = 'FAIL — ' + error.message;
