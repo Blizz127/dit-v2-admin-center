@@ -1,6 +1,7 @@
 """Build a synthetic, network-blocked inspector playtest without importing server.py."""
 import argparse
 import base64
+import copy
 import hashlib
 import html as html_escape
 import json
@@ -10,6 +11,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from r10_projection import project_learning
+from tools.review_party_greeting import decode_metadata, review
 
 
 def snapshot():
@@ -36,8 +38,43 @@ def source_fingerprints():
     paths = ('static/index.html', 'static/style.css', 'static/app.js',
              'r10_projection.py', 'tests/fixtures/learning-evidence-e8c81be.json',
              'tests/fixtures/assignment-pages.json',
+             'tests/fixtures/party-greeting-review.json', 'tools/review_party_greeting.py',
              'tools/inspector_playtest.js', 'tools/assignment_keyboard_playtest.js', 'tools/build_inspector_playtest.py')
     return {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in paths}
+
+
+def party_review_examples():
+    base = decode_metadata((ROOT / 'tests/fixtures/party-greeting-review.json').read_bytes())
+    owner = copy.deepcopy(base)
+    owner['queuedReplies'] = []
+    owner['ownerSpeech'] = dict(scope=copy.deepcopy(base['scope']), correlationId=base['greeting']['correlationId'],
+                                reporter='owner', confirmed=True, heardAt='2026-01-01T12:01:06Z',
+                                reportedAt='2026-01-01T12:01:30Z')
+    mixed = copy.deepcopy(base)
+    mixed['queuedReplies'].append({**mixed['queuedReplies'][0], 'enqueued': False})
+    stale = copy.deepcopy(base)
+    stale['queuedReplies'][0]['observedAt'] = '2025-12-31T23:59:00Z'
+    return [(label, review(data)) for label, data in (
+        ('Queue report only', base), ('Owner report without queue telemetry', owner),
+        ('Mixed enqueue claims', mixed), ('Old retained queue row', stale))]
+
+
+def party_review_html():
+    columns = [('queuedReply', 'Queue evidence'), ('queueReview', 'Queue caveat'),
+               ('nativeSpeech', 'Owner-reported speech'), ('modelOrigin', 'Model origin')]
+    header = '<tr><th scope="col">Synthetic scenario</th>' + ''.join(
+        '<th scope="col">' + title + '</th>' for _, title in columns) + '</tr>'
+    rows = ''.join('<tr><th scope="row">' + html_escape.escape(label) + '</th>' + ''.join(
+        '<td style="padding:8px;vertical-align:top">' + html_escape.escape(result[key]) + '</td>'
+        for key, _ in columns) + '</tr>' for label, result in party_review_examples())
+    return ('<details class="panel" id="party-review-examples"><summary>Synthetic party-evidence comparisons</summary>'
+            '<p>Four fictional summaries, assessed by the offline reviewer at build time. These are not live results '
+            'or a browser test pass. Expand this panel to compare; no requests or game messages occur.</p>'
+            '<div tabindex="0" role="region" aria-label="Synthetic party evidence table" style="overflow-x:auto">'
+            '<table style="min-width:760px;text-align:left"><caption>Queue evidence, owner reports and model origin remain separate</caption>'
+            '<thead>' + header + '</thead><tbody>' + rows + '</tbody></table></div>'
+            '<p>Reported means supplied metadata, not authenticated observation. Mixed claims may describe a transition; '
+            'old rows do not prove a new reply. All four model-origin results remain Unknown.</p></details>')
 
 
 def build():
@@ -58,6 +95,7 @@ def build():
     html = html.replace('<script src="/app.js" defer></script>', '')
     html = html.replace('<link rel="stylesheet" href="/style.css">', '<style>' + css + '</style>')
     html = html.replace('<body>', '<body><section class="panel" id="harness-results" aria-live="polite"><h1>Offline synthetic inspector playtest</h1><p id="harness-status">NOT RUN — waiting for browser JavaScript.</p><ol id="harness-checks"></ol><p>No server, token file, account or game is used. All data is synthetic. Browser results apply only to this artifact, not the running service. Reload this file to rerun.</p></section>', 1)
+    html = html.replace('</section>', '</section>' + party_review_html(), 1)
     keyboard = '<p id="keyboard-status" role="status" aria-live="polite">NOT RUN — native keyboard check. Automatic DOM checks do not verify keyboard defaults.</p><button id="keyboard-start" type="button" disabled aria-describedby="keyboard-status">Start native assignment keyboard check</button>'
     html = html.replace('<p id="assignment-count"', keyboard + '<p id="assignment-count"', 1)
     fingerprints = html_escape.escape(json.dumps(source_fingerprints(), indent=2))

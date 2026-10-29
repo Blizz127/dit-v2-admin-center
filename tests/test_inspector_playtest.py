@@ -91,6 +91,35 @@ class InspectorPlaytestTests(unittest.TestCase):
         self.assertIn('BLOCKED: jsdom is not installed', result.stderr)
         self.assertNotIn('passed', result.stdout)
 
+    def test_party_comparison_uses_reviewer_without_promoting_queue_to_speech(self):
+        examples = dict(harness.party_review_examples())
+        self.assertEqual(len(examples), 4)
+        self.assertIn('matching new queue', examples['Queue report only']['queuedReply'])
+        self.assertEqual(examples['Queue report only']['nativeSpeech'], 'Unknown')
+        self.assertEqual(examples['Owner report without queue telemetry']['queuedReply'], 'Unknown')
+        self.assertIn('Owner-reported', examples['Owner report without queue telemetry']['nativeSpeech'])
+        self.assertIn('Mixed enqueue claims', examples['Mixed enqueue claims']['queueReview'])
+        self.assertEqual(examples['Old retained queue row']['queuedReply'], 'Unknown')
+        self.assertTrue(all(row['modelOrigin'] == 'Unknown' for row in examples.values()))
+        html = harness.party_review_html()
+        self.assertIn('not live results', html)
+        self.assertEqual(html.count('<tr>'), 5)
+        self.assertIn('scope="col"', html)
+        self.assertIn('scope="row"', html)
+        self.assertIn('tabindex="0"', html)
+
+    def test_party_comparison_escapes_text_and_never_embeds_raw_metadata(self):
+        hostile = '<script>PRIVATE_FIXTURE</script>'
+        result = dict(queuedReply=hostile, queueReview='Unknown', nativeSpeech='Unknown', modelOrigin='Unknown')
+        with patch.object(harness, 'party_review_examples', return_value=[(hostile, result)]):
+            html = harness.party_review_html()
+        self.assertNotIn('<script>', html)
+        self.assertIn('&lt;script&gt;', html)
+        self.assertEqual(Document(html).scripts, [])
+        normal = harness.party_review_html()
+        self.assertNotIn('fixture-attempt', normal)
+        self.assertNotIn('fixture-party', normal)
+
 
 if __name__ == '__main__':
     unittest.main()
