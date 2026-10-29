@@ -495,27 +495,35 @@ function renderLedger() {
 function renderBotCoverage() {
   const panel = document.querySelector('#bot-coverage');
   panel.replaceChildren();
+  const all = observationRows(currentSnapshot.bots, panel);
+  const complete = Array.isArray(currentSnapshot.bots) && all.length === currentSnapshot.bots.length;
   for (const game of ['FFXI', 'SWTOR']) {
-    const rows = currentSnapshot.bots.filter(b => b.game === game);
-    const unknown = rows.filter(b => !b.status || b.status.toLowerCase() === 'unknown').length;
-    item(panel, `${game} · loaded roster`, `${rows.length} records · ${unknown} with unknown status`, 'Loaded records may be incomplete; registration does not establish online presence. Check each source.');
+    const rows = all.filter(b => b.game === game);
+    const unknown = rows.filter(b => routingText(b.status).trim().toLowerCase() === 'unknown').length;
+    item(panel, `${game} · loaded roster`, `${rows.length} ${complete ? 'records' : 'usable records; total Unknown'} · ${unknown} with unknown status`, 'Loaded records may be incomplete; registration does not establish online presence. Check each source.');
   }
+}
+function usableBotRows() {
+  return Array.isArray(currentSnapshot.bots) ? currentSnapshot.bots.filter(b => b && typeof b === 'object' && !Array.isArray(b)) : [];
 }
 function filteredBots() {
   const game = document.querySelector('#bot-game').value;
   const query = (document.querySelector('#bot-search').value || '').trim().toLowerCase();
-  return currentSnapshot.bots.filter(b => (!game || b.game === game) && (!query || b.name.toLowerCase().includes(query)));
+  return usableBotRows().filter(b => (!game || b.game === game) && (!query || routingText(b.name, '').toLowerCase().includes(query)));
 }
 function updateBotCount(bots) {
   const selectedMissing = selectedBotId !== null && !Boolean(uniqueRecord(currentSnapshot.bots, selectedBotId));
   const selectedAmbiguous = recordsForId(currentSnapshot.bots, selectedBotId).length > 1;
   const selectedHidden = selectedBotId !== null && !selectedMissing && !bots.some(b => b.id === selectedBotId);
-  document.querySelector('#bot-count').textContent = `Showing ${bots.length} of ${currentSnapshot.bots.length} loaded roster records; coverage and presence may be unknown.${selectedAmbiguous ? ' Selected bot identity is ambiguous; scoped inspection is unavailable.' : selectedMissing ? ' Selected bot is no longer in the loaded data.' : selectedHidden ? ' Selected bot is outside this filtered roster; its inspector remains selected.' : ''}`;
+  const supplied = currentSnapshot.bots;
+  const total = Array.isArray(supplied) && usableBotRows().length === supplied.length ? supplied.length : 'Unknown total';
+  document.querySelector('#bot-count').textContent = `Showing ${bots.length} of ${total} loaded roster records; coverage and presence may be unknown.${selectedAmbiguous ? ' Selected bot identity is ambiguous; scoped inspection is unavailable.' : selectedMissing ? ' Selected bot is no longer in the loaded data.' : selectedHidden ? ' Selected bot is outside this filtered roster; its inspector remains selected.' : ''}`;
 }
 function renderBots() {
   const panel = document.querySelector('#bots');
   const bots = filteredBots();
   panel.replaceChildren();
+  observationRows(currentSnapshot.bots, panel);
   updateBotCount(bots);
   if (!bots.length) item(panel, 'No matching roster records', 'No matches in the loaded data.', 'This does not establish that a bot is offline.');
   else bots.forEach(botItem);
@@ -567,7 +575,7 @@ function renderReplySource() {
     correlation ? 'No usable loaded example matches this exact correlation ID for the selected bot.' : 'No usable loaded reply example matches the selected bot.',
     'This does not prove no reply occurred. Source, fallback and delivery remain unknown.');
   filtered.forEach(r => {
-    item(panel, `${bot.name} · ${routingText(r.wordingOrigin, 'Unknown source')}`, `Generation: ${routingText(r.generationStatus)} · Fallback: ${routingText(r.fallbackPolicy)} · Reason: ${routingText(r.fallbackReason, 'Not reported')}`, `Delivery: ${routingText(r.delivery)} · Verification: ${routingText(r.verification)} · Correlation: ${routingText(r.correlationId, 'unknown')} · ${routingText(r.source, 'Source unknown')} · Observed: ${routingText(r.observedAt, 'unknown')}`);
+    item(panel, `${routingText(bot.name)} · ${routingText(r.wordingOrigin, 'Unknown source')}`, `Generation: ${routingText(r.generationStatus)} · Fallback: ${routingText(r.fallbackPolicy)} · Reason: ${routingText(r.fallbackReason, 'Not reported')}`, `Delivery: ${routingText(r.delivery)} · Verification: ${routingText(r.verification)} · Correlation: ${routingText(r.correlationId, 'unknown')} · ${routingText(r.source, 'Source unknown')} · Observed: ${routingText(r.observedAt, 'unknown')}`);
     if (typeof r.correlationId === 'string' && r.correlationId.trim()) {
       const button = document.createElement('button'); button.type = 'button';
       button.textContent = 'Find loaded ledger evidence';
@@ -683,7 +691,7 @@ function renderAssignments() {
   assignmentPage = Math.min(assignmentPage, assignmentPages - 1);
   const start = assignmentPage * assignmentPageSize;
   assignmentNavigation(`Page ${assignmentPage + 1} of ${assignmentPages} · Showing ${start + 1}–${Math.min(start + assignmentPageSize, rows.length)} of ${rows.length} loaded examples. Not a complete live history.`);
-  rows.slice(start, start + assignmentPageSize).forEach(a => item(panel, `${bot.name} · ${routingText(a.purpose)}`, `Requested: ${routingText(a.requested)} · Effective: ${routingText(a.effective)}`, `Version: ${routingText(a.version)} · Recorded: ${routingText(a.at, 'unknown')} · ${routingText(a.source)}`));
+  rows.slice(start, start + assignmentPageSize).forEach(a => item(panel, `${routingText(bot.name)} · ${routingText(a.purpose)}`, `Requested: ${routingText(a.requested)} · Effective: ${routingText(a.effective)}`, `Version: ${routingText(a.version)} · Recorded: ${routingText(a.at, 'unknown')} · ${routingText(a.source)}`));
 }
 function rosterDetails(bot) {
   return `Status: ${routingText(bot.status)} · Character: ${routingText(bot.character)} · Level: ${routingText(bot.level)} · Body kind: ${routingText(bot.bodyKind)}`;
@@ -701,10 +709,10 @@ function inspectBot(id) {
   if (!bot) { panel.textContent = recordsForId(currentSnapshot.bots, id).length > 1
     ? 'Selected bot identity is ambiguous; no scoped details or evidence are attributed.'
     : 'Selected bot is no longer in this snapshot.'; return; }
-  item(panel, `${bot.name} · ${bot.game}`, rosterDetails(bot), `${routingText(bot.source, 'Source unknown')} · Observed: ${routingText(bot.observedAt, 'unknown')}`);
+  item(panel, `${routingText(bot.name)} · ${routingText(bot.game)}`, rosterDetails(bot), `${routingText(bot.source, 'Source unknown')} · Observed: ${routingText(bot.observedAt, 'unknown')}`);
   if (['FFXI', 'SWTOR'].includes(bot.game)) {
     const button = document.createElement('button'); button.type = 'button';
-    button.textContent = `View ${bot.game} game learning (not bot-specific)`;
+    button.textContent = `View ${routingText(bot.game)} game learning (not bot-specific)`;
     button.addEventListener('click', () => showGameLearning(bot.game));
     panel.lastElementChild.append(button);
   }
@@ -791,13 +799,13 @@ function renderSpendExample() {
 }
 function botItem(bot) {
   const parent = document.querySelector('#bots');
-  item(parent, `${bot.name} · ${bot.game}`, rosterDetails(bot), `${routingText(bot.source, 'Source unknown')} · Observed: ${routingText(bot.observedAt, 'unknown')}`);
+  item(parent, `${routingText(bot.name)} · ${routingText(bot.game)}`, rosterDetails(bot), `${routingText(bot.source, 'Source unknown')} · Observed: ${routingText(bot.observedAt, 'unknown')}`);
   const row = parent.lastElementChild;
   const inspect = document.createElement('button');
   inspect.type = 'button';
   const identified = Boolean(uniqueRecord(currentSnapshot.bots, bot.id));
   inspect.disabled = !identified;
-  inspect.textContent = identified ? `Inspect ${bot.name}` : 'Inspect unavailable: missing or ambiguous identity';
+  inspect.textContent = identified ? `Inspect ${routingText(bot.name)}` : 'Inspect unavailable: missing or ambiguous identity';
   inspect.addEventListener('click', () => inspectBot(bot.id));
   row.append(inspect);
   const routingPanel = document.createElement('details');
@@ -813,21 +821,21 @@ function botItem(bot) {
   routingMeta.textContent = `Purpose: ${routingText(routing.purpose)} · Version: ${routingText(routing.version)} · Reported availability: ${routingText(routing.availability)} · Reason: ${routingText(routing.reason, 'Not reported')} · Source: ${routingText(routing.source)} · Observed: ${routingText(routing.observedAt, 'unknown')} · Freshness: Unknown`;
   const scope = document.createElement('p');
   scope.className = 'routing';
-  scope.textContent = bot.id.startsWith('live:') ? 'The hub roster does not provide an implemented per-bot routing policy or verified routing identity.' : 'Game, realm and native bot identity must be verified before routing is available.';
+  scope.textContent = typeof bot.id === 'string' && bot.id.startsWith('live:') ? 'The hub roster does not provide an implemented per-bot routing policy or verified routing identity.' : 'Game, realm and native bot identity must be verified before routing is available.';
   const purposeLabel = document.createElement('label');
   purposeLabel.textContent = 'Purpose';
   const purpose = document.createElement('select');
   purpose.disabled = true;
-  purpose.setAttribute('aria-label', `Purpose for ${bot.name}`);
+  purpose.setAttribute('aria-label', `Purpose for ${routingText(bot.name)}`);
   const purposeOption = document.createElement('option');
   purposeOption.textContent = 'Unavailable';
   purpose.append(purposeOption);
   purposeLabel.append(purpose);
   const label = document.createElement('label');
-  label.textContent = `Model for ${bot.name}`;
+  label.textContent = `Model for ${routingText(bot.name)}`;
   const select = document.createElement('select');
   select.disabled = true;
-  select.setAttribute('aria-label', `Model for ${bot.name}`);
+  select.setAttribute('aria-label', `Model for ${routingText(bot.name)}`);
   const option = document.createElement('option');
   option.textContent = 'Unavailable';
   select.append(option);
