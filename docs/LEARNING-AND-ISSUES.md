@@ -134,6 +134,32 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+### Ambiguous inspector identities — 2026-10-29
+
+`1030c4f` fixes a reproduced first-match attribution bug: two roster rows with
+the same ID could select the first bot and attach scoped goals, memory, safety,
+reply, assignment or issue records. Inspection now requires a unique nonempty
+string ID across the entire loaded roster. Duplicate rows remain visible with
+disabled Inspect buttons; a previously selected identity becomes ambiguous and
+its scoped panels clear. Explicit network safety examples remain separate. Game
+or search filters cannot resolve the ambiguity, and a later unique snapshot can
+restore the selection. This does not authenticate an upstream identity.
+
+`aefa60b` applies the same rule to learning details, linked issues and the
+selected-need evidence checklist. Duplicate task IDs across either the same or
+different games select no first record. `8281bab` replaces absent or wrongly
+typed learning metadata with Unknown/Not reported text, keeping model-answer
+availability distinct from outcome evidence.
+
+The focused `identity_snapshot.test.cjs` passed using actual refresh/inspector
+code and synthetic records: duplicate bot/learning IDs, cross-game duplicates,
+filter changes, existing selections, disabled buttons, scoped-panel clearing,
+partial text and unique-ID recovery. Existing overview and selector regression
+checks also passed. The selector assertions were updated for previous Unknown
+capitalization and coverage-row insertion, retaining their behavioral assertions.
+No actual roster, task, game or ledger records were read; native rendering remains
+unverified. Core collection-schema permutations remain non-exhaustive.
+
 ### Loader partial-data and text audit — 2026-10-29
 
 `d31c3ee` fixes a reproduced mixed-row failure in the async health, trace and

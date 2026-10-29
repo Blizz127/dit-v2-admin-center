@@ -196,6 +196,12 @@ The loader coverage map and remaining native accessibility boundaries are in
 `docs/LEARNING-AND-ISSUES.md`. Passing these checks is not a browser, screen-reader
 or live-data result.
 
+For roster/learning identity changes, run
+`timeout -k 2 15 node tests/identity_snapshot.test.cjs`. It checks duplicate IDs
+within/across games, filter independence, existing-selection clearing, disabled
+inspection and unique-ID recovery using synthetic snapshots only. Identity is
+resolved against the full loaded list; display names do not establish a match.
+
 No local browser runtime was found during this checkpoint, so only generator,
 JavaScript syntax and simulated-DOM checks were run here. A browser PASS in the
 artifact is still needed to establish its real-browser runtime result.
