@@ -184,8 +184,9 @@ function filteredLearning() {
   return currentSnapshot.learning.filter(l => (!game || l.game === game) && (!status || l.status === status) && (!attention || attentionStatuses.has(l.status)) && (!query || `${l.topic} ${l.reason || ''}`.toLowerCase().includes(query)));
 }
 function updateLearningCount(records) {
-  const selectedHidden = selectedLearningId !== null && !records.some(l => l.id === selectedLearningId);
-  document.querySelector('#learning-count').textContent = `Showing ${records.length} of ${currentSnapshot.learning.length} loaded learning records; coverage may be incomplete.${selectedHidden ? ' Selected need is outside this filtered list; its inspector remains selected.' : ''}`;
+  const selectedMissing = selectedLearningId !== null && !currentSnapshot.learning.some(l => l.id === selectedLearningId);
+  const selectedHidden = selectedLearningId !== null && !selectedMissing && !records.some(l => l.id === selectedLearningId);
+  document.querySelector('#learning-count').textContent = `Showing ${records.length} of ${currentSnapshot.learning.length} loaded learning records; coverage may be incomplete.${selectedMissing ? ' Selected need is no longer in the loaded data.' : selectedHidden ? ' Selected need is outside this filtered list; its inspector remains selected.' : ''}`;
 }
 function renderLearning() {
   const panel = document.querySelector('#learning');
@@ -244,8 +245,9 @@ function renderBots() {
   const query = (document.querySelector('#bot-search').value || '').trim().toLowerCase();
   const bots = currentSnapshot.bots.filter(b => (!game || b.game === game) && (!query || b.name.toLowerCase().includes(query)));
   panel.replaceChildren();
-  const selectedHidden = selectedBotId !== null && !bots.some(b => b.id === selectedBotId);
-  document.querySelector('#bot-count').textContent = `Showing ${bots.length} of ${currentSnapshot.bots.length} loaded roster records; coverage and presence may be unknown.${selectedHidden ? ' Selected bot is outside this filtered roster; its inspector remains selected.' : ''}`;
+  const selectedMissing = selectedBotId !== null && !currentSnapshot.bots.some(b => b.id === selectedBotId);
+  const selectedHidden = selectedBotId !== null && !selectedMissing && !bots.some(b => b.id === selectedBotId);
+  document.querySelector('#bot-count').textContent = `Showing ${bots.length} of ${currentSnapshot.bots.length} loaded roster records; coverage and presence may be unknown.${selectedMissing ? ' Selected bot is no longer in the loaded data.' : selectedHidden ? ' Selected bot is outside this filtered roster; its inspector remains selected.' : ''}`;
   if (!bots.length) item(panel, 'No matching roster records', 'No matches in the loaded data.', 'This does not establish that a bot is offline.');
   else bots.forEach(botItem);
 }

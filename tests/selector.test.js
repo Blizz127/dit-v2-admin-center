@@ -251,10 +251,16 @@ setImmediate(async () => {
   get('bots').children[0].children.find(child => child.tag === 'button').listeners.click();
   get('bot-search').value = 'missing'; get('bot-search').listeners.input();
   assert.match(get('bot-count').textContent, /Selected bot is outside this filtered roster/);
+  const removedBot = data.bots.shift(); get('bot-search').listeners.input();
+  assert.match(get('bot-count').textContent, /Selected bot is no longer in the loaded data/);
+  data.bots.unshift(removedBot);
   get('clear-bot').listeners.click();
   assert.doesNotMatch(get('bot-count').textContent, /Selected bot is outside/);
   get('learning-search').value = 'not present'; get('learning-search').listeners.input();
   assert.match(get('learning-count').textContent, /Selected need is outside this filtered list/);
+  const removedNeed = data.learning.shift(); get('learning-search').listeners.input();
+  assert.match(get('learning-count').textContent, /Selected need is no longer in the loaded data/);
+  data.learning.unshift(removedNeed);
   get('clear-learning').listeners.click();
   assert.equal(get('learning-inspector').children.length, 0);
   assert.match(get('learning-inspector').textContent, /Select a learning need/);
