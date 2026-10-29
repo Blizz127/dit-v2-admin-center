@@ -30,6 +30,8 @@ function resetPanelSession() {
   replyBotId = null;
   document.querySelector('#reply-correlation').value = '';
   document.querySelector('#reply-count').textContent = 'Select a bot to view reply examples.';
+  document.querySelector('#model-call-availability').value = '';
+  document.querySelector('#model-call-coverage').textContent = 'Metric coverage unknown.';
   ledgerBotId = null; correlationFilter = '';
   document.querySelector('#correlation').value = '';
   document.querySelector('#ledger').replaceChildren();
@@ -747,6 +749,8 @@ function metricNumber(value) {
 function renderModelCalls() {
   const panel = document.querySelector('#model-calls');
   panel.replaceChildren();
+  const coverage = document.querySelector('#model-call-coverage');
+  coverage.textContent = 'Metric coverage unknown.';
   const calls = currentSnapshot.modelCalls;
   if (!Array.isArray(calls)) {
     item(panel, 'Model call coverage', 'Unknown', 'No usable model-call list in this snapshot.');
@@ -755,7 +759,15 @@ function renderModelCalls() {
   if (!calls.length) item(panel, 'No model call examples', 'No rows supplied.', 'This does not establish zero usage or cost.');
   const rows = calls.filter(row => row && typeof row === 'object' && !Array.isArray(row));
   if (rows.length !== calls.length) item(panel, 'Model call coverage', 'Unknown for omitted malformed rows', 'Valid supplied examples are shown below; coverage is incomplete.');
-  rows.forEach(c => item(panel, `${routingText(c.model)} · ${routingText(c.purpose)}`,
+  const fields = [['latencyMs', 'Latency'], ['cost', 'Cost'], ['quality', 'Quality']];
+  const complete = row => fields.every(([key]) => metricNumber(row[key]));
+  const filter = document.querySelector('#model-call-availability').value;
+  const selected = rows.filter(row => !filter || (filter === 'complete' ? complete(row) : !complete(row)));
+  coverage.textContent = `Showing ${selected.length} of ${rows.length === calls.length ? rows.length : 'Unknown total'} loaded examples. Numeric fields supplied among ${rows.length} usable rows: `
+    + fields.map(([key, label]) => `${label} ${rows.filter(row => metricNumber(row[key])).length}/${rows.length}`).join(' · ')
+    + '. Counts describe supplied fields only, not verified usage, settled spend or model quality.';
+  if (rows.length && !selected.length) item(panel, 'No examples match metric availability', 'Change the local filter to see other loaded rows.', 'Missing measurements are not zero usage.');
+  selected.forEach(c => item(panel, `${routingText(c.model)} · ${routingText(c.purpose)}`,
     `Latency: ${metricNumber(c.latencyMs) ? c.latencyMs + ' ms' : 'Unknown'} · Cost: ${metricNumber(c.cost) ? c.cost : 'Unknown'} · Quality: ${metricNumber(c.quality) ? c.quality : 'Unknown'}`,
     `${routingText(c.source, 'Source unknown')} · Observed: ${routingText(c.observedAt)}`));
 }
@@ -907,6 +919,7 @@ async function load() {
 }
 form.addEventListener('submit', e => { e.preventDefault(); resetPanelSession(); token = document.querySelector('#token').value; document.querySelector('#token').value = ''; load(); });
 document.querySelector('#refresh').addEventListener('click', load);
+document.querySelector('#model-call-availability').addEventListener('change', () => { if (currentSnapshot) renderModelCalls(); });
 document.querySelector('#reply-correlation').addEventListener('input', () => { if (currentSnapshot) renderReplySource(); });
 document.querySelector('#reply-reset').addEventListener('click', () => {
   document.querySelector('#reply-correlation').value = '';
