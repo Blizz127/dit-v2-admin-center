@@ -16,7 +16,7 @@ function verifySavedReport(directory, expected) {
   assert.deepEqual(report.differingFields, ['name', 'game']);
   assert.deepEqual(report, JSON.parse(expected));
   return {status: 'passed', savedBytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex'),
-    candidates: 2, selectedSnapshotRow: 2, nativeActivation: 'Enter',
+    candidates: 2, selectedSnapshotRow: 2,
     limitations: 'Synthetic local report only; saved in a disposable directory, not authenticated provenance'};
 }
 async function verifyGapExport({send, evaluate, waitFor, press}, directory) {
@@ -45,6 +45,6 @@ async function verifyGapExport({send, evaluate, waitFor, press}, directory) {
     if (Date.now() > deadline) throw Error('Native gap download did not complete');
     await new Promise(resolve => setTimeout(resolve, 20));
   }
-  return {...verifySavedReport(directory, layout.copy), table: {rows: layout.rows, columns: layout.columns, width: layout.width}};
+  return {...verifySavedReport(directory, layout.copy), nativeActivation: 'Enter', table: {rows: layout.rows, columns: layout.columns, width: layout.width}};
 }
 module.exports = {verifySavedReport, verifyGapExport};

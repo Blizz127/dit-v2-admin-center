@@ -82,6 +82,7 @@ async function run(browser, artifact, profile, screenshotDirectory, downloadDire
     await command('Page.navigate', {url: pathToFileURL(artifact).href});
     await command('Page.bringToFront');
     await waitFor("document.documentElement.dataset.playtest === 'passed'");
+    const shell = await require('./verify_shell_navigation.cjs').verifyShellNavigation({command,evaluate,press,waitFor});
     // Position initial focus only; all activation and subsequent focus traversal
     // use native browser input, never dispatched DOM events or element.click().
     await evaluate("document.getElementById('keyboard-start').focus(); true");
@@ -103,6 +104,7 @@ async function run(browser, artifact, profile, screenshotDirectory, downloadDire
     const gapExport = downloadDirectory ? await require('./verify_gap_export.cjs').verifyGapExport({send, evaluate, waitFor, press}, downloadDirectory) : null;
     const visual = screenshotDirectory ? await require('./capture_comparisons.cjs').captureComparisons(command, screenshotDirectory) : null;
     return {status: 'passed', nativeKeyboard: 'passed', steps: keys.length, escapeCancellation: 'passed',
+      shell,
       ...(visual ? {visual} : {}),
       ...(gapExport ? {gapExport} : {}),
       automaticDOM: 'passed', transport: 'anonymous debugging pipes',

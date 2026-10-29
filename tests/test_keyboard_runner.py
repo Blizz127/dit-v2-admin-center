@@ -7,10 +7,13 @@ from unittest.mock import patch
 from tools import run_keyboard_playtest as runner
 
 
+SHELL = dict(status="passed", sections=8, widths=[1280, 390], traversal="Tab/Shift+Tab", activation="Enter")
+
+
 class KeyboardRunnerTests(unittest.TestCase):
     def test_gap_export_requires_saved_file_and_layout_receipt(self):
         keyboard = dict(status='passed', nativeKeyboard='passed', steps=12,
-                        escapeCancellation='passed', automaticDOM='passed')
+                        escapeCancellation='passed', automaticDOM='passed', shell=SHELL)
         export = dict(status='passed', savedBytes=1024, sha256='a' * 64, candidates=2,
                       selectedSnapshotRow=2, nativeActivation='Enter', table=dict(rows=9, columns=3, width=390))
         self.assertTrue(runner.valid_export_receipt(dict(gapExport=export)))
@@ -48,11 +51,13 @@ class KeyboardRunnerTests(unittest.TestCase):
 
     def test_native_success_requires_every_receipt_field(self):
         good = dict(status='passed', nativeKeyboard='passed', steps=12,
-                    escapeCancellation='passed', automaticDOM='passed')
+                    escapeCancellation='passed', automaticDOM='passed', shell=SHELL)
         self.assertTrue(runner.valid_receipt(good))
         for key in good:
             broken = {**good, key: None}
             self.assertFalse(runner.valid_receipt(broken), key)
+        for key in SHELL:
+            self.assertFalse(runner.valid_receipt({**good, 'shell': {**SHELL, key: None}}), key)
         self.assertFalse(runner.valid_receipt(dict(status='passed', nativeKeyboard='not-run')))
         with patch.object(runner.shutil, 'which', side_effect=lambda name: '/fixture/' + name), \
                 patch.object(runner, 'run_bounded', side_effect=[(0, '', ''), (0, json.dumps(good), '')]) as run, \

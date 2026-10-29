@@ -20,10 +20,14 @@ from tools.run_headless_playtest import run_bounded
 
 
 def valid_receipt(result):
+    shell = result.get('shell', {}) if isinstance(result, dict) else {}
     return (isinstance(result, dict) and result.get('status') == 'passed'
             and result.get('nativeKeyboard') == 'passed' and result.get('steps') == 12
             and result.get('escapeCancellation') == 'passed'
-            and result.get('automaticDOM') == 'passed')
+            and result.get('automaticDOM') == 'passed'
+            and isinstance(shell, dict) and shell.get('status') == 'passed'
+            and shell.get('sections') == 8 and shell.get('widths') == [1280, 390]
+            and shell.get('traversal') == 'Tab/Shift+Tab' and shell.get('activation') == 'Enter')
 
 
 def publish_captures(result, directory, artifact, output_root):

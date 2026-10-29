@@ -146,3 +146,41 @@ long identifiers therefore have an explicit column width to wrap within, rather
 than requesting their full unbroken intrinsic width. Sidebar link labels can also
 wrap within their navigation cells. Focused static/table contracts pass; this is
 a CSS implementation change, not evidence that a browser rendered it correctly.
+
+## Headless shell and export automation
+
+The existing isolated native runner now includes `verify_shell_navigation.cjs`:
+at widths 1280 and 390, it sends native Tab and Shift+Tab through all eight sidebar
+links, uses Enter to activate each, and requires the named section to receive
+focus and the matching fragment to be set. It also rejects page-level horizontal
+overflow. The receipt validator requires this shell result in addition to the
+existing assignment pager's Enter/Space/boundary and Escape-cancellation checks.
+
+Run on a host with the prerequisites already available:
+
+```
+python3 tools/run_keyboard_playtest.py --gap-export
+```
+
+The JSON export is a `data:application/json` download link, not a Blob/object URL.
+The existing native path activates it with Enter and compares the saved file to
+the displayed copy payload in a disposable directory. Standalone disk validation
+no longer labels itself native activation; that field is added only by the
+activation workflow. File-only verification cannot prove an Enter key occurred.
+
+Current evidence: synthetic shell-protocol tests reject wrong traversal,
+activation and overflow; export protocol/file tests reject missing, malformed,
+extra or symlinked files; Python tests reject incomplete native receipts and
+preserve runtime/isolation gates. All passed. These fabricated protocol results
+are **not** native browser evidence. No new artifact build was necessary for
+these runner-only changes.
+
+REA's connected browser-tool schema was also inspected using the
+`reverse-engineer-anything` runtime-observation guidance. It requires a
+caller-supplied executable or existing CDP endpoint; it does not supply an isolated
+browser here. No REA session, listener or browser was launched. The known missing
+Chromium / denied namespace setup was not retried or bypassed.
+
+Still needed on a suitable native host: the complete scripted keyboard/download
+run and actual appearance review (wrapping, clipping, focus visibility, desktop
+and narrow layouts). Alienware's occupied browser session has not been touched.

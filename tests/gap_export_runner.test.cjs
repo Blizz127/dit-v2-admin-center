@@ -13,6 +13,7 @@ const expected=JSON.stringify(report,null,2);
   assert.throws(()=>verifySavedReport(directory,expected));
   fs.writeFileSync(filename,expected);
   assert.equal(verifySavedReport(directory,expected).savedBytes,Buffer.byteLength(expected));
+  assert.equal(verifySavedReport(directory,expected).nativeActivation,undefined,'Disk validation alone is not native Enter evidence');
   fs.writeFileSync(path.join(directory,'partial.crdownload'),'unfinished');
   assert.throws(()=>verifySavedReport(directory,expected));fs.unlinkSync(path.join(directory,'partial.crdownload'));
   for(const bad of ['broken',JSON.stringify({...report,candidates:[{snapshotRow:2}]}),JSON.stringify({...report,extra:'Unexpected'})]){
@@ -33,6 +34,7 @@ const expected=JSON.stringify(report,null,2);
   assert.deepEqual(sent[0],{method:'Browser.setDownloadBehavior',params:{behavior:'allow',downloadPath:directory}});
   assert.ok(expressions.every(expression=>!expression.includes('.click(')));
   assert.equal(receipt.table.rows,9);assert.match(receipt.sha256,/^[a-f0-9]{64}$/);
+  assert.equal(receipt.nativeActivation,'Enter');
   console.log('PASS: fabricated gap-download protocol, file integrity and refusal contracts. Native browser NOT RUN.');
  } finally {fs.rmSync(root,{recursive:true,force:true});}
 })().catch(error=>{console.error(error);process.exitCode=1;});
