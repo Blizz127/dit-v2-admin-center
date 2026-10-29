@@ -157,6 +157,20 @@ home and preserves its file/socket/process guards. The generator is never invoke
 by the server. The standalone artifact includes the committed examples; the running
 service was not restarted. jsdom/native rendering is still unavailable, so these
 component results are not a native DOM, keyboard or browser appearance pass.
+
+Follow-up `8c6a76e` withholds requested changes for unknown event scope or a per-bot
+event containing multiple targets. `3ce29b1` and `b521ad0` add combined scope/outcome
+filters, a clear control and visible outcome classification separate from result
+text. Missing or wrongly typed outcome tags stay Unknown. Focused component checks
+cover filter persistence, empty results, missing-data recovery and zero additional
+requests from filtering; the fixture and static markup checks also passed.
+
+A fresh local inventory found no Chromium/Firefox executable, supported Node DOM
+or browser package, or standard Playwright/Puppeteer browser cache. The capture
+tool also requires an existing browser executable or CDP target. No download,
+browser launch or retry of the denied namespace setup was performed. Native DOM,
+keyboard and visual verification remain unrun.
+
 ### Interaction scope and artifact assembly — 2026-10-29
 
 `a293c05` fixes a reproduced presentation gap: an interaction row marked fresh

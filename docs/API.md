@@ -13,10 +13,15 @@ Missing/invalid fixture data is null and the UI reports Unknown coverage.
 
 Each event has `scopeKind` (`bot` or `all`), actor, reason, fictional time, attempted
 model, expected/before/after version and a result explicitly labeled simulated.
+The explicit `outcome` tag is `applied` or `rejected`; absent or other values are
+displayed and filtered as Unknown, independently of the result text. Scope and
+outcome filters combine locally and persist across snapshot refreshes.
 Its `changes` list contains explicit fictional game/realm/native-bot/purpose
 tuples, before/after requested models and null effective state. The UI does not
 join these keys to roster identities or infer effective routing. The all-bots
 example covers exactly its two listed fixture targets, not future registrations.
+Unknown scope kinds and per-bot events with anything other than one target withhold
+requested-change attribution. This is a presentation safeguard, not audit authentication.
 
 The third example is a rejected stale-version attempt with unchanged requested
 model and version. It is generated separately from the simulator's success-only

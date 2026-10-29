@@ -10,7 +10,8 @@ Admin model controls remain disabled; startup success is not gameplay proof.
 
 **New offline preview:** “Model-switch audit examples” shows per-bot, fixed
 all-bots and rejected stale-version cases in `build/inspector-playtest.html`.
-Use its scope filter to compare examples. Requested before/after values, attempted
+Combine its scope and outcome filters to compare examples; Clear filters restores
+all examples without a request. Missing outcome tags show Unknown. Requested before/after values, attempted
 model and effective state are separate; effective state remains Unknown. No model
 switch is enabled. The running service has not been restarted for this feature.
 Generate the artifact with `python3 tools/build_inspector_playtest.py`.
