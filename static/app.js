@@ -10,6 +10,7 @@ let healthVersion = 0;
 let interactionVersion = 0;
 let sessionVersion = 0;
 let selectedBotId = null;
+let replyBotId = null;
 let assignmentBotId = null;
 let assignmentPage = 0;
 let assignmentPages = 0;
@@ -26,6 +27,9 @@ function resetPanelSession() {
   sessionVersion++;
   currentSnapshot = null; loadedSource = null;
   selectedBotId = null; selectedLearningId = null;
+  replyBotId = null;
+  document.querySelector('#reply-correlation').value = '';
+  document.querySelector('#reply-count').textContent = 'Select a bot to view reply examples.';
   ledgerBotId = null; correlationFilter = '';
   document.querySelector('#correlation').value = '';
   document.querySelector('#ledger').replaceChildren();
@@ -516,6 +520,12 @@ function renderSafety() {
 function renderReplySource() {
   const panel = document.querySelector('#reply-source');
   panel.replaceChildren();
+  if (replyBotId !== selectedBotId) {
+    replyBotId = selectedBotId;
+    document.querySelector('#reply-correlation').value = '';
+  }
+  const count = document.querySelector('#reply-count');
+  count.textContent = 'Reply example count unknown.';
   if (!selectedBotId) { item(panel, 'No bot selected', 'Select a bot to inspect reply examples.', 'No live reply data is connected.'); return; }
   const bot = uniqueRecord(currentSnapshot.bots, selectedBotId);
   if (!Array.isArray(currentSnapshot.replyEvents) || currentSnapshot.replyEvents.some(r => !r || typeof r !== 'object' || Array.isArray(r))) {
@@ -523,7 +533,11 @@ function renderReplySource() {
   }
   const rows = currentSnapshot.replyEvents.filter(r => r.botId === selectedBotId);
   if (!bot || !rows.length) { item(panel, 'No matching reply evidence', 'Source, fallback and delivery are unknown.', 'Absence of records does not prove no reply occurred.'); return; }
-  rows.forEach(r => item(panel, `${bot.name} · ${routingText(r.wordingOrigin, 'Unknown source')}`, `Generation: ${routingText(r.generationStatus)} · Fallback: ${routingText(r.fallbackPolicy)} · Reason: ${routingText(r.fallbackReason, 'Not reported')}`, `Delivery: ${routingText(r.delivery)} · Verification: ${routingText(r.verification)} · Correlation: ${routingText(r.correlationId, 'unknown')} · ${routingText(r.source, 'Source unknown')} · Observed: ${routingText(r.observedAt, 'unknown')}`));
+  const correlation = document.querySelector('#reply-correlation').value.trim();
+  const filtered = rows.filter(r => !correlation || r.correlationId === correlation);
+  count.textContent = `Showing ${filtered.length} of ${rows.length} loaded examples for this bot; actual reply coverage is unknown.`;
+  if (!filtered.length) item(panel, 'No matching correlation', 'No loaded example matches this exact correlation ID for the selected bot.', 'This does not prove no reply occurred. Clear the filter to view all loaded examples.');
+  filtered.forEach(r => item(panel, `${bot.name} · ${routingText(r.wordingOrigin, 'Unknown source')}`, `Generation: ${routingText(r.generationStatus)} · Fallback: ${routingText(r.fallbackPolicy)} · Reason: ${routingText(r.fallbackReason, 'Not reported')}`, `Delivery: ${routingText(r.delivery)} · Verification: ${routingText(r.verification)} · Correlation: ${routingText(r.correlationId, 'unknown')} · ${routingText(r.source, 'Source unknown')} · Observed: ${routingText(r.observedAt, 'unknown')}`));
 }
 function renderOwnerAttention(data) {
   const panel = document.querySelector('#owner-attention');
@@ -873,6 +887,11 @@ async function load() {
 }
 form.addEventListener('submit', e => { e.preventDefault(); resetPanelSession(); token = document.querySelector('#token').value; document.querySelector('#token').value = ''; load(); });
 document.querySelector('#refresh').addEventListener('click', load);
+document.querySelector('#reply-correlation').addEventListener('input', () => { if (currentSnapshot) renderReplySource(); });
+document.querySelector('#reply-reset').addEventListener('click', () => {
+  document.querySelector('#reply-correlation').value = '';
+  if (currentSnapshot) renderReplySource();
+});
 document.querySelector('#assignment-prev').addEventListener('click', () => changeAssignmentPage(-1));
 document.querySelector('#assignment-next').addEventListener('click', () => changeAssignmentPage(1));
 document.querySelector('#audit-search').addEventListener('input', () => { if (currentSnapshot) renderAudit(); });
