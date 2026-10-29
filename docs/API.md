@@ -91,6 +91,23 @@ and retains Unknown for unsupported states or missing labels/timestamps.
 Malformed record structures or missing interaction identity reject the whole
 projection; a valid prefix is not presented as a complete successful response.
 
+### Timeout, partial-feed and recovery semantics
+
+`tests/test_offline_feed_recovery.py` connects the real reader, cache and overview
+merge using synthetic byte streams and an injected clock. Each refresh makes
+one attempt for each of the six game/view reads; no automatic retries or page
+continuations are implemented. Each opener call receives the existing three-second
+timeout; the test raises a synthetic timeout rather than measuring elapsed time.
+
+At 15-second cache expiry, a timeout, truncated JSON or malformed collection
+replaces that feed's old rows with explicitly synthetic fallback. Successful
+game/view slices survive independently. A complete empty roster clears that
+game's previous examples, while an invalid collection never returns its valid
+prefix as a complete page. Partial-feed results use the normal cache lifetime;
+a later explicit refresh after expiry can recover. Cached fetch timestamps are
+preserved; unavailable feeds have no fetch timestamp. These fixture checks do
+not establish upstream availability, pagination support or bot presence.
+
 ## Query and method rejection
 
 Overview accepts at most one `source` field; trace requires exactly one `gameId`

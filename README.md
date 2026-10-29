@@ -181,6 +181,16 @@ execution, visual appearance and deployed-service behavior remain unverified.
 
 ## Browser-free inspector integration
 
+To check timeout/partial-feed recovery through the reader, cache and merge:
+
+```sh
+timeout -k 2 10 python3 -m unittest discover -s tests -p test_offline_feed_recovery.py -v
+```
+
+Synthetic response bytes and an injected clock cover cache expiry, scoped
+fallback, empty collections, no automatic retries and later recovery. No hub,
+server, ledger or real credential is used; wall-clock timeouts are not measured.
+
 The quota background loop has a separate synthetic scheduling check:
 
 ```sh

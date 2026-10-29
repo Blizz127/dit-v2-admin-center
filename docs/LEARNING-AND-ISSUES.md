@@ -204,6 +204,14 @@ close after failure. Unknown fields do not erase valid neighbors, while invalid
 record structure/identity rejects the entire projection. Fixtures cover parser
 and cleanup behavior only, not actual upstream transport or game evidence.
 
+Recovery follow-up (`d31a909`): one focused reader/cache/merge scenario passed
+with a synthetic timeout, truncated JSON and an invalid partial learning list.
+Expired rows are replaced with labeled fallback; other successful feeds remain
+scoped, and a complete empty roster clears that game's rows. No retries occur
+inside the cache window; later expiry permits recovery. The clock and transport
+are injected, so elapsed-time behavior and actual hub availability remain
+unverified. No pagination contract or continuation requests were introduced.
+
 The extended connected check passed under a 25-second hard timeout. Bridge
 observation failures return 200 with Unknown fields; health projection/read
 failures return 502/503. These are deliberately different API semantics.
