@@ -202,6 +202,18 @@ within/across games, filter independence, existing-selection clearing, disabled
 inspection and unique-ID recovery using synthetic snapshots only. Identity is
 resolved against the full loaded list; display names do not establish a match.
 
+Inspector evidence navigation and partial linked records have focused checks:
+
+```sh
+timeout -k 2 15 node tests/ledger_scope.test.cjs
+timeout -k 2 15 node tests/issues_snapshot.test.cjs
+```
+
+Inspector episode links pin the bot ID as well as the correlation, with the pin
+shown above the ledger. Submitting a manual correlation search explicitly removes
+the pin; Show all restores the loaded examples. These are synthetic local view
+filters, not proof of live attribution or delivery.
+
 No local browser runtime was found during this checkpoint, so only generator,
 JavaScript syntax and simulated-DOM checks were run here. A browser PASS in the
 artifact is still needed to establish its real-browser runtime result.

@@ -134,6 +134,32 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+### Scoped ledger navigation and linked issues — 2026-10-29
+
+`984c577` fixes reproduced cross-bot broadening of an inspector's ledger link:
+matching only correlation ID could include another bot's rows or rows without
+bot identity. Inspector links now pin both the fixture-local bot ID and the
+correlation. The pin is shown in the ledger filter, requires a unique ID in the
+full loaded roster, and stays pinned when another bot is selected. Ambiguous or
+missing roster identity withholds scoped evidence. An explicit manual search
+clears the pin and searches across loaded rows; Show all, the FFXI evidence
+shortcut, session reset and a successful source change also clear it. The link
+itself makes no hub call and does not authenticate identity or establish delivery.
+
+`1c55feb` fixes missing/malformed ledger arrays closing the workspace and keeps
+valid scoped rows with Unknown coverage. Blank correlations offer no evidence
+link. `b1bce8e` applies partial-list handling to the issue list, its coverage and
+both linked inspector views. Malformed rows are omitted with Unknown total
+coverage, valid rows survive search, and missing metadata is typed Unknown text.
+Issue navigation flags require actual booleans; they enable only local navigation.
+
+The focused `ledger_scope.test.cjs` and `issues_snapshot.test.cjs` passed with
+synthetic snapshots, including shared correlations across bots, unscoped rows,
+identity ambiguity, explicit broad search, session reset, partial lists, filters
+and recovery. Selector/overview regression checks passed after the issue change;
+the source-race check passed after the ledger change. No real ledger, coordinator
+record, hub endpoint or game was accessed. Native rendering remains unverified.
+
 ### Ambiguous inspector identities — 2026-10-29
 
 `1030c4f` fixes a reproduced first-match attribution bug: two roster rows with
