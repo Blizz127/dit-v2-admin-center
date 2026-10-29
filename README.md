@@ -183,6 +183,19 @@ and stale bridge response handling. They read no coordinator ledger or service
 status and do not verify native browser appearance. The generated artifact
 contains the updated app; its empty histories now show Unknown coverage.
 
+Additional focused checks for partial async responses, learning inventories and
+the shipped cards' static naming/announcement markup:
+
+```sh
+timeout -k 2 15 node tests/async_partial_panels.test.cjs
+timeout -k 2 15 node tests/learning_inventory_snapshot.test.cjs
+timeout -k 2 15 python3 -m unittest tests.test_card_markup -v
+```
+
+The loader coverage map and remaining native accessibility boundaries are in
+`docs/LEARNING-AND-ISSUES.md`. Passing these checks is not a browser, screen-reader
+or live-data result.
+
 No local browser runtime was found during this checkpoint, so only generator,
 JavaScript syntax and simulated-DOM checks were run here. A browser PASS in the
 artifact is still needed to establish its real-browser runtime result.

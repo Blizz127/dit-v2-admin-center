@@ -134,6 +134,39 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+### Loader partial-data and text audit — 2026-10-29
+
+`d31c3ee` fixes a reproduced mixed-row failure in the async health, trace and
+interaction cards: a malformed row previously erased usable observations.
+Valid rows now remain with Unknown coverage. Missing lists do not become known
+zero counts; non-object payloads remain unavailable. Trace finality accepts only
+booleans; interaction switches/freshness remain strict flags, and nonfinite or
+negative ages are Unknown. No service presence, identity join or delivery is
+inferred. The focused async partial check and connected in-memory handler check
+passed. `d1972d9` fixes missing learning-plan/artifact arrays closing the workspace;
+its focused snapshot check passed for missing/mixed/partial records, game
+filtering, independent validation/adoption/outcome values and recovery.
+
+All five HTTP loader paths have offline coverage; this is not an exhaustive
+claim about every possible field or payload combination:
+
+| Loader | Partial/error coverage and source |
+| --- | --- |
+| Overview | `metrics_snapshot.test.cjs`, `coordinator_snapshot.test.cjs`, `learning_inventory_snapshot.test.cjs`, and `overview_failure.test.js`: actual refresh with synthetic snapshots; missing/mixed metadata, filters, selection clearing and recovery. Core roster/learning row schema permutations are not exhaustively covered. |
+| Trace | `async_partial_panels.test.cjs`: partial/mixed rows, unknown count, strict finality and recovery; `inspector_integration.test.js`: real in-memory handler, validation and 401/502/503. |
+| Interaction | Partial loader check plus connected integration with nine pinned generated snapshots, both freshness directions, off/empty/error/recovery. Native identity and deployment remain outside these checks. |
+| Hub health | Partial loader check plus connected empty/401/502/503/recovery checks. Reported state does not establish bot presence. |
+| Bridge | `bridge_view.test.js` and connected integration: partial fields, unknown/error clearing, stale-session rejection and recovery. No SSH is used. |
+
+`7c9969c` adds three passing static markup checks: unique IDs and valid reference
+targets, form-control names and card headings, nonpositive tabindex values,
+announcement markup for async results/login errors, and disabled model/stop
+controls. These checks inspect shipped HTML only. Text assertions in the focused
+loader tests reject `undefined` and object-string leakage while preserving
+Unknown caveats. Screen-reader announcements, keyboard defaults, focus visibility,
+visual layout and cross-panel navigation behavior still need native verification;
+this is not accessibility certification. No browser attempt was repeated.
+
 ### Coordinator and bridge partial records — 2026-10-29
 
 `b52937e` keeps both bridge cards readable when a response is partial or has
