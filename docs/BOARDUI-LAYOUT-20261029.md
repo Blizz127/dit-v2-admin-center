@@ -1,5 +1,8 @@
 # Admin Center layout redesign — October 29, 2026
 
+Current version map, pending native dependency and exact runner handoff:
+[Native verification gap](NATIVE-VERIFICATION-GAP.md).
+
 Owner task `4e9c2ab65b28`. The owner actually opened the earlier Alienware preview
 and reported that it looked good but needed a layout similar to BoardUI, while
 keeping the current color scheme. This is owner-reported visual feedback on

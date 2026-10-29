@@ -1,5 +1,6 @@
 """Runner contracts only; fabricated receipts are never native runtime evidence."""
 import io
+import hashlib
 import json
 import unittest
 from contextlib import redirect_stdout, redirect_stderr
@@ -59,9 +60,10 @@ class KeyboardRunnerTests(unittest.TestCase):
         for key in SHELL:
             self.assertFalse(runner.valid_receipt({**good, 'shell': {**SHELL, key: None}}), key)
         self.assertFalse(runner.valid_receipt(dict(status='passed', nativeKeyboard='not-run')))
+        stdout = io.StringIO()
         with patch.object(runner.shutil, 'which', side_effect=lambda name: '/fixture/' + name), \
                 patch.object(runner, 'run_bounded', side_effect=[(0, '', ''), (0, json.dumps(good), '')]) as run, \
-                patch.object(runner, 'build', return_value='<html>fixture</html>'), redirect_stdout(io.StringIO()):
+                patch.object(runner, 'build', return_value='<html>fixture</html>'), redirect_stdout(stdout):
             self.assertEqual(runner.main(), 0)
             command, timeout = run.call_args.args
             self.assertEqual(command[:5], ['/fixture/unshare', '--user', '--map-current-user', '--net', '--'])
@@ -69,6 +71,8 @@ class KeyboardRunnerTests(unittest.TestCase):
             self.assertTrue(command[6].endswith('/tools/keyboard_cdp.cjs'))
             self.assertEqual(timeout, 30)
             self.assertTrue(command[-1].endswith('/profile'))
+        self.assertEqual(json.loads(stdout.getvalue())['artifactSha256'],
+                         hashlib.sha256(b'<html>fixture</html>').hexdigest())
 
     def test_bad_receipt_or_failed_browser_is_redacted(self):
         for code, output in [(0, 'PRIVATE_BAD_JSON'), (0, '{"status":"passed"}'), (1, 'PRIVATE_BROWSER_ERROR')]:

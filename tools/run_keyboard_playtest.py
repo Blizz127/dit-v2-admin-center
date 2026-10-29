@@ -90,6 +90,7 @@ def main(screenshots=False, gap_export=False):
     with tempfile.TemporaryDirectory(prefix='dit-keyboard-') as directory:
         artifact = Path(directory) / 'playtest.html'
         artifact.write_text(build())
+        artifact_digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
         command = isolation + [node, str(ROOT / 'tools/keyboard_cdp.cjs'), browser,
                                str(artifact), str(Path(directory) / 'profile')]
         captures = Path(directory) / 'captures'
@@ -120,6 +121,7 @@ def main(screenshots=False, gap_export=False):
             except (ValueError, OSError, TypeError, AttributeError):
                 print('FAIL: screenshot set incomplete; no visual success claimed.', file=sys.stderr)
                 return 1
+        result['artifactSha256'] = artifact_digest
         print(json.dumps(result))
         return 0
 
