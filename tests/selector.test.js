@@ -249,6 +249,11 @@ setImmediate(async () => {
   assert.equal(get('bot-search').value, '');
   assert.match(get('bot-count').textContent, /Showing 2 of 2/);
   get('bots').children[0].children.find(child => child.tag === 'button').listeners.click();
+  const gameLearning = get('bot-inspector').children[0].children.find(child => child.tag === 'button');
+  assert.match(gameLearning.textContent, /FFXI game learning \(not bot-specific\)/);
+  get('learning-game').value = 'SWTOR'; get('learning-search').value = 'hidden';
+  gameLearning.listeners.click();
+  assert.equal(get('learning-game').value, 'FFXI'); assert.equal(get('learning-search').value, '');
   get('bot-search').value = 'missing'; get('bot-search').listeners.input();
   assert.match(get('bot-count').textContent, /Selected bot is outside this filtered roster/);
   const removedBot = data.bots.shift(); get('bot-search').listeners.input();

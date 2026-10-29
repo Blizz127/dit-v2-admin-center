@@ -292,6 +292,12 @@ function inspectBot(id) {
   const bot = currentSnapshot.bots.find(b => b.id === id);
   if (!bot) { panel.textContent = 'Selected bot is no longer in this snapshot.'; return; }
   item(panel, `${bot.name} · ${bot.game}`, rosterDetails(bot), `${bot.source} · Observed: ${bot.observedAt || 'unknown'}`);
+  if (['FFXI', 'SWTOR'].includes(bot.game)) {
+    const button = document.createElement('button'); button.type = 'button';
+    button.textContent = `View ${bot.game} game learning (not bot-specific)`;
+    button.addEventListener('click', () => showGameLearning(bot.game));
+    panel.lastElementChild.append(button);
+  }
   item(panel, 'Reported personality summary', routingText(bot.personalitySummary), `${bot.source} · Roster metadata, not proof of behavior`);
   const details = currentSnapshot.botDetails.find(d => d.botId === bot.id);
   if (!details) item(panel, 'Goals and memory', 'Unknown', 'No bot detail record in this view; missing data does not establish absence.');
@@ -506,13 +512,14 @@ document.querySelector('#issue-reset').addEventListener('click', () => {
   document.querySelector('#issue-selected-bot').checked = false;
   if (currentSnapshot) renderIssues();
 });
-document.querySelector('#ffxi-learning').addEventListener('click', () => {
+function showGameLearning(game) {
   for (const id of ['learning-status', 'learning-search']) document.getElementById(id).value = '';
   document.querySelector('#learning-attention').checked = false;
-  document.querySelector('#learning-game').value = 'FFXI';
+  document.querySelector('#learning-game').value = game;
   if (currentSnapshot) { renderLearningPlan(); renderLearningArtifacts(); renderLearning(); }
   document.querySelector('#learning').scrollIntoView({behavior: 'smooth', block: 'nearest'});
-});
+}
+document.querySelector('#ffxi-learning').addEventListener('click', () => showGameLearning('FFXI'));
 document.querySelector('#clear-learning').addEventListener('click', () => {
   selectedLearningId = null;
   const panel = document.querySelector('#learning-inspector');
