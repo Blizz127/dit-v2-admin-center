@@ -203,7 +203,28 @@ function inspectLearning(id) {
   if (!issues.length) item(panel, 'Related issues', 'No matching issue records in this view.', 'This does not establish a resolved learning gap.');
   issues.forEach(i => item(panel, `Related issue · ${i.title}`, `${i.status} · ${i.detail}`, `${i.source} · ${i.timeLabel || 'Updated'}: ${i.updatedAt || 'unknown'}`));
 }
-function renderLearningEvidence(need) {
+function mapLearningEvidence(need, review = null) {
+  const omitted = need.evidence === 'Not included';
+  const reason = omitted ? 'Light task response omits evidence.'
+    : need.evidence === 'Present' ? 'Task evidence is reported present, but no structured game assessment is supplied.'
+      : 'No structured game-evidence assessment is supplied.';
+  const scoped = review && review.kind === 'synthetic' && review.game === 'FFXI'
+    && need.game === 'FFXI' && typeof need.id === 'string' && review.learningId === need.id
+    && Array.isArray(review.assessments);
+  return ['identity', 'navigation', 'party', 'memory', 'policy'].map(criterion => {
+    const rows = scoped ? review.assessments.filter(row => row && row.criterion === criterion) : [];
+    const row = rows.length === 1 ? rows[0] : null;
+    const valid = row && ['supported', 'missing', 'conflicting'].includes(row.state)
+      && typeof row.source === 'string' && row.source.trim()
+      && typeof row.observedAt === 'string' && Number.isFinite(Date.parse(row.observedAt))
+      && typeof row.evidence === 'string' && row.evidence.trim();
+    return valid
+      ? {state: `${row.state} (synthetic)`, reason: row.evidence, provenance: `${row.source} · Observed: ${row.observedAt}`}
+      : {state: 'Unknown', reason: review ? 'Synthetic assessment absent, ambiguous or invalid for this scope.' : reason,
+        provenance: 'No verified game outcome inferred.'};
+  });
+}
+function renderLearningEvidence(need, review = null) {
   const panel = document.querySelector('#learning-evidence');
   panel.replaceChildren();
   if (!need) {
@@ -214,7 +235,8 @@ function renderLearningEvidence(need) {
     item(panel, 'FFXI checklist does not apply', 'This record needs its own game-specific evidence review.', 'FFXI evidence is not transferred to other games.');
     return;
   }
-  item(panel, `Evidence review · ${need.topic}`, 'Assessment: Unknown · No structured game-evidence assessment is connected.',
+  item(panel, `${review ? 'Synthetic mapping preview' : 'Evidence review'} · ${need.topic}`,
+    review ? 'Synthetic examples only · Not an assessment of the selected task or any bot.' : 'Assessment: Unknown · No structured game-evidence assessment is connected.',
     `Selected record: ${need.source || 'Unknown source'} · Updated: ${need.updatedAt || 'unknown'} · Task status is not a game outcome.`);
   const requirements = [
     ['Native identity', 'Verified native bot and realm, source and observation time; explicit roster mapping.'],
@@ -223,7 +245,20 @@ function renderLearningEvidence(need) {
     ['Grounded memory', 'Underlying verified fact, scope, source, time and evaluated recall.'],
     ['Policy improvement', 'Dataset provenance, policy version, validation, adoption and measured game outcomes.'],
   ];
-  requirements.forEach(([title, required]) => item(panel, title, 'Evidence state: Unknown', `Required for review: ${required}`));
+  const assessments = mapLearningEvidence(need, review);
+  requirements.forEach(([title, required], index) => {
+    const assessment = assessments[index];
+    item(panel, title, `Evidence state: ${assessment.state}`,
+      `${assessment.reason} · ${assessment.provenance} · Required for review: ${required}`);
+  });
+}
+function previewLearningEvidence() {
+  const need = {id: 'synthetic-review', game: 'FFXI', topic: 'Offline evidence mapping', source: 'Synthetic local example'};
+  renderLearningEvidence(need, {kind: 'synthetic', game: 'FFXI', learningId: need.id, assessments: [
+    {criterion: 'identity', state: 'supported', source: 'Synthetic identity fixture', observedAt: '2026-01-01T12:00:00Z', evidence: 'Example contains an explicit scoped identity mapping.'},
+    {criterion: 'navigation', state: 'missing', source: 'Synthetic navigation fixture', observedAt: '2026-01-01T12:00:00Z', evidence: 'Example has an accepted request but no subsequent position observation.'},
+    {criterion: 'party', state: 'conflicting', source: 'Synthetic party fixture', observedAt: '2026-01-01T12:00:00Z', evidence: 'Example observations disagree on the scenario outcome.'},
+  ]});
 }
 function renderLearningArtifacts() {
   const panel = document.querySelector('#learning-artifacts');
@@ -632,6 +667,10 @@ document.querySelector('#clear-learning').addEventListener('click', () => {
   panel.replaceChildren(); panel.textContent = 'Select a learning need for details.';
   renderLearningEvidence(null);
   if (currentSnapshot) updateLearningCount(filteredLearning());
+});
+document.querySelector('#learning-evidence-preview').addEventListener('click', previewLearningEvidence);
+document.querySelector('#learning-evidence-selected').addEventListener('click', () => {
+  renderLearningEvidence(currentSnapshot?.learning.find(need => need.id === selectedLearningId));
 });
 document.querySelector('#learning-game').addEventListener('change', () => { if (currentSnapshot) { renderLearningPlan(); renderLearningArtifacts(); renderLearning(); } });
 document.querySelector('#learning-status').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });

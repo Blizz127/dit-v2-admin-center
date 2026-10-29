@@ -259,6 +259,33 @@ setImmediate(async () => {
   get('clear-learning').listeners.click();
   assert.equal(evidence.children[0].children[0].textContent, 'No learning record selected');
   assert.equal(requestCount, beforeChecklist);
+  const need = {id: 'offline-review', game: 'FFXI', status: 'verified', evidence: 'Not included'};
+  assert.ok(context.mapLearningEvidence(need).every(row => row.state === 'Unknown' && /omits evidence/.test(row.reason)));
+  assert.ok(context.mapLearningEvidence({...need, evidence: 'Present'}).every(row => row.state === 'Unknown' && /reported present/.test(row.reason)));
+  const assessment = {criterion: 'identity', state: 'supported', source: 'Synthetic fixture', observedAt: '2026-01-01T12:00:00Z', evidence: 'Scoped mapping example'};
+  const review = {kind: 'synthetic', game: 'FFXI', learningId: need.id, assessments: [assessment]};
+  assert.equal(context.mapLearningEvidence(need, review)[0].state, 'supported (synthetic)');
+  for (const invalid of [
+    {...review, kind: 'live'}, {...review, game: 'SWTOR'}, {...review, learningId: 'other-task'},
+    {...review, assessments: [assessment, assessment]},
+    ...[{source: ''}, {observedAt: 'invalid'}, {evidence: ''}, {state: 'verified'}].map(change => ({...review, assessments: [{...assessment, ...change}]})),
+  ]) assert.ok(context.mapLearningEvidence(need, invalid).every(row => row.state === 'Unknown'));
+  get('learning-evidence-preview').listeners.click();
+  assert.match(evidence.children[0].children[0].textContent, /Synthetic mapping preview/);
+  assert.match(evidence.children[0].children[1].textContent, /Not an assessment of the selected task/);
+  assert.match(evidence.children[1].children[1].textContent, /supported \(synthetic\)/);
+  assert.match(evidence.children[2].children[1].textContent, /missing \(synthetic\)/);
+  assert.match(evidence.children[3].children[1].textContent, /conflicting \(synthetic\)/);
+  assert.equal(evidence.children[4].children[1].textContent, 'Evidence state: Unknown');
+  assert.equal(evidence.children[5].children[1].textContent, 'Evidence state: Unknown');
+  get('learning-evidence-selected').listeners.click();
+  assert.equal(evidence.children[0].children[0].textContent, 'No learning record selected');
+  context.inspectLearning('need-one');
+  get('learning-evidence-preview').listeners.click();
+  get('learning-evidence-selected').listeners.click();
+  assert.match(evidence.children[0].children[0].textContent, /Evidence review · Example FFXI/);
+  assert.ok(evidence.children.slice(1).every(row => row.children[1].textContent === 'Evidence state: Unknown'));
+  assert.equal(requestCount, beforeChecklist);
   data.learning[0].status = 'Unknown';
   delete data.learning[1].id;
   context.inspectLearning('need-one');

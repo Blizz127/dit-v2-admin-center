@@ -24,6 +24,16 @@ class ProjectionTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             project_learning({'gameId': 'ffxi'})
 
+    def test_present_task_evidence_does_not_supply_game_assessments(self):
+        task = {'id': 'one', 'gameId': 'ffxi', 'topic': 'Navigation', 'status': 'verified',
+                'evidence': {'private': 'raw-player-content', 'outcome': 'verified'},
+                'assessments': [{'criterion': 'identity', 'state': 'supported'}]}
+        row = project_learning({'gameId': 'ffxi', 'tasks': [task]})[0]
+        self.assertEqual(row['evidence'], 'Present')
+        self.assertEqual((row['datasets'], row['policy']), ('Unknown', 'Unknown'))
+        self.assertNotIn('assessments', row)
+        self.assertNotIn('raw-player-content', str(row))
+
 class RosterAndHealthTests(unittest.TestCase):
     def test_roster_registration_does_not_prove_presence(self):
         from r10_projection import project_roster
