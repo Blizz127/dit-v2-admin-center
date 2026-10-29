@@ -18,7 +18,9 @@ Generate the artifact with `python3 tools/build_inspector_playtest.py`.
 
 **Roster gap details:** expand Roster identity gap details in Loaded data coverage
 to inspect a missing/repeated-ID record and jump to its exact loaded roster row.
-Row links expire on refresh; ambiguous bot inspection stays disabled. The offline
+A side-by-side table compares all exact-ID candidates and marks differing fields;
+download or copy the allowlisted JSON gap report locally. Row links expire on
+refresh; ambiguous bot inspection stays disabled. The offline
 artifact leaves fictional gaps visible. See [playtest steps](static/playtest.html#roster-gap-guide).
 
 **Roster identity triage:** filter the loaded roster to unique IDs or missing/repeated

@@ -27,6 +27,12 @@ const exported=()=>{
  assert.deepEqual(report.differingFields,['game','level','source']);
  assert.equal(report.candidates[0].fields.level,0);assert.equal(report.candidates[0].fields.status,null);
  assert.equal(link.attributes.download,'roster-gap-row-1.json');
+ const region=get('roster-gap-detail').children.find(n=>n.attributes.role==='region');
+ assert.equal(region.attributes.tabindex,'0');assert.equal(region.attributes['aria-label'],'Roster gap candidate comparison');
+ const table=region.children[0],head=table.children[1],body=table.children[2];
+ assert.equal(head.children[0].children.length,3);
+ assert.ok(head.children[0].children.every(n=>n.attributes.scope==='col'));
+ assert.equal(body.children.length,9);assert.ok(body.children.every(row=>row.children[0].attributes.scope==='row'));
  assert.match(get('roster-gap-detail').textContent,/Snapshot row 1.*Snapshot row 2.*game \(differs\).*FFXI.*SWTOR/);
  assert.doesNotMatch(get('roster-gap-detail').textContent,/Different key|Other missing ID/);
  reviews()[2].listeners.click();({report}=exported());

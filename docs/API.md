@@ -393,3 +393,18 @@ and session reset invalidate it and any retained buttons. No new endpoint, entit
 identity mapping, evidence join or routing operation is added. Missing-ID and
 repeated-ID records remain unavailable for bot inspection. Malformed non-object
 rows report unavailable details and offer no roster link.
+
+## Local roster gap JSON export
+
+`dit-admin-roster-gap-report-v1` is generated from the loaded snapshot only. The
+local data-URL download and read-only copy field contain identical JSON. No export
+endpoint, filesystem write, upload or fetch occurs. Fields are
+`snapshotGeneratedAt`, `selectedSnapshotRow`, `reason`, `differingFields`,
+`candidates` (each with `snapshotRow` and allowlisted `fields`) and `limits`.
+Candidate fields: `id`, `name`, `game`, `status`, `character`, `level`, `bodyKind`,
+`source`, `observedAt`. Nonblank strings are retained; `level` also accepts
+nonnegative safe integers. Other values become null. Differences compare these
+normalized included fields only; excluded or malformed fields are not compared.
+A missing ID yields one candidate, never a display-name join. Row positions and
+reported time are not persistent identity or authenticated provenance. A saved
+report remains a copy of its original snapshot after the workspace refreshes.

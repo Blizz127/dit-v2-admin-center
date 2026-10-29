@@ -128,7 +128,13 @@ try {
   check(textOf('bot-count').includes('Showing 2 of 4') && [...document.querySelectorAll('#bots button')].every(button => button.disabled), 'Game filter does not make a repeated loaded ID inspectable');
   document.getElementById('bot-reset').click();
   check(identityFilter.value === '' && requests.length === beforeIdentityFilter, 'Clear roster filters resets identity triage without requests');
+  document.getElementById('bot-game').value = 'FFXI'; document.getElementById('bot-game').dispatchEvent(new Event('change'));
   document.querySelector('#roster-gaps button').click();
+  check(textOf('roster-gap-detail').includes('game (differs)') && textOf('roster-gap-detail').includes('Repeated SWTOR fixture'), 'Ambiguity table includes the candidate hidden by the game filter');
+  const exportLink = document.querySelector('#roster-gap-detail a');
+  const exportedGap = JSON.parse(decodeURIComponent(exportLink.getAttribute('href').split(',').slice(1).join(',')));
+  check(exportedGap.candidates.length === 2 && exportedGap.selectedSnapshotRow === 2 && exportedGap.differingFields.includes('game'), 'Local JSON export retains all candidate rows and differences');
+  check(document.querySelector('#roster-gap-detail textarea').value === JSON.stringify(exportedGap, null, 2), 'Copy field and downloadable JSON agree');
   const oldGapLink = document.querySelector('#roster-gap-detail button');
   oldGapLink.click();
   check(textOf('bot-count').includes('Showing 1 of 4') && textOf('bot-count').includes('Pinned snapshot row: 2'), 'Gap detail targets the exact snapshot roster row');

@@ -134,6 +134,28 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+### Ambiguity comparison and offline report — 2026-10-29
+
+The gap detail now compares every row sharing the exact selected loaded ID across
+the full snapshot, ignoring game/name filters. Candidate columns use snapshot row
+numbers; differing allowlisted fields are labeled. Missing IDs remain isolated to
+the selected row and are never grouped by name. No candidate is chosen as correct.
+
+The local JSON download and read-only copy field contain the same versioned report:
+reported snapshot time, selected row, reason, candidate rows, differing fields and
+explicit limits. Included fields are ID, name, game, status, character, level,
+body kind, source and observation time. Missing/malformed values become null;
+nonnegative integer level zero is preserved. Nested or unrelated fields such as
+tokens, goals, memory and reply evidence are omitted. This is a snapshot report,
+not authenticated provenance, an identity mapping or a portable routing instruction.
+
+Focused synthetic comparison/export and existing exact-row navigation checks
+passed. They cover game-hidden candidates, case-sensitive IDs, missing-ID
+isolation, equal fields, numeric zero, malformed values, excluded fields, JSON
+copy/download parity and refresh cleanup. Dynamic table header scopes and the named keyboard-focusable scroll region were checked structurally. The connected in-memory handler test also verifies candidate rows and differing fields in the rendered export. The artifact scripts report-content
+checks without initiating a download. Native browser rendering and download
+behavior remain unrun under the existing runtime/isolation limitation.
+
 ### Per-record roster gap details — 2026-10-29
 
 `1934d0d` adds record details for missing/repeated roster IDs and links each usable
