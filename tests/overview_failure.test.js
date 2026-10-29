@@ -64,6 +64,13 @@ const ctx = {document: {querySelector: s => get(s.slice(1)), getElementById: get
         {actor: 'Synthetic operator', action: 'AUDIT_EXAMPLE_A', scope: 'Fixture bot', result: 'Example only; no change applied', at: null, source: 'Synthetic audit fixture'},
         {actor: 'Synthetic operator', action: 'AUDIT_EXAMPLE_B', scope: 'Fixture network', result: 'Example rejected', at: 'fixture-time', source: 'Synthetic audit fixture'},
       ];
+      if (outcome === 'ffxi-summary') {
+        data.ffxiFocus = {closest: 'Synthetic FFXI candidate', whatToLookFor: 'Fixture speech observation',
+          toggle: 'No connected toggle', unverified: 'Delivery unknown', source: 'Synthetic dated project note'};
+        data.hubFeeds = [{game: 'FFXI', view: 'bots', status: 'Live response', at: 'fixture-time', note: 'Synthetic response fixture'}];
+      }
+      if (outcome === 'ffxi-partial') data.ffxiFocus = {closest: 'Synthetic partial note', toggle: false, source: '   '};
+      if (outcome === 'ffxi-missing') data.hubFeeds = [{game: 'SWTOR', view: 'bots', status: 'Live response', at: 'fixture-time', note: 'OTHER_GAME_FEED'}];
       return data;
     }};
   }};
@@ -214,5 +221,21 @@ function select() {
   assert.match(get('audit').textContent, /does not establish whether real admin actions occurred/);
   assert.match(get('audit').textContent, /no live audit source is connected/);
   assert.doesNotMatch(get('audit').textContent, /AUDIT_EXAMPLE/);
-  console.log('Overview/detail checks passed, including synthetic audit rows, unknown time, no invented actions, labeled failed refresh and explicit empty state. Simulated DOM only.');
+  await login('ffxi-summary');
+  assert.match(get('ffxi-focus').textContent, /Synthetic FFXI candidate.*Synthetic dated project note/);
+  assert.match(get('ffxi-focus').textContent, /Readiness must be confirmed by the owning lead/);
+  assert.match(get('ffxi-focus').textContent, /No connected toggle.*Delivery unknown/);
+  assert.match(get('ffxi-feeds').textContent, /FFXI · bots.*Not proof of game presence or delivery/);
+  outcome = 'ffxi-partial'; await get('refresh').listeners.click();
+  assert.match(get('ffxi-focus').textContent, /Source unknown/);
+  assert.equal(get('ffxi-focus').children[1].children[1].textContent, 'Unknown');
+  assert.equal(get('ffxi-focus').children[2].children[1].textContent, 'Unknown');
+  assert.equal(get('ffxi-focus').children[3].children[1].textContent, 'Unknown');
+  assert.doesNotMatch(get('ffxi-focus').textContent, /undefined|null|Synthetic FFXI candidate/);
+  outcome = 'ffxi-missing'; await get('refresh').listeners.click();
+  assert.match(get('ffxi-focus').textContent, /FFXI readiness unknown.*No readiness summary/);
+  assert.doesNotMatch(get('ffxi-focus').textContent, /Synthetic partial note/);
+  assert.match(get('ffxi-feeds').textContent, /FFXI feed coverage.*Unknown.*No FFXI feed status/);
+  assert.doesNotMatch(get('ffxi-feeds').textContent, /OTHER_GAME_FEED|Live response/);
+  console.log('Overview/detail checks passed, including FFXI readiness summary, partial/missing metadata and other-game feed isolation. Simulated DOM only.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

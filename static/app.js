@@ -565,11 +565,12 @@ async function load() {
     currentSnapshot = data;
     if (data.ffxiFocus) {
       const f = data.ffxiFocus, target = document.querySelector('#ffxi-focus');
-      item(target, 'Closest documented slice', f.closest, f.source);
-      item(target, 'What to look for', f.whatToLookFor, 'Readiness must be confirmed by the owning lead');
-      item(target, 'How to toggle', f.toggle, 'Read only');
-      item(target, 'Not yet verified', f.unverified, 'A bridge observation does not establish delivery');
-    }
+      item(target, 'Closest documented slice', routingText(f.closest), routingText(f.source, 'Source unknown'));
+      item(target, 'What to look for', routingText(f.whatToLookFor), 'Readiness must be confirmed by the owning lead');
+      item(target, 'How to toggle', routingText(f.toggle), 'Read only');
+      item(target, 'Not yet verified', routingText(f.unverified), 'A bridge observation does not establish delivery');
+    } else item(document.querySelector('#ffxi-focus'), 'FFXI readiness unknown',
+      'No readiness summary was supplied in this snapshot.', 'Confirm readiness with the owning lead; feed availability does not establish game behavior.');
     item(document.querySelector('#owner-attention'), 'Coverage', data.ownerAttention.coverage, 'Coordinator task board · Read only');
     if (!data.ownerAttention.items.length) item(document.querySelector('#owner-attention'), 'No records listed', 'Other owner decisions may be tracked elsewhere.', 'Not a complete decision inventory');
     data.ownerAttention.items.forEach(a => item(document.querySelector('#owner-attention'), a.title, a.project, `Created: ${a.createdAt} · Expires: ${a.expiresAt} · Coordinator approval record`));
