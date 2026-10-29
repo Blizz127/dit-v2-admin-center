@@ -181,6 +181,20 @@ execution, visual appearance and deployed-service behavior remain unverified.
 
 ## Browser-free inspector integration
 
+Overview failure and inspector reset checks:
+
+```sh
+timeout -k 2 15 node tests/overview_failure.test.js
+```
+
+What's new: a session reset now clears bot and learning inspector details as
+well as selected IDs. A 401 or malformed snapshot that interrupts rendering
+closes the workspace; re-login with an empty snapshot cannot show old details.
+An ordinary failed refresh instead retains the previous snapshot with its
+explicit stale-source banner. This uses actual app code, shipped template IDs
+and synthetic responses in a simulated DOM. No runtime toggle is added; the
+behavior applies on session reset. Browser rendering remains unverified.
+
 To check timeout/partial-feed recovery through the reader, cache and merge:
 
 ```sh

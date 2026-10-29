@@ -134,6 +134,14 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+Overview failure-state follow-up: session reset previously cleared selected IDs
+but left both inspector DOM panels populated. The panels now reset to selection
+prompts, preventing old details from reappearing after a later empty snapshot.
+`tests/overview_failure.test.js` passes for labeled previous-snapshot retention
+on HTTP 503 / transport / JSON failures, session closure on 401 / rendering
+failure, inspector/selection clearing and recovery. The existing async-session
+check also passed after this change. These use simulated DOMs, not browsers.
+
 Current connected coverage is in `tests/inspector_integration.test.js`; run it
 with the bounded command in README when changing a covered path. The entries
 below supersede the older incremental coverage counts farther down this section.
