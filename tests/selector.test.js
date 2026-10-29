@@ -31,6 +31,7 @@ setImmediate(async () => {
   assert.equal(get('safety-records').children.length, 1);
   assert.match(get('hub-banner').textContent, /Hub not configured.*synthetic fallback/);
   assert.match(get('hub-feeds').children[0].children[2].textContent, /Duplicate roster keys.*Synthetic fallback/);
+  assert.match(get('ffxi-feeds').children[0].children[2].textContent, /Synthetic fallback.*Fetched: unknown.*Not proof of game presence or delivery/);
   assert.match(get('spend-example').children[0].children[1].textContent, /Settled: \$0.00 · Open reservations: Unknown · Budget: Unknown/);
   assert.match(get('game-status').children[0].children[1].textContent, /XP rate: Unknown · Server liveness: Unknown/);
   assert.match(get('bot-coverage').children[0].children[2].textContent, /registration does not establish online presence/);
