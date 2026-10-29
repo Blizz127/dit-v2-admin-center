@@ -82,9 +82,13 @@ def read_views(reader, games=('ffxi', 'swtor')):
                     if not isinstance(data, list):
                         raise ValueError('invalid roster')
                     rows = []
+                    seen_keys = set()
                     for row in data:
                         if not isinstance(row, dict) or not all(isinstance(row.get(k), str) and row[k] for k in ('key', 'name')):
                             raise ValueError('invalid roster row')
+                        if row['key'] in seen_keys:
+                            raise ValueError('ambiguous roster key')
+                        seen_keys.add(row['key'])
                         def bounded(value, limit=128):
                             return value if isinstance(value, str) and 0 < len(value) <= limit and not any(ord(c) < 32 for c in value) else None
                         level = bounded(row.get('level'))

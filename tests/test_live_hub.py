@@ -125,6 +125,20 @@ class ProjectionTests(unittest.TestCase):
         self.assertEqual(len(result['learning']), 2)
         self.assertEqual(result['bots'][-1]['source'], 'Live')
 
+    def test_duplicate_roster_keys_fall_back_without_ambiguous_bots(self):
+        from live_hub import read_views, merge_views
+        class Reader:
+            def get(self, view, game):
+                if view != 'bots': raise HubReadError('Unavailable')
+                return ([{'key': 'duplicate', 'name': 'One'}, {'key': 'duplicate', 'name': 'Two'}], 'time')
+        live = read_views(Reader(), ('ffxi',))
+        self.assertNotIn('ffxi', live['bots'])
+        self.assertEqual(live['feeds'][0]['status'], 'Unavailable')
+        snapshot = {'bots': [{'id': 'mock', 'game': 'FFXI', 'source': 'Synthetic'}], 'learning': [], 'issues': [], 'gameStatus': []}
+        merged = merge_views(snapshot, live)
+        self.assertEqual(merged['bots'][0]['source'], 'Synthetic')
+        self.assertEqual(merged['mode'], 'mock')
+
     def test_roster_invalid_metadata_remains_unknown(self):
         from live_hub import read_views
         class Reader:
