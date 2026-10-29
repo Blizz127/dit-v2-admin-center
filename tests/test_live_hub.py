@@ -134,6 +134,8 @@ class ProjectionTests(unittest.TestCase):
         live = read_views(Reader(), ('ffxi',))
         self.assertNotIn('ffxi', live['bots'])
         self.assertEqual(live['feeds'][0]['status'], 'Unavailable')
+        self.assertIn('Duplicate roster keys', live['feeds'][0]['note'])
+        self.assertIn('Synthetic fallback', live['feeds'][0]['note'])
         snapshot = {'bots': [{'id': 'mock', 'game': 'FFXI', 'source': 'Synthetic'}], 'learning': [], 'issues': [], 'gameStatus': []}
         merged = merge_views(snapshot, live)
         self.assertEqual(merged['bots'][0]['source'], 'Synthetic')

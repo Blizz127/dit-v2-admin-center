@@ -22,6 +22,10 @@ class HubReadError(Exception):
     pass
 
 
+class AmbiguousRoster(ValueError):
+    pass
+
+
 class HubReader:
     def __init__(self, url, token_file, timeout=3):
         parsed = urllib.parse.urlsplit(url)
@@ -87,7 +91,7 @@ def read_views(reader, games=('ffxi', 'swtor')):
                         if not isinstance(row, dict) or not all(isinstance(row.get(k), str) and row[k] for k in ('key', 'name')):
                             raise ValueError('invalid roster row')
                         if row['key'] in seen_keys:
-                            raise ValueError('ambiguous roster key')
+                            raise AmbiguousRoster('ambiguous roster key')
                         seen_keys.add(row['key'])
                         def bounded(value, limit=128):
                             return value if isinstance(value, str) and 0 < len(value) <= limit and not any(ord(c) < 32 for c in value) else None
@@ -114,6 +118,9 @@ def read_views(reader, games=('ffxi', 'swtor')):
                     result['gameStatus'][game] = project_server_status(data, game, fetched)
                 result['feeds'].append({'game': game.upper(), 'view': view, 'status': 'Live response', 'at': fetched,
                                         'note': {'learning': 'Light task list; curriculum and evidence omitted; deployed revision unverified', 'bots': 'Registration only; presence, coverage and deployed revision unverified', 'server-status': 'Stored settings snapshot; not server liveness; deployed revision unverified'}[view]})
+            except AmbiguousRoster:
+                result['feeds'].append({'game': game.upper(), 'view': view, 'status': 'Unavailable', 'at': None,
+                                        'note': 'Duplicate roster keys; bot identity is ambiguous. Synthetic fallback; no current hub data.'})
             except (HubReadError, ValueError, TypeError, KeyError):
                 result['feeds'].append({'game': game.upper(), 'view': view, 'status': 'Unavailable', 'at': None,
                                         'note': 'Synthetic fallback; no current hub data'})
