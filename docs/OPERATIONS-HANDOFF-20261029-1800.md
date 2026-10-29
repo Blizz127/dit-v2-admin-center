@@ -55,3 +55,8 @@ with real sockets/processes/hub reads forbidden. Two generated-artifact asset/CS
 and JavaScript syntax checks passed after rebuilding the local preview at
 `75309cc`. The artifact hash is in `NATIVE-VERIFICATION-GAP.md`; no delivered
 Alienware file changed and no native browser pass is claimed.
+
+Freshness correction validation at `76fab1f`: six markup checks plus the isolated
+overview handler check passed; the regenerated artifact passed its two asset/CSP
+and JavaScript syntax checks. The tests reject the stale current five-game count
+and suffix claim. Receipt-time facts remain separate from current service status.
