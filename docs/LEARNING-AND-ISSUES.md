@@ -104,3 +104,11 @@ database connections and live readers are blocked. This covers handler dispatch
 and serialization, not real overview collection or browser execution. A bounded
 follow-up search of existing local node_modules trees found no reusable jsdom,
 happy-dom or linkedom package; no package was downloaded.
+
+The handler suite now has seven passing checks, adding interaction/health read
+failures and trace validation/projection. It exposed and fixed a local error
+ordering problem: malformed trace values returned 503 when configuration was
+missing. They now return 400 before constructing a reader. Authentication still
+runs first. Tests preserve non-final trace outcomes and omit raw bodies/private
+exception text. These results are in-process only; the running service has not
+been restarted or verified with this change.

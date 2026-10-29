@@ -12,7 +12,20 @@ Requires the owner token and configured hub access. On explicit request, reads t
 
 Requires the owner token and an explicitly configured hub URL and token file. Fetches an allowlisted read-only upstream trace only on explicit request. Accepts FFXI or SWTOR and a bounded identifier. Returns envelope kind, type, occurrence time and outcome classification/disposition/finality when reported; raw envelope bodies are omitted. At r10 the hub scans a bounded recent window and returns at most 250 records, so an empty result does not prove absence or delivery. Hub access is currently unconfigured pending the token-file decision.
 
+### Local trace validation and error ordering
+
+Owner authentication is checked first (401 on failure). The local trace route
+then requires exactly one `gameId` (`ffxi` or `swtor`) and one `correlationId`
+(1–128 ASCII letters, digits, underscore, dot, colon or hyphen), with no other
+query keys. Invalid requests return 400 before configuration lookup or reader
+construction, including when the hub is unconfigured. A valid request with
+missing configuration returns 503. Reader unavailability returns 503; malformed
+trace response data returns 502. Error bodies omit upstream exception text,
+token paths and raw evidence. These are local Admin Center statuses, not a claim
+about deployed upstream behavior.
+
 ## GET /api/interaction
+
 
 Owner authentication and configured hub access are required. On explicit request only, calls candidate e8c81be `GET /v1/control/interaction?limit=50`, an Admin-only route absent from r10. Source inspected: `InteractionAdminApi.Describe`, `FfxiInteraction.Views`, and `ActionLedger.Describe`; these read in-memory state and ledger copies without dispatch or switching. This does not establish the deployed revision. A 15-second cache preserves the original fetch time. The local route accepts no parameters or writes.
 
