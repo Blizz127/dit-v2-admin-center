@@ -8,6 +8,7 @@ from email.parser import BytesParser
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
+from unittest.mock import Mock
 
 import server
 from tools.build_inspector_playtest import snapshot
@@ -32,7 +33,7 @@ class OfflineInspectorHandlerTests(unittest.TestCase):
         # Also reject local listeners and subprocess-backed collectors.
         for target in ('socket.socket', 'socket.create_connection', 'subprocess.Popen',
                        'sqlite3.connect', 'server.BRIDGE.read', 'server.HUB_VIEWS.get',
-                       'server.HubReader'):
+                       'server.HubReader', 'server.HUB_HEALTH.get', 'server.HUB_INTERACTION.get'):
             guard = patch(target, side_effect=AssertionError('External dependency forbidden: ' + target))
             guard.start()
             self.addCleanup(guard.stop)
@@ -88,6 +89,59 @@ class OfflineInspectorHandlerTests(unittest.TestCase):
         status, _, _ = self.request(method='POST')
         self.assertEqual(status, 501)
         self.overview.assert_not_called()
+
+    def test_invalid_trace_values_rejected_before_configuration_or_reader(self):
+        with patch.dict('os.environ', {}, clear=True), patch('server.HubReader') as reader:
+            for query in ('gameId=other&correlationId=ok', 'gameId=ffxi&correlationId=',
+                          'gameId=ffxi&correlationId=bad%2Fid', 'gameId=ffxi&correlationId=' + 'x' * 129):
+                with self.subTest(query=query):
+                    status, _, _ = self.request('/api/trace?' + query)
+                    self.assertEqual(status, 400)
+            reader.assert_not_called()
+
+    def test_cached_views_validate_before_read_and_keep_errors_private(self):
+        configured = {'HUB_READONLY_URL': 'http://127.0.0.1:1', 'HUB_TOKEN_FILE': '/fixture/not-read'}
+        for route, target in (('/api/interaction', 'server.HUB_INTERACTION.get'),
+                              ('/api/hub-health', 'server.HUB_HEALTH.get')):
+            with self.subTest(route=route), patch(target) as read:
+                with patch.dict('os.environ', {}, clear=True):
+                    self.assertEqual(self.request(route)[0], 503)
+                    self.assertEqual(self.request(route + '?unexpected=1')[0], 400)
+                    self.assertEqual(self.request(route, token=None)[0], 401)
+                    read.assert_not_called()
+                with patch.dict('os.environ', configured, clear=True):
+                    for failure, status in ((ValueError('OMIT_PRIVATE_PATH'), 502),
+                                            (server.HubReadError('OMIT_PRIVATE_TOKEN'), 503)):
+                        read.side_effect = failure
+                        actual, headers, body = self.request(route)
+                        self.assertEqual(actual, status)
+                        self.assertEqual(headers['Cache-Control'], 'no-store')
+                        self.assertNotIn(b'OMIT_PRIVATE', body)
+                        self.assertNotIn(b'/fixture', body)
+                        self.assertEqual(set(json.loads(body)), {'error'})
+
+    def test_trace_projects_fixture_and_redacts_read_failures(self):
+        configured = {'HUB_READONLY_URL': 'http://127.0.0.1:1', 'HUB_TOKEN_FILE': '/fixture/not-read'}
+        raw = [{'kind': 'outcome', 'type': 'example.outcome', 'occurredAtUtc': '2026-01-01T12:00:00Z',
+                'body': json.dumps({'classification': 'queued_for_native_delivery', 'isFinal': False,
+                                    'private': 'OMIT_RAW_PLAYER_DATA'})}]
+        read = Mock(return_value=(raw, 'fixture-fetch-time'))
+        with patch.dict('os.environ', configured, clear=True), patch('server.HubReader', return_value=SimpleNamespace(trace=read)):
+            status, _, body = self.request('/api/trace?gameId=ffxi&correlationId=example:1')
+            self.assertEqual(status, 200)
+            read.assert_called_once_with('ffxi', 'example:1')
+            result = json.loads(body)
+            self.assertEqual(result['fetchedAt'], 'fixture-fetch-time')
+            self.assertIs(result['records'][0]['isFinal'], False)
+            self.assertNotIn(b'OMIT_RAW', body)
+            read.return_value = ({'invalid': 'OMIT_PRIVATE'}, 'fixture-fetch-time')
+            status, _, body = self.request('/api/trace?gameId=ffxi&correlationId=example:1')
+            self.assertEqual(status, 502)
+            self.assertNotIn(b'OMIT_PRIVATE', body)
+            read.side_effect = server.HubReadError('OMIT_PRIVATE_TOKEN')
+            status, _, body = self.request('/api/trace?gameId=ffxi&correlationId=example:1')
+            self.assertEqual(status, 503)
+            self.assertNotIn(b'OMIT_PRIVATE', body)
 
 
 if __name__ == '__main__':

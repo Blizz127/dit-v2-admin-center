@@ -16,7 +16,7 @@ from lead_timeline import add_checkout_history, add_current_evidence, monitoring
 from lead_activity import lead_activity
 from lead_binding import current_codex_binding
 from interaction_projection import project_interaction
-from live_hub import HubReadError, HubReader, merge_views, project_hub_health, project_spend, project_trace, read_views
+from live_hub import CORRELATION, HubReadError, HubReader, merge_views, project_hub_health, project_spend, project_trace, read_views
 from hub_cache import HubViewsCache
 from bridge_status import BridgeObserver
 from issue_evidence import bridge_fault_issue, pending_decision_issues
@@ -324,6 +324,9 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/trace":
                 query = parse_qs(urlsplit(self.path).query, keep_blank_values=True)
                 if set(query) != {'gameId', 'correlationId'} or any(len(v) != 1 for v in query.values()):
+                    self.send_content(400, "application/json", b'{"error":"invalid trace scope"}')
+                    return
+                if query['gameId'][0] not in ('ffxi', 'swtor') or not CORRELATION.fullmatch(query['correlationId'][0]):
                     self.send_content(400, "application/json", b'{"error":"invalid trace scope"}')
                     return
                 url, token_file = os.environ.get('HUB_READONLY_URL'), os.environ.get('HUB_TOKEN_FILE')
