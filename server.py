@@ -323,7 +323,12 @@ class Handler(BaseHTTPRequestHandler):
                     return
                 self.send_content(200, "application/json", json.dumps(result).encode())
             elif path == "/api/trace":
-                query = parse_qs(urlsplit(self.path).query, keep_blank_values=True)
+                try:
+                    query = parse_qs(urlsplit(self.path).query, keep_blank_values=True,
+                                     strict_parsing=True, errors='strict', max_num_fields=2)
+                except ValueError:
+                    self.send_content(400, "application/json", b'{"error":"invalid trace scope"}')
+                    return
                 if set(query) != {'gameId', 'correlationId'} or any(len(v) != 1 for v in query.values()):
                     self.send_content(400, "application/json", b'{"error":"invalid trace scope"}')
                     return
@@ -356,7 +361,12 @@ class Handler(BaseHTTPRequestHandler):
                     return
                 self.send_content(200, "application/json", json.dumps(BRIDGE.read()).encode())
             elif path == "/api/overview":
-                query = parse_qs(urlsplit(self.path).query, keep_blank_values=True)
+                try:
+                    query = parse_qs(urlsplit(self.path).query, keep_blank_values=True,
+                                     strict_parsing=True, errors='strict', max_num_fields=1)
+                except ValueError:
+                    self.send_content(400, "application/json", b'{"error":"invalid source"}')
+                    return
                 values = query.get('source', ['mock'])
                 if set(query) - {'source'} or len(values) != 1 or values[0] not in ('mock', 'hub'):
                     self.send_content(400, "application/json", b'{"error":"invalid source"}')

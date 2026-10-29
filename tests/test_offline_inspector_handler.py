@@ -101,6 +101,33 @@ class OfflineInspectorHandlerTests(unittest.TestCase):
                 self.assertEqual(json.loads(body), {'error': 'invalid source'})
         self.overview.assert_not_called()
 
+    def test_malformed_query_fields_fail_before_any_read(self):
+        cases = {
+            '/api/overview': ['source=mock&', '&source=mock', 'source=mock&&',
+                              'source', 'source=mock&source=mock', '%FF=mock',
+                              'source=mock&' + '&'.join('extra=x' for _ in range(30))],
+            '/api/trace': ['gameId=ffxi&correlationId=valid&', 'gameId=ffxi&&correlationId=valid',
+                          'gameId=ffxi&correlationId', 'gameId=ffxi&correlationId=%FF',
+                          'gameId=ffxi&correlationId=valid&extra=OMIT_PRIVATE_QUERY'],
+        }
+        with patch.dict('os.environ', {}, clear=True):
+            for route, queries in cases.items():
+                for query in queries:
+                    with self.subTest(route=route, query=query):
+                        status, _, body = self.request(route + '?' + query)
+                        self.assertEqual(status, 400)
+                        self.assertEqual(set(json.loads(body)), {'error'})
+                        self.assertNotIn(b'OMIT_PRIVATE', body)
+                        self.assertEqual(self.request(route + '?' + query, token='wrong')[0], 401)
+        self.overview.assert_not_called()
+
+    def test_valid_encoded_query_and_default_overview_keep_existing_behavior(self):
+        for path in ('/api/overview', '/api/overview?', '/api/overview?%73ource=mo%63k'):
+            self.assertEqual(self.request(path)[0], 200)
+        self.assertEqual([call.args for call in self.overview.call_args_list], [('mock',)] * 3)
+        with patch.dict('os.environ', {}, clear=True):
+            self.assertEqual(self.request('/api/trace?correlationId=fixture%3A1&gameId=ffxi')[0], 503)
+
     def test_mutation_method_is_rejected_before_collection(self):
         status, _, _ = self.request(method='POST')
         self.assertEqual(status, 501)
