@@ -93,3 +93,19 @@ return CLI exit 1 with no success receipt and no raw output disclosure.
 All six focused runner tests pass, including the malformed-width cases through
 the CLI's mocked browser boundary. No real browser was launched, no unchanged
 artifact was rebuilt, and no native verification status changed.
+
+## Ambiguous JSON receipt follow-up
+
+A separate offline reproducer showed that `json.loads` silently kept the last of
+two contradictory `status` keys, allowing that malformed receipt to validate.
+The parser now rejects duplicate keys at every depth (even identical duplicates),
+non-finite tokens and overflowing decimal/exponent numbers. It limits parsed
+receipt input to 64 KiB of UTF-8; this is a parser bound, not a claim about process
+output acquisition. Nested receipt validation still requires the existing fields.
+
+Seven focused runner tests pass, including contradictory top-level/nested keys,
+non-finite/overflowing numbers in otherwise ignored fields, the exact size boundary
+and multibyte oversize input. The CLI rejects each invalid receipt with exit 1,
+no success JSON and no raw-output disclosure. Existing width tests now expect
+non-finite JSON to be rejected by the parser before geometry validation. All of
+this evidence is offline/fabricated; no native run or device action occurred.

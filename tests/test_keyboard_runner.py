@@ -1,6 +1,7 @@
 """Runner contracts only; fabricated receipts are never native runtime evidence."""
 import io
 import hashlib
+import math
 import json
 import unittest
 from contextlib import redirect_stdout, redirect_stderr
@@ -13,6 +14,41 @@ SHELL = dict(status="passed", sections=8, widths=[1280, 390], traversal="Tab/Shi
 
 
 class KeyboardRunnerTests(unittest.TestCase):
+    def test_ambiguous_nonfinite_and_oversized_receipts_are_rejected(self):
+        good = dict(status='passed', nativeKeyboard='passed', steps=12,
+                    escapeCancellation='passed', automaticDOM='passed', shell=SHELL)
+        source = json.dumps(good)
+        self.assertEqual(runner.decode_receipt(source), good)
+        self.assertEqual(runner.decode_receipt('{"fraction":1.25}'), {'fraction': 1.25})
+        padded = source + ' ' * (runner.MAX_RECEIPT_BYTES - len(source.encode()))
+        self.assertEqual(runner.decode_receipt(padded), good)
+        bad = [
+            '{"status":"failed",' + source[1:],
+            '{"status":"passed",' + source[1:],
+            source.replace('"sections": 8', '"sections": 0, "sections": 8'),
+            source.replace('"width": 1280', '"width": 0, "width": 1280'),
+            source[:-1] + ',"unused":NaN}',
+            source[:-1] + ',"unused":Infinity}',
+            source[:-1] + ',"unused":-Infinity}',
+            source[:-1] + ',"unused":1e999}',
+            source[:-1] + ',"unused":-1e999}',
+            padded + ' ',
+            '{"private":"' + 'é' * (runner.MAX_RECEIPT_BYTES // 2) + '"}',
+        ]
+        for output in bad:
+            with self.subTest(bytes=len(output.encode())):
+                with self.assertRaises(ValueError):
+                    runner.decode_receipt(output)
+                stdout, stderr = io.StringIO(), io.StringIO()
+                with patch.object(runner.shutil, 'which', side_effect=lambda name: '/fixture/' + name), \
+                        patch.object(runner, 'run_bounded', side_effect=[(0, '', ''), (0, output, 'PRIVATE_STDERR')]), \
+                        patch.object(runner, 'build', return_value='<html>fixture</html>'), \
+                        redirect_stdout(stdout), redirect_stderr(stderr):
+                    self.assertEqual(runner.main(), 1)
+                self.assertEqual(stdout.getvalue(), '')
+                self.assertIn('Browser output withheld', stderr.getvalue())
+                self.assertNotIn('PRIVATE', stderr.getvalue())
+
     def test_export_width_refuses_malformed_values_without_crashing(self):
         keyboard = dict(status='passed', nativeKeyboard='passed', steps=12,
                         escapeCancellation='passed', automaticDOM='passed', shell=SHELL)
@@ -33,7 +69,9 @@ class KeyboardRunnerTests(unittest.TestCase):
                         redirect_stdout(stdout), redirect_stderr(stderr):
                     self.assertEqual(runner.main(gap_export=True), 1)
                 self.assertEqual(stdout.getvalue(), '')
-                self.assertIn('native gap download receipt incomplete', stderr.getvalue())
+                expected = ('Browser output withheld' if isinstance(width, float) and not math.isfinite(width)
+                            else 'native gap download receipt incomplete')
+                self.assertIn(expected, stderr.getvalue())
                 self.assertNotIn('PRIVATE', stderr.getvalue())
 
     def test_gap_export_requires_saved_file_and_layout_receipt(self):

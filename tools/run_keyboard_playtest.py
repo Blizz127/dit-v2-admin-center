@@ -4,6 +4,7 @@ No install, TCP listener, live data, persistent profile or sandbox bypass.
 Exit 2 means runtime/isolation blocked; exit 1 means incomplete/failed checks.
 """
 import json
+import math
 import argparse
 import hashlib
 import os
@@ -16,6 +17,34 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from tools.build_inspector_playtest import build
 from tools.run_headless_playtest import run_bounded
+
+MAX_RECEIPT_BYTES = 64 * 1024
+
+
+def decode_receipt(source):
+    """One bounded JSON receipt; duplicate claims are ambiguous even if identical."""
+    if not isinstance(source, str) or len(source) > MAX_RECEIPT_BYTES or len(source.encode('utf-8')) > MAX_RECEIPT_BYTES:
+        raise ValueError('Receipt exceeds parser budget')
+
+    def unique_fields(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError('Ambiguous receipt fields')
+            result[key] = value
+        return result
+
+    def reject_constant(_value):
+        raise ValueError('Non-finite receipt token')
+
+    def finite_float(value):
+        number = float(value)
+        if not math.isfinite(number):
+            raise ValueError('Receipt number overflow')
+        return number
+
+    return json.loads(source, object_pairs_hook=unique_fields, parse_constant=reject_constant,
+                      parse_float=finite_float)
 
 
 def valid_receipt(result):
@@ -109,7 +138,7 @@ def main(screenshots=False, gap_export=False):
             command.append(str(downloads))
         code, stdout, _ = run_bounded(command, 30)
         try:
-            result = json.loads(stdout) if not code else None
+            result = decode_receipt(stdout) if not code else None
         except (ValueError, RecursionError):
             result = None
         if not valid_receipt(result):
