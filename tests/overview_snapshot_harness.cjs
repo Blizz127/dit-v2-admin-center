@@ -36,4 +36,4 @@ async function refresh(changes){
   return get('model-calls').textContent;
 }
 
-module.exports = {get, refresh, snapshot};
+module.exports = {get, refresh, snapshot, context};

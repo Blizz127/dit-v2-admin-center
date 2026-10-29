@@ -216,6 +216,14 @@ function renderLeadTimeline() {
     events.forEach(e => item(group, `${routingText(e.kind)}: ${routingText(e.status)}`, routingText(e.at), routingText(e.source)));
   });
 }
+function recordsForId(rows, id) {
+  if (!Array.isArray(rows) || typeof id !== 'string' || !id.trim()) return [];
+  return rows.filter(row => row && typeof row === 'object' && !Array.isArray(row) && row.id === id);
+}
+function uniqueRecord(rows, id) {
+  const matches = recordsForId(rows, id);
+  return matches.length === 1 ? matches[0] : null;
+}
 function renderIssueCoverage() {
   const panel = document.querySelector('#issue-coverage');
   panel.replaceChildren();
@@ -232,7 +240,7 @@ function renderIssues() {
   const scope = document.querySelector('#issue-scope').value;
   const status = document.querySelector('#issue-status').value;
   const selectedOnly = document.querySelector('#issue-selected-bot').checked;
-  const selectedExists = selectedBotId !== null && currentSnapshot.bots.some(b => b.id === selectedBotId);
+  const selectedExists = selectedBotId !== null && Boolean(uniqueRecord(currentSnapshot.bots, selectedBotId));
   const query = (document.querySelector('#issue-search').value || '').trim().toLowerCase();
   panel.replaceChildren();
   const records = currentSnapshot.issues.filter(i => (!scope || i.scope === scope) && (!status || i.status === status) && (!selectedOnly || (selectedExists && i.botId === selectedBotId)) && (!query || `${i.title} ${i.detail}`.toLowerCase().includes(query)));
@@ -257,7 +265,7 @@ function renderIssues() {
       fix.textContent = `Suggested verification: ${i.suggestedFix}`;
       panel.lastElementChild.append(fix);
     }
-    if (i.botId && currentSnapshot.bots.some(b => b.id === i.botId)) {
+    if (i.botId && uniqueRecord(currentSnapshot.bots, i.botId)) {
       const button = document.createElement('button'); button.type = 'button';
       button.textContent = `Inspect bot for: ${i.title}`;
       button.addEventListener('click', () => {
@@ -452,9 +460,10 @@ function filteredBots() {
   return currentSnapshot.bots.filter(b => (!game || b.game === game) && (!query || b.name.toLowerCase().includes(query)));
 }
 function updateBotCount(bots) {
-  const selectedMissing = selectedBotId !== null && !currentSnapshot.bots.some(b => b.id === selectedBotId);
+  const selectedMissing = selectedBotId !== null && !Boolean(uniqueRecord(currentSnapshot.bots, selectedBotId));
+  const selectedAmbiguous = recordsForId(currentSnapshot.bots, selectedBotId).length > 1;
   const selectedHidden = selectedBotId !== null && !selectedMissing && !bots.some(b => b.id === selectedBotId);
-  document.querySelector('#bot-count').textContent = `Showing ${bots.length} of ${currentSnapshot.bots.length} loaded roster records; coverage and presence may be unknown.${selectedMissing ? ' Selected bot is no longer in the loaded data.' : selectedHidden ? ' Selected bot is outside this filtered roster; its inspector remains selected.' : ''}`;
+  document.querySelector('#bot-count').textContent = `Showing ${bots.length} of ${currentSnapshot.bots.length} loaded roster records; coverage and presence may be unknown.${selectedAmbiguous ? ' Selected bot identity is ambiguous; scoped inspection is unavailable.' : selectedMissing ? ' Selected bot is no longer in the loaded data.' : selectedHidden ? ' Selected bot is outside this filtered roster; its inspector remains selected.' : ''}`;
 }
 function renderBots() {
   const panel = document.querySelector('#bots');
@@ -471,7 +480,7 @@ function renderSafety() {
   if (!Array.isArray(rows) || rows.some(r => !r || typeof r !== 'object' || Array.isArray(r))) {
     item(panel, 'Safety example coverage unknown', 'No usable safety example list was supplied.', 'Actual gate and kill-switch states remain unknown.'); return;
   }
-  const selectedExists = selectedBotId !== null && currentSnapshot.bots.some(bot => bot.id === selectedBotId);
+  const selectedExists = selectedBotId !== null && Boolean(uniqueRecord(currentSnapshot.bots, selectedBotId));
   const scoped = rows.filter(r => r.botId === null || (typeof r.botId === 'string' && r.botId.trim()));
   if (scoped.length !== rows.length) item(panel, 'Safety example scope unknown', 'Unscoped examples are not attributed to this bot or the network.', 'Actual gate and kill-switch states remain unknown.');
   const records = scoped.filter(r => r.botId === null || (selectedExists && r.botId === selectedBotId));
@@ -482,7 +491,7 @@ function renderReplySource() {
   const panel = document.querySelector('#reply-source');
   panel.replaceChildren();
   if (!selectedBotId) { item(panel, 'No bot selected', 'Select a bot to inspect reply examples.', 'No live reply data is connected.'); return; }
-  const bot = currentSnapshot.bots.find(b => b.id === selectedBotId);
+  const bot = uniqueRecord(currentSnapshot.bots, selectedBotId);
   if (!Array.isArray(currentSnapshot.replyEvents) || currentSnapshot.replyEvents.some(r => !r || typeof r !== 'object' || Array.isArray(r))) {
     item(panel, 'Reply evidence coverage unknown', 'No usable reply example list was supplied.', 'Source, fallback and delivery remain unknown.'); return;
   }
@@ -539,7 +548,7 @@ function renderAssignments() {
   assignmentPages = 0;
   assignmentNavigation('Assignment example count unknown.');
   if (!selectedBotId) { assignmentPage = 0; assignmentNavigation('Select a bot to view loaded assignment examples.'); item(panel, 'No bot selected', 'Select a bot to view synthetic assignment examples.', 'Real assignment history is unavailable.'); return; }
-  const bot = currentSnapshot.bots.find(b => b.id === selectedBotId);
+  const bot = uniqueRecord(currentSnapshot.bots, selectedBotId);
   if (!Array.isArray(currentSnapshot.assignmentHistory) || currentSnapshot.assignmentHistory.some(a => !a || typeof a !== 'object' || Array.isArray(a))) {
     assignmentPage = 0; assignmentNavigation('Assignment example count unknown.');
     item(panel, 'Assignment example coverage unknown', 'No usable assignment example list was supplied.', 'Real assignment history is unavailable; no model changes are applied.'); return;
@@ -564,8 +573,10 @@ function inspectBot(id) {
   renderReplySource();
   const panel = document.querySelector('#bot-inspector');
   panel.replaceChildren();
-  const bot = currentSnapshot.bots.find(b => b.id === id);
-  if (!bot) { panel.textContent = 'Selected bot is no longer in this snapshot.'; return; }
+  const bot = uniqueRecord(currentSnapshot.bots, id);
+  if (!bot) { panel.textContent = recordsForId(currentSnapshot.bots, id).length > 1
+    ? 'Selected bot identity is ambiguous; no scoped details or evidence are attributed.'
+    : 'Selected bot is no longer in this snapshot.'; return; }
   item(panel, `${bot.name} · ${bot.game}`, rosterDetails(bot), `${bot.source} · Observed: ${bot.observedAt || 'unknown'}`);
   if (['FFXI', 'SWTOR'].includes(bot.game)) {
     const button = document.createElement('button'); button.type = 'button';
@@ -656,7 +667,9 @@ function botItem(bot) {
   const row = parent.lastElementChild;
   const inspect = document.createElement('button');
   inspect.type = 'button';
-  inspect.textContent = `Inspect ${bot.name}`;
+  const identified = Boolean(uniqueRecord(currentSnapshot.bots, bot.id));
+  inspect.disabled = !identified;
+  inspect.textContent = identified ? `Inspect ${bot.name}` : 'Inspect unavailable: missing or ambiguous identity';
   inspect.addEventListener('click', () => inspectBot(bot.id));
   row.append(inspect);
   const routingPanel = document.createElement('details');
