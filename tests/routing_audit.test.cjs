@@ -27,6 +27,12 @@ const {get,refresh,snapshot}=require('./overview_snapshot_harness.cjs');
  await refresh({routingAudit:[null,row,{}]});text=get('routing-audit').textContent;
  assert.match(text,/Target scope unknown or ambiguous/);assert.match(text,/fixture-b/);
  assert.doesNotMatch(text,/fixture-a|DO_NOT_ATTRIBUTE|DO_NOT_PROMOTE|undefined|\[object Object\]/);
+ for(const scopeKind of ['bot','unexpected',null]){
+   const invalid={...snapshot.routingAudit[1],scopeKind};
+   await refresh({routingAudit:[invalid]});
+   assert.match(get('routing-audit').textContent,/Event target scope unknown or inconsistent/);
+   assert.doesNotMatch(get('routing-audit').textContent,/Requested: .*→/);
+ }
  await refresh({});assert.match(get('routing-audit-count').textContent,/Showing 3 of 3/);
  console.log('PASS: read-only routing audit scopes, before/after requests, version zero, missing/mixed records, target ambiguity and recovery. Simulated DOM only.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

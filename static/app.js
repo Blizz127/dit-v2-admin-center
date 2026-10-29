@@ -573,6 +573,12 @@ function renderRoutingAudit() {
       `Version: ${version(row.beforeVersion)} → ${version(row.afterVersion)} · Expected version: ${version(row.expectedVersion)} · Recorded: ${routingText(row.at)} · ${routingText(row.source, 'Source unknown')}`);
     const group = panel.lastElementChild;
     const changes = observationRows(row.changes, group);
+    if (!['bot', 'all'].includes(row.scopeKind) || (row.scopeKind === 'bot'
+        && (!Array.isArray(row.changes) || row.changes.length !== 1))) {
+      item(group, 'Event target scope unknown or inconsistent', 'Requested changes withheld.',
+        'A per-bot example requires exactly one target; unknown scope is not an all-bots request.');
+      return;
+    }
     const key = change => {
       const scope = change.scope;
       return scope && ['game', 'realm', 'native_bot', 'purpose'].every(field => typeof scope[field] === 'string' && scope[field].trim())
