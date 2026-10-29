@@ -155,7 +155,26 @@ validation, recovery and Clear. No transport, token file, hub, database or
 listener is used. The overview collector remains stubbed, and browser-engine
 execution/layout remains unverified.
 
+## Connected interaction fixture coverage
+
+The browser-free integration command also passes the nine generated candidate
+snapshots through `project_interaction`, the actual in-memory HTTP handler and
+the actual interaction UI renderer with shipped-template IDs. The fixture
+adapter verifies each snapshot against its imported manifest before using it.
+Its cache lookup is injected; no real cache, token file or transport is used by
+this connected path. Reader/cache timing has separate offline contract coverage.
+
+Assertions preserve a fresh reconciled view with stale raw snapshot and an
+unknown reconciled activity with fresh raw snapshot, three distinct caller/server
+scopes for the same actor key, empty collection, hidden retained inventory when
+off, and the 50-actor truncation flag. Additional scenarios cover 401 before
+lookup, malformed projection (502), failed/missing configuration (503), recovery,
+no-request synthetic preview and source-change clearing. Raw requester data and
+private error canaries are omitted. These checks do not establish native roster
+identity, outcome delivery, a deployed revision or real-browser behavior.
+
 ## Client asynchronous response audit (2026-10-29)
+
 
 
 The browser uses a local session counter as well as each request's captured

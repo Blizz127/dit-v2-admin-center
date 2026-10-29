@@ -178,6 +178,15 @@ correlations are rejected locally with no request; later successful reads and
 Clear replace the previous state. Raw evidence and exception canaries never
 reach the UI. Fixture scenario selection is test-only, not an API parameter.
 
+Interaction coverage uses all nine pinned generated snapshots, verifying each
+artifact hash before projection. It checks both freshness directions, scoped
+actors, empty/off collection and truncation through the real handler and UI.
+The cache lookup is replaced with a pure fixture projection; this connected
+check does not exercise cache timing or HTTP transport. It also covers
+401/502/503 responses, recovery, no-request synthetic preview and clearing the
+panel on source change. Existing offline contract tests cover reader/cache
+behavior separately. No live endpoint is contacted by either test path.
+
 This uses a deliberately limited simulated DOM, not jsdom or a browser engine.
 It verifies data flow and event-handler behavior, not HTML layout, CSS, browser
 security or deployed collectors. It passed locally without a listener or any
