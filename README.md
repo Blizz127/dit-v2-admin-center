@@ -7,6 +7,10 @@ backup. Its 14:07:59 UTC readback confirms bridge/hub active, unchanged hashes
 and no fault marker; DONE/writer release is recorded. New queued replies and
 native speech remain unverified. See [the reconciled handoff](docs/FFXI-WIRE-ON-20261029.md).
 Admin model controls remain disabled; startup success is not gameplay proof.
+The [party greeting evidence checklist](docs/PARTY-GREETING-VERIFICATION.md) and
+`/playtest#party-greeting` separate owner input, a correlated queued reply and
+owner-reported native speech. Its review tool consumes local metadata only; it
+does not poll FFXI or authenticate a reported result.
 
 A web Admin Center for **DIT v2**, the platform for human-like game bots (the "neural network"). It manages the network and every bot from one place:
 

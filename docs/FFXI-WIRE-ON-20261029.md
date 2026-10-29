@@ -34,6 +34,9 @@ This receipt supersedes the earlier map-DONE/player-check/restart waits below.
 Those entries are historical sequencing records, not outstanding blockers.
 Admin Center performed no live action and reran no historical test suite to
 reconcile it. Model controls remain disabled. No second restart is requested.
+The next verification path is documented in
+[Party greeting verification](PARTY-GREETING-VERIFICATION.md); its synthetic
+review cases do not establish a real reply or speech result.
 
 ## Authority and ownership
 
