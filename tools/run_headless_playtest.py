@@ -8,21 +8,53 @@ import os
 from pathlib import Path
 import shutil
 import signal
+import selectors
 import subprocess
 import sys
 import tempfile
+import time
 from html.parser import HTMLParser
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools.build_inspector_playtest import build
 
 
-def run_bounded(command, timeout):
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                               text=True, start_new_session=True)
+def run_bounded(command, timeout, *, stdout_limit=2 * 1024 * 1024, stderr_limit=64 * 1024):
+    """Bound acquisition, including descendants holding either pipe open."""
+    if timeout <= 0 or any(type(limit) is not int or limit < 0 for limit in (stdout_limit, stderr_limit)):
+        raise ValueError('Invalid subprocess budget')
+    process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, start_new_session=True)
+    buffers = {'stdout': bytearray(), 'stderr': bytearray()}
+    deadline = time.monotonic() + timeout
     try:
-        stdout, stderr = process.communicate(timeout=timeout)
-        return process.returncode, stdout, stderr
+        with selectors.DefaultSelector() as selector:
+            for stream, name, limit in ((process.stdout, 'stdout', stdout_limit),
+                                        (process.stderr, 'stderr', stderr_limit)):
+                os.set_blocking(stream.fileno(), False)
+                selector.register(stream, selectors.EVENT_READ, (name, limit))
+            while selector.get_map():
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise RuntimeError('Headless command exceeded its deadline')
+                for key, _ in selector.select(remaining):
+                    name, limit = key.data
+                    try:
+                        # At the boundary, read just one extra byte to detect overflow.
+                        chunk = os.read(key.fd, min(65536, limit - len(buffers[name]) + 1))
+                    except BlockingIOError:
+                        continue
+                    if not chunk:
+                        selector.unregister(key.fileobj)
+                        continue
+                    if len(buffers[name]) + len(chunk) > limit:
+                        raise RuntimeError('Headless command exceeded its output budget')
+                    buffers[name].extend(chunk)
+        process.wait(timeout=max(0, deadline - time.monotonic()))
+        try:
+            return process.returncode, buffers['stdout'].decode('utf-8'), buffers['stderr'].decode('utf-8')
+        except UnicodeDecodeError:
+            raise RuntimeError('Headless command returned invalid UTF-8') from None
     except subprocess.TimeoutExpired:
         raise RuntimeError('Headless command exceeded its deadline') from None
     finally:
@@ -31,7 +63,14 @@ def run_bounded(command, timeout):
             os.killpg(process.pid, signal.SIGKILL)
         except ProcessLookupError:
             pass
-        process.communicate()
+        # Do not drain unbounded output during cleanup. Close our pipe ends and
+        # reap the owned parent with a separate finite cleanup allowance.
+        process.stdout.close()
+        process.stderr.close()
+        try:
+            process.wait(timeout=3)
+        except subprocess.TimeoutExpired:
+            raise RuntimeError('Headless process cleanup timed out') from None
 
 
 class Result(HTMLParser):

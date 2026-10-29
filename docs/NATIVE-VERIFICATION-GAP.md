@@ -109,3 +109,23 @@ and multibyte oversize input. The CLI rejects each invalid receipt with exit 1,
 no success JSON and no raw-output disclosure. Existing width tests now expect
 non-finite JSON to be rejected by the parser before geometry validation. All of
 this evidence is offline/fabricated; no native run or device action occurred.
+
+## Bounded process output acquisition
+
+The shared subprocess runner now reads both pipes incrementally under a single
+deadline. Native receipt stdout and stderr each have a 64 KiB acquisition budget;
+the separate DOM-dump runner allows 2 MiB stdout. Exceeding either budget fails
+with a generic error without returning captured content. UTF-8 decoding occurs
+after collection, so split multibyte sequences remain valid.
+
+Cleanup kills the owned process group, closes both pipes without draining them,
+and allows up to three seconds to reap the parent. A descendant retaining an open
+pipe cannot extend the acquisition deadline. This is process-group cleanup, not
+a claim to contain descendants that deliberately escape their group.
+
+Twenty focused capture/keyboard/headless-runner tests passed. Capture tests used
+disposable local Python processes for exact byte limits, overflow on either pipe,
+invalid UTF-8, closed-pipe timeouts and an inherited-pipe descendant. The latter
+check establishes that the descendant stopped executing; host orphan reaping is
+outside the runner. Browser-boundary tests remain mocked. No native browser,
+device action, live call or artifact rebuild was performed for this change.

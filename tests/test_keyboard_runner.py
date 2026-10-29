@@ -95,6 +95,7 @@ class KeyboardRunnerTests(unittest.TestCase):
                 self.assertEqual(command[-2], '')
                 self.assertTrue(command[-1].endswith('/downloads'))
                 self.assertEqual(timeout, 30)
+                self.assertEqual(run.call_args.kwargs['stdout_limit'], runner.MAX_RECEIPT_BYTES)
 
     def test_missing_browser_blocks_without_process_or_artifact(self):
         with patch.object(runner.shutil, 'which', return_value=None), \

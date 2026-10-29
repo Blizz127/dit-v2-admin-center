@@ -136,7 +136,7 @@ def main(screenshots=False, gap_export=False):
             downloads = Path(directory) / 'downloads'
             downloads.mkdir(mode=0o700)
             command.append(str(downloads))
-        code, stdout, _ = run_bounded(command, 30)
+        code, stdout, _ = run_bounded(command, 30, stdout_limit=MAX_RECEIPT_BYTES)
         try:
             result = decode_receipt(stdout) if not code else None
         except (ValueError, RecursionError):
