@@ -28,6 +28,14 @@ collapsible “FFXI learning evidence checklist (read-only)”. Assessment state
 remain Unknown even for a task marked verified; no manual completion or
 automatic outcome inference is connected.
 
+The Unknown state is traceable to the light task-only read, which omits task
+evidence. Even a task reporting evidence present lacks the five structured
+game assessments. An independent “Preview synthetic evidence mapping” displays
+supported, missing and conflicting examples plus absent-assessment Unknowns;
+it does not assess the selected task. Restore it with “Show selected need
+evidence”. The remaining integration gap is an authoritative, scoped assessment
+contract and authorized evidence, not promotion of a verified task status.
+
 The hub/adapter lead owns the evidence contracts and collection. Admin Center
 owns preserving scope, source, freshness and unknown states in its display.
 Do not create observations, run gameplay, ingest player records or activate a

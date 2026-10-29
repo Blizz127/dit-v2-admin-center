@@ -49,8 +49,8 @@ The proposed per-bot routing contract is in `dit-v2-release-20261027/custody/per
 ## Learning evidence checklist display
 
 The learning inspector includes a collapsible, read-only FFXI evidence checklist.
-It uses the selected loaded learning record only for game, topic, source and
-update time. Five evidence states remain Unknown because no structured native
+It uses the selected loaded learning record for game, topic, source, update time
+and evidence availability. Five evidence states remain Unknown because no structured native
 identity, navigation/mission outcome, party/job evaluation, grounded-memory
 evaluation or policy-outcome assessment is connected. A task marked verified
 does not change those states. Other games show an explicit non-applicable
@@ -59,3 +59,31 @@ message, and missing or cleared selections remove the prior context.
 This is client-side review guidance: it adds no endpoint, storage, request,
 mutation or inferred link to a bot. Filtering the task list retains the selected
 inspector as before; its existing hidden-selection notice still applies.
+
+### Why verified tasks still have Unknown game assessments
+
+`HubReader.get('learning', game)` sends `light=true&tasksOnly=true`. Candidate
+e8c81be `AdminCenter.cs` maps that response through `LightTask`, explicitly
+omitting evidence. `r10_projection.project_learning` preserves task status and
+reports evidence as `Not included`, `Present` or `Unknown`; it does not forward
+raw evidence or arbitrary assessment fields. Dataset and policy states remain
+Unknown. The UI now explains omitted evidence separately from evidence reported
+present without a structured assessment. Neither state supplies the five
+game-evidence assessments. Full-task reads are not added by this change.
+
+### Offline synthetic mapping example
+
+“Preview synthetic evidence mapping” replaces the checklist display with an
+independent local fixture, without changing task selection or fetching data.
+“Show selected need evidence” restores the selected record. The fixture models
+`identity`, `navigation`, `party`, `memory` and `policy` criteria. Each explicit
+example needs matching game/task scope, one assessment per criterion, an
+allowlisted state (`supported`, `missing`, `conflicting`), nonempty source and
+evidence text, and a parseable observation time. Missing, duplicate, invalid or
+mismatched entries remain Unknown. All mapped states are labeled synthetic;
+observation time does not imply current freshness. No assessment is derived from
+task status, counts, acceptance or presence of raw evidence.
+
+This fixture shape is local UI test data, not a proposed or implemented hub
+contract. A compatible authoritative evidence contract remains unresolved. The
+preview never reads a review object from a loaded task or enables any controls.
