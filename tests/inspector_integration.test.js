@@ -32,12 +32,15 @@ const context = {
     const result = JSON.parse(execFileSync('python3', ['tests/inspector_runtime_fixture.py'], {
       input: JSON.stringify({path, token: auth.slice(7), scenario}), encoding: 'utf8', timeout: 5000,
     }));
-    requests.push({path, status: result.status, traceCalls: result.traceCalls});
+    requests.push({path, status: result.status, traceCalls: result.traceCalls, interactionCalls: result.interactionCalls});
     assert.equal(result.headers['Cache-Control'], 'no-store');
     assert.equal(Number(result.headers['Content-Length']), Buffer.byteLength(result.body));
     assert.ok(!result.body.includes('OMIT_RAW_ANSWER_AND_PLAYER_DATA'));
     assert.ok(!result.body.includes('OMIT_RAW_TRACE_BODY'));
     assert.ok(!result.body.includes('OMIT_PRIVATE_READ_FAILURE'));
+    assert.ok(!result.body.includes('OMIT_PRIVATE_INTERACTION_FAILURE'));
+    assert.ok(!result.body.includes('OMIT_PRIVATE_INVALID'));
+    assert.ok(!result.body.includes('FixtureRequester'));
     return {ok: result.status === 200, status: result.status, json: async () => JSON.parse(result.body)};
   },
 };
@@ -119,5 +122,59 @@ const flush = () => new Promise(resolve => setImmediate(resolve));
   assert.match(get('hub-trace').textContent, /Final: false/);
   get('trace-clear').listeners.click();
   assert.equal(get('hub-trace').children.length, 0);
-  console.log('Browser-free integration passed: inspector login/fixtures/controls and trace pending, empty, 502/503 failures, local validation, recovery and clear. No listener or DOM library.');
+  const interaction = get('interaction-status');
+  const refreshInteraction = () => get('interaction-refresh').listeners.click();
+  const cases = [
+    ['contract-off-empty', 0], ['contract-off-retained', 0], ['contract-on-empty', 0],
+    ['fresh-snapshot', 1], ['fresh-snapshot-superseded-view', 1], ['fresh-mode-stale-snapshot', 1],
+    ['stale-mode-and-snapshot', 1], ['same-actor-distinct-scopes', 3], ['limit-50-truncated', 50],
+  ];
+  for (const [name, count] of cases) {
+    scenario = 'interaction:' + name;
+    await refreshInteraction();
+    assert.equal(requests.at(-1).status, 200, name);
+    assert.equal(requests.at(-1).interactionCalls, 1, name);
+    assert.ok(interaction.textContent.includes(`${count} returned FFXI actors`), name);
+    assert.match(interaction.textContent, /deployed revision unverified/);
+    if (name.startsWith('contract-off')) {
+      assert.match(interaction.textContent, /contract is reported off; no current bot inventory/);
+      assert.doesNotMatch(interaction.textContent, /fixture-bot/);
+    }
+    if (name === 'contract-on-empty') assert.match(interaction.textContent, /No FFXI actor records returned/);
+    if (name === 'fresh-mode-stale-snapshot') assert.match(interaction.textContent, /Reconciled view: Reported fresh.*Activity: following.*Raw snapshot: Reported stale/);
+    if (name === 'fresh-snapshot-superseded-view') assert.match(interaction.textContent, /Reconciled view: Reported stale.*Activity: Unknown.*Raw snapshot: Reported fresh/);
+    if (name === 'stale-mode-and-snapshot') assert.match(interaction.textContent, /Activity: Unknown.*Raw snapshot: Reported stale/);
+    if (name === 'same-actor-distinct-scopes') {
+      const rows = interaction.children.slice(3);
+      assert.equal(rows.length, 3);
+      assert.equal(new Set(rows.map(row => row.children[0].textContent)).size, 1);
+      assert.deepEqual(rows.map(row => row.children[2].textContent.match(/^Scope: (.*?) · Raw/)[1]).sort(),
+        ['fixture-adapter / fixture-other-server', 'fixture-adapter / fixture-server', 'fixture-other-caller / fixture-server']);
+    }
+    if (name === 'limit-50-truncated') assert.match(interaction.textContent, /Truncated: Yes/);
+  }
+  for (const [failure, status, calls] of [['interaction-malformed', 502, 1], ['interaction-unavailable', 503, 1], ['interaction-unconfigured', 503, 0]]) {
+    scenario = failure;
+    await refreshInteraction();
+    assert.equal(requests.at(-1).status, status);
+    assert.equal(requests.at(-1).interactionCalls, calls);
+    assert.match(interaction.textContent, /Interaction view unavailable/);
+    assert.doesNotMatch(interaction.textContent, /fixture-bot|fixture-interaction-fetch|OMIT_/);
+  }
+  scenario = 'interaction:fresh-snapshot';
+  vm.runInNewContext("token = 'synthetic-expired-token'", context);
+  await refreshInteraction();
+  assert.equal(requests.at(-1).status, 401);
+  assert.equal(requests.at(-1).interactionCalls, 0);
+  vm.runInNewContext("token = 'fixture-token'", context);
+  await refreshInteraction();
+  assert.match(interaction.textContent, /Activity: idle/);
+  const beforePreview = requests.length;
+  get('interaction-preview').listeners.click();
+  assert.match(interaction.textContent, /Synthetic interaction preview/);
+  assert.equal(requests.length, beforePreview);
+  get('data-source').value = 'mock';
+  await get('data-source').listeners.change();
+  assert.equal(interaction.textContent, 'Not requested.');
+  console.log('Browser-free integration passed: inspector and trace, plus nine pinned interaction snapshots, 401/502/503, recovery, preview and source reset. No listener or DOM library.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
