@@ -8,7 +8,8 @@ from unittest.mock import patch
 from tools import run_keyboard_playtest as runner
 
 
-SHELL = dict(status="passed", sections=8, widths=[1280, 390], traversal="Tab/Shift+Tab", activation="Enter")
+SHELL = dict(status="passed", sections=8, widths=[1280, 390], traversal="Tab/Shift+Tab", activation="Enter",
+             coverage=[dict(width=1280, cards=3, layout='columns'), dict(width=390, cards=3, layout='stacked')])
 
 
 class KeyboardRunnerTests(unittest.TestCase):

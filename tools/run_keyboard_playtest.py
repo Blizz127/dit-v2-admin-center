@@ -27,7 +27,9 @@ def valid_receipt(result):
             and result.get('automaticDOM') == 'passed'
             and isinstance(shell, dict) and shell.get('status') == 'passed'
             and shell.get('sections') == 8 and shell.get('widths') == [1280, 390]
-            and shell.get('traversal') == 'Tab/Shift+Tab' and shell.get('activation') == 'Enter')
+            and shell.get('traversal') == 'Tab/Shift+Tab' and shell.get('activation') == 'Enter'
+            and shell.get('coverage') == [dict(width=1280, cards=3, layout='columns'),
+                                          dict(width=390, cards=3, layout='stacked')])
 
 
 def publish_captures(result, directory, artifact, output_root):

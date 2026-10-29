@@ -32,6 +32,10 @@ python3 tools/run_keyboard_playtest.py --gap-export
 This generates a private temporary artifact/profile, uses anonymous debugging
 pipes, and has a 30-second process deadline. It checks sidebar Tab/Shift+Tab,
 Enter-to-section focus/fragment at 1280 and 390 pixels, page horizontal overflow,
+and measured coverage-card bounds (three non-overlapping columns at 1280, one
+stack at 390, all within the horizontal viewport). Coverage geometry is required
+in the validated receipt; source breakpoint declarations alone cannot satisfy it.
+The same command also checks
 assignment pager Enter/Space/boundaries, Escape cancellation, and native JSON
 download with saved-file/copy equality. Exit 2 is blocked; exit 1 is incomplete or
 failed. Neither is a pass. `--screenshots` additionally captures the existing
@@ -53,6 +57,9 @@ sandbox removal, new listener or occupied-profile reuse is part of this handoff.
 - Export schema/types, differing fields, allowlisted values, copy/link parity.
 - Fabricated native-protocol and file-refusal tests; receipt fields must be
   complete. These tests validate the runner, not a real keyboard or browser.
+- Coverage-geometry validation tested with fabricated rectangles, including
+  missing/zero/non-finite/out-of-bounds/overlapping cards and the wrong desktop
+  arrangement. Passing these refusal tests does not establish real page geometry.
 
 The cross-panel follow-up in `f5ef79e` covers FFXI shortcuts, issue observation and
 owner-summary links, exact-bot ledger links, and roster-gap detail/return links.
