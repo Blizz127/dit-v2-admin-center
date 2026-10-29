@@ -25,7 +25,7 @@ const ctx = {document: {querySelector: s => get(s.slice(1)), getElementById: get
   sessionStorage: {getItem: k => storage.get(k), setItem: (k, v) => storage.set(k, v), removeItem: k => storage.delete(k)},
   fetch: async path => {
     if (path === '/api/bridge-status') return {ok: true, json: async () => ({unit: 'unknown', source: 'Synthetic'})};
-    assert.equal(path, '/api/overview?source=mock');
+    assert.ok(['/api/overview?source=mock', '/api/overview?source=hub'].includes(path));
     if (outcome === 'transport') throw new Error('OMIT_PRIVATE_TRANSPORT');
     if (outcome === '401' || outcome === '503') return {ok: false, status: Number(outcome)};
     return {ok: true, json: async () => {
@@ -37,6 +37,15 @@ const ctx = {document: {querySelector: s => get(s.slice(1)), getElementById: get
         data.bots[0].name = 'NEW_BOT_DETAIL';
         data.learning[0].topic = 'NEW_LEARNING_DETAIL';
         data.learning[0].status = 'failed';
+      }
+      if (outcome === 'ordered' || outcome === 'reordered') {
+        const names = outcome === 'ordered' ? ['Zulu', 'Alpha', 'Mike'] : ['Mike', 'Zulu', 'Alpha'];
+        data.bots = names.map(name => ({...fixture.bots[0], id: name, name, game: name === 'Alpha' ? 'SWTOR' : 'FFXI'}));
+        data.learning = names.map(name => ({...fixture.learning[0], id: name, topic: name, game: name === 'Alpha' ? 'SWTOR' : 'FFXI'}));
+      }
+      if (outcome.startsWith('unavailable')) {
+        data.hubFeeds = [{game: 'All', view: 'hub', status: 'Unavailable', at: null, note: 'Synthetic fallback; no current hub data'}];
+        if (outcome === 'unavailable-empty') { data.bots = []; data.learning = []; }
       }
       return data;
     }};
@@ -102,5 +111,38 @@ function select() {
   get('clear-bot').listeners.click(); get('clear-learning').listeners.click();
   assert.doesNotMatch(get('bot-count').textContent, /Selected bot/);
   assert.doesNotMatch(get('learning-count').textContent, /Selected need/);
-  console.log('Overview state checks passed: failure/session recovery plus filter persistence, updated selected records, missing selections and explicit clear. Simulated DOM only.');
+  get('bot-reset').listeners.click(); get('learning-reset').listeners.click();
+  await login('ordered');
+  const headings = id => get(id).children.map(row => row.children[0].textContent);
+  assert.deepEqual(headings('bots'), ['Zulu · FFXI', 'Alpha · SWTOR', 'Mike · FFXI']);
+  assert.deepEqual(headings('learning'), ['FFXI · Zulu', 'SWTOR · Alpha', 'FFXI · Mike']);
+  assert.match(get('bot-count').textContent, /Showing 3 of 3/);
+  assert.match(get('learning-count').textContent, /Showing 3 of 3/);
+  get('bot-game').value = 'FFXI'; get('bot-game').listeners.change();
+  get('learning-game').value = 'FFXI'; get('learning-game').listeners.change();
+  assert.deepEqual(headings('bots'), ['Zulu · FFXI', 'Mike · FFXI']);
+  assert.deepEqual(headings('learning'), ['FFXI · Zulu', 'FFXI · Mike']);
+  outcome = 'reordered'; await get('refresh').listeners.click();
+  assert.deepEqual(headings('bots'), ['Mike · FFXI', 'Zulu · FFXI']);
+  assert.deepEqual(headings('learning'), ['FFXI · Mike', 'FFXI · Zulu']);
+  get('bot-reset').listeners.click(); get('learning-reset').listeners.click();
+  assert.deepEqual(headings('bots'), ['Mike · FFXI', 'Zulu · FFXI', 'Alpha · SWTOR']);
+  assert.deepEqual(headings('learning'), ['FFXI · Mike', 'FFXI · Zulu', 'SWTOR · Alpha']);
+  get('data-source').value = 'hub'; outcome = 'unavailable';
+  await get('data-source').listeners.change(); await settle();
+  assert.equal(get('workspace').hidden, false);
+  assert.match(get('hub-banner').textContent, /partially or fully unavailable.*synthetic fallback/);
+  assert.match(get('hub-feeds').textContent, /Unavailable.*Synthetic fallback.*Fetched: unknown/);
+  assert.match(get('bots').textContent, /Synthetic fixture/);
+  outcome = 'unavailable-empty'; await get('refresh').listeners.click();
+  assert.match(get('hub-banner').textContent, /partially or fully unavailable/);
+  assert.match(get('bots').textContent, /No matching roster records.*does not establish that a bot is offline/);
+  assert.match(get('learning').textContent, /No matching learning entries.*Coverage is unknown/);
+  assert.match(get('bot-count').textContent, /Showing 0 of 0/);
+  assert.match(get('learning-count').textContent, /Showing 0 of 0/);
+  await login('503');
+  assert.equal(get('workspace').hidden, true);
+  assert.equal(get('error').textContent, 'Could not load the workspace.');
+  assert.equal(storage.size, 0);
+  console.log('Overview state checks passed: snapshot order/filter persistence, unavailable-source fallback and empty states, plus failure/session recovery. No sort or pagination controls exist. Simulated DOM only.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
