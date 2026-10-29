@@ -23,6 +23,11 @@ behavior only; it cannot close a game-learning gap.
 | Is a social memory grounded? | The specific verified fact, its source/scope/time, and evaluation of recall without invented events or cross-player attribution. | Plausible dialogue or an unverified memory example. |
 | Did a dataset or policy improve behavior? | Dataset provenance and scope, policy version, separate validation and adoption records, and measured outcomes for a defined scenario. | A completed learning task, available weights or deployment alone. |
 
+The workspace learning inspector now exposes these five requirements in the
+collapsible “FFXI learning evidence checklist (read-only)”. Assessment states
+remain Unknown even for a task marked verified; no manual completion or
+automatic outcome inference is connected.
+
 The hub/adapter lead owns the evidence contracts and collection. Admin Center
 owns preserving scope, source, freshness and unknown states in its display.
 Do not create observations, run gameplay, ingest player records or activate a

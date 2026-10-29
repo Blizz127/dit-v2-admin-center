@@ -45,3 +45,17 @@ The source's main listener leaves `/v1/health`, `/v1/games`, `/v1/status`, `/v1/
 The e8c81be candidate adds interaction and knowledge-use APIs; their presence is candidate-only and does not establish live deployment. Per-bot model switching and complete spend attribution are not implemented in either handoff revision.
 
 The proposed per-bot routing contract is in `dit-v2-release-20261027/custody/per-bot-model-routing-draft.md`. It is design only: no read or write endpoint has been agreed or implemented. Future UI must preserve verified identity and requested versus effective state, report unavailable/stale reasons, and never infer per-bot routing or attributed cost from current global provider and ledger data. Blizz approved the design draft; model controls remain disabled pending the hub implementation and separate authorization for live changes.
+
+## Learning evidence checklist display
+
+The learning inspector includes a collapsible, read-only FFXI evidence checklist.
+It uses the selected loaded learning record only for game, topic, source and
+update time. Five evidence states remain Unknown because no structured native
+identity, navigation/mission outcome, party/job evaluation, grounded-memory
+evaluation or policy-outcome assessment is connected. A task marked verified
+does not change those states. Other games show an explicit non-applicable
+message, and missing or cleared selections remove the prior context.
+
+This is client-side review guidance: it adds no endpoint, storage, request,
+mutation or inferred link to a bot. Filtering the task list retains the selected
+inspector as before; its existing hidden-selection notice still applies.
