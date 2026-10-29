@@ -76,6 +76,31 @@ activation, UI import, live access or competing implementation was performed.
 Retained emulator roll behavior is not retail odds, and the unknown skill-20
 catch benefit must not be inserted into skill-up calculations.
 
+Follow-up artifact review: `STUDY_MODEL.md`, `fishing-study-model.json`,
+`fishing-study-local-match.json` and `fishing-study-review.html` now preserve
+the four display rows separately from the complete original non-row envelope.
+Independent read-only comparisons confirmed that the original draft bytes
+still have the hash above, all rows and envelope fields are unchanged, and the
+canonical row/draft/model hashes match their bindings. The three local receipt
+files still match their byte hashes and recorded source hash. The canonical
+draft hash differs from the file-byte hash by design; these identify different
+serializations, not different reviewed content.
+
+Static HTML inspection confirmed all four topics and provenance/restriction
+fields, with no scripts, forms, controls or resource references. Browser
+appearance was not tested. This separate artifact addresses preservation for
+offline review; it does not change the current Admin renderer or implement an
+import contract. Hashes establish consistency, not authenticity or permission.
+Source identity, deployment and retail remain unverified, skill-20 remains
+null, and import/registration/activation/game-write restrictions remain false.
+
+The adjacent `reel-outcomes-check.json` records eight boundary cases and 1,000
+deterministic grid cells; those checks were not rerun. Its fictional input
+partitions are not retail probabilities or proof of RNG independence. Prior
+chance calculation, session authorization and client delivery remain outside
+that receipt. No FFXI script, preview, compiler, browser, listener or live
+service was run for this follow-up; the full-linker hold is unchanged.
+
 ## SWTOR — second
 
 
