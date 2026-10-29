@@ -34,6 +34,7 @@ function resetPanelSession() {
   document.querySelector('#correlation').value = '';
   document.querySelector('#ledger').replaceChildren();
   document.querySelector('#ledger-filter').textContent = 'No ledger snapshot loaded in this session.';
+  document.querySelector('#ledger-count').textContent = 'Ledger example count unknown.';
   assignmentBotId = null; assignmentPage = 0; assignmentPages = 0;
   assignmentNavigation('Select a bot to view loaded assignment examples.');
   for (const [id, prompt] of [['bot-inspector', 'Select a bot to inspect.'],
@@ -463,6 +464,8 @@ async function loadHubTrace(correlation) {
 function renderLedger() {
   const panel = document.querySelector('#ledger');
   panel.replaceChildren();
+  const count = document.querySelector('#ledger-count');
+  count.textContent = 'Ledger example count unknown.';
   document.querySelector('#ledger-filter').textContent = correlationFilter
     ? `Synthetic ledger filter applied: ${correlationFilter}.${ledgerBotId !== null ? ' Pinned bot ID: ' + ledgerBotId + '.' : ''} Game selection applies to hub trace only.`
     : 'Synthetic ledger: all loaded examples. Game selection applies to hub trace only.';
@@ -470,8 +473,12 @@ function renderLedger() {
     item(panel, 'Pinned bot identity unavailable or ambiguous', 'Scoped evidence is Unknown.', 'No first record or unscoped correlation match is selected.');
     return;
   }
-  const records = observationRows(currentSnapshot.ledger, panel).filter(e => (!correlationFilter || e.correlationId === correlationFilter)
+  const supplied = currentSnapshot.ledger;
+  const rows = observationRows(supplied, panel);
+  const complete = Array.isArray(supplied) && rows.length === supplied.length;
+  const records = rows.filter(e => (!correlationFilter || e.correlationId === correlationFilter)
     && (ledgerBotId === null || e.botId === ledgerBotId));
+  count.textContent = `Showing ${records.length} of ${complete ? rows.length : 'Unknown total'} loaded ledger examples${ledgerBotId !== null ? ' with bot scope applied' : ''}. Actual evidence coverage is unknown.`;
   if (!records.length) item(panel, 'No matching evidence', 'No records in this mock snapshot.', 'This is not proof that an action did or did not occur.');
   records.forEach(e => item(panel, `${routingText(e.bot)} · ${routingText(e.request)}`, `Result: ${routingText(e.result)} · Verification: ${routingText(e.verification)}`, `Correlation: ${routingText(e.correlationId)}`));
 }
