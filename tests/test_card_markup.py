@@ -95,6 +95,16 @@ class CardMarkupTests(unittest.TestCase):
             self.assertIn(value, text)
         self.assertFalse(any(n.tag in ('a', 'button', 'input', 'form') for n in panel.descendants()))
 
+    def test_ax41_retirement_keeps_reported_dependency_separate_from_completion(self):
+        panel = self.by_id['ax41-retirement']
+        self.assertIn(self.by_id['view-operations'], list(panel.ancestors()))
+        text = panel.text()
+        for value in ('trinitycore', '5:45 PM CT', 'WoW Forever wake controller',
+                      'still routed through AX41', 'Retirement completion:', 'Unknown',
+                      'does not establish that every AX41 dependency has moved'):
+            self.assertIn(value, text)
+        self.assertFalse(any(n.tag in ('a', 'button', 'input', 'form') for n in panel.descendants()))
+
     def test_model_and_operational_controls_remain_disabled(self):
         for identity in ('global-model', 'global-model-toggle'):
             node = self.by_id[identity]
