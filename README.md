@@ -53,6 +53,37 @@ The same command also runs all nine hub-generated candidate snapshots through
 the reader, projection and cache. The [pinned fixture bundle](tests/fixtures/interaction-generated/README.md)
 includes provenance and needs no sister checkout, hub, listener or .NET build.
 
+## Offline inspector browser playtest
+
+Build a standalone HTML file without starting or contacting a server:
+
+```sh
+python3 tools/build_inspector_playtest.py
+```
+
+Open `build/inspector-playtest.html` locally in a browser. It embeds the actual
+workspace HTML, CSS and JavaScript plus Python-projected synthetic learning
+fixtures. Its header starts at **NOT RUN**, then reports **PASS** or **FAIL**
+after automatic real-DOM inspector, preview, restore and clear checks. Reload
+the file to repeat, or use the displayed inspector manually. No token entry,
+account or feature activation is needed.
+
+The harness replaces fetch with two in-memory fixture responses, disables
+polling, uses temporary in-memory session storage, and blocks network resources
+and form submission with CSP. Other requests fail. It does not test the HTTP
+server, authentication, a deployed revision or live gameplay. The generated
+file is an ignored local artifact; rebuilding incorporates current source.
+
+Generator checks (not browser execution):
+
+```sh
+timeout -k 3 20 python3 -m unittest discover -s tests -p test_inspector_playtest.py -v
+```
+
+No local browser runtime was found during this checkpoint, so only generator,
+JavaScript syntax and simulated-DOM checks were run here. A browser PASS in the
+artifact is still needed to establish its real-browser runtime result.
+
 ## Security
 
 - Owner-only token auth for now.

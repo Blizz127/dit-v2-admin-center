@@ -76,3 +76,14 @@ evidence handoff when one arrives; record missing fields rather than infer them.
 No initial setup task needs to be restarted. Further live integration remains
 behind the existing access hold; model controls remain off. Evidence handoffs
 can still be reconciled offline without changing those holds.
+
+## Offline inspector runtime coverage
+
+`tools/build_inspector_playtest.py` builds a standalone, network-blocked browser
+harness from the actual static assets and projected synthetic learning fixtures.
+It exercises the inspector's real DOM events when opened in a browser; its
+initial state is NOT RUN, never a pre-recorded pass. Generator tests and the
+existing simulated-DOM checks passed locally. Browser execution remains
+unverified because no local browser runtime was found; the artifact can be
+opened on the owner's laptop without a tunnel, server or credentials. This
+does not establish the running service's status or close game-evidence gaps.
