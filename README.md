@@ -170,6 +170,14 @@ preview/restore/clear with no extra reads. The overview collector and bridge
 observation are synthetic; real sockets, subprocess-backed collectors, databases
 and live readers are blocked in the Python fixture adapter.
 
+The same command also drives the trace form through the actual handler and
+`project_trace` using an injected synthetic reader. It checks pending/non-final
+evidence, empty results, invalid response data (502), unavailable or unconfigured
+reads (503), and an expired owner token (401 before the reader). Invalid
+correlations are rejected locally with no request; later successful reads and
+Clear replace the previous state. Raw evidence and exception canaries never
+reach the UI. Fixture scenario selection is test-only, not an API parameter.
+
 This uses a deliberately limited simulated DOM, not jsdom or a browser engine.
 It verifies data flow and event-handler behavior, not HTML layout, CSS, browser
 security or deployed collectors. It passed locally without a listener or any

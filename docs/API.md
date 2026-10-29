@@ -142,7 +142,21 @@ This fixture shape is local UI test data, not a proposed or implemented hub
 contract. A compatible authoritative evidence contract remains unresolved. The
 preview never reads a review object from a loaded task or enables any controls.
 
+## Connected trace fixture coverage
+
+`tests/inspector_integration.test.js` now covers the trace form end to end
+within the offline harness: shipped template IDs and actual app handlers,
+in-memory Python HTTP dispatch, injected synthetic reader, real trace
+projection, JSON serialization and simulated-DOM rendering. Pending outcomes
+remain non-final, empty results do not establish absence of actions, and error
+states replace previous trace data. Cases cover 401 before reader invocation,
+502 invalid response, 503 read failure/missing configuration, local correlation
+validation, recovery and Clear. No transport, token file, hub, database or
+listener is used. The overview collector remains stubbed, and browser-engine
+execution/layout remains unverified.
+
 ## Client asynchronous response audit (2026-10-29)
+
 
 The browser uses a local session counter as well as each request's captured
 token. Login submission increments the counter even if the token text is the
