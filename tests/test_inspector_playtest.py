@@ -61,6 +61,10 @@ class InspectorPlaytestTests(unittest.TestCase):
         self.assertIn("script-src 'sha256-" + digest + "'", doc.csp)
         self.assertIn('NOT RUN', html)
         self.assertNotIn('OMIT_RAW_ANSWER_AND_PLAYER_DATA', html)
+        self.assertIn('harness-provenance', doc.ids)
+        for name, digest in harness.source_fingerprints().items():
+            self.assertIn(name, html)
+            self.assertIn(digest, html)
 
     def test_snapshot_uses_actual_projection_without_accounts_or_server(self):
         rows = harness.snapshot()['learning']

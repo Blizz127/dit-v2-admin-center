@@ -2,6 +2,7 @@
 import argparse
 import base64
 import hashlib
+import html as html_escape
 import json
 from pathlib import Path
 import sys
@@ -31,6 +32,13 @@ def snapshot():
     return result
 
 
+def source_fingerprints():
+    paths = ('static/index.html', 'static/style.css', 'static/app.js',
+             'r10_projection.py', 'tests/fixtures/learning-evidence-e8c81be.json',
+             'tools/inspector_playtest.js', 'tools/build_inspector_playtest.py')
+    return {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in paths}
+
+
 def build():
     html = (ROOT / 'static/index.html').read_text()
     css = (ROOT / 'static/style.css').read_text()
@@ -48,6 +56,9 @@ def build():
     html = html.replace('<script src="/app.js" defer></script>', '')
     html = html.replace('<link rel="stylesheet" href="/style.css">', '<style>' + css + '</style>')
     html = html.replace('<body>', '<body><section class="panel" id="harness-results" aria-live="polite"><h1>Offline synthetic inspector playtest</h1><p id="harness-status">NOT RUN — waiting for browser JavaScript.</p><ol id="harness-checks"></ol><p>No server, token file, account or game is used. All data is synthetic. Browser results apply only to this artifact, not the running service. Reload this file to rerun.</p></section>', 1)
+    fingerprints = html_escape.escape(json.dumps(source_fingerprints(), indent=2))
+    provenance = '<details id="harness-provenance"><summary>Artifact source fingerprints</summary><p>SHA256 of local inputs at generation; not a deployment revision or browser result.</p><pre>' + fingerprints + '</pre></details>'
+    html = html.replace('<ol id="harness-checks"></ol>', '<ol id="harness-checks"></ol>' + provenance, 1)
     html = html.replace('</body>', '<script>' + script + '</script></body>')
     return html
 
