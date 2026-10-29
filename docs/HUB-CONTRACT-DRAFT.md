@@ -35,6 +35,35 @@ results, not independently rerun here or evidence of live endpoint availability.
 Model controls remain off. This reconciliation grants no activation, deployment,
 credential or write authority.
 
+### Generated fixture reconciliation (2026-10-29)
+
+The hub lead supplied `dit-human-behavior-platform` commits `a311fd3` then
+`b9e404e`, with nine generated candidate snapshots in
+`tools/ffxi/interaction_admin/fixtures`. The adjacent README contains commands,
+provenance and limits; `MANIFEST.json` identifies the fixture artifacts and
+`consumer-pins.json` pins the actual Admin Center projection, reader and cache.
+Those three module hashes match this checkout, and all ten manifest artifact
+hashes match (nine snapshots plus the in-process route-check record).
+
+Both freshness directions agree with the existing integration: a fresh mode
+can yield `fresh=true` with `snapshotFresh=false`; a newer accepted receipt can
+supersede a one-second-old raw snapshot, yielding `snapshotFresh=true` with
+`fresh=false`. The latter must keep projected activity unknown. Neither an
+accepted receipt nor a fresh raw snapshot establishes execution or delivery.
+The existing offline reader fixture already exercises both directions, so no
+duplicate fixture suite or consumer implementation is added here.
+
+The hub lead reports seven checks against the hash-pinned consumer modules
+passed. This reconciliation checked artifact and consumer hashes and inspected
+the coverage; it did not rerun those checks or regenerate the bundle. GET,
+Admin authorization and limit checks invoked the candidate request delegate
+in-process without a listener. The generator uses unchanged e8c81be endpoint
+source with a cached offline library containing separate provenance changes,
+not a fresh release build or a deployed HTTP stack. All snapshots are synthetic.
+The endpoint remains absent from r10; deployed revision and live availability
+remain unverified. No live read, activation, model or control change is
+authorized by this handoff.
+
 ## Proposed routing read model
 
 A route is scoped by adapter-verified `(gameId, realmId, nativeBotId, purpose)`. Identity must not be inferred from a display name; a group turn requires a verified selected speaker. A read-only result should distinguish requested and effective provider/model, policy version, source, observed timestamp, readiness and unavailable/stale reason. An unknown rate, allowance, budget, identity, credentials or provider state is not healthy or zero. Treat the following as an illustrative field sketch, not an existing endpoint or agreed wire schema:
