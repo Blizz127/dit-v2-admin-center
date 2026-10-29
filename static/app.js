@@ -580,6 +580,16 @@ function renderModelCalls() {
     `Latency: ${metricNumber(c.latencyMs) ? c.latencyMs + ' ms' : 'Unknown'} · Cost: ${metricNumber(c.cost) ? c.cost : 'Unknown'} · Quality: ${metricNumber(c.quality) ? c.quality : 'Unknown'}`,
     `${routingText(c.source, 'Source unknown')} · Observed: ${routingText(c.observedAt)}`));
 }
+function renderSpendExample() {
+  const panel = document.querySelector('#spend-example');
+  panel.replaceChildren();
+  const candidate = currentSnapshot.spendExample;
+  const spend = candidate && typeof candidate === 'object' && !Array.isArray(candidate) ? candidate : {};
+  const usd = value => metricNumber(value) ? `$${value.toFixed(2)}` : 'Unknown';
+  item(panel, `Example month: ${routingText(spend.month)}`,
+    `Settled: ${usd(spend.settledUsd)} · Open reservations: ${usd(spend.reservedOpenUsd)} · Budget: ${usd(spend.budgetUsd)}`,
+    `${routingText(spend.source, 'Source unknown')} · ${routingText(spend.attribution, 'Attribution unknown')} · Observed: ${routingText(spend.fetchedAt)} · Separate ledgers are not reconciled.`);
+}
 function botItem(bot) {
   const parent = document.querySelector('#bots');
   item(parent, `${bot.name} · ${bot.game}`, rosterDetails(bot), `${bot.source} · Observed: ${bot.observedAt || 'unknown'}`);
@@ -691,9 +701,7 @@ async function load() {
       report.markers.forEach(m => item(document.querySelector('#session-markers'), m.kind, m.observedAt, `${m.source} · Historical; current state unknown`));
     });
     renderQuotaHistory();
-    const spend = data.spendExample;
-    const usd = value => typeof value === 'number' ? `$${value.toFixed(2)}` : 'Unknown';
-    item(document.querySelector('#spend-example'), `Example month: ${spend.month || 'Unknown'}`, `Settled: ${usd(spend.settledUsd)} · Open reservations: ${usd(spend.reservedOpenUsd)} · Budget: ${usd(spend.budgetUsd)}`, `${spend.source} · ${spend.attribution} · Observed: ${spend.fetchedAt || 'unknown'} · Separate ledgers are not reconciled.`);
+    renderSpendExample();
     renderModelCalls();
     renderAudit();
     renderIssueCoverage();

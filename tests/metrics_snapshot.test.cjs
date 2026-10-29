@@ -49,5 +49,19 @@ async function refresh(changes){
   }
   const recovered=await refresh({modelCalls:[{model:'Recovered example',latencyMs:12,cost:0.01,quality:1}]});
   assert.match(recovered,/Recovered example/);assert.doesNotMatch(recovered,/Invalid numbers|coverage.*Unknown/i);
+  for(const spendExample of [undefined,null,[],false,'bad',{}]) {
+    await refresh({spendExample});
+    assert.match(get('spend-example').textContent,/Settled: Unknown.*Open reservations: Unknown.*Budget: Unknown/);
+    assert.doesNotMatch(get('spend-example').textContent,/undefined|\[object Object\]/);
+  }
+  for(const value of [NaN,Infinity,-Infinity,-1,true,'0',{}]) {
+    await refresh({spendExample:{settledUsd:value,reservedOpenUsd:value,budgetUsd:value}});
+    assert.match(get('spend-example').textContent,/Settled: Unknown.*Open reservations: Unknown.*Budget: Unknown/);
+  }
+  await refresh({spendExample:{month:'Synthetic month',settledUsd:0,reservedOpenUsd:0,budgetUsd:0,source:'Synthetic'}});
+  assert.match(get('spend-example').textContent,/Synthetic month.*Settled: \$0.00.*Open reservations: \$0.00.*Budget: \$0.00/);
+  await refresh({spendExample:{month:'Recovered month',settledUsd:1.25,reservedOpenUsd:2,budgetUsd:10,source:'Synthetic'}});
+  assert.match(get('spend-example').textContent,/Recovered month.*\$1.25.*\$2.00.*\$10.00/);
+  assert.doesNotMatch(get('spend-example').textContent,/Synthetic month/);
   console.log('PASS: model telemetry missing/mixed/invalid/zero/recovery states via offline overview refresh. Simulated DOM only.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
