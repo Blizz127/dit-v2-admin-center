@@ -5,6 +5,7 @@ socket/subprocess/database/read guards and projected fixture collector.
 """
 import json
 import hashlib
+import subprocess
 from html.parser import HTMLParser
 from pathlib import Path
 import sys
@@ -17,6 +18,7 @@ sys.path.insert(0, str(ROOT))
 from test_offline_inspector_handler import OfflineInspectorHandlerTests
 from live_hub import HubReadError, project_hub_health
 from interaction_projection import project_interaction
+from bridge_status import BridgeObserver
 
 INTERACTION_FIXTURES = ('contract-off-empty', 'contract-off-retained', 'contract-on-empty',
                         'fresh-snapshot', 'fresh-snapshot-superseded-view', 'fresh-mode-stale-snapshot',
@@ -39,6 +41,27 @@ def health_fixture(scenario):
     elif scenario != 'health-services':
         raise AssertionError('Unexpected health fixture request')
     return project_hub_health(data, 'fixture-health-fetch')
+
+
+def bridge_runner(scenario):
+    data = {'observedAt': '2026-01-01T12:00:00Z', 'unit': 'active', 'substate': 'running',
+            'result': 'success', 'marker': 'absent', 'markerReason': 'unknown',
+            'private': 'OMIT_PRIVATE_BRIDGE_PAYLOAD'}
+    if scenario == 'bridge-fault':
+        data.update(unit='failed', substate='failed', result='exit-code',
+                    marker='present', markerReason='delayed_delivery_failed')
+    runner = Mock(return_value=SimpleNamespace(stdout=json.dumps(data)))
+    if scenario == 'bridge-empty':
+        runner.return_value.stdout = ''
+    elif scenario == 'bridge-malformed':
+        runner.return_value.stdout = 'OMIT_PRIVATE_BRIDGE_INVALID'
+    elif scenario == 'bridge-denied':
+        runner.side_effect = PermissionError('OMIT_PRIVATE_BRIDGE_DENIAL')
+    elif scenario == 'bridge-timeout':
+        runner.side_effect = subprocess.TimeoutExpired(['fixture-ssh'], 8, stderr='OMIT_PRIVATE_BRIDGE_TIMEOUT')
+    elif scenario not in ('bridge-active', 'bridge-fault'):
+        raise AssertionError('Unexpected bridge fixture request')
+    return runner
 
 
 def interaction_fixture(scenario):
@@ -92,7 +115,8 @@ def exchange(request):
     scenario = request.get('scenario', 'trace-pending')
     allowed = {'trace-pending', 'trace-empty', 'trace-malformed', 'trace-unavailable', 'trace-unconfigured',
                'interaction-malformed', 'interaction-unavailable', 'interaction-unconfigured',
-               'health-services', 'health-empty', 'health-malformed', 'health-unavailable', 'health-unconfigured'}
+               'health-services', 'health-empty', 'health-malformed', 'health-unavailable', 'health-unconfigured',
+               'bridge-active', 'bridge-fault', 'bridge-empty', 'bridge-malformed', 'bridge-denied', 'bridge-timeout'}
     allowed.update('interaction:' + name for name in INTERACTION_FIXTURES)
     if scenario not in allowed:
         raise ValueError('Unknown fixture scenario')
@@ -102,6 +126,8 @@ def exchange(request):
         # The UI starts a bridge read on overview success; return only unknown fixture state.
         unknown = dict(unit='unknown', substate='unknown', result='unknown', marker='unknown',
                        markerReason='unknown', source='Synthetic offline fixture', observedAt=None)
+        runner = bridge_runner(scenario) if scenario.startswith('bridge-') else Mock()
+        bridge = BridgeObserver(runner, lambda: 0) if scenario.startswith('bridge-') else SimpleNamespace(read=lambda: unknown)
         records = [{'kind': 'outcome', 'type': 'fixture.outcome', 'occurredAtUtc': '2026-01-01T12:00:00Z',
                     'body': json.dumps({'classification': 'queued_for_native_delivery', 'disposition': 'pending',
                                         'isFinal': False, 'message': 'OMIT_RAW_TRACE_BODY'})}]
@@ -116,13 +142,13 @@ def exchange(request):
         health = Mock(side_effect=lambda *args: health_fixture(scenario))
         config = {} if scenario in ('trace-unconfigured', 'interaction-unconfigured', 'health-unconfigured') else {
             'HUB_READONLY_URL': 'http://127.0.0.1:1', 'HUB_TOKEN_FILE': '/fixture/not-read'}
-        with patch('server.BRIDGE.read', return_value=unknown), patch.dict('os.environ', config, clear=True), \
+        with patch('server.BRIDGE', bridge), patch.dict('os.environ', config, clear=True), \
                 patch('server.HubReader', return_value=SimpleNamespace(trace=trace)), \
                 patch('server.HUB_INTERACTION.get', interaction), patch('server.HUB_HEALTH.get', health):
             status, headers, body = case.request(path=path, token=request.get('token'))
         return {'status': status, 'headers': dict(headers.items()), 'body': body.decode(),
                 'traceCalls': trace.call_count, 'interactionCalls': interaction.call_count,
-                'healthCalls': health.call_count}
+                'healthCalls': health.call_count, 'bridgeRunnerCalls': runner.call_count}
     finally:
         case.doCleanups()
 

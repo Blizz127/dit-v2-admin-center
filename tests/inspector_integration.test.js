@@ -32,7 +32,7 @@ const context = {
     const result = JSON.parse(execFileSync('python3', ['tests/inspector_runtime_fixture.py'], {
       input: JSON.stringify({path, token: auth.slice(7), scenario}), encoding: 'utf8', timeout: 5000,
     }));
-    requests.push({path, status: result.status, traceCalls: result.traceCalls, interactionCalls: result.interactionCalls, healthCalls: result.healthCalls});
+    requests.push({path, status: result.status, traceCalls: result.traceCalls, interactionCalls: result.interactionCalls, healthCalls: result.healthCalls, bridgeRunnerCalls: result.bridgeRunnerCalls});
     assert.equal(result.headers['Cache-Control'], 'no-store');
     assert.equal(Number(result.headers['Content-Length']), Buffer.byteLength(result.body));
     assert.ok(!result.body.includes('OMIT_RAW_ANSWER_AND_PLAYER_DATA'));
@@ -42,6 +42,7 @@ const context = {
     assert.ok(!result.body.includes('OMIT_PRIVATE_INVALID'));
     assert.ok(!result.body.includes('OMIT_PRIVATE_HEALTH_'));
     assert.ok(!result.body.includes('OMIT_PRIVATE_OTHER_SERVICE'));
+    assert.ok(!result.body.includes('OMIT_PRIVATE_BRIDGE_'));
     assert.ok(!result.body.includes('FixtureRequester'));
     return {ok: result.status === 200, status: result.status, json: async () => JSON.parse(result.body)};
   },
@@ -217,11 +218,53 @@ const flush = () => new Promise(resolve => setImmediate(resolve));
   assert.match(health.textContent, /Fixture FFXI bridge running/);
   get('data-source').value = 'mock';
   await get('data-source').listeners.change();
+  await flush(); // Overview starts its own bridge refresh; let that request settle.
   assert.equal(interaction.textContent, 'Not requested.');
   assert.equal(health.textContent, 'Not requested.');
   const beforeHealthGuard = requests.length;
   await refreshHealth();
   assert.equal(requests.length, beforeHealthGuard);
   assert.match(health.textContent, /Select configured hub data/);
-  console.log('Browser-free integration passed: inspector, trace, nine pinned interaction snapshots and service health, including empty/401/502/503, recovery and source reset. No listener or DOM library.');
+  const bridgePanels = [get('bridge-status'), get('ffxi-focus-bridge')];
+  const refreshBridge = () => get('bridge-refresh').listeners.click();
+  for (const state of ['bridge-active', 'bridge-fault']) {
+    scenario = state;
+    await refreshBridge();
+    assert.equal(requests.at(-1).status, 200);
+    assert.equal(requests.at(-1).bridgeRunnerCalls, 1);
+    for (const panel of bridgePanels) {
+      assert.match(panel.textContent, state === 'bridge-active' ? /active · running/ : /failed · failed/);
+      assert.match(panel.textContent, state === 'bridge-active' ? /Fault marker: absent/ : /Fault marker: present · Classification: delayed_delivery_failed/);
+      assert.match(panel.textContent, /Observed: 2026-01-01T12:00:00Z/);
+    }
+  }
+  for (const failure of ['bridge-empty', 'bridge-malformed', 'bridge-denied', 'bridge-timeout']) {
+    scenario = 'bridge-active';
+    await refreshBridge();
+    scenario = failure;
+    await refreshBridge();
+    assert.equal(requests.at(-1).status, 200, 'Observer failures return Unknown, not an invented HTTP error');
+    assert.equal(requests.at(-1).bridgeRunnerCalls, 1);
+    for (const panel of bridgePanels) {
+      assert.match(panel.textContent, /unknown · unknown/);
+      assert.match(panel.textContent, /Fault marker: unknown/);
+      assert.match(panel.textContent, /Observed: unknown/);
+      assert.doesNotMatch(panel.textContent, /active|running|2026-01-01|OMIT_/);
+    }
+  }
+  scenario = 'bridge-active';
+  await refreshBridge();
+  vm.runInNewContext("token = 'synthetic-expired-token'", context);
+  await refreshBridge();
+  assert.equal(requests.at(-1).status, 401);
+  assert.equal(requests.at(-1).bridgeRunnerCalls, 0);
+  bridgePanels.forEach(panel => assert.doesNotMatch(panel.textContent, /active|running|2026-01-01/));
+  assert.match(bridgePanels[0].textContent, /Bridge status unknown/);
+  assert.match(bridgePanels[1].textContent, /delivery remains unverified/);
+  vm.runInNewContext("token = 'fixture-token'", context);
+  await refreshBridge();
+  bridgePanels.forEach(panel => assert.match(panel.textContent, /active · running/));
+  assert.match(bridgePanels[0].textContent, /Marker absence does not prove delivery/);
+  assert.match(bridgePanels[1].textContent, /Not proof of delivery/);
+  console.log('Browser-free integration passed: inspector, trace, interaction, service health and bridge; empty/error/denial/recovery states through real handlers. No listener or DOM library.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
