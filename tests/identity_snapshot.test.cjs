@@ -33,6 +33,8 @@ const evidence={
  const learningData={learning:[need],issues:[{learningId:'shared-need',title:'SCOPED_LEARNING_ISSUE'}]};
  await refresh(learningData);context.inspectLearning('shared-need');
  assert.match(get('learning-inspector').textContent,/FIRST_NEED/);
+ assert.doesNotMatch(get('learning-inspector').textContent,/undefined|\[object Object\]/);
+ assert.match(get('learning-inspector').textContent,/Datasets: Unknown.*Policy verification: Unknown/);
  for(const game of ['FFXI','SWTOR']){
    await refresh({...learningData,learning:[need,{...need,game,topic:'SECOND_NEED'}]});
    assert.match(get('learning-inspector').textContent,/ambiguous/i);
@@ -49,5 +51,8 @@ const evidence={
  get('learning-game').value='';await refresh(learningData);
  assert.match(get('learning-inspector').textContent,/FIRST_NEED.*SCOPED_LEARNING_ISSUE/);
  assert.match(get('learning-evidence').textContent,/Assessment: Unknown/);
+ await refresh({learning:[{...need,topic:{private:'OMIT_RAW'},phase:[],reason:false,source:{},datasets:{},policy:null}],issues:[]});
+ assert.doesNotMatch(get('learning-inspector').textContent,/undefined|\[object Object\]|OMIT_RAW/);
+ assert.match(get('learning-inspector').textContent,/Learning detail · FFXI · Unknown/);
  console.log('PASS: duplicate bot/learning IDs suppress scoped inspection across filters and games; recovery with unique IDs. Simulated DOM only.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -295,11 +295,11 @@ function inspectLearning(id) {
   if (!need) { panel.textContent = recordsForId(currentSnapshot.learning, id).length > 1
     ? 'Selected learning identity is ambiguous; no task details or evidence are attributed.'
     : 'Selected learning need is no longer in this snapshot.'; return; }
-  item(panel, `Learning detail · ${need.game} · ${need.topic}`, `Status: ${need.status} · Phase: ${need.phase || 'Not reported'} · Reason: ${need.reason || 'Not reported'} · Escalation: ${need.escalation || 'Not reported'} · Retry at: ${need.retryAt || 'Not reported'}`,
-    `Evidence: ${need.evidence} · Model answer reported: ${need.hasModelAnswer === true ? 'Yes' : need.hasModelAnswer === false ? 'No' : 'Unknown'} (not outcome evidence or permission to call a model) · Datasets: ${need.datasets} · Policy verification: ${need.policy} · Updated: ${need.updatedAt || 'unknown'} · ${need.source}`);
+  item(panel, `Learning detail · ${routingText(need.game)} · ${routingText(need.topic)}`, `Status: ${routingText(need.status)} · Phase: ${routingText(need.phase, 'Not reported')} · Reason: ${routingText(need.reason, 'Not reported')} · Escalation: ${routingText(need.escalation, 'Not reported')} · Retry at: ${routingText(need.retryAt, 'Not reported')}`,
+    `Evidence: ${routingText(need.evidence)} · Model answer reported: ${need.hasModelAnswer === true ? 'Yes' : need.hasModelAnswer === false ? 'No' : 'Unknown'} (not outcome evidence or permission to call a model) · Datasets: ${routingText(need.datasets)} · Policy verification: ${routingText(need.policy)} · Updated: ${routingText(need.updatedAt, 'unknown')} · ${routingText(need.source)}`);
   const issues = currentSnapshot.issues.filter(i => i.learningId === need.id);
   if (!issues.length) item(panel, 'Related issues', 'No matching issue records in this view.', 'This does not establish a resolved learning gap.');
-  issues.forEach(i => item(panel, `Related issue · ${i.title}`, `${i.status} · ${i.detail}`, `${i.source} · ${i.timeLabel || 'Updated'}: ${i.updatedAt || 'unknown'}`));
+  issues.forEach(i => item(panel, `Related issue · ${routingText(i.title)}`, `${routingText(i.status)} · ${routingText(i.detail)}`, `${routingText(i.source)} · ${routingText(i.timeLabel, 'Updated')}: ${routingText(i.updatedAt, 'unknown')}`));
 }
 function mapLearningEvidence(need, review = null) {
   const omitted = need.evidence === 'Not included';
@@ -333,9 +333,9 @@ function renderLearningEvidence(need, review = null) {
     item(panel, 'FFXI checklist does not apply', 'This record needs its own game-specific evidence review.', 'FFXI evidence is not transferred to other games.');
     return;
   }
-  item(panel, `${review ? 'Synthetic mapping preview' : 'Evidence review'} · ${need.topic}`,
+  item(panel, `${review ? 'Synthetic mapping preview' : 'Evidence review'} · ${routingText(need.topic)}`,
     review ? 'Synthetic examples only · Not an assessment of the selected task or any bot.' : 'Assessment: Unknown · No structured game-evidence assessment is connected.',
-    `Selected record: ${need.source || 'Unknown source'} · Updated: ${need.updatedAt || 'unknown'} · Task status is not a game outcome.`);
+    `Selected record: ${routingText(need.source, 'Unknown source')} · Updated: ${routingText(need.updatedAt, 'unknown')} · Task status is not a game outcome.`);
   const requirements = [
     ['Native identity', 'Verified native bot and realm, source and observation time; explicit roster mapping.'],
     ['Navigation and missions', 'Starting state, objective, native result and subsequent observation of progress.'],
@@ -404,12 +404,12 @@ function renderLearning() {
   updateLearningCount(records);
   if (!records.length) item(panel, 'No matching learning entries', 'No matching records in the loaded data.', 'Coverage is unknown.');
   records.forEach(l => {
-    item(panel, `${l.game} · ${l.topic}`, l.status, `Evidence: ${l.evidence} · Datasets: ${l.datasets} · Policy verification: ${l.policy} · Updated: ${l.updatedAt || 'unknown'} · ${l.source}`);
+    item(panel, `${routingText(l.game)} · ${routingText(l.topic)}`, routingText(l.status), `Evidence: ${routingText(l.evidence)} · Datasets: ${routingText(l.datasets)} · Policy verification: ${routingText(l.policy)} · Updated: ${routingText(l.updatedAt, 'unknown')} · ${routingText(l.source)}`);
     if (l.id) {
       const button = document.createElement('button'); button.type = 'button';
       const identified = Boolean(uniqueRecord(currentSnapshot.learning, l.id));
       button.disabled = !identified;
-      button.textContent = identified ? `Inspect ${l.topic}` : 'Inspect unavailable: missing or ambiguous identity'; button.addEventListener('click', () => inspectLearning(l.id));
+      button.textContent = identified ? `Inspect ${routingText(l.topic)}` : 'Inspect unavailable: missing or ambiguous identity'; button.addEventListener('click', () => inspectLearning(l.id));
       panel.lastElementChild.append(button);
     }
   });

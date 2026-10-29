@@ -43,7 +43,7 @@ setImmediate(async () => {
   assert.match(get('lead-monitoring').children[0].children[2].textContent, /Provider: Unknown.*Current lead binding unverified/);
   assert.match(get('hub-banner').textContent, /Hub not configured.*synthetic fallback/);
   assert.match(get('hub-feeds').children[0].children[2].textContent, /Duplicate roster keys.*Synthetic fallback/);
-  assert.match(get('ffxi-feeds').children[0].children[2].textContent, /Synthetic fallback.*Fetched: unknown.*Not proof of game presence or delivery/);
+  assert.match(get('ffxi-feeds').children[0].children[2].textContent, /Synthetic fallback.*Fetched: [Uu]nknown.*Not proof of game presence or delivery/);
   assert.match(get('spend-example').children[0].children[1].textContent, /Settled: \$0.00 · Open reservations: Unknown · Budget: Unknown/);
   assert.match(get('game-status').children[0].children[1].textContent, /XP rate: Unknown · Server liveness: Unknown/);
   assert.match(get('bot-coverage').children[0].children[2].textContent, /registration does not establish online presence/);
@@ -57,7 +57,7 @@ setImmediate(async () => {
   assert.equal(requestedUrl, '/api/overview?source=mock');
   assert.match(get('lead-summary').children[0].children[1].textContent, /Stall: Unknown · Lead quota: Unknown/);
   assert.match(get('lead-summary').children[0].children[2].textContent, /Shared provider pool: 75% \(Shared pool only\)/);
-  assert.match(get('lead-activity').children[0].children[2].textContent, /Checkout HEAD commit: unknown · HEAD not attributed/);
+  assert.match(get('lead-activity').children[0].children[2].textContent, /Checkout HEAD commit: [Uu]nknown · HEAD not attributed/);
   const timeline = get('lead-timeline').children[0];
   assert.match(timeline.children[2].textContent, /Watcher unknown · Checkout ancestry only/);
   assert.match(timeline.children[3].children[2].textContent, /not attributed to lead/);
@@ -306,8 +306,8 @@ setImmediate(async () => {
   await get('hub-health-refresh').listeners.click();
   assert.match(get('hub-health').children[1].children[2].textContent, /Service state is not bot presence/);
   await get('interaction-refresh').listeners.click();
-  assert.match(get('interaction-status').children[1].children[1].textContent, /Contract: Off/);
-  assert.equal(get('interaction-status').children[3].children[0].textContent, 'Current bot state unavailable');
+  assert.match(get('interaction-status').children.find(row => row.children[0].textContent === 'Reported interaction switches').children[1].textContent, /Contract: Off/);
+  assert.ok(get('interaction-status').children.some(row => row.children[0].textContent === 'Current bot state unavailable'));
   const savedFetch = context.fetch;
   let finishInteraction;
   context.fetch = () => new Promise(resolve => { finishInteraction = resolve; });
