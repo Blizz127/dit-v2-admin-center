@@ -247,6 +247,23 @@ class OfflineInspectorHandlerTests(unittest.TestCase):
             self.assertEqual(status, 503)
             self.assertNotIn(b'OMIT_PRIVATE', body)
 
+    def test_nested_trace_body_keeps_metadata_and_unknown_outcome(self):
+        record = {'kind': 'outcome', 'type': 'fixture.outcome',
+                  'occurredAtUtc': '2026-01-01T00:00:00Z',
+                  'body': '[' * 10000 + '"OMIT_PRIVATE_TRACE"' + ']' * 10000}
+        with patch.dict('os.environ', {'HUB_READONLY_URL': 'http://127.0.0.1:1',
+                                      'HUB_TOKEN_FILE': '/fixture/not-read'}, clear=True), \
+                patch('server.HubReader', return_value=SimpleNamespace(trace=lambda *_: ([record], 'fixture-fetch'))):
+            status, headers, body = self.request('/api/trace?gameId=ffxi&correlationId=fixture')
+        self.assertEqual(status, 200)
+        self.assertEqual(headers['Cache-Control'], 'no-store')
+        row = json.loads(body)['records'][0]
+        self.assertEqual(row['type'], 'fixture.outcome')
+        self.assertEqual(row['occurredAt'], record['occurredAtUtc'])
+        for field in ('classification', 'disposition', 'isFinal'):
+            self.assertIsNone(row[field])
+        self.assertNotIn(b'OMIT_PRIVATE_TRACE', body)
+
     def test_bridge_auth_and_method_rejection_do_not_reach_observer(self):
         runner = Mock(side_effect=AssertionError('Observer must not be reached'))
         with patch('server.BRIDGE', BridgeObserver(runner, lambda: 0)):

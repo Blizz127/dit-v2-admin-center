@@ -175,7 +175,7 @@ def project_trace(data):
         body = record.get('body')
         try:
             body = json.loads(body) if isinstance(body, str) else {}
-        except ValueError:
+        except (ValueError, RecursionError):
             body = {}
         body = body if isinstance(body, dict) and kind.lower() == 'outcome' else {}
         def safe(value):
@@ -186,6 +186,15 @@ def project_trace(data):
     return rows
 
 
+def _nonnegative_number(value):
+    if type(value) not in (int, float) or value < 0:
+        return None
+    try:
+        return value if math.isfinite(value) else None
+    except OverflowError:
+        return None
+
+
 def project_server_status(data, game, fetched):
     """Only a stored configuration snapshot, never an assertion of liveness."""
     if not isinstance(data, dict) or data.get('gameId') != game:
@@ -194,9 +203,7 @@ def project_server_status(data, game, fetched):
     if status is not None and not isinstance(status, dict):
         raise ValueError('invalid game status')
     status = status or {}
-    rate = status.get('xpRate')
-    if type(rate) not in (int, float) or not math.isfinite(rate) or rate < 0:
-        rate = None
+    rate = _nonnegative_number(status.get('xpRate'))
     checked = status.get('checkedAtUtc')
     if not isinstance(checked, str) or len(checked) > 64:
         checked = None
@@ -215,7 +222,7 @@ def project_spend(data, fetched):
         value = data.get(field)
         if not readable or (requires_pricing and data.get('pricingError')):
             return None
-        return value if type(value) in (int, float) and math.isfinite(value) and value >= 0 else None
+        return _nonnegative_number(value)
     month = data.get('month')
     if not isinstance(month, str) or not re.fullmatch(r'[0-9]{4}-[0-9]{2}', month):
         month = None
