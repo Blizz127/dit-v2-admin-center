@@ -70,6 +70,20 @@ class OfflineInspectorHandlerTests(unittest.TestCase):
         self.assertNotIn(b'OMIT_RAW_ANSWER_AND_PLAYER_DATA', body)
         self.assertNotIn(b'fixture-token', body)
 
+    def test_bridge_rejects_parameters_before_observer_and_auth_still_runs_first(self):
+        # setUp guards the real observer: rejected queries must not reach it.
+        for query in ('refresh=1', 'host=example.invalid', 'token=OMIT_PRIVATE_QUERY', 'flag'):
+            with self.subTest(query=query):
+                path = '/api/bridge-status?' + query
+                status, _, body = self.request(path)
+                self.assertEqual(status, 400)
+                self.assertEqual(json.loads(body), {'error': 'bridge status takes no parameters'})
+                self.assertNotIn(b'OMIT_PRIVATE', body)
+                self.assertEqual(self.request(path, token='wrong')[0], 401)
+        with patch('server.BRIDGE.read', return_value={'unit': 'unknown'}) as observer:
+            self.assertEqual(self.request('/api/bridge-status')[0], 200)
+            observer.assert_called_once_with()
+
     def test_unauthorized_requests_cannot_collect_or_return_fixture(self):
         for token in (None, 'wrong', ''):
             with self.subTest(token=token):

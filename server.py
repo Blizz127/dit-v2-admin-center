@@ -351,6 +351,9 @@ class Handler(BaseHTTPRequestHandler):
                         'coverage': 'Recent hub trace window, maximum 250 records; missing records do not prove no action.'}
                 self.send_content(200, "application/json", json.dumps(body).encode())
             elif path == "/api/bridge-status":
+                if urlsplit(self.path).query:
+                    self.send_content(400, "application/json", b'{"error":"bridge status takes no parameters"}')
+                    return
                 self.send_content(200, "application/json", json.dumps(BRIDGE.read()).encode())
             elif path == "/api/overview":
                 query = parse_qs(urlsplit(self.path).query, keep_blank_values=True)
