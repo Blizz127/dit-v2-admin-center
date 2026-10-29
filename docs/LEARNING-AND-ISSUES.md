@@ -134,6 +134,25 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+Current connected coverage is in `tests/inspector_integration.test.js`; run it
+with the bounded command in README when changing a covered path. The entries
+below supersede the older incremental coverage counts farther down this section.
+All rows use shipped template IDs, actual UI handlers and in-memory HTTP dispatch.
+
+| View | Connected evidence | Replaced dependency / remaining gap |
+| --- | --- | --- |
+| Login and learning inspector | Rejected/accepted token, four projected answer/evidence cases, preview/restore/clear. | Overview collector is synthetic; real local collection and browser DOM remain unverified. |
+| Trace | Pending/non-final, empty, 401/502/503, validation, recovery and clearing (`cede05d`). | Synthetic reader; no upstream authentication or transport. |
+| Interaction | Nine pinned generated snapshots, scoped actors, both freshness directions, empty/off/truncated, errors/recovery (`6b7710d`). | Cache lookup injects actual fixture projection; native identity and runtime revision remain unknown. |
+| Hub service health | Game scope, unknown state, empty, 401/502/503, recovery/source reset (`8fbd6df`). | Cache lookup injects projection; no service inspection or bot-presence evidence. |
+| FFXI bridge cards | Active/fault state, empty/malformed/denied/timed-out observation, 401 before runner and recovery (`57e339a`). | Real observer uses a fake runner and a fresh instance per exchange; no SSH or TTL validation in this path. |
+
+The extended connected check passed under a 25-second hard timeout. Bridge
+observation failures return 200 with Unknown fields; health projection/read
+failures return 502/503. These are deliberately different API semantics.
+Existing cache and session-race tests retain their separate scope; they were
+not repeated for this documentation checkpoint. All model controls remain off.
+
 `tools/build_inspector_playtest.py` builds a standalone, network-blocked browser
 harness from the actual static assets and projected synthetic learning fixtures.
 It exercises the inspector's real DOM events when opened in a browser; its
