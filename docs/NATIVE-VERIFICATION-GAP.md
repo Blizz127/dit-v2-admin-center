@@ -129,3 +129,13 @@ invalid UTF-8, closed-pipe timeouts and an inherited-pipe descendant. The latter
 check establishes that the descendant stopped executing; host orphan reaping is
 outside the runner. Browser-boundary tests remain mocked. No native browser,
 device action, live call or artifact rebuild was performed for this change.
+
+## Exact saved-file comparison
+
+An offline file fixture demonstrated that invalid UTF-8 decoded to a replacement
+character could pass the previous parsed-JSON comparison. The saved report must
+now equal the copy field's UTF-8 bytes before JSON/schema checks. This matches the
+UI's contract: its Blob and copy field use the same string. Encoding damage,
+added duplicate keys and even added whitespace fail that exact-file check; valid
+multibyte text still passes. The focused fixture runner checks this with temporary
+local files and fabricated protocol calls, not a native browser download.

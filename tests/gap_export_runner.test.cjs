@@ -14,6 +14,20 @@ const expected=JSON.stringify(report,null,2);
   fs.writeFileSync(filename,expected);
   assert.equal(verifySavedReport(directory,expected).savedBytes,Buffer.byteLength(expected));
   assert.equal(verifySavedReport(directory,expected).nativeActivation,undefined,'Disk validation alone is not native Enter evidence');
+  // The UI uses the same JSON string for its Blob and copy field. Parsed-value
+  // equality alone hides encoding damage and contradictory duplicate keys.
+  const unicodeExpected=JSON.stringify({...report,note:'\ufffd'});
+  const damaged=Buffer.from(unicodeExpected).toString('hex').replace('efbfbd','ff');
+  fs.writeFileSync(filename,Buffer.from(damaged,'hex'));
+  assert.throws(()=>verifySavedReport(directory,unicodeExpected));
+  fs.writeFileSync(filename,'{"selectedSnapshotRow":999,'+expected.slice(1));
+  assert.throws(()=>verifySavedReport(directory,expected));
+  fs.writeFileSync(filename,expected+'\n');
+  assert.throws(()=>verifySavedReport(directory,expected));
+  const validUnicode=JSON.stringify({...report,note:'名é'});
+  fs.writeFileSync(filename,validUnicode);
+  assert.equal(verifySavedReport(directory,validUnicode).savedBytes,Buffer.byteLength(validUnicode));
+  fs.writeFileSync(filename,expected);
   fs.writeFileSync(path.join(directory,'partial.crdownload'),'unfinished');
   assert.throws(()=>verifySavedReport(directory,expected));fs.unlinkSync(path.join(directory,'partial.crdownload'));
   for(const bad of ['broken',JSON.stringify({...report,candidates:[{snapshotRow:2}]}),JSON.stringify({...report,extra:'Unexpected'})]){

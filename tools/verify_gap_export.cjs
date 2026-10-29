@@ -8,7 +8,10 @@ function verifySavedReport(directory, expected) {
   assert.deepEqual(fs.readdirSync(directory), [name]);
   const filename = path.join(directory, name), info = fs.lstatSync(filename);
   assert.ok(info.isFile() && !info.isSymbolicLink() && info.size > 0 && info.size <= 256 * 1024);
-  const bytes = fs.readFileSync(filename), report = JSON.parse(bytes.toString('utf8'));
+  const bytes = fs.readFileSync(filename);
+  assert.equal(typeof expected, 'string');
+  assert.ok(bytes.equals(Buffer.from(expected, 'utf8')), 'Saved report differs from copy-field bytes');
+  const report = JSON.parse(bytes.toString('utf8'));
   assert.equal(report.schema, 'dit-admin-roster-gap-report-v1');
   assert.equal(report.selectedSnapshotRow, 2);
   assert.equal(report.reason, 'repeated_loaded_id');
