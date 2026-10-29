@@ -134,6 +134,22 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+Native-input runner follow-up (`1d41f1a`) uses installed Chromium's anonymous
+debugging pipes and `Input.dispatchKeyEvent`, not synthetic DOM events or click
+substitution. It focuses Start initially, then requires native Enter start,
+Escape cancellation/focus return, restart and all twelve guided key steps. Node
+and Chromium run under the existing network-namespace requirement with temporary
+artifact/profile files, bounded commands and process-group cleanup. The guide
+is inline; no modal-dialog semantics are claimed. Cancellation has its own state.
+
+Observer cancellation/restart tests, fake-pipe key encoding/framing/error checks
+and four wrapper contracts passed. The actual runner attempt stopped before
+browser launch because Chromium was absent; Node and namespace tools were found
+but browser sandbox/namespace operation remains untested in this run. No runtime
+was downloaded. This does not close the native-keyboard evidence gap. The five
+initial source tasks in the checkpoint above remain implemented; pending live/model approvals and
+browser provisioning are not replaced by further synthetic tests.
+
 Native-keyboard harness follow-up (`d31e242`) adds a guided twelve-step check to
 the offline artifact. It observes trusted Tab/Shift+Tab and Enter/Space events,
 checks page/focus after native defaults (including Space keyup), and rejects

@@ -49,7 +49,7 @@ class Result(HTMLParser):
         if tag == 'html':
             self.status = attrs.get('data-playtest')
             keyboard = attrs.get('data-keyboard-playtest')
-            self.keyboard_status = keyboard if keyboard in ('not-run', 'running', 'passed', 'failed') else 'unknown'
+            self.keyboard_status = keyboard if keyboard in ('not-run', 'running', 'cancelled', 'passed', 'failed') else 'unknown'
         if tag == 'ol' and attrs.get('id') == 'harness-checks':
             self.in_checks = True
         if tag == 'li' and self.in_checks:

@@ -57,7 +57,7 @@ class HeadlessRunnerTests(unittest.TestCase):
     def test_keyboard_result_is_separate_from_automatic_dom_success(self):
         good = completed_document()
         self.assertEqual(runner.Result(good).keyboard_status, 'unknown')
-        for state in ('not-run', 'running', 'failed', 'passed', 'invalid'):
+        for state in ('not-run', 'running', 'cancelled', 'failed', 'passed', 'invalid'):
             with self.subTest(state=state):
                 result = runner.Result(good.replace('<html ', '<html data-keyboard-playtest="' + state + '" '))
                 self.assertTrue(result.valid())  # Automatic checks only.

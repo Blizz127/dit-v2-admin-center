@@ -91,6 +91,25 @@ step fails; Start prepares a fresh synthetic run. The `nativeKeyboard` runner
 field is separate from automatic DOM success; neither headless dump mode nor
 jsdom sends native keys. See `/playtest#assignment-keyboard` for the sequence.
 
+A separate native-input runner now sends the keys through Chromium debugging
+pipes (no TCP debugging listener), including Enter to start and Escape to cancel
+and return focus, followed by the complete twelve-step sequence. It requires an
+already-installed Chromium executable and isolates Node/Chromium in a network
+namespace with a disposable profile and hard time limits:
+
+```sh
+timeout -k 3 40 python3 tools/run_keyboard_playtest.py
+# If needed, set DIT_CHROMIUM to an existing executable path.
+```
+
+Exit 2 means missing runtime/tooling or denied namespace isolation; exit 1 means
+failed/incomplete execution. No download or sandbox bypass is attempted. A pass
+requires automatic DOM success, native keyboard success, all twelve steps and
+Escape cancellation. The actual attempt at this checkpoint stopped with missing
+Chromium before browser launch. Source/protocol tests are not a native pass.
+There are no guided dialogs: Escape cancels the inline walkthrough, preserves
+the current assignment page and returns focus to its Start button.
+
 Observer logic can be checked without a browser:
 
 ```sh
