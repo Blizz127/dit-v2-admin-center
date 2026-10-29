@@ -3,6 +3,7 @@ const error = document.querySelector('#error');
 const workspace = document.querySelector('#workspace');
 let currentSnapshot = null;
 let loadedSource = null;
+let sourceLoading = false;
 let requestVersion = 0;
 let traceVersion = 0;
 let healthVersion = 0;
@@ -379,6 +380,7 @@ function botItem(bot) {
 }
 async function load() {
   const requestId = ++requestVersion;
+  sourceLoading = true;
   error.textContent = '';
   document.querySelector('#hub-banner').textContent = currentSnapshot && loadedSource
     ? `Loading selected data source… Showing previous ${loadedSource} request snapshot from ${currentSnapshot.generatedAt || 'unknown time'} until loading finishes.`
@@ -453,10 +455,11 @@ async function load() {
     renderLearningArtifacts();
     renderLearning();
     document.querySelector('#updated').textContent = `Snapshot generated ${data.generatedAt} · Sources are labeled per view; lead task state comes from the coordinator board.`;
-    loadedSource = source;
+    loadedSource = source; sourceLoading = false;
     sessionStorage.setItem('dit-admin-token', token); workspace.hidden = false; form.hidden = true; loadBridge();
   } catch (e) {
     if (requestId !== requestVersion) return;
+    sourceLoading = false;
     if (currentSnapshot && loadedSource && !unauthorized && !rendering) {
       document.querySelector('#hub-banner').textContent = `Refresh failed. Showing previous ${loadedSource} request snapshot from ${currentSnapshot.generatedAt || 'unknown time'}; selected source may not match. Check each feed's source.`;
       return;
@@ -554,7 +557,12 @@ for (const id of ['trace-game', 'correlation']) {
 document.querySelector('#trace-search').addEventListener('submit', e => {
   e.preventDefault(); correlationFilter = document.querySelector('#correlation').value.trim();
   if (currentSnapshot) renderLedger();
-  if (document.querySelector('#data-source').value === 'hub') loadHubTrace(correlationFilter);
+  if (document.querySelector('#data-source').value === 'hub') {
+    if (sourceLoading || loadedSource !== 'hub') {
+      traceVersion++; document.querySelector('#hub-trace').replaceChildren();
+      document.querySelector('#hub-trace').textContent = 'Load the selected hub source successfully before requesting a hub trace.';
+    } else loadHubTrace(correlationFilter);
+  }
 });
 document.querySelector('#trace-clear').addEventListener('click', () => {
   correlationFilter = ''; document.querySelector('#correlation').value = ''; traceVersion++; document.querySelector('#hub-trace').replaceChildren();
