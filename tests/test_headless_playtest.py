@@ -1,6 +1,7 @@
 """Runner contract checks, not browser-execution evidence."""
 import unittest
 import io
+import json
 from contextlib import redirect_stdout, redirect_stderr
 from unittest.mock import patch
 
@@ -52,6 +53,27 @@ class HeadlessRunnerTests(unittest.TestCase):
                          good.replace('PASS — check', 'FAIL — check')):
             with self.subTest(document=document[:60]):
                 self.assertFalse(runner.Result(document).valid())
+
+    def test_keyboard_result_is_separate_from_automatic_dom_success(self):
+        good = completed_document()
+        self.assertEqual(runner.Result(good).keyboard_status, 'unknown')
+        for state in ('not-run', 'running', 'failed', 'passed', 'invalid'):
+            with self.subTest(state=state):
+                result = runner.Result(good.replace('<html ', '<html data-keyboard-playtest="' + state + '" '))
+                self.assertTrue(result.valid())  # Automatic checks only.
+                self.assertEqual(result.keyboard_status, state if state != 'invalid' else 'unknown')
+
+    def test_runner_does_not_promote_unrun_keyboard_check_to_pass(self):
+        document = completed_document().replace('<html ', '<html data-keyboard-playtest="not-run" ')
+        output = io.StringIO()
+        with patch.object(runner.shutil, 'which', side_effect=lambda name: '/fixture/' + name), \
+                patch.object(runner, 'run_bounded', side_effect=[(0, '', ''), (0, document, '')]), \
+                redirect_stdout(output):
+            self.assertEqual(runner.main(), 0)
+        receipt = json.loads(output.getvalue())
+        self.assertEqual(receipt['status'], 'passed')
+        self.assertEqual(receipt['nativeKeyboard'], 'not-run')
+        self.assertIn('does not inject native keys', receipt['limitations'])
 
 
 if __name__ == '__main__':

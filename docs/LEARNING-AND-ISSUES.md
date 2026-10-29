@@ -134,6 +134,23 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+Native-keyboard harness follow-up (`d31e242`) adds a guided twelve-step check to
+the offline artifact. It observes trusted Tab/Shift+Tab and Enter/Space events,
+checks page/focus after native defaults (including Space keyup), and rejects
+unexpected focus, pages or requests. It does not synthesize activation, move
+focus during the sequence or prevent default keys. Start prepares synthetic
+pages and establishes initial focus; restarting invalidates pending callbacks.
+
+The observer test passed with fake events for sequence completion, untrusted
+input refusal, delayed default observation, wrong focus/missing activation,
+extra requests, incomplete runs, preparation failure and restart races. These
+are logic checks, not native-keyboard evidence. Artifact isolation/escaping and
+embedded syntax checks passed. Runner reports now expose native keyboard status
+separately; two focused report-contract checks passed without launching a browser.
+Actual browser execution remains NOT RUN pending an available runtime. Owner
+steps are in `/playtest#assignment-keyboard`; no installation, live calls,
+service restarts, ledger reads or control changes occurred.
+
 Assignment paging follow-up (`528c95b`) adds local ten-row pages over loaded
 examples, with no upstream pagination or write capability. The shared synthetic
 fixture has 23 matching rows plus a different-bot row, empty/unavailable/partial

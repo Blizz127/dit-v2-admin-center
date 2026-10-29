@@ -82,6 +82,25 @@ and form submission with CSP. Other requests fail. It does not test the HTTP
 server, authentication, a deployed revision or live gameplay. The generated
 file is an ignored local artifact; rebuilding incorporates current source.
 
+For native keyboard behavior, use **Start native assignment keyboard check**
+inside the artifact's assignment section after the automatic checks complete.
+Follow its twelve trusted-key prompts; the observer checks Tab/Shift+Tab order,
+Enter/Space paging, both boundaries and retained focus after browser defaults.
+It never synthesizes activation or prevents default key behavior. An incorrect
+step fails; Start prepares a fresh synthetic run. The `nativeKeyboard` runner
+field is separate from automatic DOM success; neither headless dump mode nor
+jsdom sends native keys. See `/playtest#assignment-keyboard` for the sequence.
+
+Observer logic can be checked without a browser:
+
+```sh
+timeout -k 2 15 node tests/assignment_keyboard.test.js
+```
+
+That test supplies fake events and default actions. Its pass is **not** evidence
+that native keyboard navigation ran. The artifact still needs actual browser
+input, and screen-reader announcements and visual focus review remain separate.
+
 Generator checks (not browser execution):
 
 ```sh

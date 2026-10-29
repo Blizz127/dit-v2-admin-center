@@ -38,6 +38,7 @@ class Result(HTMLParser):
     def __init__(self, document):
         super().__init__()
         self.status = None
+        self.keyboard_status = 'unknown'
         self.in_checks = False
         self.in_row = False
         self.rows = []
@@ -47,6 +48,8 @@ class Result(HTMLParser):
         attrs = dict(attrs)
         if tag == 'html':
             self.status = attrs.get('data-playtest')
+            keyboard = attrs.get('data-keyboard-playtest')
+            self.keyboard_status = keyboard if keyboard in ('not-run', 'running', 'passed', 'failed') else 'unknown'
         if tag == 'ol' and attrs.get('id') == 'harness-checks':
             self.in_checks = True
         if tag == 'li' and self.in_checks:
@@ -99,8 +102,9 @@ def main():
             print('FAIL: browser exited unsuccessfully or artifact checks were incomplete.', file=sys.stderr)
             return 1
         print(json.dumps({'status': 'passed', 'runtime': browser, 'checks': len(result.rows),
+                          'nativeKeyboard': result.keyboard_status,
                           'network': 'isolated namespace; inline synthetic responses',
-                          'limitations': 'DOM execution; no visual review, HTTP listener or live integration'}))
+                          'limitations': 'Automatic DOM execution; this runner does not inject native keys. No visual review, HTTP listener or live integration'}))
         return 0
 
 

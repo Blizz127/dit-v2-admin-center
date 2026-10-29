@@ -58,7 +58,8 @@ const dom = new JSDOM(html, {
     const checks = [...doc.querySelectorAll('#harness-checks li')];
     if (checks.length < 20 || checks.some(row => !row.textContent.startsWith('PASS — '))) throw new Error('Incomplete runtime assertions');
     const result = {status: 'passed', runtime: 'jsdom', checks: checks.length, transportAttempts: blocked.length,
-      limitations: 'DOM execution only; no browser rendering, CSP enforcement, HTTP server or deployed-service verification'};
+      nativeKeyboard: doc.documentElement.dataset.keyboardPlaytest || 'unknown',
+      limitations: 'DOM execution only; no native keyboard activation, browser rendering, CSP enforcement, HTTP server or deployed-service verification'};
     console.log(JSON.stringify(result));
   } catch (error) {
     console.error('FAIL: ' + error.message);
