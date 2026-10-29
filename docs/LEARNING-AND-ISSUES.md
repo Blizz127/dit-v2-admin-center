@@ -134,6 +134,27 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+### Partial telemetry follow-up — 2026-10-29
+
+`d17a31d` and `003e044` fix two reproduced overview failures: absent model-call
+lists and absent spend summaries previously threw during rendering and closed
+the workspace. Each panel now handles missing data locally. Mixed model rows
+keep usable examples with an incomplete-coverage notice; empty lists do not
+establish zero usage. Nonfinite, negative or incorrectly typed numeric metrics
+are Unknown; explicit zero is preserved. No monetary units or quality scale are
+invented for model-call metrics.
+
+`tests/metrics_snapshot.test.cjs` exercises actual overview refresh with shipped
+template IDs, synthetic snapshots and a minimal DOM. Missing, malformed, mixed,
+zero and recovery cases passed; each missing-field failure was reproduced before
+its fix. This is not native browser execution. The offline artifact includes the
+updated app; `/playtest` describes what to look for without enabling controls.
+
+`4c3c1f2` also rejects exponent overflow such as `1e999` in local greeting-review
+JSON, including nested values. Two focused CLI checks passed, covering redacted
+failure with no assessment and unchanged valid-fixture separation of queue,
+owner-reported speech and model origin. No evidence was collected from services.
+
 ### Current render checkpoint — 2026-10-29
 
 `570ad1c` adds `--screenshots` to the isolated native runner. It checks comparison

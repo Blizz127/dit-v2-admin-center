@@ -55,7 +55,7 @@ under its player/writer/rollback safeguards.
 it is neither a live collector nor a hub/inbox schema. It authenticates no
 claim, establishes no writer lock and changes no state. It emits only fixed
 stage labels and caveats, not raw input strings. Input is bounded to 64 KiB.
-Duplicate JSON fields, nonfinite constants, unreadable/empty/truncated input and
+Duplicate JSON fields, nonfinite constants or exponent overflow, unreadable/empty/truncated input and
 excessive nesting are rejected with exit 2 and a fixed error, without an
 assessment or echoed input. A valid summary with missing evidence instead
 produces explicit Unknown stages. Neither result authorizes a live action.
