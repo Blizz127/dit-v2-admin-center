@@ -47,7 +47,37 @@ Do not create observations, run gameplay, ingest player records or activate a
 policy to fill this table under the current offline scope. Review an authorized
 evidence handoff when one arrives; record missing fields rather than infer them.
 
+### Fishing artifact review (2026-10-29)
+
+Reviewed, not imported: `ffxi/handoffs/2026-10-29-fishing-offline-bundle-r1/`
+`fishing-study-draft.json` and `SKILLUP_REVIEW.md`. The draft SHA256 is
+`d3c8564b5cd4b5f837a6637f8d3e8ce4d4a071c546899592649852acbdb7bae7`.
+All three receipt hashes match the local files and consistently identify source
+hash `0829b4a157ec032279da5d81277a048056f151550242a8f824fb20a08d131846`.
+This verifies local artifact identity and consistency, not source authenticity,
+retail correctness or a deployed match.
+
+The four rows fit the current `renderLearningPlan` fields: game, topic, next,
+evidence, datasets, policy and source. All three evidence/lifecycle labels stay
+Unknown. The envelope explicitly retains preview-only true, automatic study
+registration false, retail/deployment verification false and the preferred-bait
+skill-20 bonus null. The reported receipts contain 35 skill-up cases, 38 release
+and 36 immediate replay cases, and five preview scenarios/six refusals. The
+four provenance refusals and renderer smoke are lead-reported; the smoke used
+historical Admin code, not the current app. No checks, preview executable or
+linker were rerun for this review.
+
+Integration caveat: `renderLearningPlan` displays rows only; it does not display
+or enforce envelope hashes, preview-only restrictions or registration flags.
+The draft is not a complete overview response or a hub contract. Any future
+integration must preserve that provenance and keep the rows separate from live
+learning tasks, learned policies and verified outcomes. No registration,
+activation, UI import, live access or competing implementation was performed.
+Retained emulator roll behavior is not retail odds, and the unknown skill-20
+catch benefit must not be inserted into skill-up calculations.
+
 ## SWTOR — second
+
 
 - Establish the native adapter and observation/evidence coverage, then identify game-specific movement, class roles, missions, parties and social behavior to learn. Adapter capability, datasets and policy/weight verification are unknown and require an inventory with the hub lead.
 - Preserve SWTOR-specific terminology and mechanics. Never apply an FFXI finding directly as verified SWTOR behavior.
