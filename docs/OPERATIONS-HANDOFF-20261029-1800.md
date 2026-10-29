@@ -33,3 +33,11 @@ The warning calls out the blind-restart risk and leaves reconciliation Unknown.
 The cards add no polling, mutation controls, live endpoint, restart, provider
 switch or Alienware action. Static markup checks verify the evidence distinctions
 and no action controls; they do not verify runtime services or browser rendering.
+
+Six markup checks passed. The overview's dated FFXI readiness summary now cites
+the same activation receipt rather than presenting the old r5 baseline as latest;
+its focused in-memory handler check passed against a temporary synthetic home,
+with real sockets/processes/hub reads forbidden. Two generated-artifact asset/CSP
+and JavaScript syntax checks passed after rebuilding the local preview at
+`75309cc`. The artifact hash is in `NATIVE-VERIFICATION-GAP.md`; no delivered
+Alienware file changed and no native browser pass is claimed.
