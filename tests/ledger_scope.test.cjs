@@ -26,5 +26,18 @@ function follow(){context.inspectBot('A');
  follow();context.resetPanelSession();await refresh(data);
  assert.match(get('ledger').textContent,/A_ACTION.*B_ACTION.*OTHER_EPISODE/);
  assert.equal(get('correlation').value,'');
+ for(const partial of [undefined,null,{},[null,[],false]]){
+   await refresh({...data,ledger:partial});context.inspectBot('A');
+   assert.match(get('ledger').textContent,/coverage.*Unknown/i);
+   assert.match(get('bot-inspector').textContent,/coverage.*Unknown/i);
+   assert.doesNotMatch(get('ledger').textContent,/A_ACTION|B_ACTION|undefined|\[object Object\]/);
+ }
+ await refresh({...data,ledger:[null,ledger[0],{botId:'A',bot:{},request:{},result:{},verification:{},correlationId:'   '}]});
+ context.inspectBot('A');
+ assert.match(get('bot-inspector').textContent,/coverage.*Unknown.*A_ACTION/i);
+ assert.doesNotMatch(get('bot-inspector').textContent,/undefined|\[object Object\]/);
+ const links=get('bot-inspector').children.flatMap(row=>row.children).filter(n=>n.textContent==='View example episode in ledger');
+ assert.equal(links.length,1,'Blank correlation must not offer an evidence link');
+ links[0].listeners.click();assert.match(get('ledger').textContent,/coverage.*Unknown.*A_ACTION/i);
  console.log('PASS: inspector ledger identity/correlation scoping, ambiguity, refresh, explicit broad search and session reset. Simulated DOM only.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

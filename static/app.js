@@ -455,10 +455,10 @@ function renderLedger() {
     item(panel, 'Pinned bot identity unavailable or ambiguous', 'Scoped evidence is Unknown.', 'No first record or unscoped correlation match is selected.');
     return;
   }
-  const records = currentSnapshot.ledger.filter(e => (!correlationFilter || e.correlationId === correlationFilter)
+  const records = observationRows(currentSnapshot.ledger, panel).filter(e => (!correlationFilter || e.correlationId === correlationFilter)
     && (ledgerBotId === null || e.botId === ledgerBotId));
   if (!records.length) item(panel, 'No matching evidence', 'No records in this mock snapshot.', 'This is not proof that an action did or did not occur.');
-  records.forEach(e => item(panel, `${e.bot} · ${e.request}`, `Result: ${e.result} · Verification: ${e.verification}`, `Correlation: ${e.correlationId}`));
+  records.forEach(e => item(panel, `${routingText(e.bot)} · ${routingText(e.request)}`, `Result: ${routingText(e.result)} · Verification: ${routingText(e.verification)}`, `Correlation: ${routingText(e.correlationId)}`));
 }
 function renderBotCoverage() {
   const panel = document.querySelector('#bot-coverage');
@@ -625,11 +625,11 @@ function inspectBot(id) {
         : item(panel, `Memory · ${routingText(row.text)}`, `Grounding: ${routingText(row.grounding)}`, meta));
     }
   }
-  const events = currentSnapshot.ledger.filter(e => e.botId === bot.id);
+  const events = observationRows(currentSnapshot.ledger, panel).filter(e => e.botId === bot.id);
   if (!events.length) item(panel, 'Evidence', 'No matching synthetic records', 'Absence of records does not prove inactivity.');
   events.forEach(e => {
-    item(panel, e.request, `Result: ${e.result} · Verification: ${e.verification}`, `Correlation: ${e.correlationId}`);
-    if (typeof e.correlationId === 'string' && e.correlationId) {
+    item(panel, routingText(e.request), `Result: ${routingText(e.result)} · Verification: ${routingText(e.verification)}`, `Correlation: ${routingText(e.correlationId)}`);
+    if (typeof e.correlationId === 'string' && e.correlationId.trim()) {
       const button = document.createElement('button'); button.type = 'button'; button.textContent = 'View example episode in ledger';
       button.addEventListener('click', () => {
         correlationFilter = e.correlationId;
