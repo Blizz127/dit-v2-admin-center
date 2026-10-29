@@ -12,10 +12,14 @@ class RoutingAuditFixtureTests(unittest.TestCase):
             expected = generated()
             self.assertEqual(examples(), expected)
             self.assertEqual(json.loads(FIXTURE.read_text()), expected)
-        self.assertEqual([len(row['changes']) for row in expected], [1, 2])
+        self.assertEqual([len(row['changes']) for row in expected], [1, 2, 1])
         self.assertTrue(all(change['effective'] is None for row in expected for change in row['changes']))
         self.assertEqual(expected[1]['changes'][0]['beforeRequested'], 'fixture-model-one')
         self.assertIsNone(expected[1]['changes'][1]['beforeRequested'])
+        rejected = expected[2]
+        self.assertEqual((rejected['expectedVersion'], rejected['beforeVersion'], rejected['afterVersion']), (1, 2, 2))
+        self.assertEqual(rejected['changes'][0]['beforeRequested'], rejected['changes'][0]['afterRequested'])
+        self.assertNotEqual(rejected['attemptedModel'], rejected['changes'][0]['afterRequested'])
 
     def test_missing_or_invalid_fixture_is_unknown(self):
         for error in (OSError('private'), ValueError('private')):

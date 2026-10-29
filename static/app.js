@@ -569,8 +569,8 @@ function renderRoutingAudit() {
   const version = value => Number.isSafeInteger(value) && value >= 0 ? value : 'Unknown';
   selected.forEach(row => {
     const scopeLabel = row.scopeKind === 'bot' ? 'Per-bot example' : row.scopeKind === 'all' ? 'All-bots example (fixed target set)' : 'Unknown scope example';
-    item(panel, scopeLabel, `Actor: ${routingText(row.actor)} · Reason: ${routingText(row.reason)} · Result: ${routingText(row.result)}`,
-      `Version: ${version(row.beforeVersion)} → ${version(row.afterVersion)} · Recorded: ${routingText(row.at)} · ${routingText(row.source, 'Source unknown')}`);
+    item(panel, scopeLabel, `Actor: ${routingText(row.actor)} · Reason: ${routingText(row.reason)} · Attempted model: ${routingText(row.attemptedModel)} · Result: ${routingText(row.result)}`,
+      `Version: ${version(row.beforeVersion)} → ${version(row.afterVersion)} · Expected version: ${version(row.expectedVersion)} · Recorded: ${routingText(row.at)} · ${routingText(row.source, 'Source unknown')}`);
     const group = panel.lastElementChild;
     const changes = observationRows(row.changes, group);
     const key = change => {

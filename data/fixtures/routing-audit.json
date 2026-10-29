@@ -5,6 +5,8 @@
     "actor": "fixture-owner",
     "reason": "Per-bot illustration",
     "at": "2026-01-01T12:00:00Z",
+    "expectedVersion": 0,
+    "attemptedModel": "fixture-model-one",
     "beforeVersion": 0,
     "afterVersion": 1,
     "result": "Simulated application",
@@ -29,6 +31,8 @@
     "actor": "fixture-owner",
     "reason": "Fixed all-bots illustration",
     "at": "2026-01-01T12:01:00Z",
+    "expectedVersion": 1,
+    "attemptedModel": "fixture-model-two",
     "beforeVersion": 1,
     "afterVersion": 2,
     "result": "Simulated application",
@@ -53,6 +57,32 @@
           "purpose": "conversation"
         },
         "beforeRequested": null,
+        "afterRequested": "fixture-model-two",
+        "effective": null
+      }
+    ]
+  },
+  {
+    "id": "fixture-routing-rejected",
+    "scopeKind": "bot",
+    "actor": "fixture-owner",
+    "reason": "Stale version illustration",
+    "at": "2026-01-01T12:02:00Z",
+    "expectedVersion": 1,
+    "beforeVersion": 2,
+    "afterVersion": 2,
+    "attemptedModel": "fixture-model-one",
+    "result": "Simulated rejection: stale version",
+    "source": "Generated rejected-attempt illustration; simulator emits no audit entry for refusals",
+    "changes": [
+      {
+        "scope": {
+          "game": "ffxi",
+          "realm": "fixture-realm",
+          "native_bot": "fixture-a",
+          "purpose": "conversation"
+        },
+        "beforeRequested": "fixture-model-two",
         "afterRequested": "fixture-model-two",
         "effective": null
       }

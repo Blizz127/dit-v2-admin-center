@@ -14,6 +14,7 @@ import unittest
 from unittest.mock import patch
 
 import server
+import routing_audit
 from test_offline_inspector_handler import MemoryConnection
 
 
@@ -29,6 +30,8 @@ class OfflineOverviewCollectionTests(unittest.TestCase):
         self.connect = sqlite3.connect
         self.path_open = Path.open
         self.reads = []
+        self.routing_fixture = self.home / 'routing-audit-fixture.json'
+        self.routing_fixture.write_bytes(routing_audit.FIXTURE.read_bytes())
 
     def seed(self):
         with closing(self.connect(self.database)) as db, db:
@@ -78,6 +81,7 @@ class OfflineOverviewCollectionTests(unittest.TestCase):
             return self.path_open(path, *args, **kwargs)
 
         with ExitStack() as stack:
+            stack.enter_context(patch('routing_audit.FIXTURE', self.routing_fixture))
             for target in ('socket.socket', 'socket.create_connection', 'subprocess.Popen',
                            'server.BRIDGE.read', 'server.HubReader', 'server.HUB_VIEWS.get',
                            'server.HUB_HEALTH.get', 'server.HUB_INTERACTION.get', 'os.kill'):
@@ -109,6 +113,9 @@ class OfflineOverviewCollectionTests(unittest.TestCase):
         status, data = self.request()
         self.assertEqual(status, 200)
         self.assertEqual(data['hubFeeds'][0]['status'], 'Mock selected')
+        self.assertEqual([row['scopeKind'] for row in data['routingAudit']], ['bot', 'all', 'bot'])
+        self.assertIn('Simulated rejection', data['routingAudit'][2]['result'])
+        self.assertTrue(all(change['effective'] is None for row in data['routingAudit'] for change in row['changes']))
         self.assertEqual(data['leadActivity'][0]['taskStatus'], 'working')
         self.assertIn('withheld', data['leadActivity'][0]['taskSummary'])
         self.assertIsNone(data['leadActivity'][0]['commitAt'])
