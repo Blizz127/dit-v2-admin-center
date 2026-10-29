@@ -40,5 +40,30 @@ function follow(){
   const current=context.loadHubTrace('new');
   pending.at(-1).resolve({ok:true,json:async()=>({records:[],coverage:'CURRENT_TRACE'})});
   await current;assert.match(get('hub-trace').textContent,/CURRENT_TRACE.*No matching trace records/);
+  // Source transition retains old scoped evidence only while that snapshot remains loaded.
+  let finishOverview;
+  const originalFetch=context.fetch;
+  context.fetch=(url,options)=>{
+    if(url==='/api/overview?source=hub')return new Promise(resolve=>{finishOverview=resolve;});
+    if(url==='/api/bridge-status')return Promise.resolve({ok:true,json:async()=>({unit:'unknown',source:'Synthetic'})});
+    return originalFetch(url,options);
+  };
+  follow();get('data-source').value='hub';
+  const failedSource=get('data-source').listeners.change();
+  assert.match(get('ledger-filter').textContent,/Pinned bot ID: A/);
+  assert.equal(get('hub-trace').textContent,'');
+  finishOverview({ok:false,status:503});await failedSource;
+  assert.match(get('ledger-filter').textContent,/Pinned bot ID: A/);
+  assert.match(get('hub-banner').textContent,/previous mock/);
+  const changedSource=get('data-source').listeners.change();
+  finishOverview({ok:true,json:async()=>({...data,
+    learning:[],hubFeeds:[],ownerAttention:{items:[]},
+    ledger:[{botId:'A',correlationId:'different',request:'NEW_SOURCE_EVIDENCE'}]})});
+  await changedSource;
+  assert.equal(get('workspace').hidden,false);
+  assert.equal(get('correlation').value,'');
+  assert.doesNotMatch(get('ledger-filter').textContent,/Pinned bot/);
+  assert.match(get('ledger').textContent,/NEW_SOURCE_EVIDENCE/);
+  assert.doesNotMatch(get('ledger').textContent,/CURRENT_EVIDENCE/);
   console.log('PASS: reply-ledger navigation discards late success, denial, failure and JSON; explicit trace recovers. Simulated DOM only.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
