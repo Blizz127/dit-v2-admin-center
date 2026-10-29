@@ -173,7 +173,7 @@ def overview(source='mock'):
             "closest": "DIT activation receipt 9ba4ccb reports model-only bridge r2 ready on October 29 at 22:53:01 UTC, superseding the earlier r5 baseline; post-rollout speech remains unverified.",
             "whatToLookFor": "Per the DIT lead's retest request, try a greeting, question and follow-up in linkshell, then party with a present companion. Correlate generation, queue and native delivery separately; Admin sends no test message.",
             "toggle": "No behavior or model toggle is connected in this Admin Center. Gate state is unknown.",
-            "unverified": "Post-rollout generation, queue delivery and native speech remain unverified. Missing or rejected model wording stays silent in r2; retirement counters were not exercised by the empty readback window. Native Lua retirement is separate.",
+            "unverified": "Owner conversation acceptance is not observed; post-rollout generation, queue delivery and native speech remain unverified here. Retirement counters were not exercised by the empty bridge readback. Coordinator reports native scripts retired in 6ad8732c at 22:56:51 UTC with ALIVE_CHATTER=1; that rollout is not conversation acceptance.",
             "source": "DIT 9ba4ccb execution receipt: ready October 29, 2026 at 22:53:01 UTC; auditErrors 0, one poll, zero input/hub/queue rows. Dated evidence, not a current poll; the provider route was unchanged.",
         },
         "bots": [

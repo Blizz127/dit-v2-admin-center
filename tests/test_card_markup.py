@@ -113,12 +113,17 @@ class CardMarkupTests(unittest.TestCase):
         bridge = self.by_id['dit-r2-deployment'].text()
         for value in ('9ba4ccb', 'ce66285', '22:53:01 UTC', 'Audit errors: 0',
                       'Polls: 1', 'input rows: 0', 'hub rows: 0', 'queue rows: 0',
-                      'Not exercised', 'values Unknown', 'unverified'):
+                      'Not exercised', 'values Unknown', 'not observed',
+                      '6ad8732c', '22:56:51 UTC', 'ALIVE_CHATTER=1', '35f7d587'):
             self.assertIn(value, bridge)
         drift = self.by_id['stackd-drift'].text()
         for value in ('Blind restart unsafe', 'STACKD_GAMES', ',ffxi',
-                      'Runtime: 6; persisted: 5', 'identity were not supplied', 'Unknown'):
+                      'de8c612', '22:56:28 UTC', 'daemon-reload only',
+                      'Saved set after reload (4)', 'Unchanged running set (6)',
+                      'tabula-rasa', 'war, planetside, rose', '8446/8450', 'Unknown'):
             self.assertIn(value, drift)
+        self.assertNotIn('persisted: 5', drift)
+        self.assertNotIn('still ends', drift)
 
     def test_model_and_operational_controls_remain_disabled(self):
         for identity in ('global-model', 'global-model-toggle'):
