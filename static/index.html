@@ -54,11 +54,12 @@
 <p>Owner conversation acceptance remains <strong>not observed</strong>. Current bridge health and post-rollout model generation, queue delivery and native speech are not verified by this card. Bridge source <code>47a9e064</code>, wrapper <code>e02ce9e5</code>, corrected unit <code>35f7d587</code>; the proposed <code>e7cd6e42</code> unit was never installed. This card makes no request.</p>
 </section>
 <section class="panel wide" id="stackd-drift" aria-labelledby="stackd-drift-heading">
-<h3 id="stackd-drift-heading">Warning: stackd saved and running game lists differ</h3>
-<p class="notice"><strong>Blind restart unsafe.</strong> Other saved/runtime game-list drift remains unresolved after removal of the obsolete saved FFXI entry.</p>
-<p>DIT receipt <code>de8c612</code>, October 29, 2026 at 22:56:28 UTC: removed <code>,ffxi</code> from saved <code>STACKD_GAMES</code> and performed daemon-reload only. No service restart. The earlier five-game saved list ending in FFXI is historical.</p>
-<dl><dt>Saved set after reload (4)</dt><dd>firefall, blacklight, eden, tabula-rasa</dd><dt>Unchanged running set (6)</dt><dd>firefall, blacklight, eden, war, planetside, rose</dd><dt>Dated readback</dt><dd>PID 1855293 unchanged; health 200; FFXI status 404. Unit SHA <code>82fb6334</code> → <code>b2951878</code>.</dd></dl>
-<p>Shared Banshee edge ports <code>8446/8450</code> still forward to AX41; transport migration remains unresolved. Current state is <strong>Unknown</strong>. The service owner must reconcile the saved and running lists before restart. No automatic fix or service operation is available here; this is dated evidence, not a live configuration read.</p>
+<h3 id="stackd-drift-heading">stackd retirement — shared dependency remains</h3>
+<p class="notice"><strong>Shared migration incomplete.</strong> Five controller entries remain on AX41; do not cut the shared forward based on PlanetSide retirement.</p>
+<p>Latest DIT receipt <code>4d41cdd</code>, October 29, 2026 at 23:02:04.167 UTC: operative <code>EnvironmentFile</code> overrides base-unit <code>Environment</code>. Before this change it matched the running six-game list. PlanetSide was removed from operative enable/sleep lists, followed by one stackd-only restart.</p>
+<dl><dt>Verified enabled set (5)</dt><dd>firefall, blacklight, eden, war, rose</dd><dt>Dated controller readback</dt><dd>PID 1953169, active/running, NRestarts 0; health 200; PlanetSide status 404; remaining five endpoints 200/asleep. Human samples Unknown.</dd><dt>AX41 PlanetSide catcher</dt><dd>Stopped and masked, PID 0; UDP 51000/51001 unbound. No old-world wake was sent.</dd></dl>
+<p>Historical correction: <code>de8c612</code> at 22:56:28 UTC removed <code>,ffxi</code> only from the fallback base-unit <code>STACKD_GAMES</code> entry (SHA <code>82fb6334</code> → <code>b2951878</code>). The operative EnvironmentFile already excluded FFXI. Earlier raw-unit/runtime counts do not describe current operative drift.</p>
+<p>Shared Banshee edge ports <code>8446/8450</code> still reach AX41; controller/transport migration remains open. Current state beyond this receipt is <strong>Unknown</strong>. No restart, wake or configuration action is available here; this is dated source evidence, not a live poll.</p>
 </section>
 <section class="panel" id="enb-deployment" aria-labelledby="enb-deployment-heading">
 <h3 id="enb-deployment-heading">Earth &amp; Beyond deployment handoff</h3>

@@ -28,21 +28,28 @@ remains not observed. Bridge source `47a9e064`, wrapper `e02ce9e5` and corrected
 unit `35f7d587` remain the activation identities; proposed `e7cd6e42` was not
 installed. Current status is not inferred from these dated observations.
 
-## stackd drift provenance
+## Latest stackd receipt and precedence correction
 
-Correction: the original six-runtime/five-saved relay is historical. Admin read
-`de8c612:docs/evidence/ax41-retirement-20261029/FFXI-WAKE.md` from DIT Git objects.
-At 22:56:28 UTC the saved `,ffxi` suffix was removed and user-systemd reloaded,
-without a service restart. Saved set afterward: firefall, blacklight, eden,
-tabula-rasa (four). Running set unchanged: firefall, blacklight, eden, war,
-planetside, rose (six). PID1855293 unchanged; health200; FFXI status404.
-Unit SHA changed `82fb6334` to `b2951878` (full hashes in that receipt).
+Admin read `4d41cdd:docs/evidence/ax41-retirement-20261029/PLANETSIDE-WAKE.md`
+from DIT Git objects. Its 23:02:04.167 UTC readback supersedes the earlier counts.
+The operative EnvironmentFile overrides base-unit Environment and matched the
+running six-game list before this change. The previous `de8c612` FFXI suffix edit
+at 22:56:28 UTC removed only a stale fallback base-unit entry (unit SHA
+`82fb6334` → `b2951878`); operative configuration already excluded FFXI.
+The older raw-unit comparison is not evidence of current operative drift.
 
-Other saved/runtime drift remains unresolved; a blind restart is still unsafe.
-Shared Banshee edge8446/8450 transport to AX41 remains unchanged and unresolved.
-Neither the FFXI saved-entry fix nor the native chatter rollout completes the
-shared transport migration. Current service state is Unknown; no live poll or
-control was performed to reconcile these source receipts.
+PlanetSide was removed from operative `STACKD_GAMES` and `STACKD_SLEEP_GAMES`,
+then one stackd-only restart applied it. Readback: PID1953169, active/running,
+NRestarts0, health200, PlanetSide404. Enabled set exactly firefall, blacklight,
+eden, war, rose (five); other five endpoints200/asleep, initial human samples
+Unknown. The sleep list is a separate setting, not the enabled-game count.
+AX41 catcher is stopped/masked/PID0 and UDP51000/51001 unbound. No game or
+database restart/wake was dispatched by that rollout, per the receipt.
+
+Shared Banshee edge8446/8450 still reaches AX41. The remaining five controller
+entries mean shared migration is incomplete; cutting the forward is not
+authorized by these retirement facts. Current state beyond the receipt remains
+Unknown. Admin performed no live poll, restart or configuration change.
 
 The cards add no polling, mutation controls, live endpoint, restart, provider
 switch or Alienware action. Static markup checks verify the evidence distinctions

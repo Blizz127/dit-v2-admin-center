@@ -117,13 +117,16 @@ class CardMarkupTests(unittest.TestCase):
                       '6ad8732c', '22:56:51 UTC', 'ALIVE_CHATTER=1', '35f7d587'):
             self.assertIn(value, bridge)
         drift = self.by_id['stackd-drift'].text()
-        for value in ('Blind restart unsafe', 'STACKD_GAMES', ',ffxi',
-                      'de8c612', '22:56:28 UTC', 'daemon-reload only',
-                      'Saved set after reload (4)', 'Unchanged running set (6)',
-                      'tabula-rasa', 'war, planetside, rose', '8446/8450', 'Unknown'):
+        for value in ('Shared migration incomplete', 'STACKD_GAMES', ',ffxi',
+                      '4d41cdd', '23:02:04.167 UTC', 'EnvironmentFile',
+                      'Verified enabled set (5)', 'firefall, blacklight, eden, war, rose',
+                      '1953169', 'Stopped and masked', '51000/51001 unbound',
+                      'fallback base-unit', 'already excluded FFXI', '8446/8450', 'Unknown'):
             self.assertIn(value, drift)
         self.assertNotIn('persisted: 5', drift)
         self.assertNotIn('still ends', drift)
+        self.assertNotIn('Unchanged running set (6)', drift)
+        self.assertNotIn('game-list drift remains unresolved', drift)
 
     def test_model_and_operational_controls_remain_disabled(self):
         for identity in ('global-model', 'global-model-toggle'):
