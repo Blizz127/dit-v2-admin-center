@@ -123,6 +123,19 @@ authentication, permission denial, timeout and cache recovery. Malformed
 trace values now return 400 before configuration lookup, instead of being
 misreported as an unavailable hub. The running service was not restarted.
 
+## Offline bridge UI checks
+
+```sh
+timeout -k 3 20 node tests/bridge_view.test.js
+```
+
+This runs the actual bridge-display function with a minimal simulated DOM and
+deferred synthetic responses. It checks both bridge cards, visibility/token
+guards, one in-flight request, failure redaction, Unknown states and recovery.
+Late results are discarded while the workspace is hidden or its token differs
+from the request token. It uses no network, listener or real browser; layout and
+deployed runtime remain unverified.
+
 ## Security
 
 - Owner-only token auth for now.

@@ -55,6 +55,13 @@ until the next eligible request, which may recover. In-memory tests inject a
 fake runner and clock through the real handler/observer; they do not make an
 SSH connection, verify a host or observe a real service.
 
+The bridge UI clears prior healthy text from both cards after rejected HTTP,
+malformed JSON or transport failures. It allows only one bridge request in
+flight and starts none without a token or while the workspace is hidden. Late
+successes and failures are discarded if the workspace is hidden or the token
+has changed since the request. `tests/bridge_view.test.js` checks this with
+deferred responses and a simulated DOM; no browser or live bridge is used.
+
 ## GET /api/overview?source=mock|hub
 
 
