@@ -39,6 +39,7 @@ vm.runInNewContext(fs.readFileSync('static/app.js', 'utf8'), ctx);
   assert.equal(get('hub-trace').children.length, 0);
   get('data-source').value = 'mock';
   const failed = get('data-source').listeners.change();
+  assert.match(get('hub-banner').textContent, /Loading selected data source.*previous hub request snapshot from test/);
   pending[3].resolve({ok: false, status: 503});
   await failed;
   assert.match(get('hub-banner').textContent, /Refresh failed.*previous hub request snapshot from test.*selected source may not match/);

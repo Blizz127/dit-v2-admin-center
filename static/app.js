@@ -374,7 +374,9 @@ function botItem(bot) {
 async function load() {
   const requestId = ++requestVersion;
   error.textContent = '';
-  document.querySelector('#hub-banner').textContent = 'Loading selected data source…';
+  document.querySelector('#hub-banner').textContent = currentSnapshot && loadedSource
+    ? `Loading selected data source… Showing previous ${loadedSource} request snapshot from ${currentSnapshot.generatedAt || 'unknown time'} until loading finishes.`
+    : 'Loading selected data source…';
   let unauthorized = false, rendering = false;
   try {
     const source = document.querySelector('#data-source').value === 'hub' ? 'hub' : 'mock';
