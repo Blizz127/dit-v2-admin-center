@@ -39,6 +39,16 @@ ssh -N -L 7391:127.0.0.1:7391 <ssh-user>@devbox.tail646ff8.ts.net
 
 Keep the tunnel open and browse to `http://127.0.0.1:7391` on the laptop. This requires existing SSH access; the app does not configure SSH, tailnet serving or credentials. The app's owner token is still required.
 
+## Offline interaction contract check
+
+Run the focused reader check without any network access:
+
+```sh
+timeout 20s python3 -m unittest discover -s tests -p test_interaction_contract.py -v
+```
+
+It uses a synthetic candidate fixture and rejects socket connections. It checks the reconciled f95fe8a interaction handoff, including scoped identity, freshness, cache timestamps and omitted private fields. Proposed model-routing payloads remain sketches, not implemented endpoints. See [API.md](docs/API.md#offline-interaction-contract-verification) for the verification limits.
+
 ## Security
 
 - Owner-only token auth for now.
