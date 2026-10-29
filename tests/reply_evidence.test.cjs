@@ -26,6 +26,19 @@ const filter = value => {get('reply-correlation').value=value; get('reply-correl
   assert.doesNotMatch(get('reply-source').textContent,/Canned fallback/);
   await refresh({...data,bots:[bots[1],bots[1]]});
   assert.doesNotMatch(get('reply-source').textContent,/OTHER_BOT/);
+  await refresh(data);context.inspectBot('A');
+  await refresh({...data,replyEvents:[null,[],false,{}, {botId:' ',wordingOrigin:'DO_NOT_ATTRIBUTE'},...replyEvents]});
+  assert.match(get('reply-count').textContent,/Showing 2 of Unknown total/);
+  assert.match(get('reply-source').textContent,/coverage unknown.*Model example.*Canned fallback/);
+  assert.doesNotMatch(get('reply-source').textContent,/OTHER_BOT|DO_NOT_ATTRIBUTE/);
+  filter('Party-1');assert.match(get('reply-count').textContent,/Showing 1 of Unknown total/);
+  for(const replyEvents of [null,undefined,{}]){
+    await refresh({...data,replyEvents});
+    assert.match(get('reply-count').textContent,/Showing 0 of Unknown total/);
+    assert.doesNotMatch(get('reply-source').textContent,/Model example|Canned fallback/);
+  }
+  await refresh({...data,replyEvents:[]});assert.match(get('reply-count').textContent,/Showing 0 of 0/);
+  await refresh(data);assert.match(get('reply-count').textContent,/Showing 1 of 2/);
   context.resetPanelSession();assert.equal(get('reply-correlation').value,'');
   assert.match(get('reply-count').textContent,/Select a bot/);
   console.log('PASS: exact bot-scoped reply filter, local requests, refresh persistence, selection reset and unknown delivery. Simulated DOM only.');

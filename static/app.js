@@ -528,15 +528,19 @@ function renderReplySource() {
   count.textContent = 'Reply example count unknown.';
   if (!selectedBotId) { item(panel, 'No bot selected', 'Select a bot to inspect reply examples.', 'No live reply data is connected.'); return; }
   const bot = uniqueRecord(currentSnapshot.bots, selectedBotId);
-  if (!Array.isArray(currentSnapshot.replyEvents) || currentSnapshot.replyEvents.some(r => !r || typeof r !== 'object' || Array.isArray(r))) {
-    item(panel, 'Reply evidence coverage unknown', 'No usable reply example list was supplied.', 'Source, fallback and delivery remain unknown.'); return;
-  }
-  const rows = currentSnapshot.replyEvents.filter(r => r.botId === selectedBotId);
-  if (!bot || !rows.length) { item(panel, 'No matching reply evidence', 'Source, fallback and delivery are unknown.', 'Absence of records does not prove no reply occurred.'); return; }
+  if (!bot) { item(panel, 'No matching reply evidence', 'Selected bot identity is missing or ambiguous.', 'No scoped reply evidence is attributed.'); return; }
+  const supplied = currentSnapshot.replyEvents;
+  const usable = Array.isArray(supplied) ? supplied.filter(r => r && typeof r === 'object' && !Array.isArray(r)
+    && typeof r.botId === 'string' && r.botId.trim()) : [];
+  const complete = Array.isArray(supplied) && usable.length === supplied.length;
+  if (!complete) item(panel, 'Reply evidence coverage unknown', 'Missing, malformed or unscoped examples are withheld.', 'Usable scoped examples remain visible; source, fallback and delivery are not inferred.');
+  const rows = usable.filter(r => r.botId === selectedBotId);
   const correlation = document.querySelector('#reply-correlation').value.trim();
   const filtered = rows.filter(r => !correlation || r.correlationId === correlation);
-  count.textContent = `Showing ${filtered.length} of ${rows.length} loaded examples for this bot; actual reply coverage is unknown.`;
-  if (!filtered.length) item(panel, 'No matching correlation', 'No loaded example matches this exact correlation ID for the selected bot.', 'This does not prove no reply occurred. Clear the filter to view all loaded examples.');
+  count.textContent = `Showing ${filtered.length} of ${complete ? rows.length : 'Unknown total'} loaded examples for this bot; actual reply coverage is unknown.`;
+  if (!filtered.length) item(panel, correlation ? 'No matching correlation' : 'No matching reply evidence',
+    correlation ? 'No usable loaded example matches this exact correlation ID for the selected bot.' : 'No usable loaded reply example matches the selected bot.',
+    'This does not prove no reply occurred. Source, fallback and delivery remain unknown.');
   filtered.forEach(r => item(panel, `${bot.name} · ${routingText(r.wordingOrigin, 'Unknown source')}`, `Generation: ${routingText(r.generationStatus)} · Fallback: ${routingText(r.fallbackPolicy)} · Reason: ${routingText(r.fallbackReason, 'Not reported')}`, `Delivery: ${routingText(r.delivery)} · Verification: ${routingText(r.verification)} · Correlation: ${routingText(r.correlationId, 'unknown')} · ${routingText(r.source, 'Source unknown')} · Observed: ${routingText(r.observedAt, 'unknown')}`));
 }
 function renderOwnerAttention(data) {
