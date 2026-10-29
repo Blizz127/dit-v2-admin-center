@@ -76,6 +76,11 @@ const ctx = {document: {querySelector: s => get(s.slice(1)), getElementById: get
       if (outcome === 'decisions-null') data.ownerAttention = null;
       if (outcome === 'decisions-malformed') data.ownerAttention = {items: 'OMIT_PRIVATE_BAD_SHAPE'};
       if (outcome === 'decisions-invalid-row') data.ownerAttention = {items: [null]};
+      if (outcome === 'audit-missing') delete data.audit;
+      if (outcome === 'audit-null') data.audit = null;
+      if (outcome === 'audit-malformed') data.audit = 'OMIT_PRIVATE_BAD_AUDIT';
+      if (outcome === 'audit-invalid-row') data.audit = [{action: 'OMIT_PARTIAL_PREFIX'}, null];
+      if (outcome === 'audit-partial') data.audit = [{action: 'Partial example', result: false, actor: null, at: {}, source: ' '}];
       return data;
     }};
   }};
@@ -257,5 +262,26 @@ function select() {
   outcome = 'good'; await get('refresh').listeners.click();
   assert.match(get('owner-attention').textContent, /No records listed.*Not a complete decision inventory/);
   assert.doesNotMatch(get('owner-attention').textContent, /No usable decision list/);
-  console.log('Overview/detail checks passed, including missing/malformed owner-decision summary isolation, unknown metadata and recovery. Simulated DOM only.');
+  await login('audit');
+  for (const failure of ['audit-missing', 'audit-null', 'audit-malformed', 'audit-invalid-row']) {
+    outcome = failure; await get('refresh').listeners.click();
+    assert.equal(get('workspace').hidden, false);
+    assert.match(get('audit-count').textContent, /count unknown/);
+    assert.match(get('audit').textContent, /Audit example coverage unknown.*No usable audit example list/);
+    assert.doesNotMatch(get('audit').textContent, /AUDIT_EXAMPLE|OMIT_|No audit examples loaded/);
+    assert.match(get('bots').textContent, /OLD_BOT_DETAIL/);
+    const beforeFilter = fetchCount;
+    get('audit-search').value = 'anything'; get('audit-search').listeners.input();
+    get('audit-reset').listeners.click();
+    assert.equal(fetchCount, beforeFilter);
+    assert.match(get('audit-count').textContent, /count unknown/);
+  }
+  outcome = 'audit-partial'; await get('refresh').listeners.click();
+  assert.match(get('audit').textContent, /Partial example · Scope unknown.*Unknown.*Actor unknown.*unknown time.*Source unknown/);
+  assert.doesNotMatch(get('audit').textContent, /undefined|null|\[object Object\]/);
+  assert.match(get('audit-count').textContent, /Showing 1 of 1/);
+  outcome = 'empty'; await get('refresh').listeners.click();
+  assert.match(get('audit-count').textContent, /Showing 0 of 0/);
+  assert.match(get('audit').textContent, /No audit examples loaded/);
+  console.log('Overview/detail checks passed, including missing/malformed audit metadata isolation, unknown count and fields, safe local filters and empty recovery. Simulated DOM only.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

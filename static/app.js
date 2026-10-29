@@ -431,13 +431,20 @@ function renderOwnerAttention(data) {
 function renderAudit() {
   const panel = document.querySelector('#audit');
   panel.replaceChildren();
+  if (!Array.isArray(currentSnapshot.audit) || currentSnapshot.audit.some(row => !row || typeof row !== 'object' || Array.isArray(row))) {
+    document.querySelector('#audit-count').textContent = 'Loaded audit example count unknown; no live audit source is connected.';
+    item(panel, 'Audit example coverage unknown', 'No usable audit example list was supplied in this snapshot.',
+      'Missing data does not establish whether real admin actions occurred.');
+    return;
+  }
   const query = (document.querySelector('#audit-search').value || '').trim().toLowerCase();
   const rows = currentSnapshot.audit.filter(a => !query || [a.actor, a.action, a.scope, a.result]
     .some(value => typeof value === 'string' && value.toLowerCase().includes(query)));
   document.querySelector('#audit-count').textContent = `Showing ${rows.length} of ${currentSnapshot.audit.length} loaded audit examples; no live audit source is connected.`;
   if (!rows.length) item(panel, currentSnapshot.audit.length ? 'No matching audit examples' : 'No audit examples loaded',
     'This view does not establish whether real admin actions occurred.', 'Read-only examples; no live audit source is connected.');
-  rows.forEach(a => item(panel, `${a.action} · ${a.scope}`, a.result, `${a.actor} · ${a.at || 'unknown time'} · ${a.source}`));
+  rows.forEach(a => item(panel, `${routingText(a.action, 'Action unknown')} · ${routingText(a.scope, 'Scope unknown')}`,
+    routingText(a.result), `${routingText(a.actor, 'Actor unknown')} · ${routingText(a.at, 'unknown time')} · ${routingText(a.source, 'Source unknown')}`));
 }
 function renderAssignments() {
   const panel = document.querySelector('#assignment-history');
