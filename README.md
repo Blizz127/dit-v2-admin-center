@@ -117,8 +117,9 @@ with its overview collector replaced by the projected synthetic fixture. It
 checks authentication, query rejection, method rejection, response headers and
 learning-field serialization. Sockets, subprocesses, databases and live readers
 are forbidden. It starts no listener and does not verify the real overview
-collectors, a deployed service or a browser. Seven checks passed locally, including
-interaction/health failure redaction and trace validation/projection. Malformed
+collectors, a deployed service or a browser. Ten checks passed locally, including
+interaction/health failure redaction, trace validation/projection, and bridge
+authentication, permission denial, timeout and cache recovery. Malformed
 trace values now return 400 before configuration lookup, instead of being
 misreported as an unavailable hub. The running service was not restarted.
 
