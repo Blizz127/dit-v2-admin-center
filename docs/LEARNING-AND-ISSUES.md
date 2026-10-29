@@ -134,6 +134,30 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+### Current render checkpoint — 2026-10-29
+
+`570ad1c` adds `--screenshots` to the isolated native runner. It checks comparison
+table content, vertical/horizontal viewport bounds and rightmost-column access
+at desktop and narrow widths, then retains three PNGs only when the complete run
+succeeds. Published receipts identify the generated HTML and image bytes by
+SHA-256. Geometry assertions and PNG header checks do not replace human image
+inspection or establish live evidence.
+
+Six focused Python wrapper/publication checks and the Node capture protocol
+fixture check passed. Those tests use fake protocol data, including fake PNG
+headers; they produced no browser screenshots. The actual screenshot command
+exited 2 before launch because Chromium is absent. Separately, the namespace
+probe failed with `unshare: write failed /proc/self/uid_map: Operation not
+permitted`. This supersedes the earlier statement that namespace operation was
+untested. Neither blocker was bypassed; no packages or browsers were downloaded.
+
+The next meaningful runtime step is to run the documented command in an existing
+environment with Chromium and permitted isolation, then inspect its images for
+clipping and readability. Native input, appearance and screen-reader behavior
+remain unverified. Repeating fixture checks cannot resolve those gaps. Initial
+source tasks remain implemented; authoritative learning evidence and native
+party speech remain separate evidence dependencies, not inferred successes.
+
 Keyboard-runner pipe follow-up: non-object JSON replies now close the protocol
 connection through its redacted failure path rather than throwing in the stream
 callback. EOF, pipe closure and synchronous write failures reject outstanding
