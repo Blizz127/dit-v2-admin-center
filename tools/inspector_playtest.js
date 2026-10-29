@@ -1,13 +1,16 @@
 // Embedded by build_inspector_playtest.py around the unchanged application source.
 const requests = [];
 const unexpected = [];
+let healthResponse = {ok: true, json: async () => ({services: [], source: 'Synthetic offline health', fetchedAt: 'fixture-time', coverage: 'Fixture coverage only'})};
+let bridgeResponse = {ok: true, json: async () => ({unit: 'unknown', substate: 'unknown', result: 'unknown', marker: 'unknown', source: 'Synthetic offline fixture', observedAt: null})};
 const sessionStorage = {getItem: () => 'synthetic-harness-token', setItem() {}, removeItem() {}};
 const setInterval = () => 0; // No polling or background observations in this harness.
 const fetch = async (url, options = {}) => {
   requests.push(url);
   if (options.method && options.method !== 'GET') throw new Error('Only fixture GETs allowed');
-  if (url === '/api/overview?source=mock') return {ok: true, json: async () => structuredClone(fixture)};
-  if (url === '/api/bridge-status') return {ok: true, json: async () => ({unit: 'unknown', substate: 'unknown', result: 'unknown', marker: 'unknown', source: 'Synthetic offline fixture', observedAt: null})};
+  if (url === '/api/overview?source=mock' || url === '/api/overview?source=hub') return {ok: true, json: async () => structuredClone(fixture)};
+  if (url === '/api/hub-health') return healthResponse;
+  if (url === '/api/bridge-status') return bridgeResponse;
   unexpected.push(url);
   throw new Error('No fixture for request; network forbidden');
 };
@@ -55,8 +58,42 @@ try {
   document.querySelector('#clear-learning').click();
   check(textOf('learning-evidence').includes('No learning record selected'), 'Clear removes assessment context');
   check(requests.length === before, 'Inspector, preview, restore and clear make no fetch requests');
+  document.querySelector('#data-source').value = 'hub';
+  document.querySelector('#data-source').dispatchEvent(new Event('change'));
+  await settle(() => loadedSource === 'hub' && !sourceLoading && !bridgePending);
+  const healthGood = {services: [{game: 'FFXI', label: 'Synthetic bridge', state: 'running', observedAt: 'fixture-time'}],
+    source: 'Synthetic offline health', fetchedAt: 'fixture-time', coverage: 'Fixture coverage only'};
+  const bridgeGood = {unit: 'active', substate: 'running', result: 'success', marker: 'absent', markerReason: 'unknown',
+    source: 'Synthetic offline bridge', observedAt: 'fixture-time'};
+  const refresh = async (button, predicate) => { document.getElementById(button).click(); await settle(predicate); };
+  for (const id of ['hub-health', 'bridge-status']) {
+    const details = document.getElementById(id).closest('details');
+    if (details) details.open = true;
+  }
+  await refresh('hub-health-refresh', () => textOf('hub-health').includes('No matching service records'));
+  check(textOf('hub-health').includes('Empty data does not establish healthy services'), 'Empty health coverage is not healthy');
+  for (const status of [401, 502, 503]) {
+    healthResponse = {ok: true, json: async () => structuredClone(healthGood)};
+    await refresh('hub-health-refresh', () => textOf('hub-health').includes('Synthetic bridge'));
+    healthResponse = {ok: false, status};
+    await refresh('hub-health-refresh', () => textOf('hub-health').includes('health unavailable'));
+    check(!textOf('hub-health').includes('fixture-time'), 'Health ' + status + ' removes previous service records');
+  }
+  healthResponse = {ok: true, json: async () => structuredClone(healthGood)};
+  await refresh('hub-health-refresh', () => textOf('hub-health').includes('Synthetic bridge'));
+  check(textOf('hub-health').includes('Service state is not bot presence'), 'Health recovers without implying bot presence');
+  for (const status of [200, 401, 503]) {
+    bridgeResponse = {ok: true, json: async () => structuredClone(bridgeGood)};
+    await refresh('bridge-refresh', () => !bridgePending && textOf('bridge-status').includes('active'));
+    bridgeResponse = status === 200 ? {ok: true, json: async () => ({unit: 'unknown', substate: 'unknown', result: 'unknown', marker: 'unknown', markerReason: 'unknown', source: 'Synthetic unavailable observation', observedAt: null})} : {ok: false, status};
+    await refresh('bridge-refresh', () => !bridgePending && textOf('bridge-status').includes('unknown'));
+    check(['bridge-status', 'ffxi-focus-bridge'].every(id => !textOf(id).includes('fixture-time') && !textOf(id).includes('active')), 'Bridge ' + status + ' clears both previous observations');
+  }
+  bridgeResponse = {ok: true, json: async () => structuredClone(bridgeGood)};
+  await refresh('bridge-refresh', () => !bridgePending && textOf('bridge-status').includes('active'));
+  check(textOf('ffxi-focus-bridge').includes('Not proof of delivery'), 'Both bridge cards recover without claiming delivery');
   check(unexpected.length === 0, 'Only allowlisted in-memory fixture reads occurred');
-  document.querySelector('#harness-status').textContent = 'PASS — real browser DOM checks completed with synthetic data; no network transport.';
+  document.querySelector('#harness-status').textContent = 'PASS — DOM checks completed with synthetic data; runtime identity is reported by the runner.';
   document.documentElement.dataset.playtest = 'passed';
 } catch (error) {
   document.querySelector('#harness-status').textContent = 'FAIL — ' + error.message;
