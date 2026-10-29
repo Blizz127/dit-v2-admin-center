@@ -4,6 +4,7 @@ No listener, live overview collection, token file or DOM dependency is used.
 """
 import io
 import json
+import subprocess
 from email.parser import BytesParser
 from types import SimpleNamespace
 import unittest
@@ -11,6 +12,7 @@ from unittest.mock import patch
 from unittest.mock import Mock
 
 import server
+from bridge_status import BridgeObserver
 from tools.build_inspector_playtest import snapshot
 
 
@@ -142,6 +144,66 @@ class OfflineInspectorHandlerTests(unittest.TestCase):
             status, _, body = self.request('/api/trace?gameId=ffxi&correlationId=example:1')
             self.assertEqual(status, 503)
             self.assertNotIn(b'OMIT_PRIVATE', body)
+
+    def test_bridge_auth_and_method_rejection_do_not_reach_observer(self):
+        runner = Mock(side_effect=AssertionError('Observer must not be reached'))
+        with patch('server.BRIDGE', BridgeObserver(runner, lambda: 0)):
+            for token in (None, '', 'wrong'):
+                with self.subTest(token=token):
+                    status, headers, body = self.request('/api/bridge-status', token=token)
+                    self.assertEqual(status, 401)
+                    self.assertEqual(headers['Cache-Control'], 'no-store')
+                    self.assertEqual(json.loads(body), {'error': 'unauthorized'})
+            self.assertEqual(self.request('/api/bridge-status', method='POST')[0], 501)
+        runner.assert_not_called()
+
+    def test_bridge_permission_denial_and_timeout_return_unknown_without_details(self):
+        failures = [
+            PermissionError('OMIT_PRIVATE_PATH'),
+            subprocess.CalledProcessError(255, ['fixture-ssh'], output='OMIT_PRIVATE_OUTPUT', stderr='OMIT_PRIVATE_DENIAL'),
+            subprocess.TimeoutExpired(['fixture-ssh'], 8, output='OMIT_PRIVATE_OUTPUT', stderr='OMIT_PRIVATE_TIMEOUT'),
+        ]
+        for failure in failures:
+            with self.subTest(failure=type(failure).__name__):
+                runner = Mock(side_effect=failure)
+                with patch('server.BRIDGE', BridgeObserver(runner, lambda: 0)):
+                    status, headers, body = self.request('/api/bridge-status')
+                self.assertEqual(status, 200)  # Observation unavailable, not an auth failure.
+                self.assertEqual(headers['Cache-Control'], 'no-store')
+                result = json.loads(body)
+                self.assertIsNone(result['observedAt'])
+                for field in ('unit', 'substate', 'result', 'marker', 'markerReason'):
+                    self.assertEqual(result[field], 'unknown')
+                self.assertNotIn(b'OMIT_PRIVATE', body)
+                self.assertNotIn(b'fixture-token', body)
+                runner.assert_called_once()
+                command, options = runner.call_args
+                self.assertIn('StrictHostKeyChecking=yes', command[0])
+                self.assertEqual(options['timeout'], 8)
+                self.assertTrue(options['check'])
+
+    def test_bridge_failed_refresh_replaces_healthy_snapshot_and_recovers_after_ttl(self):
+        good = {'observedAt': '2026-01-01T00:00:00Z', 'unit': 'active', 'substate': 'running',
+                'result': 'success', 'marker': 'absent', 'markerReason': 'unknown'}
+        runner = Mock(side_effect=[SimpleNamespace(stdout=json.dumps(good)),
+                                   subprocess.TimeoutExpired(['fixture-ssh'], 8),
+                                   SimpleNamespace(stdout=json.dumps({**good, 'observedAt': '2026-01-01T00:00:30Z'}))])
+        clock = [0]
+        with patch('server.BRIDGE', BridgeObserver(runner, lambda: clock[0])):
+            first = json.loads(self.request('/api/bridge-status')[2])
+            self.assertEqual(first['unit'], 'active')
+            clock[0] = 15
+            failed = json.loads(self.request('/api/bridge-status')[2])
+            self.assertEqual(failed['unit'], 'unknown')
+            self.assertIsNone(failed['observedAt'])
+            clock[0] = 29.9
+            self.assertEqual(json.loads(self.request('/api/bridge-status')[2]), failed)
+            self.assertEqual(runner.call_count, 2)
+            clock[0] = 30
+            recovered = json.loads(self.request('/api/bridge-status')[2])
+            self.assertEqual(recovered['observedAt'], '2026-01-01T00:00:30Z')
+            self.assertEqual(recovered['unit'], 'active')
+            self.assertEqual(runner.call_count, 3)
 
 
 if __name__ == '__main__':
