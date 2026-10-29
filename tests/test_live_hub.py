@@ -16,6 +16,10 @@ class Stub(BaseHTTPRequestHandler):
         Stub.requests.append((self.path, self.headers.get('Authorization')))
         if self.path.startswith('/v1/control/bots'):
             self.send_response(200); self.end_headers(); self.wfile.write(b'[{"key":"fixture","name":"Fixture bot","character":"Example job","level":"12","bodyKind":"example","summary":"Example personality"}]')
+        elif self.path == '/v1/control/interaction?limit=50':
+            self.send_response(200); self.end_headers(); self.wfile.write(json.dumps({
+                'switches': {'contract': False, 'naturalOrders': False, 'selfClaims': False},
+                'scopes': [], 'freshForSeconds': 30, 'truncated': False}).encode())
         elif self.path.startswith('/v1/control/health'):
             self.send_response(200); self.end_headers(); self.wfile.write(json.dumps({'utc': '2026-01-01T00:00:00Z', 'services': [{'game': 'ffxi', 'label': 'Example feed', 'state': 'quiet', 'target': '/private/path'}, {'game': 'other', 'label': 'Other', 'state': 'running'}]}).encode())
         elif self.path.startswith('/v1/control/ai-spend'):
@@ -42,6 +46,11 @@ class HubReaderTests(unittest.TestCase):
                 reader = HubReader(f'http://127.0.0.1:{server.server_port}', token)
                 data, stamp = reader.get('bots', 'ffxi'); self.assertEqual(data[0]['name'], 'Fixture bot'); self.assertTrue(stamp)
                 reader.get('learning', 'ffxi')
+                from interaction_projection import project_interaction
+                interaction = project_interaction(*reader.interaction())
+                self.assertIs(interaction['switches']['contract'], False)
+                self.assertEqual(interaction['bots'], [])
+                self.assertTrue(any(path == '/v1/control/interaction?limit=50' for path, _ in Stub.requests))
                 from live_hub import project_hub_health
                 health, fetched = reader.health()
                 projected_health = project_hub_health(health, fetched)

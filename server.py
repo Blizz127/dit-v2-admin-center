@@ -15,6 +15,7 @@ from urllib.parse import parse_qs, urlsplit
 from lead_timeline import add_checkout_history, add_current_evidence, monitoring_issues, timeline
 from lead_activity import lead_activity
 from lead_binding import current_codex_binding
+from interaction_projection import project_interaction
 from live_hub import HubReadError, HubReader, merge_views, project_hub_health, project_spend, project_trace, read_views
 from hub_cache import HubViewsCache
 from bridge_status import BridgeObserver
@@ -31,6 +32,7 @@ LOCAL_DATA = PROJECT / "data" / "local"
 BRIDGE = BridgeObserver()
 HUB_VIEWS = HubViewsCache(lambda url, token_file: read_views(HubReader(url, token_file)))
 HUB_HEALTH = HubViewsCache(lambda url, token_file: project_hub_health(*HubReader(url, token_file).health()))
+HUB_INTERACTION = HubViewsCache(lambda url, token_file: project_interaction(*HubReader(url, token_file).interaction()))
 QUOTA_SOURCE = Path.home() / ".local/share/devbox-codex-accounts/state.json"
 ASSETS = {"/": ("index.html", "text/html; charset=utf-8"), "/playtest": ("playtest.html", "text/html; charset=utf-8"), "/app.js": ("app.js", "text/javascript; charset=utf-8"), "/style.css": ("style.css", "text/css; charset=utf-8")}
 
@@ -300,6 +302,23 @@ class Handler(BaseHTTPRequestHandler):
                     return
                 except HubReadError:
                     self.send_content(503, "application/json", b'{"error":"hub read unavailable"}')
+                    return
+                self.send_content(200, "application/json", json.dumps(result).encode())
+            elif path == "/api/interaction":
+                if urlsplit(self.path).query:
+                    self.send_content(400, "application/json", b'{"error":"interaction takes no parameters"}')
+                    return
+                url, token_file = os.environ.get('HUB_READONLY_URL'), os.environ.get('HUB_TOKEN_FILE')
+                if not url or not token_file:
+                    self.send_content(503, "application/json", b'{"error":"hub not configured"}')
+                    return
+                try:
+                    result = HUB_INTERACTION.get(url, token_file)
+                except ValueError:
+                    self.send_content(502, "application/json", b'{"error":"invalid interaction response or configuration"}')
+                    return
+                except HubReadError:
+                    self.send_content(503, "application/json", b'{"error":"interaction read unavailable"}')
                     return
                 self.send_content(200, "application/json", json.dumps(result).encode())
             elif path == "/api/trace":

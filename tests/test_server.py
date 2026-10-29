@@ -97,6 +97,20 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(json.loads(body)['coverage'], 'fixture')
 
+    def test_interaction_requires_auth_and_has_no_write_or_parameter_surface(self):
+        from unittest.mock import patch
+        import os
+        self.assertEqual(self.request('GET', '/api/interaction')[0], 401)
+        self.assertEqual(self.request('POST', '/api/interaction', 'test-private-token')[0], 501)
+        self.assertEqual(self.request('GET', '/api/interaction?limit=999', 'test-private-token')[0], 400)
+        with patch.dict(os.environ, {'HUB_READONLY_URL': '', 'HUB_TOKEN_FILE': ''}):
+            self.assertEqual(self.request('GET', '/api/interaction', 'test-private-token')[0], 503)
+        with patch.dict(os.environ, {'HUB_READONLY_URL': 'http://127.0.0.1:7390', 'HUB_TOKEN_FILE': '/fixture'}), \
+             patch('server.HUB_INTERACTION.get', return_value={'switches': {}, 'bots': [], 'coverage': 'fixture'}):
+            status, _, body = self.request('GET', '/api/interaction', 'test-private-token')
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(body)['coverage'], 'fixture')
+
     def test_bridge_status_requires_auth_and_uses_observer(self):
         from unittest.mock import patch
         self.assertEqual(self.request("GET", "/api/bridge-status")[0], 401)
