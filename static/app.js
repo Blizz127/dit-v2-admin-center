@@ -401,10 +401,16 @@ function renderBots() {
 function renderSafety() {
   const panel = document.querySelector('#safety-records');
   panel.replaceChildren();
+  const rows = currentSnapshot.safetyRecords;
+  if (!Array.isArray(rows) || rows.some(r => !r || typeof r !== 'object' || Array.isArray(r))) {
+    item(panel, 'Safety example coverage unknown', 'No usable safety example list was supplied.', 'Actual gate and kill-switch states remain unknown.'); return;
+  }
   const selectedExists = selectedBotId !== null && currentSnapshot.bots.some(bot => bot.id === selectedBotId);
-  const records = currentSnapshot.safetyRecords.filter(r => r.botId == null || (selectedExists && r.botId === selectedBotId));
+  const scoped = rows.filter(r => r.botId === null || (typeof r.botId === 'string' && r.botId.trim()));
+  if (scoped.length !== rows.length) item(panel, 'Safety example scope unknown', 'Unscoped examples are not attributed to this bot or the network.', 'Actual gate and kill-switch states remain unknown.');
+  const records = scoped.filter(r => r.botId === null || (selectedExists && r.botId === selectedBotId));
   if (!records.length) item(panel, 'No safety examples', 'Actual gate and kill-switch states are unknown.', 'No operational controls connected');
-  records.forEach(r => item(panel, r.scope, `Example gate: ${r.gate || 'Unknown'} · Example kill switch: ${r.killSwitch || 'Unknown'}`, `${r.source} · Observed: ${r.observedAt || 'unknown'} · Actual state unknown`));
+  records.forEach(r => item(panel, routingText(r.scope, 'Scope label unknown'), `Example gate: ${routingText(r.gate)} · Example kill switch: ${routingText(r.killSwitch)}`, `${routingText(r.source, 'Source unknown')} · Observed: ${routingText(r.observedAt, 'unknown')} · Actual state unknown`));
 }
 function renderReplySource() {
   const panel = document.querySelector('#reply-source');

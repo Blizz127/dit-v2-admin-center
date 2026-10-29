@@ -107,6 +107,17 @@ const ctx = {document: {querySelector: s => get(s.slice(1)), getElementById: get
           if (outcome === 'history-partial') data[key] = [{botId: 'fixture-bot', source: {}, observedAt: false, wordingOrigin: []}];
         }
       }
+      if (outcome.startsWith('safety-')) {
+        data.safetyRecords = [{botId: null, scope: 'CURRENT_NETWORK_SAFETY', source: 'Synthetic'},
+          {botId: 'fixture-bot', scope: 'CURRENT_BOT_SAFETY', gate: 'Off', source: 'Synthetic'}];
+        if (outcome === 'safety-missing') delete data.safetyRecords;
+        if (outcome === 'safety-null') data.safetyRecords = null;
+        if (outcome === 'safety-malformed') data.safetyRecords = 'OMIT_BAD_SAFETY';
+        if (outcome === 'safety-invalid-row') data.safetyRecords.push(null);
+        if (outcome === 'safety-empty') data.safetyRecords = [];
+        if (outcome === 'safety-partial') data.safetyRecords = [{botId: 'fixture-bot', gate: false, killSwitch: {}, source: [], observedAt: true}];
+        if (outcome === 'safety-unscoped') data.safetyRecords.push(...[undefined, '', false, 0, {}, []].map(botId => ({botId, scope: 'OMIT_UNSCOPED'})));
+      }
       return data;
     }};
   }};
@@ -353,5 +364,28 @@ function select() {
   outcome = 'history-good'; await get('refresh').listeners.click();
   assert.match(get('reply-source').textContent, /CURRENT_REPLY/);
   assert.match(get('assignment-history').textContent, /CURRENT_ASSIGNMENT/);
-  console.log('Overview/detail checks passed, including missing, ambiguous, partial and recovered goals/memory details without requests or stale content. Simulated DOM only.');
+  await login('safety-good'); ctx.inspectBot('fixture-bot');
+  assert.match(get('safety-records').textContent, /CURRENT_NETWORK_SAFETY.*CURRENT_BOT_SAFETY/);
+  for (const mode of ['missing', 'null', 'malformed', 'invalid-row']) {
+    outcome = 'safety-' + mode; await get('refresh').listeners.click();
+    assert.equal(get('workspace').hidden, false);
+    assert.match(get('safety-records').textContent, /Safety example coverage unknown.*Actual gate and kill-switch states remain unknown/);
+    assert.doesNotMatch(get('safety-records').textContent, /CURRENT_|OMIT_BAD|No safety examples/);
+    const before = fetchCount; ctx.inspectBot('fixture-bot'); assert.equal(fetchCount, before);
+  }
+  outcome = 'safety-partial'; await get('refresh').listeners.click();
+  assert.match(get('safety-records').textContent, /Scope label unknown.*Example gate: Unknown · Example kill switch: Unknown.*Source unknown · Observed: unknown/);
+  assert.doesNotMatch(get('safety-records').textContent, /undefined|null|\[object Object\]/);
+  outcome = 'safety-unscoped'; await get('refresh').listeners.click();
+  assert.match(get('safety-records').textContent, /Safety example scope unknown.*CURRENT_NETWORK_SAFETY.*CURRENT_BOT_SAFETY/);
+  assert.doesNotMatch(get('safety-records').textContent, /OMIT_UNSCOPED/);
+  get('clear-bot').listeners.click();
+  assert.match(get('safety-records').textContent, /CURRENT_NETWORK_SAFETY/);
+  assert.doesNotMatch(get('safety-records').textContent, /CURRENT_BOT_SAFETY|OMIT_UNSCOPED/);
+  outcome = 'safety-empty'; await get('refresh').listeners.click();
+  assert.match(get('safety-records').textContent, /No safety examples.*Actual gate and kill-switch states are unknown/);
+  assert.doesNotMatch(get('safety-records').textContent, /coverage unknown|scope unknown/);
+  outcome = 'safety-good'; await get('refresh').listeners.click(); ctx.inspectBot('fixture-bot');
+  assert.match(get('safety-records').textContent, /CURRENT_NETWORK_SAFETY.*CURRENT_BOT_SAFETY/);
+  console.log('Overview/detail checks passed, including safety coverage, field and scope Unknowns, selection isolation, empty states and recovery. Simulated DOM only.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
