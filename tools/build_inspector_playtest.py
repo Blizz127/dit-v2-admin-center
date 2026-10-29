@@ -107,7 +107,7 @@ def build():
                         'Both sources use only embedded fictional records in this file. No network requests are made.', 1)
     report = ('<details class="panel preview-report" id="harness-results"><summary>Preview verification &amp; source details</summary>'
               '<h2>Offline synthetic inspector playtest</h2><p id="harness-status" role="status" aria-live="polite">NOT RUN — waiting for browser JavaScript.</p>'
-              '<ol id="harness-checks"></ol><p>No server, token file, account or game is used. All data is synthetic. Browser results apply only to this artifact, not the running service. Reload this file to rerun.</p></details>')
+              '<ol id="harness-checks"></ol><p>No server, token file, account or game is used. Runtime test data is synthetic. Dated deployment handoffs are labeled separately and are not live observations. Browser results apply only to this artifact, not the running service. Reload this file to rerun.</p></details>')
     html = html.replace('</main>', party_review_html() + report + '</main>', 1)
     keyboard = '<p id="keyboard-status" role="status" aria-live="polite">NOT RUN — native keyboard check. Automatic DOM checks do not verify keyboard defaults.</p><button id="keyboard-start" type="button" disabled aria-describedby="keyboard-status">Start native assignment keyboard check</button>'
     html = html.replace('<p id="assignment-count"', keyboard + '<p id="assignment-count"', 1)
