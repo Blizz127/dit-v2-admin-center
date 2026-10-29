@@ -66,9 +66,18 @@ function renderInteraction(data, source) {
   }
   if (!rows.length) item(panel, 'No FFXI actor records returned', 'Coverage is unknown.', 'No outcome or absence is inferred');
   const freshness = value => value === true ? 'Reported fresh' : value === false ? 'Reported stale' : 'Unknown';
-  rows.forEach(b => item(panel, routingText(b.actorKey),
-    `Reconciled view: ${freshness(b.fresh)} · Activity: ${b.fresh === true ? routingText(b.activity) : 'Unknown'} · Raw snapshot: ${freshness(b.snapshotFresh)}`,
-    `Scope: ${routingText(b.caller)} / ${routingText(b.serverInstanceId)} · Raw state source: ${routingText(b.source, 'unknown')} · Snapshot observed: ${routingText(b.observedAt, 'unknown')} · Hub-reported snapshot age: ${metricNumber(b.ageSeconds) ? b.ageSeconds + ' s' : 'unknown'} · No roster identity join or delivery inference`));
+  const scopeKey = row => ['caller', 'serverInstanceId', 'actorKey'].every(key => typeof row[key] === 'string' && row[key].trim())
+    ? JSON.stringify([row.caller, row.serverInstanceId, row.actorKey]) : null;
+  const counts = new Map();
+  rows.forEach(row => { const key = scopeKey(row); if (key !== null) counts.set(key, (counts.get(key) || 0) + 1); });
+  rows.forEach(b => {
+    const key = scopeKey(b), identified = key !== null && counts.get(key) === 1;
+    const scopeNote = key === null ? 'Actor scope unverified; activity withheld'
+      : !identified ? 'Actor scope ambiguous in this response; activity withheld' : 'Supplied actor scope only; native identity remains unverified';
+    item(panel, routingText(b.actorKey),
+      `Reconciled view: ${freshness(b.fresh)} · Activity: ${identified && b.fresh === true ? routingText(b.activity) : 'Unknown'} · Raw snapshot: ${freshness(b.snapshotFresh)}`,
+      `Scope: ${routingText(b.caller)} / ${routingText(b.serverInstanceId)} · ${scopeNote} · Raw state source: ${routingText(b.source, 'unknown')} · Snapshot observed: ${routingText(b.observedAt, 'unknown')} · Hub-reported snapshot age: ${metricNumber(b.ageSeconds) ? b.ageSeconds + ' s' : 'unknown'} · No roster identity join or delivery inference`);
+  });
 }
 async function loadInteraction() {
   if (!token || workspace.hidden) return;

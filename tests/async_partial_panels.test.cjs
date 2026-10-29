@@ -45,5 +45,21 @@ const cases=[
  }
  expectedPath='/api/trace?gameId=ffxi&correlationId=fixture';body={records:[{isFinal:'true'}]};await context.loadHubTrace('fixture');assert.match(get('hub-trace').textContent,/Final: Unknown/);
  expectedPath='/api/interaction';body={switches:{contract:'true'},bots:cases[2].good.bots};await context.loadInteraction();assert.doesNotMatch(get('interaction-status').textContent,/Synthetic actor|Activity: waiting/);
+ const actor=cases[2].good.bots[0];
+ for(const field of ['actorKey','caller','serverInstanceId']){
+   for(const value of [undefined,null,'',{},'   ']){
+     body={switches:{contract:true},bots:[{...actor,[field]:value}]};await context.loadInteraction();
+     assert.match(get('interaction-status').textContent,/Activity: Unknown/);
+     assert.match(get('interaction-status').textContent,/scope.*unverified/i);
+     assert.doesNotMatch(get('interaction-status').textContent,/Activity: waiting/);
+   }
+ }
+ body={switches:{contract:true},bots:[actor,{...actor,activity:'other'}]};await context.loadInteraction();
+ assert.doesNotMatch(get('interaction-status').textContent,/Activity: waiting|Activity: other/);
+ assert.match(get('interaction-status').textContent,/ambiguous/i);
+ body={switches:{contract:true},bots:[actor,{...actor,caller:'another-adapter',activity:'other'}]};await context.loadInteraction();
+ assert.match(get('interaction-status').textContent,/Activity: waiting.*Activity: other/);
+ body={switches:{contract:true},bots:[actor]};await context.loadInteraction();
+ assert.match(get('interaction-status').textContent,/Activity: waiting/);assert.doesNotMatch(get('interaction-status').textContent,/ambiguous/);
  console.log('PASS: partial health/trace/interaction loaders preserve valid rows and Unknown coverage; strict flags, empty/malformed/recovery. Simulated DOM only.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
