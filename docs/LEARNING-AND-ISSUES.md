@@ -196,6 +196,14 @@ metadata; unrepresentable numeric values stay Unknown, not zero. Valid zero,
 fractions, game scope and pricing-error behavior remain covered. The spend view
 is still synthetic; these fixes do not authorize or establish ledger reads.
 
+Parser follow-up (`934f518`, `9bc2acf`): five focused checks passed for empty,
+truncated and interrupted response bodies plus mixed valid/Unknown rows in
+trace, health and interaction projections. Interrupted HTTP protocol reads now
+produce redacted errors instead of escaping the handler path. Response contexts
+close after failure. Unknown fields do not erase valid neighbors, while invalid
+record structure/identity rejects the entire projection. Fixtures cover parser
+and cleanup behavior only, not actual upstream transport or game evidence.
+
 The extended connected check passed under a 25-second hard timeout. Bridge
 observation failures return 200 with Unknown fields; health projection/read
 failures return 502/503. These are deliberately different API semantics.

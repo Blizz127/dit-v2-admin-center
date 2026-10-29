@@ -78,6 +78,19 @@ and non-finite values. Valid zero and positive finite numbers remain values.
 Pricing/scope checks still apply. Synthetic pipeline checks verify that an
 invalid rate does not abort other game feeds; no live spend route is enabled.
 
+Empty/whitespace-only or truncated upstream response bytes are read failures,
+not empty service collections. Interrupted HTTP responses (`IncompleteRead`
+and other HTTP protocol exceptions) become the same redacted read error, with
+the response context closed. A later complete JSON response can recover.
+Empty inner trace-body strings are different: valid envelope metadata remains
+with null outcome fields, as described above.
+
+Mixed-row fixture coverage confirms valid trace outcomes and interaction
+activities remain alongside Unknown rows. Health excludes out-of-scope games
+and retains Unknown for unsupported states or missing labels/timestamps.
+Malformed record structures or missing interaction identity reject the whole
+projection; a valid prefix is not presented as a complete successful response.
+
 ## Query and method rejection
 
 Overview accepts at most one `source` field; trace requires exactly one `gameId`
