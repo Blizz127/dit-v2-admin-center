@@ -411,9 +411,12 @@ function renderReplySource() {
   panel.replaceChildren();
   if (!selectedBotId) { item(panel, 'No bot selected', 'Select a bot to inspect reply examples.', 'No live reply data is connected.'); return; }
   const bot = currentSnapshot.bots.find(b => b.id === selectedBotId);
+  if (!Array.isArray(currentSnapshot.replyEvents) || currentSnapshot.replyEvents.some(r => !r || typeof r !== 'object' || Array.isArray(r))) {
+    item(panel, 'Reply evidence coverage unknown', 'No usable reply example list was supplied.', 'Source, fallback and delivery remain unknown.'); return;
+  }
   const rows = currentSnapshot.replyEvents.filter(r => r.botId === selectedBotId);
   if (!bot || !rows.length) { item(panel, 'No matching reply evidence', 'Source, fallback and delivery are unknown.', 'Absence of records does not prove no reply occurred.'); return; }
-  rows.forEach(r => item(panel, `${bot.name} · ${r.wordingOrigin || 'Unknown source'}`, `Generation: ${r.generationStatus || 'Unknown'} · Fallback: ${r.fallbackPolicy || 'Unknown'} · Reason: ${r.fallbackReason || 'Not reported'}`, `Delivery: ${r.delivery || 'Unknown'} · Verification: ${r.verification || 'Unknown'} · Correlation: ${r.correlationId || 'unknown'} · ${r.source} · Observed: ${r.observedAt || 'unknown'}`));
+  rows.forEach(r => item(panel, `${bot.name} · ${routingText(r.wordingOrigin, 'Unknown source')}`, `Generation: ${routingText(r.generationStatus)} · Fallback: ${routingText(r.fallbackPolicy)} · Reason: ${routingText(r.fallbackReason, 'Not reported')}`, `Delivery: ${routingText(r.delivery)} · Verification: ${routingText(r.verification)} · Correlation: ${routingText(r.correlationId, 'unknown')} · ${routingText(r.source, 'Source unknown')} · Observed: ${routingText(r.observedAt, 'unknown')}`));
 }
 function renderOwnerAttention(data) {
   const panel = document.querySelector('#owner-attention');
@@ -451,6 +454,9 @@ function renderAssignments() {
   panel.replaceChildren();
   if (!selectedBotId) { item(panel, 'No bot selected', 'Select a bot to view synthetic assignment examples.', 'Real assignment history is unavailable.'); return; }
   const bot = currentSnapshot.bots.find(b => b.id === selectedBotId);
+  if (!Array.isArray(currentSnapshot.assignmentHistory) || currentSnapshot.assignmentHistory.some(a => !a || typeof a !== 'object' || Array.isArray(a))) {
+    item(panel, 'Assignment example coverage unknown', 'No usable assignment example list was supplied.', 'Real assignment history is unavailable; no model changes are applied.'); return;
+  }
   const rows = currentSnapshot.assignmentHistory.filter(a => a.botId === selectedBotId);
   if (!bot || !rows.length) { item(panel, 'No matching examples', 'No synthetic assignment history is available for this bot.', 'This does not prove no real assignment exists.'); return; }
   rows.forEach(a => item(panel, `${bot.name} · ${routingText(a.purpose)}`, `Requested: ${routingText(a.requested)} · Effective: ${routingText(a.effective)}`, `Version: ${routingText(a.version)} · Recorded: ${routingText(a.at, 'unknown')} · ${routingText(a.source)}`));

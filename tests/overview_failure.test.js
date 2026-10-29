@@ -95,6 +95,18 @@ const ctx = {document: {querySelector: s => get(s.slice(1)), getElementById: get
         if (outcome === 'details-empty') data.botDetails = [{botId: 'fixture-bot', goals: [], memories: []}];
         if (outcome === 'details-fields') data.botDetails = [{botId: 'fixture-bot', goals: [{}], memories: [{}]}];
       }
+      if (outcome.startsWith('history-')) {
+        data.replyEvents = [{botId: 'fixture-bot', fallbackReason: 'CURRENT_REPLY', source: 'Synthetic'}];
+        data.assignmentHistory = [{botId: 'fixture-bot', requested: 'CURRENT_ASSIGNMENT', source: 'Synthetic'}];
+        for (const key of ['replyEvents', 'assignmentHistory']) {
+          if (outcome === 'history-missing') delete data[key];
+          if (outcome === 'history-null') data[key] = null;
+          if (outcome === 'history-malformed') data[key] = 'OMIT_BAD_HISTORY';
+          if (outcome === 'history-invalid-row') data[key].push(null);
+          if (outcome === 'history-empty') data[key] = [];
+          if (outcome === 'history-partial') data[key] = [{botId: 'fixture-bot', source: {}, observedAt: false, wordingOrigin: []}];
+        }
+      }
       return data;
     }};
   }};
@@ -320,5 +332,26 @@ function select() {
   outcome = 'details-good'; await get('refresh').listeners.click();
   assert.match(get('bot-inspector').textContent, /CURRENT_GOAL.*CURRENT_MEMORY/);
   assert.doesNotMatch(get('bot-inspector').textContent, /Multiple detail records|Missing or incomplete list/);
+  await login('history-good'); ctx.inspectBot('fixture-bot');
+  assert.match(get('reply-source').textContent, /CURRENT_REPLY/);
+  assert.match(get('assignment-history').textContent, /CURRENT_ASSIGNMENT/);
+  for (const mode of ['missing', 'null', 'malformed', 'invalid-row']) {
+    outcome = 'history-' + mode; await get('refresh').listeners.click();
+    assert.equal(get('workspace').hidden, false);
+    assert.match(get('reply-source').textContent, /Reply evidence coverage unknown/);
+    assert.match(get('assignment-history').textContent, /Assignment example coverage unknown/);
+    for (const panel of ['reply-source', 'assignment-history']) assert.doesNotMatch(get(panel).textContent, /CURRENT_REPLY|CURRENT_ASSIGNMENT|OMIT_BAD/);
+    const before = fetchCount; ctx.inspectBot('fixture-bot'); assert.equal(fetchCount, before);
+  }
+  outcome = 'history-partial'; await get('refresh').listeners.click();
+  assert.match(get('reply-source').textContent, /Unknown source.*Generation: Unknown.*Delivery: Unknown.*Source unknown.*Observed: unknown/);
+  assert.match(get('assignment-history').textContent, /Requested: Unknown · Effective: Unknown/);
+  for (const panel of ['reply-source', 'assignment-history']) assert.doesNotMatch(get(panel).textContent, /undefined|null|\[object Object\]/);
+  outcome = 'history-empty'; await get('refresh').listeners.click();
+  assert.match(get('reply-source').textContent, /No matching reply evidence/);
+  assert.match(get('assignment-history').textContent, /No matching examples/);
+  outcome = 'history-good'; await get('refresh').listeners.click();
+  assert.match(get('reply-source').textContent, /CURRENT_REPLY/);
+  assert.match(get('assignment-history').textContent, /CURRENT_ASSIGNMENT/);
   console.log('Overview/detail checks passed, including missing, ambiguous, partial and recovered goals/memory details without requests or stale content. Simulated DOM only.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
