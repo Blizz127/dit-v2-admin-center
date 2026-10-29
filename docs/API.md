@@ -71,6 +71,23 @@ Unknown. The UI now explains omitted evidence separately from evidence reported
 present without a structured assessment. Neither state supplies the five
 game-evidence assessments. Full-task reads are not added by this change.
 
+The projected `hasModelAnswer` field preserves a literal boolean from the light
+task payload; missing values and non-booleans become null. The inspector labels
+this “Model answer reported: Yes / No / Unknown”. This is an upstream flag, not
+the answer body, an outcome, model availability or authorization to call one.
+It does not change any checklist assessment. The synthetic route-evidence task
+reports Yes while its task remains unverified and its evidence is omitted.
+
+`tests/fixtures/learning-evidence-e8c81be.json` is a handcrafted synthetic fixture
+based on candidate e8c81be `AdminCenter.cs:LightTask` and
+`Store/AdministratorLearningStore.cs:AdministratorLearningTask` (source checkout
+and these files inspected read-only). Its four cases cover verified tasks with
+an answer flag and omitted evidence, false with null evidence, true with opaque
+full-task evidence, and a missing flag. The opaque evidence object is a privacy
+canary, not a defined gameplay-outcome schema. Tests additionally reject string,
+numeric and container values as flags. No full-task read is enabled; even if
+such evidence is supplied offline, only its presence is projected.
+
 ### Offline synthetic mapping example
 
 “Preview synthetic evidence mapping” replaces the checklist display with an

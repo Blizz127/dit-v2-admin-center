@@ -36,6 +36,11 @@ it does not assess the selected task. Restore it with “Show selected need
 evidence”. The remaining integration gap is an authoritative, scoped assessment
 contract and authorized evidence, not promotion of a verified task status.
 
+Light task rows can separately report a model-answer flag. The inspector keeps
+Yes, No and Unknown distinct and never exposes answer text. Handcrafted
+candidate fixtures cover that flag alongside omitted, null and opaque evidence;
+these tests do not establish the model answer's correctness or game outcomes.
+
 The hub/adapter lead owns the evidence contracts and collection. Admin Center
 owns preserving scope, source, freshness and unknown states in its display.
 Do not create observations, run gameplay, ingest player records or activate a
