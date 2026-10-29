@@ -72,6 +72,23 @@ async function success(data = good) {
     assert.doesNotMatch(get(id).textContent, /active|running|2026-01-01/);
   });
   assert.match(get('ffxi-focus-bridge').textContent, /Not proof of delivery/);
+  for (const partial of [null, [], 'bad', {}, {unit: {state: 'active'}, substate: false, marker: [], observedAt: 0}]) {
+    await success(partial);
+    panels.forEach(id => {
+      assert.match(get(id).textContent, /unknown/i);
+      assert.doesNotMatch(get(id).textContent, /undefined|\[object Object\]|active|running|2026-01-01/);
+    });
+  }
+  await success({unit:'active', source:'Synthetic partial observation'});
+  panels.forEach(id => {
+    assert.match(get(id).textContent, /active.*unknown/);
+    assert.match(get(id).textContent, /Fault marker: unknown/);
+    assert.match(get(id).textContent, /Observed: unknown/);
+    assert.doesNotMatch(get(id).textContent, /undefined|running|2026-01-01/);
+  });
+  await success();
+  panels.forEach(id => assert.match(get(id).textContent, /active.*running/));
+  await success({});
   get('workspace').hidden = true;
   const count = pending.length;
   await context.loadBridge();

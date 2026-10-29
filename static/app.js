@@ -121,8 +121,11 @@ async function loadBridge() {
   try {
     const response = await fetch('/api/bridge-status', {headers: {Authorization: `Bearer ${requestToken}`}, cache: 'no-store'});
     if (!response.ok) throw new Error('unavailable');
-    const data = await response.json();
+    const received = await response.json();
     if (!panelSessionCurrent(requestToken, session)) return;
+    if (!received || typeof received !== 'object' || Array.isArray(received)) throw new Error('unavailable');
+    const data = Object.fromEntries(['unit', 'substate', 'result', 'marker', 'markerReason', 'source', 'observedAt']
+      .map(key => [key, routingText(received[key], 'unknown')]));
     panel.replaceChildren();
     item(panel, `Unit: ${data.unit} · ${data.substate}`, `Result: ${data.result} · Fault marker: ${data.marker} · Classification: ${data.markerReason || 'unknown'}`, `${data.source} · Observed: ${data.observedAt || 'unknown'} · Marker absence does not prove delivery`);
     const focus = document.querySelector('#ffxi-focus-bridge');
