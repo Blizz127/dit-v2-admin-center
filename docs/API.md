@@ -341,3 +341,15 @@ network response to audit. Offline deferred-response cases cover each async
 path's success and failure behavior plus normal rendering and initial login.
 Actual browser/DOM-package execution and deployed-service verification remain
 parked; no live requests or restarts were used for this audit.
+
+## Local reply evidence navigation
+
+The per-bot reply card filters the existing synthetic `replyEvents` list by exact,
+case-sensitive correlation ID. It makes no API request. Missing or malformed rows
+leave total coverage Unknown while usable scoped rows remain visible. A valid
+empty list reports zero loaded examples, not zero actual replies.
+
+“Find loaded ledger evidence” pins the existing ledger view to both the selected
+bot ID and correlation ID, without fetching a hub trace. Duplicate or missing
+roster identity withholds attribution. This navigation adds no reply-history
+endpoint, queue observation, speech verification or provider call.

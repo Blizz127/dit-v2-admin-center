@@ -134,6 +134,29 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+### Reply evidence browsing — 2026-10-29
+
+`1432b6c` adds an exact, case-sensitive correlation filter scoped to the selected
+bot. It persists across refreshes and clears on a bot change or new session.
+`960a2bc` retains valid scoped rows alongside an Unknown coverage notice when
+the list includes malformed or unscoped entries. Empty arrays report zero loaded
+examples; unavailable lists report an Unknown total. Neither establishes actual
+reply coverage. Generated wording, queued delivery and verification stay separate.
+
+`bc5b613` links a reply to the loaded ledger using both bot ID and correlation.
+It shares the existing inspector navigation path, clears stale hub trace results,
+and makes no request. Missing or duplicate roster identities prevent attribution;
+blank or non-string correlation IDs cannot broaden the search. No matching ledger
+row is explicitly inconclusive.
+
+Focused reply and identity checks, the existing scoped-ledger regression and
+static label/control checks passed. The offline artifact includes two fictional
+reply examples (`Party-1` and `Party-10`) and scripted local filter/navigation
+checks. Its assembly/CSP and JavaScript syntax checks are separate from native
+execution, which remains unrun: an installed browser/DOM runtime is absent and
+the prior namespace-isolation denial has not been bypassed or retried. No live
+calls, ledger reads, service restarts or model-control changes were made.
+
 ### Model-switch audit examples — 2026-10-29
 
 `47a0a42` adds a read-only card for generated per-bot and fixed all-bots model

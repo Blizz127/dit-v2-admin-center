@@ -103,6 +103,8 @@ try {
   replyFilter.dispatchEvent(new Event('input'));
   check(textOf('reply-count').includes('Showing 1 of 2') && !textOf('reply-source').includes('Party-10'), 'Exact reply correlation filter excludes prefix matches');
   check(textOf('reply-source').includes('Generation: generated') && textOf('reply-source').includes('Delivery: Unknown'), 'Generated wording does not establish delivery');
+  document.querySelector('#reply-source button').click();
+  check(textOf('ledger-filter').includes('Pinned bot ID: offline-inspector-bot') && textOf('ledger').includes('No matching evidence'), 'Reply shortcut scopes the empty loaded ledger without inferring delivery');
   document.getElementById('reply-reset').click();
   check(textOf('reply-count').includes('Showing 2 of 2') && requests.length === beforeReplyFilter, 'Clearing the reply filter restores examples without a request');
   const botSelectors = [...document.querySelectorAll('#bots select')];
