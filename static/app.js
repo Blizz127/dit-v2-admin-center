@@ -400,11 +400,16 @@ function renderLearningPlan() {
 function renderLearningCoverage() {
   const panel = document.querySelector('#learning-coverage');
   panel.replaceChildren();
+  const all = observationRows(currentSnapshot.learning, panel);
+  const complete = Array.isArray(currentSnapshot.learning) && all.length === currentSnapshot.learning.length;
   for (const game of ['FFXI', 'SWTOR']) {
-    const rows = currentSnapshot.learning.filter(l => l.game === game);
+    const rows = all.filter(l => l.game === game);
     const verifiedTasks = rows.filter(l => l.status === 'verified').length;
-    item(panel, `${game} · loaded learning records`, `${rows.length} loaded · ${verifiedTasks} marked as verified tasks`, 'Loaded records may be incomplete; task verification does not establish verified datasets, policies, adoption or game outcomes. Check individual sources.');
+    item(panel, `${game} · loaded learning records`, `${rows.length} ${complete ? 'loaded' : 'usable loaded; total Unknown'} · ${verifiedTasks} marked as verified tasks`, 'Loaded records may be incomplete; task verification does not establish verified datasets, policies, adoption or game outcomes. Check individual sources.');
   }
+}
+function usableLearningRows() {
+  return Array.isArray(currentSnapshot.learning) ? currentSnapshot.learning.filter(l => l && typeof l === 'object' && !Array.isArray(l)) : [];
 }
 function filteredLearning() {
   const game = document.querySelector('#learning-game').value;
@@ -412,17 +417,20 @@ function filteredLearning() {
   const attention = document.querySelector('#learning-attention').checked;
   const attentionStatuses = new Set(['Needs evidence', 'Needs inventory', 'unverified', 'failed', 'canceled', 'cancelled']);
   const query = (document.querySelector('#learning-search').value || '').trim().toLowerCase();
-  return currentSnapshot.learning.filter(l => (!game || l.game === game) && (!status || l.status === status) && (!attention || attentionStatuses.has(l.status)) && (!query || `${l.topic} ${l.reason || ''}`.toLowerCase().includes(query)));
+  return usableLearningRows().filter(l => (!game || l.game === game) && (!status || l.status === status) && (!attention || attentionStatuses.has(l.status)) && (!query || `${l.topic} ${l.reason || ''}`.toLowerCase().includes(query)));
 }
 function updateLearningCount(records) {
   const selectedMissing = selectedLearningId !== null && !Boolean(uniqueRecord(currentSnapshot.learning, selectedLearningId));
   const selectedAmbiguous = recordsForId(currentSnapshot.learning, selectedLearningId).length > 1;
   const selectedHidden = selectedLearningId !== null && !selectedMissing && !records.some(l => l.id === selectedLearningId);
-  document.querySelector('#learning-count').textContent = `Showing ${records.length} of ${currentSnapshot.learning.length} loaded learning records; coverage may be incomplete.${selectedAmbiguous ? ' Selected learning identity is ambiguous; scoped inspection is unavailable.' : selectedMissing ? ' Selected need is no longer in the loaded data.' : selectedHidden ? ' Selected need is outside this filtered list; its inspector remains selected.' : ''}`;
+  const supplied = currentSnapshot.learning;
+  const total = Array.isArray(supplied) && usableLearningRows().length === supplied.length ? supplied.length : 'Unknown total';
+  document.querySelector('#learning-count').textContent = `Showing ${records.length} of ${total} loaded learning records; coverage may be incomplete.${selectedAmbiguous ? ' Selected learning identity is ambiguous; scoped inspection is unavailable.' : selectedMissing ? ' Selected need is no longer in the loaded data.' : selectedHidden ? ' Selected need is outside this filtered list; its inspector remains selected.' : ''}`;
 }
 function renderLearning() {
   const panel = document.querySelector('#learning');
   panel.replaceChildren();
+  observationRows(currentSnapshot.learning, panel);
   const records = filteredLearning();
   updateLearningCount(records);
   if (!records.length) item(panel, 'No matching learning entries', 'No matching records in the loaded data.', 'Coverage is unknown.');
