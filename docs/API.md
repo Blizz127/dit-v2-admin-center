@@ -35,6 +35,36 @@ Returns reported `switches` (contract, natural orders, self claims), `freshForSe
 
 `tests/test_interaction_contract.py` validates the f95fe8a handoff in `HUB-CONTRACT-DRAFT.md` using `tests/fixtures/interaction-e8c81be.json`, a synthetic fixture shaped from the recorded candidate DTOs. It drives `HubReader.interaction`, the projection and the 15-second cache through an in-memory HTTP response. Socket connection attempts fail the test; no hub credential or live response is used. Coverage includes the exact GET/limit, scope preservation, independent freshness, off/unknown collection, omission of private fields, original cache fetch time, copy isolation, duplicate identity rejection, malformed timing values and refusal of proposed routing endpoints. Oversized timing integers remain unknown rather than raising an overflow. This verifies the local reader only, not live endpoint availability, deployment, or an agreed model-write contract.
 
+## Local response and error envelope audit
+
+Expected API errors return `application/json` with exactly one nonempty string
+field, `{"error":"..."}`, plus `Cache-Control: no-store`, `nosniff` and a matching
+Content-Length. Messages are fixed local descriptions; no upstream exception,
+token path, request method/query or raw evidence is reflected. Unsupported API
+methods now use this envelope too, rather than the standard library HTML page.
+HEAD retains the error status/headers and representation length but sends no body.
+This describes recognized error paths, not a blanket catch of programming errors.
+
+| Read endpoint | Successful response | Expected failure states |
+| --- | --- | --- |
+| `/api/overview` | 200 overview object with explicit per-feed fallback labels | 401 auth; 400 query. Missing/failed optional feeds can remain 200 with synthetic fallback, never implied live success. |
+| `/api/trace` | 200 `records`, `fetchedAt`, `coverage` | 401 auth; 400 scope or reader configuration validation; 503 missing configuration/read failure; 502 invalid trace payload. |
+| `/api/hub-health` | 200 `services`, `fetchedAt`, `coverage`, `source` | 401 auth; 400 query; 503 missing configuration/read failure; 502 invalid response/configuration. |
+| `/api/interaction` | 200 projected switches, freshness, truncation, scoped bots, fetch time and coverage | 401 auth; 400 query; 503 missing configuration/read failure; 502 invalid response/configuration. |
+| `/api/bridge-status` | 200 observation object, including Unknown fields when observation fails | 401 auth; 400 query. Observer failure is represented as Unknown with null observation time, not fabricated 502/503. |
+
+Unknown authenticated API GET paths return 404; unsupported methods return 501.
+The method rejection occurs before route authentication or dependencies, as in
+the existing standard-library dispatch. GET authentication remains first.
+Trace's existing configuration-validation status differs from the two cached
+views; consumers must use the status and error envelope, not parse message text.
+
+Offline reader decoding checks also cover malformed UTF-8/JSON and a 10,000-level
+nesting fixture: decoding failures become redacted `HubReadError`. The one-MB
+response limit still produces the distinct `HubResponseTooLarge` class; a later
+valid read recovers. These tests inject byte streams and synthetic credentials,
+not HTTP transports. Runtime decoder limits are not an agreed JSON depth contract.
+
 ## Query and method rejection
 
 Overview accepts at most one `source` field; trace requires exactly one `gameId`

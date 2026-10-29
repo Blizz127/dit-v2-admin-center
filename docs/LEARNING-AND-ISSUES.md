@@ -176,6 +176,18 @@ and POST/PUT/PATCH/DELETE across all five read APIs cannot reach guarded
 dependencies. Its focused check passed; write routes remain absent. These
 checks use in-memory request bytes, not a browser or running HTTP listener.
 
+Error-envelope audit (`2aec2ed`) found the standard-library unsupported-method
+path returned HTML. API protocol errors now use the same redacted JSON error
+shape and cache/privacy headers; HEAD sends no body. Four focused contract
+checks passed. The next offline item (`a757e1c`) normalizes JSON decoder recursion
+failures to the existing redacted read error. Two byte-response checks passed
+for malformed UTF-8/JSON/deep nesting, distinct oversize rejection and recovery.
+The first nesting fixture was too shallow to trigger this runtime's decoder
+limit; the final check uses 10,000 levels without changing interpreter settings.
+The API audit documents expected statuses and successful shapes separately,
+including bridge Unknown-on-200 and overview per-feed fallback semantics.
+No reader transport, live credential, browser or restarted service was used.
+
 The extended connected check passed under a 25-second hard timeout. Bridge
 observation failures return 200 with Unknown fields; health projection/read
 failures return 502/503. These are deliberately different API semantics.
