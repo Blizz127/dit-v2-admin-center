@@ -213,6 +213,11 @@ are hidden along with its other details; network-wide safety examples remain.
 Selection itself makes no service request. These are read-only examples, not
 bot-edit validation or proof of native identity; editing remains disabled.
 
+Audit checks cover synthetic rows, unknown timestamps, failed-refresh labeling
+and an explicit empty state. Bot selection never creates an audit event. No live
+audit source is connected, so an empty panel cannot establish that no actions
+occurred. These checks use the same offline overview command above.
+
 To check timeout/partial-feed recovery through the reader, cache and merge:
 
 ```sh

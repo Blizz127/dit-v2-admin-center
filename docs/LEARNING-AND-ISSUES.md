@@ -134,6 +134,13 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+Audit follow-up (`de91d84`): an empty example list previously left the panel
+blank. It now states that no examples/live audit source are available and makes
+no inference about real actions. The focused overview check passes for populated
+rows, unknown timestamps, source labels, failed-refresh retention, subsequent
+empty clearing and no fabricated audit events or service requests from bot
+selection. This is synthetic rendering coverage, not a real audit ledger read.
+
 Detail isolation follow-up (`a12e6bf`): a same-name bot fixture exposed orphan
 bot-specific safety examples after the selected roster entry disappeared. The
 safety panel now requires that exact selected ID to exist, consistent with the
