@@ -32,7 +32,7 @@ const context = {
     const result = JSON.parse(execFileSync('python3', ['tests/inspector_runtime_fixture.py'], {
       input: JSON.stringify({path, token: auth.slice(7), scenario}), encoding: 'utf8', timeout: 5000,
     }));
-    requests.push({path, status: result.status, traceCalls: result.traceCalls, interactionCalls: result.interactionCalls});
+    requests.push({path, status: result.status, traceCalls: result.traceCalls, interactionCalls: result.interactionCalls, healthCalls: result.healthCalls});
     assert.equal(result.headers['Cache-Control'], 'no-store');
     assert.equal(Number(result.headers['Content-Length']), Buffer.byteLength(result.body));
     assert.ok(!result.body.includes('OMIT_RAW_ANSWER_AND_PLAYER_DATA'));
@@ -40,6 +40,8 @@ const context = {
     assert.ok(!result.body.includes('OMIT_PRIVATE_READ_FAILURE'));
     assert.ok(!result.body.includes('OMIT_PRIVATE_INTERACTION_FAILURE'));
     assert.ok(!result.body.includes('OMIT_PRIVATE_INVALID'));
+    assert.ok(!result.body.includes('OMIT_PRIVATE_HEALTH_'));
+    assert.ok(!result.body.includes('OMIT_PRIVATE_OTHER_SERVICE'));
     assert.ok(!result.body.includes('FixtureRequester'));
     return {ok: result.status === 200, status: result.status, json: async () => JSON.parse(result.body)};
   },
@@ -173,8 +175,53 @@ const flush = () => new Promise(resolve => setImmediate(resolve));
   get('interaction-preview').listeners.click();
   assert.match(interaction.textContent, /Synthetic interaction preview/);
   assert.equal(requests.length, beforePreview);
+  const health = get('hub-health');
+  const refreshHealth = () => get('hub-health-refresh').listeners.click();
+  scenario = 'health-services';
+  await refreshHealth();
+  assert.equal(requests.at(-1).status, 200);
+  assert.equal(requests.at(-1).healthCalls, 1);
+  assert.equal(health.children.length, 3, 'Only the two supported game services plus heading');
+  assert.match(health.textContent, /FFXI · Fixture FFXI bridge running/);
+  assert.match(health.textContent, /SWTOR · Fixture SWTOR adapter Unknown/);
+  assert.match(health.textContent, /Observed: 2026-01-01T12:00:00Z/);
+  assert.match(health.textContent, /Fetched: fixture-health-fetch/);
+  assert.match(health.textContent, /revision unverified/);
+  assert.match(health.textContent, /Service state is not bot presence/);
+  scenario = 'health-empty';
+  await refreshHealth();
+  assert.equal(requests.at(-1).status, 200);
+  assert.match(health.textContent, /No matching service records.*Coverage is unknown/);
+  assert.match(health.textContent, /Empty data does not establish healthy services/);
+  assert.doesNotMatch(health.textContent, /Fixture FFXI bridge/);
+  for (const [failure, status, calls] of [['health-malformed', 502, 1], ['health-unavailable', 503, 1], ['health-unconfigured', 503, 0]]) {
+    // Seed prior service data before each failure to prove it is discarded.
+    scenario = 'health-services';
+    await refreshHealth();
+    scenario = failure;
+    await refreshHealth();
+    assert.equal(requests.at(-1).status, status);
+    assert.equal(requests.at(-1).healthCalls, calls);
+    assert.equal(health.textContent, 'Hub service health unavailable; current state is unknown.');
+  }
+  scenario = 'health-services';
+  await refreshHealth();
+  vm.runInNewContext("token = 'synthetic-expired-token'", context);
+  await refreshHealth();
+  assert.equal(requests.at(-1).status, 401);
+  assert.equal(requests.at(-1).healthCalls, 0);
+  assert.equal(health.textContent, 'Hub service health unavailable; current state is unknown.');
+  vm.runInNewContext("token = 'fixture-token'", context);
+  await refreshHealth();
+  assert.equal(requests.at(-1).status, 200);
+  assert.match(health.textContent, /Fixture FFXI bridge running/);
   get('data-source').value = 'mock';
   await get('data-source').listeners.change();
   assert.equal(interaction.textContent, 'Not requested.');
-  console.log('Browser-free integration passed: inspector and trace, plus nine pinned interaction snapshots, 401/502/503, recovery, preview and source reset. No listener or DOM library.');
+  assert.equal(health.textContent, 'Not requested.');
+  const beforeHealthGuard = requests.length;
+  await refreshHealth();
+  assert.equal(requests.length, beforeHealthGuard);
+  assert.match(health.textContent, /Select configured hub data/);
+  console.log('Browser-free integration passed: inspector, trace, nine pinned interaction snapshots and service health, including empty/401/502/503, recovery and source reset. No listener or DOM library.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

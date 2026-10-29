@@ -15,12 +15,30 @@ from unittest.mock import Mock, patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from test_offline_inspector_handler import OfflineInspectorHandlerTests
-from live_hub import HubReadError
+from live_hub import HubReadError, project_hub_health
 from interaction_projection import project_interaction
 
 INTERACTION_FIXTURES = ('contract-off-empty', 'contract-off-retained', 'contract-on-empty',
                         'fresh-snapshot', 'fresh-snapshot-superseded-view', 'fresh-mode-stale-snapshot',
                         'stale-mode-and-snapshot', 'same-actor-distinct-scopes', 'limit-50-truncated')
+
+
+def health_fixture(scenario):
+    if scenario == 'health-unavailable':
+        raise HubReadError('OMIT_PRIVATE_HEALTH_FAILURE')
+    data = {'utc': '2026-01-01T12:00:00Z', 'services': [
+        {'game': 'ffxi', 'label': 'Fixture FFXI bridge', 'state': 'running',
+         'log': 'OMIT_PRIVATE_HEALTH_LOG', 'environment': 'OMIT_PRIVATE_HEALTH_ENV'},
+        {'game': 'swtor', 'label': 'Fixture SWTOR adapter', 'state': 'unrecognized'},
+        {'game': 'other', 'label': 'OMIT_PRIVATE_OTHER_SERVICE', 'state': 'running'},
+    ]}
+    if scenario == 'health-empty':
+        data['services'] = []
+    elif scenario == 'health-malformed':
+        data['services'] = 'OMIT_PRIVATE_HEALTH_INVALID'
+    elif scenario != 'health-services':
+        raise AssertionError('Unexpected health fixture request')
+    return project_hub_health(data, 'fixture-health-fetch')
 
 
 def interaction_fixture(scenario):
@@ -69,11 +87,12 @@ def exchange(request):
     path = request.get('path', '')
     if '\r' in path or '\n' in path:
         raise ValueError('Invalid fixture request path')
-    if path not in ('/api/overview?source=mock', '/api/overview?source=hub', '/api/bridge-status', '/api/interaction') and urlsplit(path).path != '/api/trace':
+    if path not in ('/api/overview?source=mock', '/api/overview?source=hub', '/api/bridge-status', '/api/interaction', '/api/hub-health') and urlsplit(path).path != '/api/trace':
         raise ValueError('Only synthetic inspector fixture routes are allowed')
     scenario = request.get('scenario', 'trace-pending')
     allowed = {'trace-pending', 'trace-empty', 'trace-malformed', 'trace-unavailable', 'trace-unconfigured',
-               'interaction-malformed', 'interaction-unavailable', 'interaction-unconfigured'}
+               'interaction-malformed', 'interaction-unavailable', 'interaction-unconfigured',
+               'health-services', 'health-empty', 'health-malformed', 'health-unavailable', 'health-unconfigured'}
     allowed.update('interaction:' + name for name in INTERACTION_FIXTURES)
     if scenario not in allowed:
         raise ValueError('Unknown fixture scenario')
@@ -94,14 +113,16 @@ def exchange(request):
         if scenario == 'trace-unavailable':
             trace.side_effect = HubReadError('OMIT_PRIVATE_READ_FAILURE')
         interaction = Mock(side_effect=lambda *args: interaction_fixture(scenario))
-        config = {} if scenario in ('trace-unconfigured', 'interaction-unconfigured') else {
+        health = Mock(side_effect=lambda *args: health_fixture(scenario))
+        config = {} if scenario in ('trace-unconfigured', 'interaction-unconfigured', 'health-unconfigured') else {
             'HUB_READONLY_URL': 'http://127.0.0.1:1', 'HUB_TOKEN_FILE': '/fixture/not-read'}
         with patch('server.BRIDGE.read', return_value=unknown), patch.dict('os.environ', config, clear=True), \
                 patch('server.HubReader', return_value=SimpleNamespace(trace=trace)), \
-                patch('server.HUB_INTERACTION.get', interaction):
+                patch('server.HUB_INTERACTION.get', interaction), patch('server.HUB_HEALTH.get', health):
             status, headers, body = case.request(path=path, token=request.get('token'))
         return {'status': status, 'headers': dict(headers.items()), 'body': body.decode(),
-                'traceCalls': trace.call_count, 'interactionCalls': interaction.call_count}
+                'traceCalls': trace.call_count, 'interactionCalls': interaction.call_count,
+                'healthCalls': health.call_count}
     finally:
         case.doCleanups()
 
