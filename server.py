@@ -7,6 +7,7 @@ import math
 import time
 import subprocess
 import threading
+from contextlib import closing
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -45,7 +46,7 @@ def lead_inventory():
         {"name": "Admin Center lead", "scope": "Admin Center", "status": "Unknown", "source": "Coordinator task board", "observedAt": None},
     ]
     try:
-        with sqlite3.connect(db.as_uri() + "?mode=ro", uri=True, timeout=2) as connection:
+        with closing(sqlite3.connect(db.as_uri() + "?mode=ro", uri=True, timeout=2)) as connection:
             row = connection.execute(
                 "SELECT status, updated FROM tasks WHERE project = ? AND agent = ? ORDER BY updated DESC LIMIT 1",
                 ("claude-dit-human-behavior-platform", "claude"),
