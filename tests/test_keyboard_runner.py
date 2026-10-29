@@ -8,6 +8,28 @@ from tools import run_keyboard_playtest as runner
 
 
 class KeyboardRunnerTests(unittest.TestCase):
+    def test_gap_export_requires_saved_file_and_layout_receipt(self):
+        keyboard = dict(status='passed', nativeKeyboard='passed', steps=12,
+                        escapeCancellation='passed', automaticDOM='passed')
+        export = dict(status='passed', savedBytes=1024, sha256='a' * 64, candidates=2,
+                      selectedSnapshotRow=2, nativeActivation='Enter', table=dict(rows=9, columns=3, width=390))
+        self.assertTrue(runner.valid_export_receipt(dict(gapExport=export)))
+        for key in export:
+            self.assertFalse(runner.valid_export_receipt(dict(gapExport={**export, key: None})), key)
+        for field in ('rows', 'columns', 'width'):
+            self.assertFalse(runner.valid_export_receipt(dict(gapExport={**export, 'table': {**export['table'], field: None}})))
+        for include, expected_code in ((False, 1), (True, 0)):
+            receipt = {**keyboard, **({'gapExport': export} if include else {})}
+            with patch.object(runner.shutil, 'which', side_effect=lambda name: '/fixture/' + name), \
+                    patch.object(runner, 'run_bounded', side_effect=[(0, '', ''), (0, json.dumps(receipt), '')]) as run, \
+                    patch.object(runner, 'build', return_value='<html>fixture</html>'), \
+                    redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+                self.assertEqual(runner.main(gap_export=True), expected_code)
+                command, timeout = run.call_args.args
+                self.assertEqual(command[-2], '')
+                self.assertTrue(command[-1].endswith('/downloads'))
+                self.assertEqual(timeout, 30)
+
     def test_missing_browser_blocks_without_process_or_artifact(self):
         with patch.object(runner.shutil, 'which', return_value=None), \
                 patch.object(runner, 'run_bounded') as run, patch.object(runner, 'build') as build, \

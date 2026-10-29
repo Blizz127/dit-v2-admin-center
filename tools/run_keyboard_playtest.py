@@ -4,6 +4,7 @@ No install, TCP listener, live data, persistent profile or sandbox bypass.
 Exit 2 means runtime/isolation blocked; exit 1 means incomplete/failed checks.
 """
 import json
+import math
 import argparse
 import hashlib
 import os
@@ -56,7 +57,20 @@ def publish_captures(result, directory, artifact, output_root):
     return str(destination)
 
 
-def main(screenshots=False):
+def valid_export_receipt(result):
+    export = result.get('gapExport', {}) if isinstance(result, dict) else {}
+    table = export.get('table', {}) if isinstance(export, dict) else {}
+    return (isinstance(export, dict) and export.get('status') == 'passed'
+            and type(export.get('savedBytes')) is int and 0 < export['savedBytes'] <= 256 * 1024
+            and export.get('candidates') == 2 and export.get('selectedSnapshotRow') == 2
+            and export.get('nativeActivation') == 'Enter'
+            and isinstance(export.get('sha256'), str) and len(export['sha256']) == 64
+            and all(c in '0123456789abcdef' for c in export['sha256'])
+            and isinstance(table, dict) and table.get('rows') == 9 and table.get('columns') == 3
+            and type(table.get('width')) in (int, float) and math.isfinite(table['width']) and table['width'] > 0)
+
+
+def main(screenshots=False, gap_export=False):
     requested = os.environ.get('DIT_CHROMIUM')
     browser = shutil.which(requested) if requested else next(
         (path for name in ('chromium', 'chromium-browser', 'google-chrome', 'chrome-headless-shell')
@@ -78,6 +92,12 @@ def main(screenshots=False):
         if screenshots:
             captures.mkdir()
             command.append(str(captures))
+        if gap_export:
+            if not screenshots:
+                command.append('')
+            downloads = Path(directory) / 'downloads'
+            downloads.mkdir(mode=0o700)
+            command.append(str(downloads))
         code, stdout, _ = run_bounded(command, 30)
         try:
             result = json.loads(stdout) if not code else None
@@ -85,6 +105,9 @@ def main(screenshots=False):
             result = None
         if not valid_receipt(result):
             print('FAIL: native keyboard run was incomplete or failed. Browser output withheld.', file=sys.stderr)
+            return 1
+        if gap_export and not valid_export_receipt(result):
+            print('FAIL: native gap download receipt incomplete; no export success claimed.', file=sys.stderr)
             return 1
         if screenshots:
             try:
@@ -100,8 +123,10 @@ def main(screenshots=False):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--screenshots', action='store_true', help='Capture synthetic comparisons after native checks pass')
+    parser.add_argument('--gap-export', action='store_true', help='Check gap table and native Enter download in a disposable directory')
     try:
-        sys.exit(main(screenshots=parser.parse_args().screenshots))
+        args = parser.parse_args()
+        sys.exit(main(screenshots=args.screenshots, gap_export=args.gap_export))
     except (OSError, RuntimeError):
         print('FAIL: bounded browser run could not complete; no success claimed.', file=sys.stderr)
         sys.exit(1)
