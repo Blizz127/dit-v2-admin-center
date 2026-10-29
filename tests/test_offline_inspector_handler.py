@@ -143,10 +143,55 @@ class OfflineInspectorHandlerTests(unittest.TestCase):
         for path in ('/api/overview', '/api/trace', '/api/hub-health', '/api/interaction', '/api/bridge-status'):
             for method in ('POST', 'PUT', 'PATCH', 'DELETE'):
                 with self.subTest(path=path, method=method):
-                    status, _, body = self.request(path, method=method)
+                    status, headers, body = self.request(path, method=method)
                     self.assertEqual(status, 501)
-                    self.assertNotIn(b'fixture-token', body)
+                    self.assert_error_envelope(headers, body)
+                    self.assertEqual(json.loads(body), {'error': 'method not supported'})
         self.overview.assert_not_called()
+
+    def assert_error_envelope(self, headers, body):
+        self.assertEqual(headers['Content-Type'], 'application/json')
+        self.assertEqual(headers['Cache-Control'], 'no-store')
+        self.assertEqual(headers['X-Content-Type-Options'], 'nosniff')
+        self.assertEqual(int(headers['Content-Length']), len(body))
+        payload = json.loads(body)
+        self.assertEqual(set(payload), {'error'})
+        self.assertIsInstance(payload['error'], str)
+        self.assertTrue(payload['error'])
+        for private in (b'OMIT_PRIVATE', b'fixture-token', b'/fixture', b'Traceback'):
+            self.assertNotIn(private, body)
+
+    def test_read_api_error_envelopes_are_consistent(self):
+        routes = ('/api/overview', '/api/trace', '/api/hub-health', '/api/interaction', '/api/bridge-status')
+        with patch.dict('os.environ', {}, clear=True):
+            for route in routes:
+                with self.subTest(route=route, status=401):
+                    status, headers, body = self.request(route, token='OMIT_PRIVATE_TOKEN')
+                    self.assertEqual(status, 401)
+                    self.assert_error_envelope(headers, body)
+                with self.subTest(route=route, status=400):
+                    status, headers, body = self.request(route + '?OMIT_PRIVATE_QUERY=1')
+                    self.assertEqual(status, 400)
+                    self.assert_error_envelope(headers, body)
+            for route in ('/api/hub-health', '/api/interaction', '/api/trace?gameId=ffxi&correlationId=example'):
+                status, headers, body = self.request(route)
+                self.assertEqual(status, 503)
+                self.assert_error_envelope(headers, body)
+        status, headers, body = self.request('/api/OMIT_PRIVATE_PATH')
+        self.assertEqual(status, 404)
+        self.assert_error_envelope(headers, body)
+        self.overview.assert_not_called()
+
+    def test_head_error_has_json_headers_without_body_or_request_details(self):
+        status, headers, body = self.request('/api/bridge-status?OMIT_PRIVATE_QUERY', method='HEAD')
+        self.assertEqual(status, 501)
+        self.assertEqual(headers['Content-Type'], 'application/json')
+        self.assertEqual(headers['Cache-Control'], 'no-store')
+        self.assertGreater(int(headers['Content-Length']), 0)
+        self.assertEqual(body, b'')
+        status, headers, body = self.request('/api/bridge-status?OMIT_PRIVATE_QUERY', method='OMIT_PRIVATE_METHOD')
+        self.assertEqual(status, 501)
+        self.assert_error_envelope(headers, body)
 
     def test_invalid_trace_values_rejected_before_configuration_or_reader(self):
         with patch.dict('os.environ', {}, clear=True), patch('server.HubReader') as reader:
@@ -173,6 +218,7 @@ class OfflineInspectorHandlerTests(unittest.TestCase):
                         read.side_effect = failure
                         actual, headers, body = self.request(route)
                         self.assertEqual(actual, status)
+                        self.assert_error_envelope(headers, body)
                         self.assertEqual(headers['Cache-Control'], 'no-store')
                         self.assertNotIn(b'OMIT_PRIVATE', body)
                         self.assertNotIn(b'/fixture', body)

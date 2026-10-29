@@ -279,7 +279,18 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Security-Policy", "default-src 'self'; frame-ancestors 'none'; base-uri 'none'")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
-        self.wfile.write(body)
+        if self.command != 'HEAD':
+            self.wfile.write(body)
+
+    def send_error(self, code, message=None, explain=None):
+        if getattr(self, 'path', '').split('?', 1)[0].startswith('/api/'):
+            # BaseHTTPRequestHandler otherwise emits HTML including request details.
+            # Preserve its status code without reflecting method/path/parser text.
+            self.close_connection = True
+            error = 'method not supported' if code == 501 else 'request rejected'
+            self.send_content(code, 'application/json', json.dumps({'error': error}).encode())
+            return
+        super().send_error(code, message, explain)
 
     def do_GET(self):
         path = urlsplit(self.path).path
