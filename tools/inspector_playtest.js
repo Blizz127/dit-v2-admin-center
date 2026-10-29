@@ -68,6 +68,11 @@ try {
       {botId: 'offline-inspector-bot', correlationId: 'Party-10', wordingOrigin: 'Synthetic canned fallback', delivery: 'queued', source: 'Offline fixture'}
     ],
     assignmentHistory: [{botId: 'offline-inspector-bot', requested: 'Fixture requested model', source: 'Offline fixture'}],
+    ledger: [
+      {botId: 'offline-inspector-bot', bot: 'Synthetic inspector bot', correlationId: 'Party-1', request: 'Synthetic party greeting', result: 'pending', verification: 'Unknown'},
+      {botId: 'other-fixture-bot', bot: 'OTHER_BOT', correlationId: 'Party-1', request: 'OTHER_BOT_EVIDENCE'},
+      {bot: 'Unscoped fixture', correlationId: 'Party-1', request: 'UNSCOPED_EVIDENCE'}
+    ],
   };
   Object.assign(fixture, structuredClone(botExamples));
   await load();
@@ -104,7 +109,8 @@ try {
   check(textOf('reply-count').includes('Showing 1 of 2') && !textOf('reply-source').includes('Party-10'), 'Exact reply correlation filter excludes prefix matches');
   check(textOf('reply-source').includes('Generation: generated') && textOf('reply-source').includes('Delivery: Unknown'), 'Generated wording does not establish delivery');
   document.querySelector('#reply-source button').click();
-  check(textOf('ledger-filter').includes('Pinned bot ID: offline-inspector-bot') && textOf('ledger').includes('No matching evidence'), 'Reply shortcut scopes the empty loaded ledger without inferring delivery');
+  check(textOf('ledger-filter').includes('Pinned bot ID: offline-inspector-bot') && textOf('ledger-count').includes('Showing 1 of 3'), 'Reply shortcut counts only matching scoped ledger evidence');
+  check(textOf('ledger').includes('Result: pending') && textOf('ledger').includes('Verification: Unknown') && !textOf('ledger').includes('OTHER_BOT_EVIDENCE') && !textOf('ledger').includes('UNSCOPED_EVIDENCE'), 'Shared correlation cannot attribute other-bot or unscoped evidence');
   document.getElementById('reply-reset').click();
   check(textOf('reply-count').includes('Showing 2 of 2') && requests.length === beforeReplyFilter, 'Clearing the reply filter restores examples without a request');
   const botSelectors = [...document.querySelectorAll('#bots select')];

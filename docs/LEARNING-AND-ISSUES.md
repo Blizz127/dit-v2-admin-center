@@ -134,6 +134,27 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+### Ledger finder boundaries and counts — 2026-10-29
+
+`28c0ea2` exercises reply-to-ledger navigation while an older synthetic trace is
+pending. Late successes, denials, failures and delayed JSON cannot repopulate the
+trace panel after navigation; a subsequent explicit trace recovers. A separate
+source-transition check confirms a failed source load retains the labeled prior
+scoped snapshot and a successful change clears its pin before displaying new data.
+These are fixture calls in a minimal simulated DOM, not live trace observations.
+
+`8bc62fd` adds a visible loaded-ledger count. Missing/malformed lists show an
+Unknown total, valid empty arrays show zero loaded rows, and ambiguous bot identity
+withholds scoped counts. The offline artifact now includes shared-correlation
+examples: Party-1 pins one pending/Unknown row out of three; Party-10 has no match.
+Other-bot and unscoped rows are not attributed to the selected bot. No count is a
+claim about the complete audit history or actual game outcomes.
+
+Focused race/source-transition, ledger scope and static markup checks passed.
+Native browser execution remains unrun for the documented missing runtime and
+namespace-isolation limitation; no denied setup was retried. Model controls remain
+disabled, and no live calls, ledger reads or restarts were performed.
+
 ### Reply evidence browsing — 2026-10-29
 
 `1432b6c` adds an exact, case-sensitive correlation filter scoped to the selected

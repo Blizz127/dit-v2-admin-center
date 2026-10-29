@@ -353,3 +353,9 @@ empty list reports zero loaded examples, not zero actual replies.
 bot ID and correlation ID, without fetching a hub trace. Duplicate or missing
 roster identity withholds attribution. This navigation adds no reply-history
 endpoint, queue observation, speech verification or provider call.
+
+The ledger count describes returned example rows only. A bot pin filters the
+visible numerator while the denominator counts all usable loaded ledger rows.
+Missing or malformed list entries make that denominator Unknown; missing or
+ambiguous pinned-bot identity withholds the count. A source-load failure retains
+the labeled previous snapshot; successful source changes clear the old pin.
