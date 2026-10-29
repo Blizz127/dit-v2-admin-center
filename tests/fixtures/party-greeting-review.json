@@ -1,0 +1,19 @@
+{
+  "fixture": "Synthetic only; no player message or live observation",
+  "restartAt": "2026-01-01T12:00:00Z",
+  "observedThrough": "2026-01-01T12:02:00Z",
+  "scope": {"game": "ffxi", "realm": "fixture-realm", "party": "fixture-party", "botId": "fixture-bot"},
+  "eligibility": {
+    "scope": {"game": "ffxi", "realm": "fixture-realm", "party": "fixture-party", "botId": "fixture-bot"},
+    "observedAt": "2026-01-01T12:00:30Z", "identityVerified": true, "partyMember": true
+  },
+  "greeting": {
+    "scope": {"game": "ffxi", "realm": "fixture-realm", "party": "fixture-party", "botId": "fixture-bot"},
+    "observedAt": "2026-01-01T12:01:00Z", "ownerGenerated": true, "correlationId": "fixture-attempt"
+  },
+  "queuedReplies": [{
+    "scope": {"game": "ffxi", "realm": "fixture-realm", "party": "fixture-party", "botId": "fixture-bot"},
+    "observedAt": "2026-01-01T12:01:05Z", "enqueued": true, "correlationId": "fixture-attempt"
+  }],
+  "ownerSpeech": null
+}
