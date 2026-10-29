@@ -401,7 +401,8 @@ function renderBots() {
 function renderSafety() {
   const panel = document.querySelector('#safety-records');
   panel.replaceChildren();
-  const records = currentSnapshot.safetyRecords.filter(r => r.botId == null || (selectedBotId !== null && r.botId === selectedBotId));
+  const selectedExists = selectedBotId !== null && currentSnapshot.bots.some(bot => bot.id === selectedBotId);
+  const records = currentSnapshot.safetyRecords.filter(r => r.botId == null || (selectedExists && r.botId === selectedBotId));
   if (!records.length) item(panel, 'No safety examples', 'Actual gate and kill-switch states are unknown.', 'No operational controls connected');
   records.forEach(r => item(panel, r.scope, `Example gate: ${r.gate || 'Unknown'} · Example kill switch: ${r.killSwitch || 'Unknown'}`, `${r.source} · Observed: ${r.observedAt || 'unknown'} · Actual state unknown`));
 }

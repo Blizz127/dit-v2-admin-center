@@ -21,9 +21,11 @@ const elements = new Map(Object.entries(template).map(([id, spec]) => [id, new E
 const get = id => { assert.ok(elements.has(id), 'Unknown template ID ' + id); return elements.get(id); };
 const storage = new Map();
 let outcome = 'good';
+let fetchCount = 0;
 const ctx = {document: {querySelector: s => get(s.slice(1)), getElementById: get, createElement: () => new Element()},
   sessionStorage: {getItem: k => storage.get(k), setItem: (k, v) => storage.set(k, v), removeItem: k => storage.delete(k)},
   fetch: async path => {
+    fetchCount++;
     if (path === '/api/bridge-status') return {ok: true, json: async () => ({unit: 'unknown', source: 'Synthetic'})};
     assert.ok(['/api/overview?source=mock', '/api/overview?source=hub'].includes(path));
     if (outcome === 'transport') throw new Error('OMIT_PRIVATE_TRANSPORT');
@@ -46,6 +48,17 @@ const ctx = {document: {querySelector: s => get(s.slice(1)), getElementById: get
       if (outcome.startsWith('unavailable')) {
         data.hubFeeds = [{game: 'All', view: 'hub', status: 'Unavailable', at: null, note: 'Synthetic fallback; no current hub data'}];
         if (outcome === 'unavailable-empty') { data.bots = []; data.learning = []; }
+      }
+      if (outcome.startsWith('twins')) {
+        data.bots = ['LEFT', 'RIGHT'].map(id => ({id, name: 'Same display name', game: 'FFXI', source: 'Synthetic', status: 'Unknown'}));
+        data.botDetails = data.bots.map(b => ({botId: b.id, source: 'Synthetic', goals: [{text: b.id + '_GOAL'}], memories: [{text: b.id + '_MEMORY', grounding: 'Not verified'}]}));
+        data.ledger = data.bots.map(b => ({botId: b.id, request: b.id + '_ACTION', result: 'Accepted', verification: 'Pending'}));
+        data.issues = data.bots.map(b => ({botId: b.id, title: b.id + '_ISSUE', detail: 'Fixture', status: 'Open', scope: 'Bots', source: 'Synthetic'}));
+        data.assignmentHistory = data.bots.map(b => ({botId: b.id, requested: b.id + '_MODEL', effective: null, source: 'Synthetic'}));
+        data.replyEvents = data.bots.map(b => ({botId: b.id, fallbackReason: b.id + '_FALLBACK', source: 'Synthetic'}));
+        data.safetyRecords = [{botId: null, scope: 'NETWORK_EXAMPLE', source: 'Synthetic'},
+          ...data.bots.map(b => ({botId: b.id, scope: b.id + '_SAFETY', source: 'Synthetic'}))];
+        if (outcome === 'twins-orphan') data.bots = data.bots.filter(b => b.id !== 'LEFT');
       }
       return data;
     }};
@@ -144,5 +157,26 @@ function select() {
   assert.equal(get('workspace').hidden, true);
   assert.equal(get('error').textContent, 'Could not load the workspace.');
   assert.equal(storage.size, 0);
-  console.log('Overview state checks passed: snapshot order/filter persistence, unavailable-source fallback and empty states, plus failure/session recovery. No sort or pagination controls exist. Simulated DOM only.');
+  get('data-source').value = 'mock'; await login('twins');
+  get('issue-selected-bot').checked = true;
+  const beforeInspection = fetchCount;
+  for (const [selected, other] of [['LEFT', 'RIGHT'], ['RIGHT', 'LEFT']]) {
+    ctx.inspectBot(selected);
+    const detail = get('bot-inspector').textContent;
+    for (const field of ['GOAL', 'MEMORY', 'ACTION', 'ISSUE']) assert.ok(detail.includes(selected + '_' + field));
+    assert.ok(!detail.includes(other + '_'));
+    for (const [panel, field] of [['assignment-history', 'MODEL'], ['reply-source', 'FALLBACK'], ['safety-records', 'SAFETY'], ['issues', 'ISSUE']]) {
+      assert.ok(get(panel).textContent.includes(selected + '_' + field));
+      assert.ok(!get(panel).textContent.includes(other + '_'));
+    }
+    assert.match(get('safety-records').textContent, /NETWORK_EXAMPLE/);
+  }
+  assert.equal(fetchCount, beforeInspection, 'Detail selection never calls a service');
+  ctx.inspectBot('LEFT'); outcome = 'twins-orphan'; await get('refresh').listeners.click();
+  assert.match(get('bot-inspector').textContent, /no longer in this snapshot/);
+  for (const panel of ['bot-inspector', 'assignment-history', 'reply-source', 'safety-records', 'issues']) {
+    assert.doesNotMatch(get(panel).textContent, /LEFT_|RIGHT_/, 'Missing selection must not display orphan details: ' + panel);
+  }
+  assert.match(get('safety-records').textContent, /NETWORK_EXAMPLE/);
+  console.log('Overview/detail checks passed: failures, filters, received order, empty states and exact-ID isolation for same-name bots, including orphan records. Simulated DOM only.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
