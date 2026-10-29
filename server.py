@@ -170,11 +170,11 @@ def overview(source='mock'):
         "mode": "mock", "generatedAt": datetime.now(timezone.utc).isoformat(),
         "ownerAttention": owner_attention,
         "ffxiFocus": {
-            "closest": "DIT receipt 8421f15 verifies the r5-only bridge restart on October 29 at 14:03:39 UTC; new party-chat speech remains unverified.",
-            "whatToLookFor": "Per the DIT lead's retest request, send Hi! in party chat with an eligible bot and report whether a new reply is visible. A queued row alone is not speech proof; Admin sends no test message.",
+            "closest": "DIT activation receipt 9ba4ccb reports model-only bridge r2 ready on October 29 at 22:53:01 UTC, superseding the earlier r5 baseline; post-rollout speech remains unverified.",
+            "whatToLookFor": "Per the DIT lead's retest request, try a greeting, question and follow-up in linkshell, then party with a present companion. Correlate generation, queue and native delivery separately; Admin sends no test message.",
             "toggle": "No behavior or model toggle is connected in this Admin Center. Gate state is unknown.",
-            "unverified": "New queued delivery, native party speech and model-generated behavior remain unverified. The r5 greeting backup is canned; no model or feature flags changed in this restart.",
-            "source": "DIT 8421f15 restart receipt; readback October 29, 2026 at 14:07:59 UTC: bridge/hub active, hashes unchanged, marker absent, writer released. Dated evidence, not a current poll.",
+            "unverified": "Post-rollout generation, queue delivery and native speech remain unverified. Missing or rejected model wording stays silent in r2; retirement counters were not exercised by the empty readback window. Native Lua retirement is separate.",
+            "source": "DIT 9ba4ccb execution receipt: ready October 29, 2026 at 22:53:01 UTC; auditErrors 0, one poll, zero input/hub/queue rows. Dated evidence, not a current poll; the provider route was unchanged.",
         },
         "bots": [
             {"id": "demo-1", "name": "Aster", "game": "FFXI", "status": "Paused", "character": "Example job", "level": "12", "bodyKind": "Example body", "personalitySummary": "Example: patient and curious", "source": "Synthetic fixture", "observedAt": "2026-01-01T12:00:00Z", "routing": {"purpose": "conversation", "requested": "Example provider / example model", "effective": None, "version": "example-1", "source": "Synthetic routing example", "observedAt": "2026-01-01T12:00:00Z", "availability": "Unavailable", "reason": "Example identity has not been verified"}},
