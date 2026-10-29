@@ -102,3 +102,23 @@ Desktop/narrow CSS and naturally wrapping filter bars remain in place; actual
 responsive appearance and native key defaults still require a browser pass.
 The delivered `691f6c5d` file is immutable; these follow-up source changes are not
 silently substituted into that delivery.
+
+## Follow-up: inspector return path
+
+Explicit bot/learning Inspect actions now focus their detail panel. Rendering a
+selected record during refresh does not move focus. Bot inspector has a Back to
+roster button that returns focus to the current list without clearing game/name
+filters or selection. Missing/repeated IDs remain disabled; no identity rule was
+relaxed. Focused targets retain the amber focus outline.
+
+Passed: `tests/inspector_focus.test.cjs` (same-name records with distinct linked
+goals, filter retention, local-only inspection/return, refresh focus preservation),
+existing connected coverage/inspector and gap-export checks, card markup checks,
+and regenerated artifact CSP/JavaScript checks. The first new test incorrectly
+expected an ID label in existing inspector text; its assertion was corrected to
+check uniquely linked goal evidence, without changing the production display.
+
+The regenerated local `build/inspector-playtest.html` includes these changes.
+It has not replaced any delivered Alienware file. Actual native Tab/Enter/Space,
+narrow viewport layout and JSON download remain unverified; do not treat these
+component checks as a browser pass.

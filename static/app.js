@@ -315,7 +315,7 @@ function renderIssues() {
       button.textContent = `Inspect bot for: ${routingText(i.title)}`;
       button.addEventListener('click', () => {
         inspectBot(i.botId);
-        document.querySelector('#bot-inspector').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+        focusWorkspaceTarget('bot-inspector');
       });
       panel.lastElementChild.append(button);
     }
@@ -324,7 +324,7 @@ function renderIssues() {
       button.textContent = `Inspect learning need: ${routingText(i.title)}`;
       button.addEventListener('click', () => {
         inspectLearning(i.learningId);
-        document.querySelector('#learning-inspector').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+        focusWorkspaceTarget('learning-inspector');
       });
       panel.lastElementChild.append(button);
     }
@@ -462,7 +462,7 @@ function renderLearning() {
       const button = document.createElement('button'); button.type = 'button';
       const identified = Boolean(uniqueRecord(currentSnapshot.learning, l.id));
       button.disabled = !identified;
-      button.textContent = identified ? `Inspect ${routingText(l.topic)}` : 'Inspect unavailable: missing or ambiguous identity'; button.addEventListener('click', () => inspectLearning(l.id));
+      button.textContent = identified ? `Inspect ${routingText(l.topic)}` : 'Inspect unavailable: missing or ambiguous identity'; button.addEventListener('click', () => { inspectLearning(l.id); focusWorkspaceTarget('learning-inspector'); });
       panel.lastElementChild.append(button);
     }
   });
@@ -962,7 +962,7 @@ function botItem(bot) {
   const identified = Boolean(uniqueRecord(currentSnapshot.bots, bot.id));
   inspect.disabled = !identified;
   inspect.textContent = identified ? `Inspect ${routingText(bot.name)}` : 'Inspect unavailable: missing or ambiguous identity';
-  inspect.addEventListener('click', () => inspectBot(bot.id));
+  inspect.addEventListener('click', () => { inspectBot(bot.id); focusWorkspaceTarget('bot-inspector'); });
   row.append(inspect);
   const routingPanel = document.createElement('details');
   const summary = document.createElement('summary');
@@ -1225,3 +1225,4 @@ document.querySelector('#trace-clear').addEventListener('click', () => {
   if (currentSnapshot) renderLedger();
 });
 if (token) load();
+document.getElementById('back-to-roster').addEventListener('click', () => focusWorkspaceTarget('bots'));
