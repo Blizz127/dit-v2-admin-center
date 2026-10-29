@@ -65,6 +65,19 @@ response limit still produces the distinct `HubResponseTooLarge` class; a later
 valid read recovers. These tests inject byte streams and synthetic credentials,
 not HTTP transports. Runtime decoder limits are not an agreed JSON depth contract.
 
+Trace envelopes can themselves contain a JSON string body. If that inner body
+is malformed or exceeds the decoder's nesting limit, the existing tolerant
+projection retains valid envelope metadata and returns null classification,
+disposition and finality. It never returns the raw body or infers success. This
+differs from failure to decode the entire upstream response, which is a read
+error. An in-memory handler check covers the deeply nested inner-body case.
+
+Stored XP rate and synthetic spend projections treat values that overflow the
+finite-number check as null (Unknown), alongside non-numeric, boolean, negative
+and non-finite values. Valid zero and positive finite numbers remain values.
+Pricing/scope checks still apply. Synthetic pipeline checks verify that an
+invalid rate does not abort other game feeds; no live spend route is enabled.
+
 ## Query and method rejection
 
 Overview accepts at most one `source` field; trace requires exactly one `gameId`

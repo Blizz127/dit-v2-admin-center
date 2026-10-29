@@ -188,6 +188,14 @@ The API audit documents expected statuses and successful shapes separately,
 including bridge Unknown-on-200 and overview per-feed fallback semantics.
 No reader transport, live credential, browser or restarted service was used.
 
+Projection follow-up (`4971821`) fixes the separate inner trace-body decoder
+path and finite-number overflow for stored XP rate / synthetic spend fields.
+One in-memory handler check and three synthetic numeric/pipeline checks passed.
+An unreadable trace body leaves outcome fields null while retaining envelope
+metadata; unrepresentable numeric values stay Unknown, not zero. Valid zero,
+fractions, game scope and pricing-error behavior remain covered. The spend view
+is still synthetic; these fixes do not authorize or establish ledger reads.
+
 The extended connected check passed under a 25-second hard timeout. Bridge
 observation failures return 200 with Unknown fields; health projection/read
 failures return 502/503. These are deliberately different API semantics.
