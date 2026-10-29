@@ -48,7 +48,7 @@ def lead_inventory():
                 ("claude-dit-human-behavior-platform", "claude"),
             ).fetchone()
         if row:
-            leads[0]["status"] = "Latest tracked task: " + row[0]
+            leads[0]["status"] = "Latest tracked Claude-routed task (current lead unverified): " + row[0]
             leads[0]["observedAt"] = datetime.fromtimestamp(row[1], timezone.utc).isoformat()
     except (OSError, sqlite3.Error, ValueError, OverflowError):
         pass
@@ -91,7 +91,7 @@ def session_activity(session):
 
 def lead_monitoring():
     root = Path.home() / ".local/share/devbox-coordinator-state"
-    targets = [("DIT v2 hub lead", "claude-dit-human-behavior-platform", "claude", "claude", "claude-dit-human-behavior-platform"),
+    targets = [("DIT v2 hub lead", "claude-dit-human-behavior-platform", None, None, "claude-dit-human-behavior-platform"),
                ("Admin Center lead", "claude-dit-v2-admin-center", "codex", None, None)]
     try:
         config = json.loads((root / "watch.json").read_text())
@@ -104,10 +104,12 @@ def lead_monitoring():
     result = []
     for name, project, agent, provider, session in targets:
         item = {"lead": name, "stall": "Unknown", "stallReason": "No available matching watcher classification", "quota": "Unknown", "quotaReason": "No per-lead quota source connected", "stallObservedAt": None}
+        if agent is None:
+            item["stallReason"] = "Watcher-to-current-lead binding is unverified after provider rotation"
         item["poolCapacity"], item["poolReason"] = capacity_context(root, provider)
         item["sessionActivity"] = session_activity(session)
         matches = [t for t in records if isinstance(t, dict) and t.get("project") == project and t.get("agent") == agent and t.get("enabled", True)]
-        if len(matches) == 1:
+        if agent is not None and len(matches) == 1:
             entry = state.get(matches[0].get("name"), {})
             if isinstance(entry, dict) and entry.get("kind") in ("STALLED", "STOPPED", "OFF-TRACK", "OK") and isinstance(entry.get("checked"), (int, float)):
                 try:
