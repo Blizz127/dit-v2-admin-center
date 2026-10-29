@@ -153,6 +153,19 @@ failures return 502/503. These are deliberately different API semantics.
 Existing cache and session-race tests retain their separate scope; they were
 not repeated for this documentation checkpoint. All model controls remain off.
 
+Headless follow-up (`0123cd5`): the standalone artifact now also exercises health
+and both bridge cards with in-memory responses. `tools/run_headless_playtest.py`
+requires an existing Chromium executable and working user/network isolation;
+it uses a disposable profile and never disables the browser sandbox. The actual
+attempt exited 2 because no executable was found, before any browser launch.
+Fresh capacity was sufficient (load about 11, available memory about 156 GiB);
+the blocker is the runtime, not load. An existing browser path or authorization
+to provision one remains requested through the coordinator. No download or
+server restart occurred. Eight focused artifact/runner checks and embedded
+JavaScript syntax passed; four runner checks use mocked process output and do
+not establish DOM execution. Network-namespace support remains untested until
+a browser is available. Browser layout and runtime behavior remain unverified.
+
 `tools/build_inspector_playtest.py` builds a standalone, network-blocked browser
 harness from the actual static assets and projected synthetic learning fixtures.
 It exercises the inspector's real DOM events when opened in a browser; its

@@ -155,6 +155,30 @@ errors or update token storage for the newer session. Existing source/correlatio
 request-version guards still apply. Initial login may load while the workspace
 is hidden; optional panel reads require a visible workspace and a token.
 
+## Headless offline artifact check
+
+For an actual installed Chromium runtime, a separate headless artifact check is
+available (no server or running mock is contacted):
+
+```sh
+DIT_CHROMIUM=/path/to/installed/chromium timeout -k 3 30 python3 tools/run_headless_playtest.py
+```
+
+It creates a temporary profile and inline synthetic artifact, isolates the
+browser in a user/network namespace, and checks the resulting DOM report. No
+sandbox-disabling option or dependency download is used. Missing Chromium or
+denied isolation exits 2; unsuccessful or incomplete checks exit 1. Locally,
+execution is **blocked: no Chromium executable was found**. Runner contract
+tests used fabricated browser output and are not a browser pass.
+
+What's new in the artifact: health empty/401/502/503/recovery states and both
+bridge cards' Unknown/error/recovery states. “Hub” selection inside this artifact
+is an in-memory fixture switch, never a live hub request. The checks run on file
+open/reload; close the file to stop. To regenerate the manually viewable file,
+run `python3 tools/build_inspector_playtest.py`. Look for the result banner and
+individual checks; a newly generated file starts NOT RUN. Actual browser
+execution, visual appearance and deployed-service behavior remain unverified.
+
 ## Browser-free inspector integration
 
 ```sh
