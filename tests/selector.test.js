@@ -229,6 +229,9 @@ setImmediate(async () => {
   assert.match(get('hub-trace').children[1].children[2].textContent, /Raw envelope body omitted/);
   get('correlation').listeners.input();
   assert.equal(get('hub-trace').children.length, 0);
+  assert.match(get('ledger-filter').textContent, /filter applied: trace-example.*Game selection applies to hub trace only/);
+  get('trace-clear').listeners.click();
+  assert.match(get('ledger-filter').textContent, /all loaded examples.*Game selection applies to hub trace only/);
   get('learning-status').value = 'failed'; get('learning-search').value = 'hidden'; get('learning-attention').checked = true;
   get('ffxi-learning').listeners.click();
   assert.equal(get('learning-game').value, 'FFXI');

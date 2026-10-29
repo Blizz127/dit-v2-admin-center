@@ -230,6 +230,9 @@ function renderLedger() {
   const panel = document.querySelector('#ledger');
   panel.replaceChildren();
   const records = currentSnapshot.ledger.filter(e => !correlationFilter || e.correlationId === correlationFilter);
+  document.querySelector('#ledger-filter').textContent = correlationFilter
+    ? `Synthetic ledger filter applied: ${correlationFilter}. Game selection applies to hub trace only.`
+    : 'Synthetic ledger: all loaded examples. Game selection applies to hub trace only.';
   if (!records.length) item(panel, 'No matching evidence', 'No records in this mock snapshot.', 'This is not proof that an action did or did not occur.');
   records.forEach(e => item(panel, `${e.bot} · ${e.request}`, `Result: ${e.result} · Verification: ${e.verification}`, `Correlation: ${e.correlationId}`));
 }
