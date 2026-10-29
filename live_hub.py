@@ -57,6 +57,10 @@ class HubReader:
     def health(self):
         return self._request('health', {})
 
+    def interaction(self):
+        # Candidate e8c81be only; explicit read, no switch/dispatch or provider calls.
+        return self._request('interaction', {'limit': 50})
+
     def trace(self, game, correlation):
         if game not in ('ffxi', 'swtor') or not isinstance(correlation, str) or not CORRELATION.fullmatch(correlation):
             raise ValueError('Invalid trace scope')
