@@ -95,6 +95,16 @@ class InteractionContractTests(unittest.TestCase):
         self.payload['scopes'].append(copy.deepcopy(self.payload['scopes'][0]))
         with self.assertRaises(ValueError): self.read()
 
+    def test_invalid_numeric_metadata_stays_unknown_through_reader(self):
+        for label, value in [('oversized integer', 10 ** 400), ('negative', -1),
+                             ('boolean', True), ('string', '30')]:
+            with self.subTest(case=label):
+                self.payload['freshForSeconds'] = value
+                self.payload['scopes'][0]['bots'][0]['ageSeconds'] = value
+                result = self.read()
+                self.assertIsNone(result['freshForSeconds'])
+                self.assertIsNone(result['bots'][0]['ageSeconds'])
+
     def test_proposed_routing_sketch_is_not_a_reader_endpoint(self):
         reader = HubReader('http://127.0.0.1:7390', self.token)
         for route in ('routing', 'model-routing', 'providers', 'goals'):

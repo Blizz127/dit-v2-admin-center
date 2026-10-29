@@ -18,7 +18,12 @@ def _boolean(value):
 
 
 def _number(value):
-    return value if type(value) in (int, float) and math.isfinite(value) and value >= 0 else None
+    if type(value) not in (int, float) or value < 0:
+        return None
+    try:
+        return value if math.isfinite(value) else None
+    except OverflowError:
+        return None
 
 
 def project_interaction(data, fetched):
