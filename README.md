@@ -131,6 +131,29 @@ Chromium before browser launch. Source/protocol tests are not a native pass.
 There are no guided dialogs: Escape cancels the inline walkthrough, preserves
 the current assignment page and returns focus to its Start button.
 
+To capture the expanded synthetic evidence comparisons after those checks:
+
+```sh
+timeout -k 3 40 python3 tools/run_keyboard_playtest.py --screenshots
+```
+
+This requests desktop (1280×1000) and narrow (390×844, left and right scroll
+positions) PNGs. It checks the four comparison rows, Unknown model origins,
+horizontal viewport bounds and access to the rightmost columns. A complete run
+publishes a unique directory under `build/screenshots/` with image hashes,
+artifact hash and a receipt. Failed or partial runs publish nothing. PNG headers
+and dimensions are checked; this is not an image decoder or a pixel-baseline
+comparison. Inspect the resulting images separately for clipping, readability
+and appearance. No screenshot is itself proof of live data or native speech.
+
+The October 29 attempt remains blocked: no local Chromium/rendering engine was
+found, and the independent isolation probe failed with
+`unshare: write failed /proc/self/uid_map: Operation not permitted`.
+No isolation bypass or download was attempted. Screenshot transport/publication
+fixtures pass, but **no screenshots or browser appearance pass exist** for this
+checkpoint. Use an environment with an installed browser and permitted isolation
+to run the command; these local fixture tests do not remove either blocker.
+
 Observer logic can be checked without a browser:
 
 ```sh

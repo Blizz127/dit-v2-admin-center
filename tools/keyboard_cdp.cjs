@@ -52,7 +52,7 @@ function connection(child) {
   });
 }
 
-async function run(browser, artifact, profile) {
+async function run(browser, artifact, profile, screenshotDirectory) {
   const child = spawn(browser, ['--headless', '--disable-gpu', '--disable-background-networking',
     '--no-first-run', '--no-default-browser-check', '--user-data-dir=' + profile,
     '--remote-debugging-pipe', 'about:blank'], {stdio: ['ignore', 'ignore', 'ignore', 'pipe', 'pipe']});
@@ -100,7 +100,9 @@ async function run(browser, artifact, profile) {
         ? "document.documentElement.dataset.keyboardPlaytest === 'passed'"
         : "document.documentElement.dataset.keyboardPlaytest === 'running' && document.getElementById('keyboard-status').textContent.startsWith('Step " + (index + 2) + "/12:')");
     }
+    const visual = screenshotDirectory ? await require('./capture_comparisons.cjs').captureComparisons(command, screenshotDirectory) : null;
     return {status: 'passed', nativeKeyboard: 'passed', steps: keys.length, escapeCancellation: 'passed',
+      ...(visual ? {visual} : {}),
       automaticDOM: 'passed', transport: 'anonymous debugging pipes',
       limitations: 'Synthetic artifact only; no visual or screen-reader review, live service or game verification'};
   } finally { clearTimeout(deadline); child.kill('SIGKILL'); }
@@ -108,8 +110,8 @@ async function run(browser, artifact, profile) {
 
 module.exports = {keyEvents, connection};
 if (require.main === module) {
-  const [browser, artifact, profile] = process.argv.slice(2);
+  const [browser, artifact, profile, screenshotDirectory] = process.argv.slice(2);
   if (!browser || !artifact || !profile) { console.error('Use run_keyboard_playtest.py'); process.exitCode = 2; }
-  else run(browser, artifact, profile).then(result => console.log(JSON.stringify(result)))
+  else run(browser, artifact, profile, screenshotDirectory).then(result => console.log(JSON.stringify(result)))
     .catch(() => { console.error('FAIL: native keyboard check could not complete; no success claimed.'); process.exitCode = 1; });
 }

@@ -4,6 +4,8 @@ No install, TCP listener, live data, persistent profile or sandbox bypass.
 Exit 2 means runtime/isolation blocked; exit 1 means incomplete/failed checks.
 """
 import json
+import argparse
+import hashlib
 import os
 from pathlib import Path
 import shutil
@@ -23,7 +25,38 @@ def valid_receipt(result):
             and result.get('automaticDOM') == 'passed')
 
 
-def main():
+def publish_captures(result, directory, artifact, output_root):
+    """Publish only complete bounded captures; PNG header checks are not image decoding."""
+    expected = [('desktop.png', 1280, 1000), ('narrow-left.png', 390, 844),
+                ('narrow-right.png', 390, 844)]
+    visual = result.get('visual', {})
+    captures = visual.get('captures') if isinstance(visual, dict) else None
+    if visual.get('status') != 'captured' or not isinstance(captures, list) or len(captures) != 3:
+        raise ValueError('Incomplete captures')
+    for item, (name, width, height) in zip(captures, expected):
+        if not isinstance(item, dict) or (item.get('file'), item.get('width'), item.get('height')) != (name, width, height):
+            raise ValueError('Unexpected capture')
+        source = directory / name
+        if source.is_symlink() or not 24 <= source.stat().st_size <= 16 * 1024 * 1024:
+            raise ValueError('Invalid capture file')
+        data = source.read_bytes()
+        if data[:8] != b'\x89PNG\r\n\x1a\n' or int.from_bytes(data[16:20], 'big') != width or int.from_bytes(data[20:24], 'big') != height:
+            raise ValueError('Invalid capture header')
+        item['sha256'] = hashlib.sha256(data).hexdigest()
+    visual['artifactSha256'] = hashlib.sha256(artifact.read_bytes()).hexdigest()
+    output_root.mkdir(parents=True, exist_ok=True)
+    destination = Path(tempfile.mkdtemp(prefix='comparisons-', dir=output_root))
+    try:
+        for name, _, _ in expected:
+            shutil.copyfile(directory / name, destination / name)
+        (destination / 'receipt.json').write_text(json.dumps(result, indent=2) + '\n')
+    except OSError:
+        shutil.rmtree(destination)
+        raise
+    return str(destination)
+
+
+def main(screenshots=False):
     requested = os.environ.get('DIT_CHROMIUM')
     browser = shutil.which(requested) if requested else next(
         (path for name in ('chromium', 'chromium-browser', 'google-chrome', 'chrome-headless-shell')
@@ -41,6 +74,10 @@ def main():
         artifact.write_text(build())
         command = isolation + [node, str(ROOT / 'tools/keyboard_cdp.cjs'), browser,
                                str(artifact), str(Path(directory) / 'profile')]
+        captures = Path(directory) / 'captures'
+        if screenshots:
+            captures.mkdir()
+            command.append(str(captures))
         code, stdout, _ = run_bounded(command, 30)
         try:
             result = json.loads(stdout) if not code else None
@@ -49,13 +86,22 @@ def main():
         if not valid_receipt(result):
             print('FAIL: native keyboard run was incomplete or failed. Browser output withheld.', file=sys.stderr)
             return 1
+        if screenshots:
+            try:
+                result['screenshotDirectory'] = publish_captures(
+                    result, captures, artifact, ROOT / 'build/screenshots')
+            except (ValueError, OSError, TypeError, AttributeError):
+                print('FAIL: screenshot set incomplete; no visual success claimed.', file=sys.stderr)
+                return 1
         print(json.dumps(result))
         return 0
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--screenshots', action='store_true', help='Capture synthetic comparisons after native checks pass')
     try:
-        sys.exit(main())
+        sys.exit(main(screenshots=parser.parse_args().screenshots))
     except (OSError, RuntimeError):
         print('FAIL: bounded browser run could not complete; no success claimed.', file=sys.stderr)
         sys.exit(1)
