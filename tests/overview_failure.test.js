@@ -33,6 +33,11 @@ const ctx = {document: {querySelector: s => get(s.slice(1)), getElementById: get
       if (outcome === 'malformed') return {ownerAttention: {coverage: 'Partial', items: []}};
       const data = JSON.parse(JSON.stringify(fixture));
       if (outcome === 'empty') { data.bots = []; data.learning = []; }
+      if (outcome === 'changed') {
+        data.bots[0].name = 'NEW_BOT_DETAIL';
+        data.learning[0].topic = 'NEW_LEARNING_DETAIL';
+        data.learning[0].status = 'failed';
+      }
       return data;
     }};
   }};
@@ -72,5 +77,30 @@ function select() {
     assert.doesNotMatch(get('bot-inspector').textContent, /OLD_BOT_DETAIL/);
     assert.doesNotMatch(get('learning-inspector').textContent, /OLD_LEARNING_DETAIL/);
   }
-  console.log('Overview failure states passed: labeled previous snapshot, session reset, inspector clearing and empty recovery. Simulated DOM only.');
+  await login(); select();
+  const filters = {'bot-game': 'FFXI', 'bot-search': 'OLD', 'learning-game': 'FFXI',
+    'learning-search': 'OLD', 'learning-status': 'verified'};
+  for (const [id, value] of Object.entries(filters)) get(id).value = value;
+  get('bot-search').listeners.input(); get('learning-search').listeners.input();
+  assert.match(get('bot-count').textContent, /Showing 1 of 1/);
+  assert.match(get('learning-count').textContent, /Showing 1 of 4/);
+  outcome = 'changed'; await get('refresh').listeners.click();
+  for (const [id, value] of Object.entries(filters)) assert.equal(get(id).value, value, 'Preserve filter ' + id);
+  assert.match(get('bot-count').textContent, /Showing 0 of 1.*Selected bot is outside this filtered roster/);
+  assert.match(get('learning-count').textContent, /Showing 0 of 4.*Selected need is outside this filtered list/);
+  assert.match(get('bot-inspector').textContent, /NEW_BOT_DETAIL/);
+  assert.doesNotMatch(get('bot-inspector').textContent, /OLD_BOT_DETAIL/);
+  assert.match(get('learning-inspector').textContent, /NEW_LEARNING_DETAIL.*Status: failed/);
+  assert.doesNotMatch(get('learning-inspector').textContent, /OLD_LEARNING_DETAIL/);
+  outcome = 'empty'; await get('refresh').listeners.click();
+  assert.match(get('bot-count').textContent, /Selected bot is no longer in the loaded data/);
+  assert.match(get('learning-count').textContent, /Selected need is no longer in the loaded data/);
+  assert.equal(get('bot-inspector').textContent, 'Selected bot is no longer in this snapshot.');
+  assert.equal(get('learning-inspector').textContent, 'Selected learning need is no longer in this snapshot.');
+  assert.match(get('learning-evidence').textContent, /No learning record selected/);
+  for (const [id, value] of Object.entries(filters)) assert.equal(get(id).value, value);
+  get('clear-bot').listeners.click(); get('clear-learning').listeners.click();
+  assert.doesNotMatch(get('bot-count').textContent, /Selected bot/);
+  assert.doesNotMatch(get('learning-count').textContent, /Selected need/);
+  console.log('Overview state checks passed: failure/session recovery plus filter persistence, updated selected records, missing selections and explicit clear. Simulated DOM only.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
