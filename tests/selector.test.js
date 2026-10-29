@@ -225,6 +225,8 @@ setImmediate(async () => {
   get('trace-search').listeners.submit({preventDefault() {}});
   await new Promise(resolve => setImmediate(resolve));
   assert.match(get('hub-trace').children[0].children[0].textContent, /FFXI · trace-example/);
+  assert.match(get('hub-trace').children[0].children[1].textContent, /1 returned record/);
+  assert.match(get('hub-trace').children[0].children[2].textContent, /Bounded lookup, not proof of outcome/);
   assert.match(get('hub-trace').children[1].children[1].textContent, /Disposition: pending.*Final: false/);
   assert.match(get('hub-trace').children[1].children[2].textContent, /Raw envelope body omitted/);
   get('correlation').listeners.input();
