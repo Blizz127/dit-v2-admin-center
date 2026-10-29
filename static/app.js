@@ -32,6 +32,7 @@ function resetPanelSession() {
   document.querySelector('#reply-count').textContent = 'Select a bot to view reply examples.';
   document.querySelector('#model-call-availability').value = '';
   document.querySelector('#model-call-coverage').textContent = 'Metric coverage unknown.';
+  document.querySelector('#data-coverage').replaceChildren();
   ledgerBotId = null; correlationFilter = '';
   document.querySelector('#correlation').value = '';
   document.querySelector('#ledger').replaceChildren();
@@ -762,6 +763,33 @@ function routingText(value, fallback = 'Unknown') {
 function metricNumber(value) {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0;
 }
+function renderDataCoverage() {
+  const panel = document.querySelector('#data-coverage');
+  panel.replaceChildren();
+  for (const [key, label, target] of [['bots', 'Bot roster', 'bots'], ['learning', 'Learning needs', 'learning'], ['modelCalls', 'Model call metrics', 'model-calls']]) {
+    const supplied = currentSnapshot[key];
+    const rows = Array.isArray(supplied) ? supplied.filter(row => row && typeof row === 'object' && !Array.isArray(row)) : [];
+    const state = !Array.isArray(supplied) ? 'Unavailable collection' : !supplied.length ? 'Empty loaded collection'
+      : supplied.length !== rows.length ? 'Partial collection' : 'Loaded collection';
+    const total = Array.isArray(supplied) && rows.length === supplied.length ? rows.length : 'Unknown';
+    let detail = `Usable rows: ${rows.length} · Loaded total: ${total}`;
+    if (key === 'modelCalls') {
+      const missing = rows.filter(row => !['latencyMs', 'cost', 'quality'].every(field => metricNumber(row[field]))).length;
+      detail += ` · Rows with unknown numeric fields: ${missing}`;
+    } else {
+      const unusable = rows.filter(row => typeof row.id !== 'string' || !row.id.trim()).length;
+      const counts = new Map();
+      rows.forEach(row => { if (typeof row.id === 'string' && row.id.trim()) counts.set(row.id, (counts.get(row.id) || 0) + 1); });
+      const ambiguous = rows.filter(row => counts.get(row.id) > 1).length;
+      detail += ` · Rows without usable IDs: ${unusable} · Rows with repeated IDs: ${ambiguous}`;
+    }
+    item(panel, `${label} · ${state}`, detail, 'Loaded snapshot only; these counts do not establish live coverage, freshness or game outcomes. Detail filters remain unchanged.');
+    const button = document.createElement('button'); button.type = 'button';
+    button.textContent = `Review ${label.toLowerCase()}`;
+    button.addEventListener('click', () => document.getElementById(target).scrollIntoView({behavior: 'smooth', block: 'nearest'}));
+    panel.lastElementChild.append(button);
+  }
+}
 function renderModelCalls() {
   const panel = document.querySelector('#model-calls');
   panel.replaceChildren();
@@ -919,6 +947,7 @@ async function load() {
     renderLearningPlan();
     renderLearningArtifacts();
     renderLearning();
+    renderDataCoverage();
     document.querySelector('#updated').textContent = `Snapshot generated ${data.generatedAt} · Sources are labeled per view; lead task state comes from the coordinator board.`;
     loadedSource = source; sourceLoading = false;
     sessionStorage.setItem('dit-admin-token', token); workspace.hidden = false; form.hidden = true; loadBridge();
