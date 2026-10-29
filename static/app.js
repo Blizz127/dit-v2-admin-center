@@ -516,6 +516,60 @@ function clearRosterGapSelection() {
   document.querySelector('#roster-gap-detail').replaceChildren();
   document.querySelector('#roster-gap-detail').textContent = 'Select a loaded roster gap for record details.';
 }
+const rosterGapFields = ['id', 'name', 'game', 'status', 'character', 'level', 'bodyKind', 'source', 'observedAt'];
+function rosterGapReport(snapshot, selectedIndex) {
+  const selected = snapshot.bots[selectedIndex];
+  const hasId = typeof selected.id === 'string' && selected.id.trim();
+  const candidates = snapshot.bots.flatMap((bot, index) => {
+    if (!bot || typeof bot !== 'object' || Array.isArray(bot) || (hasId ? bot.id !== selected.id : index !== selectedIndex)) return [];
+    const fields = Object.fromEntries(rosterGapFields.map(key => [key,
+      typeof bot[key] === 'string' && bot[key].trim() ? bot[key]
+        : key === 'level' && Number.isSafeInteger(bot[key]) && bot[key] >= 0 ? bot[key] : null]));
+    return [{snapshotRow: index + 1, fields}];
+  });
+  return {
+    schema: 'dit-admin-roster-gap-report-v1',
+    snapshotGeneratedAt: typeof snapshot.generatedAt === 'string' ? snapshot.generatedAt : null,
+    selectedSnapshotRow: selectedIndex + 1,
+    reason: candidates.length > 1 ? 'repeated_loaded_id' : 'missing_usable_loaded_id',
+    differingFields: rosterGapFields.filter(key => new Set(candidates.map(row => row.fields[key])).size > 1),
+    candidates,
+    limits: ['Loaded snapshot only; row numbers are not persistent entity IDs.',
+      'Only allowlisted reported fields are included; missing or malformed values are null (Unknown).',
+      'No identity resolution, freshness verification, evidence joins or model changes.',
+      'Snapshot timestamp is reported metadata, not authenticated provenance.'],
+  };
+}
+function appendRosterGapComparison(detail, report) {
+  const differences = report.differingFields.length ? report.differingFields.join(', ') : 'None among the included fields';
+  item(detail, 'Candidate comparison', `Differing fields: ${differences}`,
+    'Every row with the same exact loaded ID is included, even if hidden by roster filters. A missing ID is compared only with its selected row.');
+  const region = document.createElement('div'); region.className = 'gap-comparison';
+  region.setAttribute('role', 'region'); region.setAttribute('aria-label', 'Roster gap candidate comparison'); region.setAttribute('tabindex', '0');
+  const table = document.createElement('table');
+  const caption = document.createElement('caption'); caption.textContent = 'Reported fields by snapshot row; Unknown does not resolve identity'; table.append(caption);
+  const head = document.createElement('thead'), headings = document.createElement('tr');
+  for (const label of ['Field', ...report.candidates.map(row => `Snapshot row ${row.snapshotRow}`)]) {
+    const th = document.createElement('th'); th.setAttribute('scope', 'col'); th.textContent = label; headings.append(th);
+  }
+  head.append(headings); table.append(head);
+  const body = document.createElement('tbody');
+  for (const key of rosterGapFields) {
+    const row = document.createElement('tr'), label = document.createElement('th'); label.setAttribute('scope', 'row');
+    label.textContent = key + (report.differingFields.includes(key) ? ' (differs)' : ''); row.append(label);
+    for (const candidate of report.candidates) {
+      const cell = document.createElement('td'); cell.textContent = candidate.fields[key] ?? 'Unknown (missing or malformed)'; row.append(cell);
+    }
+    body.append(row);
+  }
+  table.append(body); region.append(table); detail.append(region);
+  const json = JSON.stringify(report, null, 2);
+  const link = document.createElement('a'); link.textContent = 'Download gap report JSON';
+  link.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(json));
+  link.setAttribute('download', `roster-gap-row-${report.selectedSnapshotRow}.json`); detail.append(link);
+  const copy = document.createElement('textarea'); copy.readOnly = true; copy.rows = 8; copy.value = json;
+  copy.setAttribute('aria-label', 'Gap report JSON for local copy'); detail.append(copy);
+}
 function renderRosterGaps() {
   const panel = document.querySelector('#roster-gaps');
   panel.replaceChildren();
@@ -551,7 +605,9 @@ function renderRosterGaps() {
         document.querySelector('#bot-identity').value = 'unavailable';
         renderBots(); document.querySelector('#bots').scrollIntoView({behavior: 'smooth', block: 'nearest'});
       });
-      detail.append(show); detail.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+      detail.append(show);
+      appendRosterGapComparison(detail, rosterGapReport(snapshot, index));
+      detail.scrollIntoView({behavior: 'smooth', block: 'nearest'});
     });
     panel.lastElementChild.append(button);
   });

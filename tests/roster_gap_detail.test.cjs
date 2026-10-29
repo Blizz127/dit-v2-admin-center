@@ -13,7 +13,7 @@ const show=()=>get('roster-gap-detail').children.find(n=>n.textContent==='Show m
   assert.match(get('roster-gaps').textContent,/Snapshot row 5 · Unusable record/);
   const before=requestCount();links()[0].listeners.click();
   assert.match(get('roster-gap-detail').textContent,/Snapshot row 2.*Repeated loaded ID: 2 rows.*FIRST_SOURCE/);
-  assert.doesNotMatch(get('roster-gap-detail').textContent,/SECOND_SOURCE|NO_ID_SOURCE/);
+  assert.doesNotMatch(get('roster-gap-detail').children[0].textContent,/SECOND_SOURCE|NO_ID_SOURCE/);
   const oldShow=show(),oldReview=links()[0];oldShow.listeners.click();
   assert.match(get('bot-count').textContent,/Showing 1 of Unknown.*Pinned snapshot row: 2/);
   assert.match(get('bots').textContent,/FIRST_SOURCE/);assert.doesNotMatch(get('bots').textContent,/SECOND_SOURCE|NO_ID_SOURCE/);
