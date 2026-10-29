@@ -190,6 +190,22 @@ function select() {
   ctx.inspectBot('fixture-bot'); get('clear-bot').listeners.click();
   assert.equal(fetchCount, callsBefore);
   assert.equal(get('audit').textContent, auditBefore, 'Read-only selections must not invent audit actions');
+  for (const [query, count] of [['  audit_example_a  ', 1], ['NETWORK', 1], ['rejected', 1], ['Synthetic operator', 2], ['no such example', 0]]) {
+    get('audit-search').value = query; get('audit-search').listeners.input();
+    assert.match(get('audit-count').textContent, new RegExp(`Showing ${count} of 2 loaded audit examples`));
+    if (!count) {
+      assert.match(get('audit').textContent, /No matching audit examples/);
+      assert.match(get('audit').textContent, /does not establish whether real admin actions occurred/);
+    } else assert.equal(get('audit').children.length, count);
+  }
+  assert.equal(fetchCount, callsBefore, 'Audit filters make no request');
+  get('audit-search').value = 'network'; get('audit-search').listeners.input();
+  await get('refresh').listeners.click();
+  assert.equal(get('audit-search').value, 'network');
+  assert.match(get('audit-count').textContent, /Showing 1 of 2/);
+  get('audit-reset').listeners.click();
+  assert.equal(get('audit-search').value, '');
+  assert.equal(get('audit').textContent, auditBefore);
   outcome = '503'; await get('refresh').listeners.click();
   assert.equal(get('audit').textContent, auditBefore);
   assert.match(get('hub-banner').textContent, /Refresh failed.*previous mock/);

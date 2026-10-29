@@ -415,6 +415,17 @@ function renderReplySource() {
   if (!bot || !rows.length) { item(panel, 'No matching reply evidence', 'Source, fallback and delivery are unknown.', 'Absence of records does not prove no reply occurred.'); return; }
   rows.forEach(r => item(panel, `${bot.name} · ${r.wordingOrigin || 'Unknown source'}`, `Generation: ${r.generationStatus || 'Unknown'} · Fallback: ${r.fallbackPolicy || 'Unknown'} · Reason: ${r.fallbackReason || 'Not reported'}`, `Delivery: ${r.delivery || 'Unknown'} · Verification: ${r.verification || 'Unknown'} · Correlation: ${r.correlationId || 'unknown'} · ${r.source} · Observed: ${r.observedAt || 'unknown'}`));
 }
+function renderAudit() {
+  const panel = document.querySelector('#audit');
+  panel.replaceChildren();
+  const query = (document.querySelector('#audit-search').value || '').trim().toLowerCase();
+  const rows = currentSnapshot.audit.filter(a => !query || [a.actor, a.action, a.scope, a.result]
+    .some(value => typeof value === 'string' && value.toLowerCase().includes(query)));
+  document.querySelector('#audit-count').textContent = `Showing ${rows.length} of ${currentSnapshot.audit.length} loaded audit examples; no live audit source is connected.`;
+  if (!rows.length) item(panel, currentSnapshot.audit.length ? 'No matching audit examples' : 'No audit examples loaded',
+    'This view does not establish whether real admin actions occurred.', 'Read-only examples; no live audit source is connected.');
+  rows.forEach(a => item(panel, `${a.action} · ${a.scope}`, a.result, `${a.actor} · ${a.at || 'unknown time'} · ${a.source}`));
+}
 function renderAssignments() {
   const panel = document.querySelector('#assignment-history');
   panel.replaceChildren();
@@ -602,9 +613,7 @@ async function load() {
     const usd = value => typeof value === 'number' ? `$${value.toFixed(2)}` : 'Unknown';
     item(document.querySelector('#spend-example'), `Example month: ${spend.month || 'Unknown'}`, `Settled: ${usd(spend.settledUsd)} · Open reservations: ${usd(spend.reservedOpenUsd)} · Budget: ${usd(spend.budgetUsd)}`, `${spend.source} · ${spend.attribution} · Observed: ${spend.fetchedAt || 'unknown'} · Separate ledgers are not reconciled.`);
     data.modelCalls.forEach(c => item(document.querySelector('#model-calls'), `${c.model} · ${c.purpose}`, `Latency: ${typeof c.latencyMs === 'number' ? c.latencyMs + ' ms' : 'Unknown'} · Cost: ${c.cost == null ? 'Unknown' : c.cost} · Quality: ${c.quality == null ? 'Unknown' : c.quality}`, `${c.source} · Observed: ${c.observedAt || 'unknown'}`));
-    if (!data.audit.length) item(document.querySelector('#audit'), 'No audit examples loaded',
-      'This view does not establish whether real admin actions occurred.', 'Read-only examples; no live audit source is connected.');
-    data.audit.forEach(a => item(document.querySelector('#audit'), `${a.action} · ${a.scope}`, a.result, `${a.actor} · ${a.at || 'unknown time'} · ${a.source}`));
+    renderAudit();
     renderIssueCoverage();
     renderIssues();
     renderLedger();
@@ -628,6 +637,11 @@ async function load() {
 }
 form.addEventListener('submit', e => { e.preventDefault(); resetPanelSession(); token = document.querySelector('#token').value; document.querySelector('#token').value = ''; load(); });
 document.querySelector('#refresh').addEventListener('click', load);
+document.querySelector('#audit-search').addEventListener('input', () => { if (currentSnapshot) renderAudit(); });
+document.querySelector('#audit-reset').addEventListener('click', () => {
+  document.querySelector('#audit-search').value = '';
+  if (currentSnapshot) renderAudit();
+});
 document.querySelector('#bridge-refresh').addEventListener('click', loadBridge);
 document.querySelector('#hub-health-refresh').addEventListener('click', loadHubHealth);
 document.querySelector('#interaction-refresh').addEventListener('click', loadInteraction);
