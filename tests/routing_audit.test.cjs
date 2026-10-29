@@ -52,6 +52,7 @@ const {get,refresh,snapshot,requestCount}=require('./overview_snapshot_harness.c
  await refresh({routingAudit:[unknown]});assert.match(get('routing-audit-count').textContent,/Showing 0 of 1/);
  get('routing-audit-outcome').value='unknown';get('routing-audit-outcome').listeners.change();
  assert.match(get('routing-audit-count').textContent,/Showing 1 of 1/);
+ assert.match(get('routing-audit').textContent,/Example outcome: Unknown/);
  await refresh({routingAudit:null});assert.match(get('routing-audit-count').textContent,/Showing 0 of Unknown/);
  get('routing-audit-reset').listeners.click();await refresh({});
  assert.match(get('routing-audit-count').textContent,/Showing 3 of 3/);

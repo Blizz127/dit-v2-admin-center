@@ -564,6 +564,7 @@ function renderRoutingAudit() {
   const filter = document.querySelector('#routing-audit-scope').value;
   const outcomeFilter = document.querySelector('#routing-audit-outcome').value;
   const outcome = row => ['applied', 'rejected'].includes(row.outcome) ? row.outcome : 'unknown';
+  const outcomeLabels = {applied: 'Simulated application', rejected: 'Simulated rejection', unknown: 'Unknown'};
   const selected = rows.filter(row => (!filter || row.scopeKind === filter)
     && (!outcomeFilter || outcome(row) === outcomeFilter));
   const count = Array.isArray(supplied) && supplied.length === rows.length ? rows.length : 'Unknown';
@@ -572,7 +573,7 @@ function renderRoutingAudit() {
   const version = value => Number.isSafeInteger(value) && value >= 0 ? value : 'Unknown';
   selected.forEach(row => {
     const scopeLabel = row.scopeKind === 'bot' ? 'Per-bot example' : row.scopeKind === 'all' ? 'All-bots example (fixed target set)' : 'Unknown scope example';
-    item(panel, scopeLabel, `Actor: ${routingText(row.actor)} · Reason: ${routingText(row.reason)} · Attempted model: ${routingText(row.attemptedModel)} · Result: ${routingText(row.result)}`,
+    item(panel, scopeLabel, `Actor: ${routingText(row.actor)} · Reason: ${routingText(row.reason)} · Example outcome: ${outcomeLabels[outcome(row)]} · Attempted model: ${routingText(row.attemptedModel)} · Result: ${routingText(row.result)}`,
       `Version: ${version(row.beforeVersion)} → ${version(row.afterVersion)} · Expected version: ${version(row.expectedVersion)} · Recorded: ${routingText(row.at)} · ${routingText(row.source, 'Source unknown')}`);
     const group = panel.lastElementChild;
     const changes = observationRows(row.changes, group);
