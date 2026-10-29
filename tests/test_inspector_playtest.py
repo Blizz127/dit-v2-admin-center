@@ -1,6 +1,9 @@
 """Offline artifact checks; these do not claim that a browser executed the page."""
 import base64
 import hashlib
+import os
+import subprocess
+import tempfile
 from html.parser import HTMLParser
 import unittest
 from unittest.mock import patch
@@ -73,6 +76,16 @@ class InspectorPlaytestTests(unittest.TestCase):
             doc = Document(harness.build())
         self.assertEqual(len(doc.scripts), 1)
         self.assertIn('\\u003c/script>', doc.scripts[0])
+
+    def test_missing_dom_runtime_is_a_blocked_exit_not_a_pass(self):
+        with tempfile.TemporaryDirectory() as temp:
+            result = subprocess.run(
+                ['node', str(harness.ROOT / 'tools/run_inspector_playtest.cjs')],
+                env={**os.environ, 'DIT_JSDOM_MODULE': temp + '/missing-runtime'},
+                capture_output=True, text=True, timeout=10)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn('BLOCKED: jsdom is not installed', result.stderr)
+        self.assertNotIn('passed', result.stdout)
 
 
 if __name__ == '__main__':
