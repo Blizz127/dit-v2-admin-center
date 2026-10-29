@@ -62,6 +62,7 @@ try {
   fixture.learning = null;
   await load();
   check(!workspace.hidden && textOf('learning-count').includes('Showing 0 of Unknown'), 'Unavailable learning collection keeps the workspace open with Unknown total');
+  check(textOf('data-coverage').includes('Learning needs · Unavailable collection'), 'Coverage overview identifies the unavailable learning collection');
   fixture.learning = [null, originalLearning[0]];
   await load();
   check(!workspace.hidden && textOf('learning-count').includes('Showing 1 of Unknown'), 'Partial learning collection preserves usable records');
@@ -73,6 +74,7 @@ try {
   ];
   await load();
   check(textOf('model-call-coverage').includes('Latency 2/2') && textOf('model-call-coverage').includes('Cost 1/2'), 'Metric coverage preserves zero values and identifies missing fields');
+  check(textOf('data-coverage').includes('Rows with unknown numeric fields: 1'), 'Coverage overview reports numeric-field gaps without inferring quality');
   const availability = document.getElementById('model-call-availability');
   const beforeMetricFilter = requests.length;
   availability.value = 'incomplete'; availability.dispatchEvent(new Event('change'));
@@ -107,6 +109,7 @@ try {
   fixture.bots = null;
   await load();
   check(!workspace.hidden && textOf('bot-count').includes('Showing 0 of Unknown') && !textOf('bot-inspector').includes('Fixture memory'), 'Unavailable roster keeps workspace open and clears scoped detail');
+  check(textOf('data-coverage').includes('Bot roster · Unavailable collection'), 'Coverage overview identifies the unavailable roster');
   fixture.bots = [null, originalBots[0]];
   await load();
   check(textOf('bot-count').includes('Showing 1 of Unknown') && textOf('bot-inspector').includes('Fixture memory'), 'Partial roster recovers unique selected bot details');

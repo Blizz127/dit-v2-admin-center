@@ -134,6 +134,24 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+### Loaded data coverage overview — 2026-10-29
+
+A read-only overview summarizes the current roster, learning and metric collections
+before local filters. It distinguishes unavailable, empty, partial and loaded list
+shapes. It counts rows without usable IDs and rows with repeated IDs separately;
+metric rows with any missing numeric field are also counted. Neither list shape
+nor field presence authenticates observations, establishes freshness or verifies
+outcomes. Review buttons navigate to existing cards without requests or changing
+filters. Session reset removes the previous summary.
+
+Focused component checks cover malformed collections, repeated/missing identity,
+zero-valued versus unknown metrics, filter-independent counts, request-free
+navigation and reset. Static naming/control checks passed. The artifact scripts
+summary updates during unavailable roster/learning scenarios and metric gaps.
+Native DOM/browser checks remain unrun: local browser/DOM runtime is missing and
+the prior namespace-isolation denial has not been bypassed or retried. No model
+switch, provider call, live observation or restart is part of this feature.
+
 ### Roster collection failure recovery — 2026-10-29
 
 The adjacent root-roster check reproduced the same workspace-closing failure.

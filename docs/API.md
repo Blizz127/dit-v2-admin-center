@@ -369,3 +369,13 @@ changes rows displayed, not the summary denominator. Malformed list entries leav
 the loaded total Unknown. No metric endpoint, cost aggregation, quality calibration
 or provider call is added. Counts of supplied fields do not verify their provenance
 or establish real usage.
+
+## Loaded data coverage overview
+
+The overview derives from existing `bots`, `learning` and `modelCalls` fields
+without another endpoint or request. Counts precede local detail filters. A
+non-array collection is unavailable; malformed entries make the loaded total
+Unknown, while usable rows remain counted. Roster/learning identity counts use
+exact nonblank string IDs across the full collection. A repeated-ID count is a
+count of affected rows, not distinct IDs or confirmed distinct bots. This is a
+presentation summary, not source authentication or completeness verification.

@@ -16,6 +16,11 @@ model and effective state are separate; effective state remains Unknown. No mode
 switch is enabled. The running service has not been restarted for this feature.
 Generate the artifact with `python3 tools/build_inspector_playtest.py`.
 
+**Loaded data coverage:** a new overview summarizes roster, learning and metric
+collections, including unavailable/partial lists, unusable or repeated IDs and
+missing numeric fields. Review buttons navigate to the detail cards without
+requests or filter changes. See [playtest steps](static/playtest.html#data-coverage-guide).
+
 **Metric coverage:** Model call metrics now counts supplied latency, cost and quality
 fields and filters examples with missing values. Zeros remain supplied values;
 Unknown is never counted as zero. These are synthetic field counts, not a usage
