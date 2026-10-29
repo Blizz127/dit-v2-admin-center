@@ -58,6 +58,15 @@ try {
   document.querySelector('#clear-learning').click();
   check(textOf('learning-evidence').includes('No learning record selected'), 'Clear removes assessment context');
   check(requests.length === before, 'Inspector, preview, restore and clear make no fetch requests');
+  const originalLearning = structuredClone(fixture.learning);
+  fixture.learning = null;
+  await load();
+  check(!workspace.hidden && textOf('learning-count').includes('Showing 0 of Unknown'), 'Unavailable learning collection keeps the workspace open with Unknown total');
+  fixture.learning = [null, originalLearning[0]];
+  await load();
+  check(!workspace.hidden && textOf('learning-count').includes('Showing 1 of Unknown'), 'Partial learning collection preserves usable records');
+  fixture.learning = originalLearning;
+  await load();
   fixture.modelCalls = [
     {model: 'Synthetic zero fields', purpose: 'Fixture only', latencyMs: 0, cost: 0, quality: 0, source: 'Offline fixture'},
     {model: 'Synthetic partial fields', purpose: 'Fixture only', latencyMs: 12, cost: null, quality: null, source: 'Offline fixture'}

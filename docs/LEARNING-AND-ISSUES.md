@@ -134,6 +134,17 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+### Learning collection failure recovery — 2026-10-29
+
+A focused synthetic case reproduced a workspace-closing error when the top-level
+learning collection was null. Learning list, filter and coverage rendering now
+handle missing/malformed collections without closing the workspace. Valid rows
+remain usable, incomplete totals stay Unknown, and a selected need can recover
+when its unique ID returns. Identity ambiguity is still checked against the full
+supplied list. A known empty list counts zero loaded rows, not zero actual needs.
+The regression and existing duplicate-identity checks passed. The offline artifact
+scripts unavailable, mixed and restored collections; native execution is unrun.
+
 ### Model metric coverage — 2026-10-29
 
 The read-only model-call card now counts supplied finite, nonnegative numeric
