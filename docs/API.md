@@ -359,3 +359,13 @@ visible numerator while the denominator counts all usable loaded ledger rows.
 Missing or malformed list entries make that denominator Unknown; missing or
 ambiguous pinned-bot identity withholds the count. A source-load failure retains
 the labeled previous snapshot; successful source changes clear the old pin.
+
+## Local model metric coverage
+
+The metric coverage summary derives only from the existing synthetic `modelCalls`
+list. A supplied field is a finite, nonnegative JSON number; booleans and numeric
+strings remain Unknown. Zero counts as supplied. The local availability filter
+changes rows displayed, not the summary denominator. Malformed list entries leave
+the loaded total Unknown. No metric endpoint, cost aggregation, quality calibration
+or provider call is added. Counts of supplied fields do not verify their provenance
+or establish real usage.

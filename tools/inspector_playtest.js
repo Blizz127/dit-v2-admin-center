@@ -58,6 +58,18 @@ try {
   document.querySelector('#clear-learning').click();
   check(textOf('learning-evidence').includes('No learning record selected'), 'Clear removes assessment context');
   check(requests.length === before, 'Inspector, preview, restore and clear make no fetch requests');
+  fixture.modelCalls = [
+    {model: 'Synthetic zero fields', purpose: 'Fixture only', latencyMs: 0, cost: 0, quality: 0, source: 'Offline fixture'},
+    {model: 'Synthetic partial fields', purpose: 'Fixture only', latencyMs: 12, cost: null, quality: null, source: 'Offline fixture'}
+  ];
+  await load();
+  check(textOf('model-call-coverage').includes('Latency 2/2') && textOf('model-call-coverage').includes('Cost 1/2'), 'Metric coverage preserves zero values and identifies missing fields');
+  const availability = document.getElementById('model-call-availability');
+  const beforeMetricFilter = requests.length;
+  availability.value = 'incomplete'; availability.dispatchEvent(new Event('change'));
+  check(textOf('model-calls').includes('Synthetic partial fields') && !textOf('model-calls').includes('Synthetic zero fields'), 'Incomplete metric filter displays only missing-field examples');
+  availability.value = ''; availability.dispatchEvent(new Event('change'));
+  check(textOf('model-call-coverage').includes('Showing 2 of 2') && requests.length === beforeMetricFilter, 'Restoring metric examples makes no request');
   // Only synthetic records are changed here; the application remains read-only.
   fixture.bots = [{id: 'offline-inspector-bot', name: 'Synthetic inspector bot', game: 'FFXI', source: 'Offline fixture', status: 'Unknown'}];
   const botExamples = {

@@ -16,6 +16,11 @@ model and effective state are separate; effective state remains Unknown. No mode
 switch is enabled. The running service has not been restarted for this feature.
 Generate the artifact with `python3 tools/build_inspector_playtest.py`.
 
+**Metric coverage:** Model call metrics now counts supplied latency, cost and quality
+fields and filters examples with missing values. Zeros remain supplied values;
+Unknown is never counted as zero. These are synthetic field counts, not a usage
+or model-quality report. See [playtest steps](static/playtest.html#metric-coverage-guide).
+
 **Reply evidence browsing:** the per-bot card now filters loaded examples by exact,
 case-sensitive correlation ID. Clear reply filter restores all examples; choosing
 another bot clears it. Generated wording, queued delivery and verification remain

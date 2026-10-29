@@ -134,6 +134,23 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+### Model metric coverage — 2026-10-29
+
+The read-only model-call card now counts supplied finite, nonnegative numeric
+latency/cost/quality fields and filters rows with all three supplied or at least
+one unknown. Zero remains a supplied value. Counts always describe all usable
+loaded rows, independently of the row filter; malformed entries leave the total
+Unknown. This is not live instrumentation, a cost total or quality evaluation.
+No provider, spend ledger or account is queried. Source and observation labels
+remain attached to each row.
+
+Focused synthetic component checks passed for zero/invalid values, incomplete
+lists, filters without requests, refresh persistence, empty results, recovery and
+session reset. Existing partial-metric checks and static labels/disabled-control
+checks also passed. The artifact includes two fictional examples to exercise the
+view. Native browser verification stays unrun for the documented missing local
+runtime and prior namespace-isolation restriction; neither was bypassed or retried.
+
 ### Ledger finder boundaries and counts — 2026-10-29
 
 `28c0ea2` exercises reply-to-ledger navigation while an older synthetic trace is
