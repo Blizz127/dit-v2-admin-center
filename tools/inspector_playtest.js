@@ -103,6 +103,15 @@ try {
   inspectButton.click();
   check(textOf('bot-inspector').includes('Fixture memory'), 'Bot detail fixture is selectable');
   check(requests.length === beforeBotSelection, 'Bot inspection makes no request');
+  const originalBots = structuredClone(fixture.bots);
+  fixture.bots = null;
+  await load();
+  check(!workspace.hidden && textOf('bot-count').includes('Showing 0 of Unknown') && !textOf('bot-inspector').includes('Fixture memory'), 'Unavailable roster keeps workspace open and clears scoped detail');
+  fixture.bots = [null, originalBots[0]];
+  await load();
+  check(textOf('bot-count').includes('Showing 1 of Unknown') && textOf('bot-inspector').includes('Fixture memory'), 'Partial roster recovers unique selected bot details');
+  fixture.bots = originalBots;
+  await load();
   for (const key of Object.keys(botExamples)) fixture[key] = null;
   await load();
   check(!workspace.hidden && textOf('bot-inspector').includes('Goals and memory'), 'Unavailable detail metadata keeps workspace open');

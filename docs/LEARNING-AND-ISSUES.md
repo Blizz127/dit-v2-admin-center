@@ -134,6 +134,17 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+### Roster collection failure recovery — 2026-10-29
+
+The adjacent root-roster check reproduced the same workspace-closing failure.
+Missing or mixed bot lists now preserve the workspace and valid rows with Unknown
+totals. Non-string names/statuses display Unknown; missing or non-string IDs no
+longer reach string-only operations, and inspection remains disabled for unusable
+identity. Missing selected bots clear scoped details without inferring absence;
+unique returning IDs restore selection. Duplicate-ID safeguards remain unchanged.
+Focused roster, identity and reply-scope checks passed; synthetic artifact scenarios
+cover unavailable, partial and restored rosters. Native execution remains unrun.
+
 ### Learning collection failure recovery — 2026-10-29
 
 A focused synthetic case reproduced a workspace-closing error when the top-level
