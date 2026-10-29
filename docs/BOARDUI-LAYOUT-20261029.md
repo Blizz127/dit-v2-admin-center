@@ -165,7 +165,8 @@ Run on a host with the prerequisites already available:
 python3 tools/run_keyboard_playtest.py --gap-export
 ```
 
-The JSON export is a `data:application/json` download link, not a Blob/object URL.
+At the original runner checkpoint the JSON export used a data-URI link; the
+subsequent Blob export change below supersedes that implementation.
 The existing native path activates it with Enter and compares the saved file to
 the displayed copy payload in a disposable directory. Standalone disk validation
 no longer labels itself native activation; that field is added only by the
@@ -187,3 +188,21 @@ Chromium / denied namespace setup was not retried or bypassed.
 Still needed on a suitable native host: the complete scripted keyboard/download
 run and actual appearance review (wrapping, clipping, focus visibility, desktop
 and narrow layouts). Alienware's occupied browser session has not been touched.
+
+## Blob export follow-up
+
+`45b8836` changes the report download to a UTF-8 JSON Blob object URL. The exact
+allowlisted report is still shown in the copy field. The previous URL is revoked
+when a different report is rendered, the snapshot refreshes or the session resets.
+If Blob creation is unavailable, a plain explanatory message replaces the link
+and the read-only JSON copy field remains usable. No error internals are shown.
+
+Focused checks use real Node Blob bytes, Unicode data and a disposable saved file
+to verify equality with the copy payload. Replacement/refresh/reset revocation,
+copy fallback, strict report shape and connected handler/inspector checks pass.
+The native runner now requires a `blob:` URL before its Enter/download sequence;
+its fabricated protocol/file checks also pass. Rebuilt artifact CSP/JavaScript
+checks pass without changing network or script restrictions. These checks do not
+establish browser-specific Blob download behavior. The exact local artifact is
+recorded in [the native handoff](NATIVE-VERIFICATION-GAP.md); Alienware files remain
+unchanged and the native request is still pending.

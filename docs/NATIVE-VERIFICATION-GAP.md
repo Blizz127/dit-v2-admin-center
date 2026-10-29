@@ -11,11 +11,11 @@ authorization or completion is inferred from that request being queued.
 | --- | --- |
 | Alienware `236cd862` | Original preview, owner viewed and supplied design feedback; retained unchanged |
 | Alienware `691f6c5d` | Redesigned layout, delivery hash verified; native checks not run by Admin |
-| Local `a28bc66b` | Latest synthetic preview including cross-panel focus, not delivered |
+| Local `173f714c` | Latest synthetic preview including Blob export and cross-panel focus, not delivered |
 
-Latest local file: `build/inspector-playtest.html`, 172543 bytes, generated from
-UI source checkpoint `f5ef79e`.
-SHA-256: `a28bc66b597e1fd9067e9e5bf11c1fa540629ded7377e25415f8900e3f8dfd03`.
+Latest local file: `build/inspector-playtest.html`, 173577 bytes, generated from
+UI source checkpoint `45b8836`.
+SHA-256: `173f714c7a73a8b9a3be8bf8753753748ef38dd913ead4ccda9972111f2f8932`.
 Do not apply a result from an older file to this version. The native runner now
 includes `artifactSha256` in its successful result, computed from the exact
 temporary HTML it generated before launch.
@@ -37,8 +37,11 @@ download with saved-file/copy equality. Exit 2 is blocked; exit 1 is incomplete 
 failed. Neither is a pass. `--screenshots` additionally captures the existing
 synthetic comparison examples; captured pixels still need review.
 
-The current export uses a data-URI download link, not a Blob. File/JSON integrity
-tests do not establish that a browser saved a file. No alternate browser flags,
+The current export uses a JSON Blob object URL. The native runner requires a
+`blob:` link before Enter activation and saved-file/copy comparison. Real Node
+Blob bytes and disposable-file equality pass offline, but do not establish that
+a browser saved a file. Replaced/refreshed/reset reports revoke their old URLs;
+the copy field remains available if Blob creation fails. No alternate browser flags,
 sandbox removal, new listener or occupied-profile reuse is part of this handoff.
 
 ## Evidence already available
