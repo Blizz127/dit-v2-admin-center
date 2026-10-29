@@ -8,6 +8,33 @@ Every response should identify revision/contract version, environment and instan
 
 The intended overview includes roster and verified identity, game/server status, task and learning gaps, dataset provenance, policy validation/delivery/adoption and demonstrated outcomes, action/evidence trace, measured provider usage, and issues. A learning task's verified state does not establish verified policy or adoption. Every record must retain its own source and time; cross-game and environment records cannot be silently combined.
 
+## Candidate FFXI interaction read handoff
+
+Admin Center candidates `143b558`, `bbf5a22` and `0bcf2a7` add the interaction
+projection, explicit on-demand read and no-network synthetic freshness preview.
+The current [API contract](API.md#get-apiinteraction) maps authenticated local
+`GET /api/interaction` to candidate e8c81be Admin-only
+`GET /v1/control/interaction?limit=50`. The reviewed source path is
+`InteractionAdminApi.Describe` → `FfxiInteraction.Views` → `ActionLedger.Describe`;
+it reads state and ledger copies without dispatching actions or changing switches.
+This endpoint is absent from r10, and the deployed hub revision remains unverified.
+
+Preserve caller and server-instance scope; do not join interaction actors to a
+roster by name. Reported switches, `freshForSeconds`, truncation, fetch time and
+coverage remain explicit. Reconciled `fresh` differs from raw `snapshotFresh`:
+activity stays unknown unless contract collection and reconciled freshness are
+explicitly true, and off/unknown collection yields no current inventory. The
+15-second cache retains its original fetch time. Raw orders, requesters,
+receipts, chat and state-counter payloads are omitted.
+
+The synthetic preview makes no network request; the optional candidate check
+is a separate explicit read and never enables collection or model controls.
+The handoff reports six projection checks plus stub, authentication, browser-race
+and local-startup checks, with no live hub request. These are reported offline
+results, not independently rerun here or evidence of live endpoint availability.
+Model controls remain off. This reconciliation grants no activation, deployment,
+credential or write authority.
+
 ## Proposed routing read model
 
 A route is scoped by adapter-verified `(gameId, realmId, nativeBotId, purpose)`. Identity must not be inferred from a display name; a group turn requires a verified selected speaker. A read-only result should distinguish requested and effective provider/model, policy version, source, observed timestamp, readiness and unavailable/stale reason. An unknown rate, allowance, budget, identity, credentials or provider state is not healthy or zero. Treat the following as an illustrative field sketch, not an existing endpoint or agreed wire schema:
