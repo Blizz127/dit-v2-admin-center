@@ -2,6 +2,7 @@ const form = document.querySelector('#login');
 const error = document.querySelector('#error');
 const workspace = document.querySelector('#workspace');
 let currentSnapshot = null;
+let loadedSource = null;
 let requestVersion = 0;
 let traceVersion = 0;
 let healthVersion = 0;
@@ -374,13 +375,15 @@ async function load() {
   const requestId = ++requestVersion;
   error.textContent = '';
   document.querySelector('#hub-banner').textContent = 'Loading selected data source…';
+  let unauthorized = false, rendering = false;
   try {
     const source = document.querySelector('#data-source').value === 'hub' ? 'hub' : 'mock';
     const response = await fetch(`/api/overview?source=${source}`, {headers: {Authorization: `Bearer ${token}`}, cache: 'no-store'});
     if (requestId !== requestVersion) return;
-    if (!response.ok) throw new Error(response.status === 401 ? 'Token was not accepted.' : 'Could not load the workspace.');
+    if (!response.ok) { unauthorized = response.status === 401; throw new Error(unauthorized ? 'Token was not accepted.' : 'Could not load the workspace.'); }
     const data = await response.json();
     if (requestId !== requestVersion) return;
+    rendering = true;
     for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage', 'bot-coverage', 'learning-plan', 'game-status', 'spend-example', 'learning-artifacts', 'safety-records', 'ffxi-focus']) document.getElementById(id).replaceChildren();
     currentSnapshot = data;
     if (data.ffxiFocus) {
@@ -439,8 +442,17 @@ async function load() {
     renderLearningArtifacts();
     renderLearning();
     document.querySelector('#updated').textContent = `Snapshot generated ${data.generatedAt} · Sources are labeled per view; lead task state comes from the coordinator board.`;
+    loadedSource = source;
     sessionStorage.setItem('dit-admin-token', token); workspace.hidden = false; form.hidden = true; loadBridge();
-  } catch (e) { if (requestId !== requestVersion) return; workspace.hidden = true; form.hidden = false; sessionStorage.removeItem('dit-admin-token'); error.textContent = e.message; }
+  } catch (e) {
+    if (requestId !== requestVersion) return;
+    if (currentSnapshot && loadedSource && !unauthorized && !rendering) {
+      document.querySelector('#hub-banner').textContent = `Refresh failed. Showing previous ${loadedSource} request snapshot from ${currentSnapshot.generatedAt || 'unknown time'}; selected source may not match. Check each feed's source.`;
+      return;
+    }
+    workspace.hidden = true; form.hidden = false; sessionStorage.removeItem('dit-admin-token');
+    error.textContent = unauthorized ? 'Token was not accepted.' : 'Could not load the workspace.';
+  }
 }
 form.addEventListener('submit', e => { e.preventDefault(); token = document.querySelector('#token').value; document.querySelector('#token').value = ''; load(); });
 document.querySelector('#refresh').addEventListener('click', load);
