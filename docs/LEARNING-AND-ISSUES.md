@@ -134,6 +134,14 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+Ordering/unavailable-source follow-up: `tests/overview_failure.test.js` passes
+for snapshot order through filtering, reordered refresh and filter reset;
+unavailable-source synthetic fallback; empty roster/learning Unknown warnings;
+and initial 503 login failure. There are no sort controls or pagination state
+in this UI, so persistence for those features is not claimed. All matching
+loaded rows render in received order; upstream truncation/coverage remains
+separate. No production fix was required for these simulated-DOM scenarios.
+
 Snapshot/filter follow-up (`85bcd46`): the focused overview state check now also
 passes for persisted filters, same-ID record changes hidden by those filters,
 missing selected records and explicit clearing. Inspectors use the current

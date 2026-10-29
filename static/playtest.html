@@ -22,6 +22,7 @@
 </ol>
 </section>
 <section class="panel guide-followup" id="selection-refresh"><h2>Selections and filters after refresh</h2>
+<p>Rows follow the loaded snapshot's order; there are no sort or page controls. Filters keep that order, and clearing them restores all loaded rows. A later snapshot may supply a different order. Loaded counts do not establish complete upstream coverage.</p>
 <p>In Synthetic examples, inspect a bot or learning need, then set a filter that hides it. The count should say the selection is outside the filtered list; the inspector remains selected. Refresh preserves your filters.</p>
 <p>If a later snapshot changes the selected record, its inspector should show the new details. If the record disappears, the inspector should say it is no longer in the snapshot, without retaining old details. Use Clear bot selection or Clear learning selection to remove the selection warning; use the separate filter-reset buttons to show all loaded rows. Missing records do not prove that a bot is offline or a learning task is complete.</p>
 </section>

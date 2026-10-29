@@ -200,6 +200,12 @@ selected records refresh their inspector even when hidden by filters; removed
 records replace old details with a missing-selection message. Explicit Clear
 removes that warning. `/playtest#selection-refresh` describes what to look for.
 
+Ordering checks preserve received snapshot order through filtering and refresh.
+The UI has no sort controls or pagination state: all matching loaded rows render,
+without requesting later pages. The test also covers unavailable-source fallback,
+empty roster/learning warnings and an initial 503 that leaves login visible.
+No browser appearance or upstream completeness is established by these checks.
+
 To check timeout/partial-feed recovery through the reader, cache and merge:
 
 ```sh
