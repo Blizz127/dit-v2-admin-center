@@ -66,6 +66,24 @@ class HubReaderTests(unittest.TestCase):
             finally:
                 server.shutdown(); server.server_close(); thread.join()
 
+    def test_oversized_response_is_classified_without_exposing_body(self):
+        from live_hub import HubResponseTooLarge, MAX_RESPONSE
+        class Response:
+            def __enter__(self): return self
+            def __exit__(self, *args): pass
+            def read(self, limit):
+                self.limit = limit
+                return b'x' * (MAX_RESPONSE + 1)
+        response = Response()
+        with tempfile.TemporaryDirectory() as directory:
+            token = Path(directory) / 'token'; token.write_text('fixture-token')
+            reader = HubReader('http://127.0.0.1:7390', token)
+            with patch.object(reader.opener, 'open', return_value=response):
+                with self.assertRaises(HubResponseTooLarge) as error:
+                    reader.get('learning', 'ffxi')
+            self.assertEqual(response.limit, MAX_RESPONSE + 1)
+            self.assertNotIn('fixture-token', str(error.exception))
+
     def test_rejects_nonlocal_or_credential_urls(self):
         for url in ('http://example.com:7390', 'http://127.0.0.1:7390/path', 'http://user:pass@127.0.0.1:7390', 'https://127.0.0.1:7390'):
             with self.assertRaises(ValueError): HubReader(url, '/tmp/no-token')
