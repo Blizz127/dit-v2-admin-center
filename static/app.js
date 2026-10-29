@@ -33,6 +33,7 @@ function resetPanelSession() {
   document.querySelector('#model-call-availability').value = '';
   document.querySelector('#model-call-coverage').textContent = 'Metric coverage unknown.';
   document.querySelector('#data-coverage').replaceChildren();
+  document.querySelector('#bot-identity').value = '';
   ledgerBotId = null; correlationFilter = '';
   document.querySelector('#correlation').value = '';
   document.querySelector('#ledger').replaceChildren();
@@ -509,8 +510,11 @@ function usableBotRows() {
 }
 function filteredBots() {
   const game = document.querySelector('#bot-game').value;
+  const identity = document.querySelector('#bot-identity').value;
   const query = (document.querySelector('#bot-search').value || '').trim().toLowerCase();
-  return usableBotRows().filter(b => (!game || b.game === game) && (!query || routingText(b.name, '').toLowerCase().includes(query)));
+  return usableBotRows().filter(b => (!game || b.game === game)
+    && (!identity || (identity === 'unique' ? Boolean(uniqueRecord(currentSnapshot.bots, b.id)) : !uniqueRecord(currentSnapshot.bots, b.id)))
+    && (!query || routingText(b.name, '').toLowerCase().includes(query)));
 }
 function updateBotCount(bots) {
   const selectedMissing = selectedBotId !== null && !Boolean(uniqueRecord(currentSnapshot.bots, selectedBotId));
@@ -1015,15 +1019,18 @@ document.querySelector('#ffxi-evidence').addEventListener('click', () => {
 });
 document.querySelector('#ffxi-bots').addEventListener('click', () => {
   document.querySelector('#bot-search').value = '';
+  document.querySelector('#bot-identity').value = '';
   document.querySelector('#bot-game').value = 'FFXI';
   if (currentSnapshot) renderBots();
   document.querySelector('#bots').scrollIntoView({behavior: 'smooth', block: 'nearest'});
 });
 document.querySelector('#bot-game').addEventListener('change', () => { if (currentSnapshot) renderBots(); });
+document.querySelector('#bot-identity').addEventListener('change', () => { if (currentSnapshot) renderBots(); });
 document.querySelector('#bot-search').addEventListener('input', () => { if (currentSnapshot) renderBots(); });
 document.querySelector('#bot-reset').addEventListener('click', () => {
   document.querySelector('#bot-game').value = '';
   document.querySelector('#bot-search').value = '';
+  document.querySelector('#bot-identity').value = '';
   if (currentSnapshot) renderBots();
 });
 document.querySelector('#ffxi-issues').addEventListener('click', () => {
