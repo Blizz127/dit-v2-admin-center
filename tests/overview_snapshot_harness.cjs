@@ -14,6 +14,7 @@ class Element {
   get textContent(){return this.text+this.children.map(c=>c.textContent).join(' ');}
   addEventListener(name,fn){this.listeners[name]=fn;}
   setAttribute(key,value){this.attributes[key]=String(value);}
+  scrollIntoView(){}
   get lastElementChild(){return this.children.at(-1);}
 }
 const elements=new Map(Object.entries(template).map(([id,spec])=>[id,new Element(spec)]));

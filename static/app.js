@@ -15,6 +15,7 @@ let assignmentPage = 0;
 let assignmentPages = 0;
 const assignmentPageSize = 10;
 let correlationFilter = '';
+let ledgerBotId = null;
 let bridgePending = false;
 let selectedLearningId = null;
 let token = sessionStorage.getItem('dit-admin-token') || '';
@@ -25,6 +26,10 @@ function resetPanelSession() {
   sessionVersion++;
   currentSnapshot = null; loadedSource = null;
   selectedBotId = null; selectedLearningId = null;
+  ledgerBotId = null; correlationFilter = '';
+  document.querySelector('#correlation').value = '';
+  document.querySelector('#ledger').replaceChildren();
+  document.querySelector('#ledger-filter').textContent = 'No ledger snapshot loaded in this session.';
   assignmentBotId = null; assignmentPage = 0; assignmentPages = 0;
   assignmentNavigation('Select a bot to view loaded assignment examples.');
   for (const [id, prompt] of [['bot-inspector', 'Select a bot to inspect.'],
@@ -443,10 +448,15 @@ async function loadHubTrace(correlation) {
 function renderLedger() {
   const panel = document.querySelector('#ledger');
   panel.replaceChildren();
-  const records = currentSnapshot.ledger.filter(e => !correlationFilter || e.correlationId === correlationFilter);
   document.querySelector('#ledger-filter').textContent = correlationFilter
-    ? `Synthetic ledger filter applied: ${correlationFilter}. Game selection applies to hub trace only.`
+    ? `Synthetic ledger filter applied: ${correlationFilter}.${ledgerBotId !== null ? ' Pinned bot ID: ' + ledgerBotId + '.' : ''} Game selection applies to hub trace only.`
     : 'Synthetic ledger: all loaded examples. Game selection applies to hub trace only.';
+  if (ledgerBotId !== null && !uniqueRecord(currentSnapshot.bots, ledgerBotId)) {
+    item(panel, 'Pinned bot identity unavailable or ambiguous', 'Scoped evidence is Unknown.', 'No first record or unscoped correlation match is selected.');
+    return;
+  }
+  const records = currentSnapshot.ledger.filter(e => (!correlationFilter || e.correlationId === correlationFilter)
+    && (ledgerBotId === null || e.botId === ledgerBotId));
   if (!records.length) item(panel, 'No matching evidence', 'No records in this mock snapshot.', 'This is not proof that an action did or did not occur.');
   records.forEach(e => item(panel, `${e.bot} · ${e.request}`, `Result: ${e.result} · Verification: ${e.verification}`, `Correlation: ${e.correlationId}`));
 }
@@ -623,6 +633,7 @@ function inspectBot(id) {
       const button = document.createElement('button'); button.type = 'button'; button.textContent = 'View example episode in ledger';
       button.addEventListener('click', () => {
         correlationFilter = e.correlationId;
+        ledgerBotId = bot.id;
         document.querySelector('#correlation').value = e.correlationId;
         if (['FFXI', 'SWTOR'].includes(bot.game)) document.querySelector('#trace-game').value = bot.game.toLowerCase();
         traceVersion++; document.querySelector('#hub-trace').replaceChildren();
@@ -733,6 +744,9 @@ async function load() {
     if (!current()) return;
     rendering = true;
     for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage', 'bot-coverage', 'learning-plan', 'learning-evidence', 'game-status', 'spend-example', 'learning-artifacts', 'safety-records', 'ffxi-focus', 'ffxi-feeds']) document.getElementById(id).replaceChildren();
+    if (ledgerBotId !== null && loadedSource && loadedSource !== source) {
+      ledgerBotId = null; correlationFilter = ''; document.querySelector('#correlation').value = '';
+    }
     currentSnapshot = data;
     if (data.ffxiFocus) {
       const f = data.ffxiFocus, target = document.querySelector('#ffxi-focus');
@@ -831,7 +845,7 @@ document.querySelector('#clear-bot').addEventListener('click', () => {
 document.querySelector('#ffxi-evidence').addEventListener('click', () => {
   document.querySelector('#trace-game').value = 'ffxi';
   document.querySelector('#correlation').value = '';
-  correlationFilter = ''; traceVersion++;
+  correlationFilter = ''; ledgerBotId = null; traceVersion++;
   document.querySelector('#hub-trace').replaceChildren();
   if (currentSnapshot) renderLedger();
   document.querySelector('#trace-search').scrollIntoView({behavior: 'smooth', block: 'nearest'});
@@ -899,7 +913,7 @@ for (const id of ['trace-game', 'correlation']) {
   });
 }
 document.querySelector('#trace-search').addEventListener('submit', e => {
-  e.preventDefault(); correlationFilter = document.querySelector('#correlation').value.trim();
+  e.preventDefault(); ledgerBotId = null; correlationFilter = document.querySelector('#correlation').value.trim();
   if (currentSnapshot) renderLedger();
   if (document.querySelector('#data-source').value === 'hub') {
     if (sourceLoading || loadedSource !== 'hub') {
@@ -909,7 +923,7 @@ document.querySelector('#trace-search').addEventListener('submit', e => {
   }
 });
 document.querySelector('#trace-clear').addEventListener('click', () => {
-  correlationFilter = ''; document.querySelector('#correlation').value = ''; traceVersion++; document.querySelector('#hub-trace').replaceChildren();
+  correlationFilter = ''; ledgerBotId = null; document.querySelector('#correlation').value = ''; traceVersion++; document.querySelector('#hub-trace').replaceChildren();
   if (currentSnapshot) renderLedger();
 });
 if (token) load();
