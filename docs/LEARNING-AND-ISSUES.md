@@ -125,8 +125,8 @@ service was run for this follow-up; the full-linker hold is unchanged.
 | Architecture and API contract | `ARCHITECTURE.md`, `API.md`, `HUB-CONTRACT-DRAFT.md`; generated interaction fixtures integrated in `9deaa51`. | Joint review of unresolved routing details remains open; design approval is not implementation or write authorization. |
 | Scaffold with tests | Python server, static UI and focused offline tests; seven contract tests passed at `9deaa51`, including all nine generated snapshots. | No repeated build or test is needed for this documentation update. |
 | Learning and issues list | This inventory separates planning needs, consumer coverage and required game evidence. | Real datasets, policy adoption and game outcomes remain unknown. |
-| Local mock instance | Loopback-only scaffold and mock setup documented in README. The existing standalone synthetic preview was delivered to Alienware and independently hash-verified in `f48ecdd`; see [delivery receipt](ALIENWARE-PREVIEW-20261029.md). | The running server was not probed or restarted. Alienware rendering, native keyboard and JSON download checks remain NOT RUN; file delivery does not verify them. |
-| Commit and report | Local incremental commits, coordinator checkpoints and completed owner delivery task `1b8c656ce57f`. | No remote creation, push, additional device action, live read or control action follows from this checklist. |
+| Local mock instance | Loopback-only scaffold and mock setup documented in README. Original synthetic preview delivered in `f48ecdd`; owner viewed it and supplied design feedback. Redesigned preview independently hash-verified in `82e9703`; see [layout receipt](BOARDUI-LAYOUT-20261029.md). | No agent-run native rendering, keyboard or browser-download pass is claimed. Owner viewing of the original is distinct from verification of later builds. Native request `654f7a27` remains pending. |
+| Commit and report | Local incremental commits, coordinator checkpoints and completed owner tasks `1b8c656ce57f` (delivery) and `4e9c2ab65b28` (layout redesign/delivery). Subsequent source/test follow-ups are committed through `10323ec`. | No remote creation, push, additional device action, live read or control action follows from this checklist. |
 
 No initial setup task needs to be restarted. Further live integration remains
 behind the existing access hold; model controls remain off. Evidence handoffs
@@ -137,10 +137,13 @@ complete. A request to take the next unfinished item from this list does not
 identify another unblocked implementation task. Remaining contract review,
 live integration and native/device verification must keep their actual status;
 additional feature work needs a concrete backlog item rather than replaying
-completed setup or adding checks solely to keep the thread active. The delivered
-preview stays at source `2521e1a`, SHA-256
-`236cd862def35155295d0df707f86649e4a40e228798f6b3a204d329234f79c7`.
-This reconciliation changes no delivered bytes and does not touch Alienware.
+completed setup or adding checks solely to keep the thread active. The original
+`236cd862` preview remains as rollback. The delivered redesign is `691f6c5d`
+(source `2ebe87f`); the newer local Blob export preview is `173f714c` (source
+`45b8836`) and has not replaced either Alienware file. See the current
+[version map and native handoff](NATIVE-VERIFICATION-GAP.md) for full hashes and
+remaining runtime dependencies. This reconciliation changes no delivered bytes
+and does not touch Alienware.
 
 ## Offline inspector runtime coverage
 
