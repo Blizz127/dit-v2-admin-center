@@ -104,6 +104,13 @@ setImmediate(async () => {
   row.children.find(child => child.tag === 'button').listeners.click();
   const inspector = get('bot-inspector');
   assert.equal(inspector.children.length, 6);
+  get('issue-scope').value = 'Network'; get('issue-status').value = 'Unknown'; get('issue-search').value = 'hidden';
+  inspector.children[0].children.find(child => child.textContent === 'View explicitly linked bot issues').listeners.click();
+  assert.equal(get('issue-selected-bot').checked, true);
+  assert.equal(get('issue-scope').value, ''); assert.equal(get('issue-status').value, ''); assert.equal(get('issue-search').value, '');
+  assert.equal(get('issues').children[0].children[0].textContent, 'Bot issue');
+  get('issue-reset').listeners.click();
+
   assert.equal(inspector.children[1].children[1].textContent, 'Example persona');
   assert.match(inspector.children[1].children[2].textContent, /not proof of behavior/);
   assert.match(inspector.children[2].children[1].textContent, /Status: Proposed · Evidence: Not verified/);

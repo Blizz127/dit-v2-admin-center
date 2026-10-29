@@ -303,6 +303,14 @@ function inspectBot(id) {
     button.addEventListener('click', () => showGameLearning(bot.game));
     panel.lastElementChild.append(button);
   }
+  const issuesButton = document.createElement('button'); issuesButton.type = 'button';
+  issuesButton.textContent = 'View explicitly linked bot issues';
+  issuesButton.addEventListener('click', () => {
+    for (const id of ['issue-scope', 'issue-status', 'issue-search']) document.getElementById(id).value = '';
+    document.querySelector('#issue-selected-bot').checked = true;
+    renderIssues(); document.querySelector('#issues').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+  });
+  panel.lastElementChild.append(issuesButton);
   item(panel, 'Reported personality summary', routingText(bot.personalitySummary), `${bot.source} · Roster metadata, not proof of behavior`);
   const details = currentSnapshot.botDetails.find(d => d.botId === bot.id);
   if (!details) item(panel, 'Goals and memory', 'Unknown', 'No bot detail record in this view; missing data does not establish absence.');
