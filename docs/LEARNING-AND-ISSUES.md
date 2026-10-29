@@ -139,8 +139,8 @@ live integration and native/device verification must keep their actual status;
 additional feature work needs a concrete backlog item rather than replaying
 completed setup or adding checks solely to keep the thread active. The original
 `236cd862` preview remains as rollback. The delivered redesign is `691f6c5d`
-(source `2ebe87f`); the newer local Blob export preview is `173f714c` (source
-`45b8836`) and has not replaced either Alienware file. See the current
+(source `2ebe87f`); subsequent local previews have not replaced either Alienware
+file. See the current
 [version map and native handoff](NATIVE-VERIFICATION-GAP.md) for full hashes and
 remaining runtime dependencies. This reconciliation changes no delivered bytes
 and does not touch Alienware.

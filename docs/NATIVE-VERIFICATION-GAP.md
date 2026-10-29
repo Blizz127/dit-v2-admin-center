@@ -11,11 +11,11 @@ authorization or completion is inferred from that request being queued.
 | --- | --- |
 | Alienware `236cd862` | Original preview, owner viewed and supplied design feedback; retained unchanged |
 | Alienware `691f6c5d` | Redesigned layout, delivery hash verified; native checks not run by Admin |
-| Local `173f714c` | Latest synthetic preview including Blob export and cross-panel focus, not delivered |
+| Local `41b1b3a6` | Latest synthetic preview including selected-section cue, Blob export and cross-panel focus, not delivered |
 
-Latest local file: `build/inspector-playtest.html`, 173577 bytes, generated from
-UI source checkpoint `45b8836`.
-SHA-256: `173f714c7a73a8b9a3be8bf8753753748ef38dd913ead4ccda9972111f2f8932`.
+Latest local file: `build/inspector-playtest.html`, 174749 bytes, generated from
+UI source checkpoint `b307e85`.
+SHA-256: `41b1b3a6b7dcf4eaa0ed7a4d9bfd8197ca84f1afb91559dca7d8b62a21a4616f`.
 Do not apply a result from an older file to this version. The native runner now
 includes `artifactSha256` in its successful result, computed from the exact
 temporary HTML it generated before launch.
