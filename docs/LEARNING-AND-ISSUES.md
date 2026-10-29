@@ -134,6 +134,12 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+Snapshot/filter follow-up (`85bcd46`): the focused overview state check now also
+passes for persisted filters, same-ID record changes hidden by those filters,
+missing selected records and explicit clearing. Inspectors use the current
+snapshot rather than retained details. No production change was needed; this
+is simulated-DOM coverage, with owner-facing steps in `/playtest#selection-refresh`.
+
 Overview failure-state follow-up: session reset previously cleared selected IDs
 but left both inspector DOM panels populated. The panels now reset to selection
 prompts, preventing old details from reappearing after a later empty snapshot.

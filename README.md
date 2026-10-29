@@ -195,6 +195,11 @@ explicit stale-source banner. This uses actual app code, shipped template IDs
 and synthetic responses in a simulated DOM. No runtime toggle is added; the
 behavior applies on session reset. Browser rendering remains unverified.
 
+The same focused check covers filters surviving a changed snapshot: updated
+selected records refresh their inspector even when hidden by filters; removed
+records replace old details with a missing-selection message. Explicit Clear
+removes that warning. `/playtest#selection-refresh` describes what to look for.
+
 To check timeout/partial-feed recovery through the reader, cache and merge:
 
 ```sh
