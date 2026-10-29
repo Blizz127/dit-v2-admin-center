@@ -21,6 +21,11 @@ function resetPanelSession() {
   sessionVersion++;
   currentSnapshot = null; loadedSource = null;
   selectedBotId = null; selectedLearningId = null;
+  for (const [id, prompt] of [['bot-inspector', 'Select a bot to inspect.'],
+                             ['learning-inspector', 'Select a learning need for details.']]) {
+    const panel = document.getElementById(id);
+    panel.replaceChildren(); panel.textContent = prompt;
+  }
   for (const id of ['interaction-status', 'hub-health', 'hub-trace', 'bridge-status', 'ffxi-focus-bridge']) {
     const panel = document.getElementById(id);
     panel.replaceChildren(); panel.textContent = 'Not requested in this session.';
