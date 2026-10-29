@@ -11,11 +11,11 @@ authorization or completion is inferred from that request being queued.
 | --- | --- |
 | Alienware `236cd862` | Original preview, owner viewed and supplied design feedback; retained unchanged |
 | Alienware `691f6c5d` | Redesigned layout, delivery hash verified; native checks not run by Admin |
-| Local `8e36ea9a` | Latest offline preview with corrected saved-four/runtime-six drift, native rollout attribution and dated operations handoffs, not delivered |
+| Local `58acb3f2` | Latest offline preview with operative EnvironmentFile precedence, five-entry stackd retirement receipt and dated operations handoffs, not delivered |
 
-Latest local file: `build/inspector-playtest.html`, 179627 bytes, generated at
-source checkpoint `76fab1f`, correcting the stackd and native rollout observations.
-SHA-256: `8e36ea9a1afdbeffb0e2d583612d88665901c3884f7407526647792e227c9b8a`.
+Latest local file: `build/inspector-playtest.html`, 180037 bytes, generated at
+source checkpoint `3a1b5fc`, reconciling the newer PlanetSide retirement receipt.
+SHA-256: `58acb3f2767ac4c63d0c3aeda7df11f7ad351f87f67e24bb81b2a7c5f0eaa9ad`.
 Do not apply a result from an older file to this version. The native runner now
 includes `artifactSha256` in its successful result, computed from the exact
 temporary HTML it generated before launch.

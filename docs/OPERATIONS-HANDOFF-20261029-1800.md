@@ -67,3 +67,9 @@ Freshness correction validation at `76fab1f`: six markup checks plus the isolate
 overview handler check passed; the regenerated artifact passed its two asset/CSP
 and JavaScript syntax checks. The tests reject the stale current five-game count
 and suffix claim. Receipt-time facts remain separate from current service status.
+
+Superseding correction at `3a1b5fc`: six markup and two regenerated-artifact
+asset/CSP/JavaScript checks passed. The card now uses the verified five-entry
+operative enabled set and records the earlier four/six raw-unit comparison as
+historical and superseded by EnvironmentFile precedence. Shared migration remains
+open; bridge/native rollout facts and unobserved owner acceptance are unchanged.
