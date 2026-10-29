@@ -73,6 +73,19 @@ class InspectorPlaytestTests(unittest.TestCase):
         self.assertTrue(all(r['policy'] == 'Unknown' and r['game'] == 'FFXI' for r in rows))
         self.assertTrue(all('Synthetic' in r['source'] for r in rows))
 
+    def test_generated_javascript_compiles_without_executing(self):
+        # Parse the complete assembled app + driver + fixtures. This is not DOM execution.
+        doc = Document(harness.build())
+        self.assertEqual(len(doc.scripts), 1)
+        with tempfile.TemporaryDirectory() as temp:
+            script = os.path.join(temp, 'synthetic-artifact.js')
+            with open(script, 'w') as output:
+                output.write(doc.scripts[0])
+            result = subprocess.run(['node', '--check', script], capture_output=True,
+                                    text=True, timeout=5)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, '')
+
     def test_fixture_text_cannot_close_inline_script(self):
         data = harness.snapshot()
         data['learning'][0]['topic'] = '</script><script>throw "fixture"</script>'
