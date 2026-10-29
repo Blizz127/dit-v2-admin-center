@@ -19,6 +19,25 @@ from test_offline_inspector_handler import OfflineInspectorHandlerTests
 from live_hub import HubReadError, project_hub_health
 from interaction_projection import project_interaction
 from bridge_status import BridgeObserver
+from tools.build_inspector_playtest import snapshot
+
+
+def coverage_fixture(scenario):
+    """Projected learning plus fictional roster/metrics; no collection or live reads."""
+    data = snapshot()
+    data['bots'] = [dict(id='coverage-bot', name='Coverage fixture bot', game='FFXI', source='Synthetic')]
+    data['botDetails'] = [dict(botId='coverage-bot', goals=[dict(text='Synthetic coverage goal')], memories=[])]
+    data['modelCalls'] = [dict(model='Zero fixture', latencyMs=0, cost=0, quality=0),
+                          dict(model='Partial fixture', latencyMs=12)]
+    if scenario == 'coverage-partial':
+        for key in ('bots', 'learning', 'modelCalls'):
+            data[key] = [None, *data[key]]
+    elif scenario == 'coverage-unavailable':
+        for key in ('bots', 'learning', 'modelCalls'):
+            data[key] = None
+    elif scenario != 'coverage-loaded':
+        raise AssertionError('Unknown coverage scenario')
+    return data
 
 INTERACTION_FIXTURES = ('contract-off-empty', 'contract-off-retained', 'contract-on-empty',
                         'fresh-snapshot', 'fresh-snapshot-superseded-view', 'fresh-mode-stale-snapshot',
@@ -118,11 +137,14 @@ def exchange(request):
                'health-services', 'health-empty', 'health-malformed', 'health-unavailable', 'health-unconfigured',
                'bridge-active', 'bridge-fault', 'bridge-empty', 'bridge-malformed', 'bridge-denied', 'bridge-timeout'}
     allowed.update('interaction:' + name for name in INTERACTION_FIXTURES)
+    allowed.update(('coverage-loaded', 'coverage-partial', 'coverage-unavailable'))
     if scenario not in allowed:
         raise ValueError('Unknown fixture scenario')
     case = OfflineInspectorHandlerTests()
     case.setUp()
     try:
+        if scenario.startswith('coverage-'):
+            case.overview.side_effect = lambda source: coverage_fixture(scenario)
         # The UI starts a bridge read on overview success; return only unknown fixture state.
         unknown = dict(unit='unknown', substate='unknown', result='unknown', marker='unknown',
                        markerReason='unknown', source='Synthetic offline fixture', observedAt=None)
