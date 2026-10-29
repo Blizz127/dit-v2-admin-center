@@ -195,12 +195,35 @@ function inspectLearning(id) {
   const panel = document.querySelector('#learning-inspector');
   panel.replaceChildren();
   const need = currentSnapshot.learning.find(l => l.id === id);
+  renderLearningEvidence(need);
   if (!need) { panel.textContent = 'Selected learning need is no longer in this snapshot.'; return; }
   item(panel, `Learning detail · ${need.game} · ${need.topic}`, `Status: ${need.status} · Phase: ${need.phase || 'Not reported'} · Reason: ${need.reason || 'Not reported'} · Escalation: ${need.escalation || 'Not reported'} · Retry at: ${need.retryAt || 'Not reported'}`,
     `Evidence: ${need.evidence} · Datasets: ${need.datasets} · Policy verification: ${need.policy} · Updated: ${need.updatedAt || 'unknown'} · ${need.source}`);
   const issues = currentSnapshot.issues.filter(i => i.learningId === need.id);
   if (!issues.length) item(panel, 'Related issues', 'No matching issue records in this view.', 'This does not establish a resolved learning gap.');
   issues.forEach(i => item(panel, `Related issue · ${i.title}`, `${i.status} · ${i.detail}`, `${i.source} · ${i.timeLabel || 'Updated'}: ${i.updatedAt || 'unknown'}`));
+}
+function renderLearningEvidence(need) {
+  const panel = document.querySelector('#learning-evidence');
+  panel.replaceChildren();
+  if (!need) {
+    item(panel, 'No learning record selected', 'Select a loaded FFXI need to review evidence requirements.', 'No evidence assessment is available.');
+    return;
+  }
+  if (need.game !== 'FFXI') {
+    item(panel, 'FFXI checklist does not apply', 'This record needs its own game-specific evidence review.', 'FFXI evidence is not transferred to other games.');
+    return;
+  }
+  item(panel, `Evidence review · ${need.topic}`, 'Assessment: Unknown · No structured game-evidence assessment is connected.',
+    `Selected record: ${need.source || 'Unknown source'} · Updated: ${need.updatedAt || 'unknown'} · Task status is not a game outcome.`);
+  const requirements = [
+    ['Native identity', 'Verified native bot and realm, source and observation time; explicit roster mapping.'],
+    ['Navigation and missions', 'Starting state, objective, native result and subsequent observation of progress.'],
+    ['Party and job behavior', 'Defined game scenario with observed results, failures and safe fallback.'],
+    ['Grounded memory', 'Underlying verified fact, scope, source, time and evaluated recall.'],
+    ['Policy improvement', 'Dataset provenance, policy version, validation, adoption and measured game outcomes.'],
+  ];
+  requirements.forEach(([title, required]) => item(panel, title, 'Evidence state: Unknown', `Required for review: ${required}`));
 }
 function renderLearningArtifacts() {
   const panel = document.querySelector('#learning-artifacts');
@@ -461,7 +484,7 @@ async function load() {
     const data = await response.json();
     if (requestId !== requestVersion) return;
     rendering = true;
-    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage', 'bot-coverage', 'learning-plan', 'game-status', 'spend-example', 'learning-artifacts', 'safety-records', 'ffxi-focus', 'ffxi-feeds']) document.getElementById(id).replaceChildren();
+    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage', 'bot-coverage', 'learning-plan', 'learning-evidence', 'game-status', 'spend-example', 'learning-artifacts', 'safety-records', 'ffxi-focus', 'ffxi-feeds']) document.getElementById(id).replaceChildren();
     currentSnapshot = data;
     if (data.ffxiFocus) {
       const f = data.ffxiFocus, target = document.querySelector('#ffxi-focus');
@@ -607,6 +630,7 @@ document.querySelector('#clear-learning').addEventListener('click', () => {
   selectedLearningId = null;
   const panel = document.querySelector('#learning-inspector');
   panel.replaceChildren(); panel.textContent = 'Select a learning need for details.';
+  renderLearningEvidence(null);
   if (currentSnapshot) updateLearningCount(filteredLearning());
 });
 document.querySelector('#learning-game').addEventListener('change', () => { if (currentSnapshot) { renderLearningPlan(); renderLearningArtifacts(); renderLearning(); } });
