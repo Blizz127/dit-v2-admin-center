@@ -22,6 +22,10 @@ class HubReadError(Exception):
     pass
 
 
+class HubResponseTooLarge(HubReadError):
+    pass
+
+
 class AmbiguousRoster(ValueError):
     pass
 
@@ -70,7 +74,7 @@ class HubReader:
             with self.opener.open(request, timeout=self.timeout) as response:
                 raw = response.read(MAX_RESPONSE + 1)
             if len(raw) > MAX_RESPONSE:
-                raise HubReadError('Hub response exceeded limit')
+                raise HubResponseTooLarge('Hub response exceeded limit')
             result = json.loads(raw)
             return result, datetime.now(timezone.utc).isoformat()
         except (OSError, ValueError, urllib.error.URLError) as error:
@@ -124,6 +128,9 @@ def read_views(reader, games=('ffxi', 'swtor')):
                     result['gameStatus'][game] = project_server_status(data, game, fetched)
                 result['feeds'].append({'game': game.upper(), 'view': view, 'status': 'Live response', 'at': fetched,
                                         'note': {'learning': 'Light task list; curriculum and evidence omitted; deployed revision unverified', 'bots': 'Registration only; presence, coverage and deployed revision unverified', 'server-status': 'Stored settings snapshot; not server liveness; deployed revision unverified'}[view]})
+            except HubResponseTooLarge:
+                result['feeds'].append({'game': game.upper(), 'view': view, 'status': 'Unavailable', 'at': None,
+                                        'note': 'Hub response exceeded the size limit. Synthetic fallback; no current hub data.'})
             except AmbiguousRoster:
                 result['feeds'].append({'game': game.upper(), 'view': view, 'status': 'Unavailable', 'at': None,
                                         'note': 'Duplicate roster keys; bot identity is ambiguous. Synthetic fallback; no current hub data.'})

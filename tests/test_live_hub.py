@@ -125,6 +125,19 @@ class ProjectionTests(unittest.TestCase):
         self.assertEqual(len(result['learning']), 2)
         self.assertEqual(result['bots'][-1]['source'], 'Live')
 
+    def test_oversized_learning_feed_reports_safe_reason_and_keeps_fallback(self):
+        from live_hub import HubResponseTooLarge, read_views, merge_views
+        class Reader:
+            def get(self, view, game):
+                if view == 'learning': raise HubResponseTooLarge('private payload must not be shown')
+                raise HubReadError('unavailable')
+        live = read_views(Reader(), ('ffxi',))
+        self.assertNotIn('ffxi', live['learning'])
+        self.assertIn('exceeded the size limit', live['feeds'][1]['note'])
+        self.assertNotIn('private payload', str(live))
+        snapshot = {'bots': [], 'learning': [{'game': 'FFXI', 'source': 'Synthetic'}], 'issues': [], 'gameStatus': []}
+        self.assertEqual(merge_views(snapshot, live)['learning'][0]['source'], 'Synthetic')
+
     def test_duplicate_roster_keys_fall_back_without_ambiguous_bots(self):
         from live_hub import read_views, merge_views
         class Reader:
