@@ -35,6 +35,7 @@ try {
 /* APPLICATION */
   await settle(() => !document.querySelector('#workspace').hidden);
   check(document.querySelector('#error').textContent === '', 'Actual application loaded the projected fixture');
+  check(textOf('learning-evidence').includes('No learning record selected'), 'Initial render explains the empty selection');
   const answers = ['Yes', 'No', 'Yes', 'Unknown'];
   fixture.learning.forEach((need, index) => {
     clickNeed(need.topic);

@@ -23,6 +23,7 @@ let requestCount = 0;
 const context = {document, sessionStorage: {getItem: () => 'test', setItem() {}, removeItem() {}}, fetch: async url => { requestCount++; if (url === '/api/interaction') return {ok: true, json: async () => ({switches: {contract: false, naturalOrders: false, selfClaims: false}, bots: [], coverage: 'Stub interaction', fetchedAt: 'time', freshForSeconds: 30, truncated: false})}; if (url === '/api/hub-health') return {ok: true, json: async () => ({coverage: 'Service coverage', source: 'Stub', fetchedAt: 'time', services: [{game: 'FFXI', label: 'Example feed', state: 'quiet', observedAt: null}]})}; if (url.startsWith('/api/trace?')) return {ok: true, json: async () => ({coverage: 'Bounded trace', fetchedAt: 'time', records: [{kind: 'outcome', type: 'example.outcome', disposition: 'pending', classification: 'queued_for_native_delivery', isFinal: false, occurredAt: 'time'}]})}; if (url === '/api/bridge-status') return {ok: true, json: async () => ({unit: 'unknown', substate: 'unknown', result: 'unknown', marker: 'present', markerReason: 'delayed_delivery_failed', source: 'Fixture', observedAt: 'test time'})}; requestedUrl = url; return {ok: true, json: async () => data}; }};
 vm.runInNewContext(fs.readFileSync('static/app.js', 'utf8'), context);
 setImmediate(async () => {
+  assert.equal(get('learning-evidence').children[0].children[0].textContent, 'No learning record selected');
   const beforePreview = requestCount;
   get('interaction-preview').listeners.click();
   assert.equal(requestCount, beforePreview);

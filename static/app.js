@@ -313,6 +313,7 @@ function renderLearning() {
     }
   });
   if (selectedLearningId !== null) inspectLearning(selectedLearningId);
+  else renderLearningEvidence(null);
 }
 async function loadHubTrace(correlation) {
   const id = ++traceVersion;
