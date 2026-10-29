@@ -233,7 +233,7 @@ function renderIssueCoverage() {
   const panel = document.querySelector('#issue-coverage');
   panel.replaceChildren();
   const groups = new Map();
-  currentSnapshot.issues.forEach(issue => {
+  observationRows(currentSnapshot.issues, panel).forEach(issue => {
     const scope = typeof issue.scope === 'string' && issue.scope ? issue.scope : 'Unknown';
     groups.set(scope, (groups.get(scope) || 0) + 1);
   });
@@ -248,31 +248,33 @@ function renderIssues() {
   const selectedExists = selectedBotId !== null && Boolean(uniqueRecord(currentSnapshot.bots, selectedBotId));
   const query = (document.querySelector('#issue-search').value || '').trim().toLowerCase();
   panel.replaceChildren();
-  const records = currentSnapshot.issues.filter(i => (!scope || i.scope === scope) && (!status || i.status === status) && (!selectedOnly || (selectedExists && i.botId === selectedBotId)) && (!query || `${i.title} ${i.detail}`.toLowerCase().includes(query)));
-  document.querySelector('#issue-count').textContent = `Showing ${records.length} of ${currentSnapshot.issues.length} loaded issue records; coverage may be incomplete.`;
+  const rows = observationRows(currentSnapshot.issues, panel);
+  const count = Array.isArray(currentSnapshot.issues) && rows.length === currentSnapshot.issues.length ? rows.length : 'Unknown';
+  const records = rows.filter(i => (!scope || i.scope === scope) && (!status || i.status === status) && (!selectedOnly || (selectedExists && i.botId === selectedBotId)) && (!query || `${routingText(i.title)} ${routingText(i.detail)}`.toLowerCase().includes(query)));
+  document.querySelector('#issue-count').textContent = `Showing ${records.length} of ${count} loaded issue records; coverage may be incomplete.`;
   if (!records.length) item(panel, 'No matching issues', selectedOnly && !selectedExists ? 'Select a bot in the loaded roster to use this filter.' : 'No matching records in the loaded data.', 'This does not establish a healthy state.');
   records.forEach(i => {
-    item(panel, i.title, i.detail, `${i.scope} · ${i.status} · ${i.source} · ${i.timeLabel || 'Updated'}: ${i.updatedAt || 'unknown'}`);
-    if (i.bridgeObservation) {
+    item(panel, routingText(i.title), routingText(i.detail), `${routingText(i.scope)} · ${routingText(i.status)} · ${routingText(i.source)} · ${routingText(i.timeLabel, 'Updated')}: ${routingText(i.updatedAt, 'unknown')}`);
+    if (i.bridgeObservation === true) {
       const button = document.createElement('button'); button.type = 'button';
       button.textContent = 'View current bridge observation';
       button.addEventListener('click', () => document.querySelector('#bridge-status').scrollIntoView({behavior: 'smooth', block: 'nearest'}));
       panel.lastElementChild.append(button);
     }
-    if (i.ownerAttention) {
+    if (i.ownerAttention === true) {
       const button = document.createElement('button'); button.type = 'button';
       button.textContent = 'View owner decision summary';
       button.addEventListener('click', () => document.querySelector('#owner-attention').scrollIntoView({behavior: 'smooth', block: 'nearest'}));
       panel.lastElementChild.append(button);
     }
-    if (i.suggestedFix) {
+    if (typeof i.suggestedFix === 'string' && i.suggestedFix.trim()) {
       const fix = document.createElement('p');
       fix.textContent = `Suggested verification: ${i.suggestedFix}`;
       panel.lastElementChild.append(fix);
     }
     if (i.botId && uniqueRecord(currentSnapshot.bots, i.botId)) {
       const button = document.createElement('button'); button.type = 'button';
-      button.textContent = `Inspect bot for: ${i.title}`;
+      button.textContent = `Inspect bot for: ${routingText(i.title)}`;
       button.addEventListener('click', () => {
         inspectBot(i.botId);
         document.querySelector('#bot-inspector').scrollIntoView({behavior: 'smooth', block: 'nearest'});
@@ -281,7 +283,7 @@ function renderIssues() {
     }
     if (i.learningId && uniqueRecord(currentSnapshot.learning, i.learningId)) {
       const button = document.createElement('button'); button.type = 'button';
-      button.textContent = `Inspect learning need: ${i.title}`;
+      button.textContent = `Inspect learning need: ${routingText(i.title)}`;
       button.addEventListener('click', () => {
         inspectLearning(i.learningId);
         document.querySelector('#learning-inspector').scrollIntoView({behavior: 'smooth', block: 'nearest'});
@@ -302,7 +304,7 @@ function inspectLearning(id) {
     : 'Selected learning need is no longer in this snapshot.'; return; }
   item(panel, `Learning detail · ${routingText(need.game)} · ${routingText(need.topic)}`, `Status: ${routingText(need.status)} · Phase: ${routingText(need.phase, 'Not reported')} · Reason: ${routingText(need.reason, 'Not reported')} · Escalation: ${routingText(need.escalation, 'Not reported')} · Retry at: ${routingText(need.retryAt, 'Not reported')}`,
     `Evidence: ${routingText(need.evidence)} · Model answer reported: ${need.hasModelAnswer === true ? 'Yes' : need.hasModelAnswer === false ? 'No' : 'Unknown'} (not outcome evidence or permission to call a model) · Datasets: ${routingText(need.datasets)} · Policy verification: ${routingText(need.policy)} · Updated: ${routingText(need.updatedAt, 'unknown')} · ${routingText(need.source)}`);
-  const issues = currentSnapshot.issues.filter(i => i.learningId === need.id);
+  const issues = observationRows(currentSnapshot.issues, panel).filter(i => i.learningId === need.id);
   if (!issues.length) item(panel, 'Related issues', 'No matching issue records in this view.', 'This does not establish a resolved learning gap.');
   issues.forEach(i => item(panel, `Related issue · ${routingText(i.title)}`, `${routingText(i.status)} · ${routingText(i.detail)}`, `${routingText(i.source)} · ${routingText(i.timeLabel, 'Updated')}: ${routingText(i.updatedAt, 'unknown')}`));
 }
@@ -592,7 +594,7 @@ function inspectBot(id) {
   if (!bot) { panel.textContent = recordsForId(currentSnapshot.bots, id).length > 1
     ? 'Selected bot identity is ambiguous; no scoped details or evidence are attributed.'
     : 'Selected bot is no longer in this snapshot.'; return; }
-  item(panel, `${bot.name} · ${bot.game}`, rosterDetails(bot), `${bot.source} · Observed: ${bot.observedAt || 'unknown'}`);
+  item(panel, `${bot.name} · ${bot.game}`, rosterDetails(bot), `${routingText(bot.source, 'Source unknown')} · Observed: ${routingText(bot.observedAt, 'unknown')}`);
   if (['FFXI', 'SWTOR'].includes(bot.game)) {
     const button = document.createElement('button'); button.type = 'button';
     button.textContent = `View ${bot.game} game learning (not bot-specific)`;
@@ -607,7 +609,7 @@ function inspectBot(id) {
     renderIssues(); document.querySelector('#issues').scrollIntoView({behavior: 'smooth', block: 'nearest'});
   });
   panel.lastElementChild.append(issuesButton);
-  item(panel, 'Reported personality summary', routingText(bot.personalitySummary), `${bot.source} · Roster metadata, not proof of behavior`);
+  item(panel, 'Reported personality summary', routingText(bot.personalitySummary), `${routingText(bot.source, 'Source unknown')} · Roster metadata, not proof of behavior`);
   const detailRows = Array.isArray(currentSnapshot.botDetails) ? currentSnapshot.botDetails : [];
   const matches = detailRows.filter(d => d && typeof d === 'object' && !Array.isArray(d) && d.botId === bot.id);
   const details = matches.length === 1 ? matches[0] : null;
@@ -642,9 +644,9 @@ function inspectBot(id) {
       panel.lastElementChild.append(button);
     }
   });
-  const issues = currentSnapshot.issues.filter(i => i.botId === bot.id);
+  const issues = observationRows(currentSnapshot.issues, panel).filter(i => i.botId === bot.id);
   if (!issues.length) item(panel, 'Bot-linked issues', 'No matching records in this view.', 'This does not establish a healthy state.');
-  issues.forEach(i => item(panel, `Issue · ${i.title}`, `${i.status} · ${i.detail}`, `${i.source} · Updated: ${i.updatedAt || 'unknown'}`));
+  issues.forEach(i => item(panel, `Issue · ${routingText(i.title)}`, `${routingText(i.status)} · ${routingText(i.detail)}`, `${routingText(i.source)} · Updated: ${routingText(i.updatedAt, 'unknown')}`));
 }
 function routingText(value, fallback = 'Unknown') {
   return typeof value === 'string' && value.trim() ? value : fallback;
@@ -679,7 +681,7 @@ function renderSpendExample() {
 }
 function botItem(bot) {
   const parent = document.querySelector('#bots');
-  item(parent, `${bot.name} · ${bot.game}`, rosterDetails(bot), `${bot.source} · Observed: ${bot.observedAt || 'unknown'}`);
+  item(parent, `${bot.name} · ${bot.game}`, rosterDetails(bot), `${routingText(bot.source, 'Source unknown')} · Observed: ${routingText(bot.observedAt, 'unknown')}`);
   const row = parent.lastElementChild;
   const inspect = document.createElement('button');
   inspect.type = 'button';
