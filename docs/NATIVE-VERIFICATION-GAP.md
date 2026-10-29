@@ -2,8 +2,13 @@
 
 Status at 2026-10-29: all five initial source/setup tasks are complete. The open
 dependency is native execution, not another implementation of those tasks.
-Coordinator request `654f7a27` tracks a separately scoped Alienware run. No
-authorization or completion is inferred from that request being queued.
+Owner decision `654f7a27-9461-4342-b15b-3ac086e79af6`, reference `a67509c69867`,
+was explicitly ALLOWED at 18:08:28 CDT on October 29. Execution belongs only to
+existing launcher/device lead `852bb105-8f9d-4a3f-a986-89a7981756dc`, with an
+installed headless browser, separate temporary profile and synthetic artifact.
+No occupied session, live/model call, install, public listener or denied-namespace
+bypass is authorized. Approval is not an execution pass. See the exact pinned
+[handoff](NATIVE-RUN-HANDOFF-8eb2c9f.md); no newer runner is substituted.
 
 ## Versions must remain distinct
 
@@ -11,6 +16,7 @@ authorization or completion is inferred from that request being queued.
 | --- | --- |
 | Alienware `236cd862` | Original preview, owner viewed and supplied design feedback; retained unchanged |
 | Alienware `691f6c5d` | Redesigned layout, delivery hash verified; native checks not run by Admin |
+| Handoff `ef740241` | Exact approved runner/UI pin `8eb2c9f`; packaged for device lead, not yet executed; older than latest local preview |
 | Local `58acb3f2` | Latest offline preview with operative EnvironmentFile precedence, five-entry stackd retirement receipt and dated operations handoffs, not delivered |
 
 Latest local file: `build/inspector-playtest.html`, 180037 bytes, generated at
@@ -22,8 +28,9 @@ temporary HTML it generated before launch.
 
 ## Ready native command
 
-From this repository on an authorized host with installed Chromium, Node, Python
-and functioning user/network namespaces:
+For the approved device run, use the separate pinned bundle from the handoff,
+not this newer checkout. It requires installed Chromium, Node, Python and
+functioning user/network namespaces:
 
 ```
 python3 tools/run_keyboard_playtest.py --gap-export
