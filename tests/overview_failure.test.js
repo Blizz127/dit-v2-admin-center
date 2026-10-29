@@ -60,6 +60,10 @@ const ctx = {document: {querySelector: s => get(s.slice(1)), getElementById: get
           ...data.bots.map(b => ({botId: b.id, scope: b.id + '_SAFETY', source: 'Synthetic'}))];
         if (outcome === 'twins-orphan') data.bots = data.bots.filter(b => b.id !== 'LEFT');
       }
+      if (outcome === 'audit') data.audit = [
+        {actor: 'Synthetic operator', action: 'AUDIT_EXAMPLE_A', scope: 'Fixture bot', result: 'Example only; no change applied', at: null, source: 'Synthetic audit fixture'},
+        {actor: 'Synthetic operator', action: 'AUDIT_EXAMPLE_B', scope: 'Fixture network', result: 'Example rejected', at: 'fixture-time', source: 'Synthetic audit fixture'},
+      ];
       return data;
     }};
   }};
@@ -178,5 +182,21 @@ function select() {
     assert.doesNotMatch(get(panel).textContent, /LEFT_|RIGHT_/, 'Missing selection must not display orphan details: ' + panel);
   }
   assert.match(get('safety-records').textContent, /NETWORK_EXAMPLE/);
-  console.log('Overview/detail checks passed: failures, filters, received order, empty states and exact-ID isolation for same-name bots, including orphan records. Simulated DOM only.');
+  await login('audit');
+  assert.equal(get('audit').children.length, 2);
+  assert.deepEqual(headings('audit'), ['AUDIT_EXAMPLE_A · Fixture bot', 'AUDIT_EXAMPLE_B · Fixture network']);
+  assert.match(get('audit').textContent, /Example only; no change applied.*unknown time.*Synthetic audit fixture/);
+  const auditBefore = get('audit').textContent, callsBefore = fetchCount;
+  ctx.inspectBot('fixture-bot'); get('clear-bot').listeners.click();
+  assert.equal(fetchCount, callsBefore);
+  assert.equal(get('audit').textContent, auditBefore, 'Read-only selections must not invent audit actions');
+  outcome = '503'; await get('refresh').listeners.click();
+  assert.equal(get('audit').textContent, auditBefore);
+  assert.match(get('hub-banner').textContent, /Refresh failed.*previous mock/);
+  outcome = 'empty'; await get('refresh').listeners.click();
+  assert.match(get('audit').textContent, /No audit examples loaded/);
+  assert.match(get('audit').textContent, /does not establish whether real admin actions occurred/);
+  assert.match(get('audit').textContent, /no live audit source is connected/);
+  assert.doesNotMatch(get('audit').textContent, /AUDIT_EXAMPLE/);
+  console.log('Overview/detail checks passed, including synthetic audit rows, unknown time, no invented actions, labeled failed refresh and explicit empty state. Simulated DOM only.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

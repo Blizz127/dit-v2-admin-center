@@ -602,6 +602,8 @@ async function load() {
     const usd = value => typeof value === 'number' ? `$${value.toFixed(2)}` : 'Unknown';
     item(document.querySelector('#spend-example'), `Example month: ${spend.month || 'Unknown'}`, `Settled: ${usd(spend.settledUsd)} · Open reservations: ${usd(spend.reservedOpenUsd)} · Budget: ${usd(spend.budgetUsd)}`, `${spend.source} · ${spend.attribution} · Observed: ${spend.fetchedAt || 'unknown'} · Separate ledgers are not reconciled.`);
     data.modelCalls.forEach(c => item(document.querySelector('#model-calls'), `${c.model} · ${c.purpose}`, `Latency: ${typeof c.latencyMs === 'number' ? c.latencyMs + ' ms' : 'Unknown'} · Cost: ${c.cost == null ? 'Unknown' : c.cost} · Quality: ${c.quality == null ? 'Unknown' : c.quality}`, `${c.source} · Observed: ${c.observedAt || 'unknown'}`));
+    if (!data.audit.length) item(document.querySelector('#audit'), 'No audit examples loaded',
+      'This view does not establish whether real admin actions occurred.', 'Read-only examples; no live audit source is connected.');
     data.audit.forEach(a => item(document.querySelector('#audit'), `${a.action} · ${a.scope}`, a.result, `${a.actor} · ${a.at || 'unknown time'} · ${a.source}`));
     renderIssueCoverage();
     renderIssues();
