@@ -147,6 +147,18 @@ All rows use shipped template IDs, actual UI handlers and in-memory HTTP dispatc
 | Hub service health | Game scope, unknown state, empty, 401/502/503, recovery/source reset (`8fbd6df`). | Cache lookup injects projection; no service inspection or bot-presence evidence. |
 | FFXI bridge cards | Active/fault state, empty/malformed/denied/timed-out observation, 401 before runner and recovery (`57e339a`). | Real observer uses a fake runner and a fresh instance per exchange; no SSH or TTL validation in this path. |
 
+Collector follow-up (`5c9b160`) adds real `overview` -> handler coverage in
+`tests/test_offline_overview_collection.py`, with a temporary synthetic home and
+actual SQLite reads. Three focused checks cover populated, missing and malformed
+records; rejected auth/query before collection; sensitive summary withholding;
+unchanged fixture files; read-only SQLite access and connection cleanup. The
+task-inventory connection is now explicitly closed. Quota history is not promoted
+to per-lead quota, and configured hub credentials are not read in mock mode.
+Network, process probes and subprocesses cannot run. This narrows the mocked
+collector gap without reading real coordinator/account records or restarting the
+server. Real source compatibility, process binding, native browser execution
+and deployed-service behavior remain separate, unverified boundaries.
+
 The extended connected check passed under a 25-second hard timeout. Bridge
 observation failures return 200 with Unknown fields; health projection/read
 failures return 502/503. These are deliberately different API semantics.

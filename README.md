@@ -181,6 +181,20 @@ execution, visual appearance and deployed-service behavior remain unverified.
 
 ## Browser-free inspector integration
 
+The actual overview collector has a separate offline handler check:
+
+```sh
+timeout -k 2 15 python3 -m unittest discover -s tests -p test_offline_overview_collection.py -v
+```
+
+It uses a temporary synthetic home and coordinator/quota SQLite records, rather
+than replacing `overview`. It checks populated/missing/malformed sources,
+read-only access, unchanged fixture files, connection cleanup, summary redaction,
+unknown per-lead quota and auth/query rejection before collection. Process probes,
+commands and hub access are blocked; missing command evidence stays unknown.
+This exposed and fixed a task-inventory connection leak. No real records or
+running service are inspected, and no UI/browser claim follows from this test.
+
 ```sh
 timeout -k 3 25 node tests/inspector_integration.test.js
 ```
