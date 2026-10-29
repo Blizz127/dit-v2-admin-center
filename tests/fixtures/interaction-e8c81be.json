@@ -1,0 +1,164 @@
+{
+  "switches": {
+    "contract": true,
+    "naturalOrders": false,
+    "selfClaims": false
+  },
+  "freshForSeconds": 30,
+  "note": "Synthetic contract fixture, not a captured hub response",
+  "truncated": true,
+  "scopes": [
+    {
+      "gameId": "ffxi",
+      "caller": "fixture-adapter-a",
+      "serverInstanceId": "fixture-server-a",
+      "bots": [
+        {
+          "actorKey": "fixture-actor",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 10,
+          "observedAtUtc": "2026-01-01T00:00:00Z",
+          "ageSeconds": 45,
+          "fresh": true,
+          "snapshotFresh": false,
+          "activity": "waiting",
+          "phase": "fixture-phase",
+          "zone": "fixture-zone",
+          "hold": {
+            "kind": "manual",
+            "from": "OMIT_PRIVATE_HOLD",
+            "untilUtc": null,
+            "actionId": "fixture-action"
+          },
+          "follow": {
+            "player": "OMIT_PRIVATE_FOLLOW",
+            "untilUtc": null,
+            "actionId": null
+          },
+          "capabilities": [],
+          "mode": {
+            "owner": "fixture-action",
+            "kind": "hold",
+            "requester": "OMIT_PRIVATE_REQUESTER",
+            "source": "native report",
+            "seq": 11,
+            "atUtc": "2026-01-01T00:00:40Z",
+            "ageSeconds": 5
+          },
+          "currentOwner": "fixture-action",
+          "currentOrder": {
+            "actionId": "fixture-action",
+            "origin": "player",
+            "gameId": "ffxi",
+            "caller": "fixture-adapter-a",
+            "serverInstanceId": "fixture-server-a",
+            "actorKey": "fixture-actor",
+            "kind": "hold",
+            "requester": "OMIT_PRIVATE_ORDER",
+            "phase": "executing",
+            "reason": null,
+            "cancel": "none",
+            "ran": true,
+            "withdrawn": false,
+            "lastReceipt": {
+              "seq": 11,
+              "epoch": "fixture-epoch",
+              "state": "executing",
+              "reason": "OMIT_PRIVATE_RECEIPT",
+              "atUtc": "2026-01-01T00:00:40Z"
+            },
+            "createdAtUtc": "2026-01-01T00:00:39Z",
+            "terminalAtUtc": null
+          },
+          "recentOrders": [
+            {
+              "actionId": "fixture-action",
+              "origin": "player",
+              "gameId": "ffxi",
+              "caller": "fixture-adapter-a",
+              "serverInstanceId": "fixture-server-a",
+              "actorKey": "fixture-actor",
+              "kind": "hold",
+              "requester": "OMIT_PRIVATE_HISTORY",
+              "phase": "executing",
+              "reason": null,
+              "cancel": "none",
+              "ran": true,
+              "withdrawn": false,
+              "lastReceipt": {
+                "seq": 11,
+                "epoch": "fixture-epoch",
+                "state": "executing",
+                "reason": "OMIT_PRIVATE_RECEIPT",
+                "atUtc": "2026-01-01T00:00:40Z"
+              },
+              "createdAtUtc": "2026-01-01T00:00:39Z",
+              "terminalAtUtc": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "gameId": "ffxi",
+      "caller": "fixture-adapter-a",
+      "serverInstanceId": "fixture-server-b",
+      "bots": [
+        {
+          "actorKey": "fixture-actor",
+          "source": "native snapshot",
+          "observedAtUtc": "2026-01-01T00:00:44Z",
+          "ageSeconds": 1,
+          "fresh": false,
+          "snapshotFresh": true,
+          "activity": "fighting",
+          "epoch": null,
+          "seq": null,
+          "phase": null,
+          "zone": null,
+          "hold": null,
+          "follow": null,
+          "capabilities": [],
+          "mode": null,
+          "currentOwner": null,
+          "currentOrder": null,
+          "recentOrders": []
+        }
+      ]
+    },
+    {
+      "gameId": "ffxi",
+      "caller": "fixture-adapter-b",
+      "serverInstanceId": "fixture-server-a",
+      "bots": [
+        {
+          "actorKey": "fixture-actor",
+          "source": "native report",
+          "observedAtUtc": null,
+          "ageSeconds": null,
+          "fresh": true,
+          "snapshotFresh": false,
+          "activity": "following",
+          "epoch": null,
+          "seq": null,
+          "phase": null,
+          "zone": null,
+          "hold": null,
+          "follow": null,
+          "capabilities": [],
+          "mode": null,
+          "currentOwner": null,
+          "currentOrder": null,
+          "recentOrders": []
+        }
+      ]
+    }
+  ],
+  "stateCounts": {
+    "OMIT_PRIVATE_STATE_COUNTER": 9
+  },
+  "ledgerCounts": {
+    "OMIT_PRIVATE_LEDGER_COUNTER": 2
+  }
+}
