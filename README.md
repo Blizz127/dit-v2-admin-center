@@ -16,6 +16,11 @@ model and effective state are separate; effective state remains Unknown. No mode
 switch is enabled. The running service has not been restarted for this feature.
 Generate the artifact with `python3 tools/build_inspector_playtest.py`.
 
+**Reply evidence browsing:** the per-bot card now filters loaded examples by exact,
+case-sensitive correlation ID. Clear reply filter restores all examples; choosing
+another bot clears it. Generated wording, queued delivery and verification remain
+separate. Try `Party-1` in the offline artifact; see [playtest steps](static/playtest.html#reply-evidence-guide).
+
 The [party greeting evidence checklist](docs/PARTY-GREETING-VERIFICATION.md) and
 `/playtest#party-greeting` separate owner input, a correlated queued reply and
 owner-reported native speech. Its review tool consumes local metadata only; it

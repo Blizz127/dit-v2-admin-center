@@ -63,7 +63,10 @@ try {
   const botExamples = {
     botDetails: [{botId: 'offline-inspector-bot', source: 'Offline fixture', goals: [{text: 'Fixture goal'}], memories: [{text: 'Fixture memory'}]}],
     safetyRecords: [{botId: null, scope: 'Fixture network safety', source: 'Offline fixture'}, {botId: 'offline-inspector-bot', scope: 'Fixture bot safety', source: 'Offline fixture'}],
-    replyEvents: [{botId: 'offline-inspector-bot', fallbackReason: 'Fixture reply reason', source: 'Offline fixture'}],
+    replyEvents: [
+      {botId: 'offline-inspector-bot', correlationId: 'Party-1', wordingOrigin: 'Synthetic model wording', generationStatus: 'generated', fallbackReason: 'Fixture reply reason', source: 'Offline fixture'},
+      {botId: 'offline-inspector-bot', correlationId: 'Party-10', wordingOrigin: 'Synthetic canned fallback', delivery: 'queued', source: 'Offline fixture'}
+    ],
     assignmentHistory: [{botId: 'offline-inspector-bot', requested: 'Fixture requested model', source: 'Offline fixture'}],
   };
   Object.assign(fixture, structuredClone(botExamples));
@@ -94,6 +97,14 @@ try {
   Object.assign(fixture, structuredClone(botExamples));
   await load();
   check(textOf('bot-inspector').includes('Fixture goal') && textOf('safety-records').includes('Fixture bot safety') && textOf('reply-source').includes('Fixture reply reason') && textOf('assignment-history').includes('Fixture requested model'), 'Inspector panels recover with current synthetic examples');
+  const replyFilter = document.getElementById('reply-correlation');
+  const beforeReplyFilter = requests.length;
+  replyFilter.value = 'Party-1';
+  replyFilter.dispatchEvent(new Event('input'));
+  check(textOf('reply-count').includes('Showing 1 of 2') && !textOf('reply-source').includes('Party-10'), 'Exact reply correlation filter excludes prefix matches');
+  check(textOf('reply-source').includes('Generation: generated') && textOf('reply-source').includes('Delivery: Unknown'), 'Generated wording does not establish delivery');
+  document.getElementById('reply-reset').click();
+  check(textOf('reply-count').includes('Showing 2 of 2') && requests.length === beforeReplyFilter, 'Clearing the reply filter restores examples without a request');
   const botSelectors = [...document.querySelectorAll('#bots select')];
   check(botSelectors.length === 2 && botSelectors.every(select => select.disabled), 'Per-bot model selectors remain disabled');
   fixture.assignmentHistory = assignmentFixtures.populated.map(row => ({...row, botId: row.botId === 'fixture-bot' ? 'offline-inspector-bot' : row.botId}));
