@@ -206,6 +206,13 @@ without requesting later pages. The test also covers unavailable-source fallback
 empty roster/learning warnings and an initial 503 that leaves login visible.
 No browser appearance or upstream completeness is established by these checks.
 
+The detail check also selects two synthetic bots with the same display name.
+Goals, memory, evidence, issues, assignment and reply examples join by exact
+record ID. When a selected bot disappears, orphan bot-specific safety examples
+are hidden along with its other details; network-wide safety examples remain.
+Selection itself makes no service request. These are read-only examples, not
+bot-edit validation or proof of native identity; editing remains disabled.
+
 To check timeout/partial-feed recovery through the reader, cache and merge:
 
 ```sh

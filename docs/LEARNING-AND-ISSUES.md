@@ -134,6 +134,14 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+Detail isolation follow-up (`a12e6bf`): a same-name bot fixture exposed orphan
+bot-specific safety examples after the selected roster entry disappeared. The
+safety panel now requires that exact selected ID to exist, consistent with the
+other detail panels; network-wide examples remain. Focused overview/detail and
+existing selector checks passed for ID isolation, missing-record clearing and
+no service request on selection. These synthetic IDs do not establish native
+identity. Bot-edit forms remain unavailable; no write validation was invented.
+
 Ordering/unavailable-source follow-up: `tests/overview_failure.test.js` passes
 for snapshot order through filtering, reordered refresh and filter reset;
 unavailable-source synthetic fallback; empty roster/learning Unknown warnings;
