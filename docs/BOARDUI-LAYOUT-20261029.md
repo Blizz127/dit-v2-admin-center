@@ -122,3 +122,19 @@ The regenerated local `build/inspector-playtest.html` includes these changes.
 It has not replaced any delivered Alienware file. Actual native Tab/Enter/Space,
 narrow viewport layout and JSON download remain unverified; do not treat these
 component checks as a browser pass.
+
+## Breakpoint and export contracts
+
+`tests/test_responsive_contract.py` checks the actual stylesheet's named rules
+at 320/390 pixels and either side of 760, 1100 and 1350 pixel boundaries. It checks
+sidebar space release, one-column coverage/panels, mobile toolbar wrapping and
+local comparison overflow. This is an exact-selector declaration check, not a
+complete CSS cascade/layout engine, screenshot or measured viewport pass.
+
+The export test now checks every top-level and candidate key, allowed value types,
+positive unique snapshot-row indices, selected-row inclusion, differing-field
+consistency and the limits array. Fixtures include Unicode, malformed fields,
+non-finite/negative levels and whitespace-only snapshot timestamps. Blank timestamp
+metadata now exports as null (Unknown). Download URI and copy JSON remain identical.
+Three breakpoint contracts and the focused export test passed. Native save-file
+behavior, wrapping/clipping and trusted keyboard input remain unverified.

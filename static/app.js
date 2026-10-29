@@ -546,7 +546,7 @@ function rosterGapReport(snapshot, selectedIndex) {
   });
   return {
     schema: 'dit-admin-roster-gap-report-v1',
-    snapshotGeneratedAt: typeof snapshot.generatedAt === 'string' ? snapshot.generatedAt : null,
+    snapshotGeneratedAt: typeof snapshot.generatedAt === 'string' && snapshot.generatedAt.trim() ? snapshot.generatedAt : null,
     selectedSnapshotRow: selectedIndex + 1,
     reason: candidates.length > 1 ? 'repeated_loaded_id' : 'missing_usable_loaded_id',
     differingFields: rosterGapFields.filter(key => new Set(candidates.map(row => row.fields[key])).size > 1),
