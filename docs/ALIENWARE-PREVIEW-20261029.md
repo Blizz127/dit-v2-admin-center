@@ -53,4 +53,8 @@ component/handler/artifact checks remain historical evidence and were not rerun.
 **NOT RUN on Alienware:** native rendering, automatic browser DOM checks, keyboard,
 JSON download, controller/Steam Input, Game Mode/window behavior and on-screen
 keyboard. Native Devbox runtime/isolation limitations did not prevent delivery.
-Actual owner rendering results are pending; no native pass is claimed.
+Subsequent owner feedback (task `4e9c2ab65b28`): the owner opened this preview,
+said it looked good, and requested a BoardUI-like layout retaining its colors.
+That establishes owner-reported visual viewing, not an automated native pass or
+keyboard/download verification. The new [layout preview](BOARDUI-LAYOUT-20261029.md)
+is delivered separately; this `236cd862` version remains unchanged as rollback.

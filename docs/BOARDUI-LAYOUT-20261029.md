@@ -58,4 +58,29 @@ Overview → Roster identity gap details to compare duplicate records. Evidence 
 Unknown labels should remain visible. Model controls remain disabled.
 
 The prior `DIT-Admin-Center-Preview-236cd862` folder is retained as rollback.
-The delivery receipt below will identify the exact source commit and bytes sent.
+## Verified Alienware delivery
+
+Source commit: `2ebe87f`. Built with `python3 tools/build_inspector_playtest.py`.
+Transferred through existing `alienware-bazzite` strict-host-key, batch SSH access
+into a new private folder. Input bytes were checked before exclusive file writes;
+remote readback and a subsequent independent SSH `sha256sum` / `wc -c` matched.
+
+Exact owner path:
+`/home/blizz/Downloads/DIT-Admin-Center-Preview-691f6c5d/Admin-Center-Synthetic-Preview.html`
+
+Resolved path:
+`/var/home/blizz/Downloads/DIT-Admin-Center-Preview-691f6c5d/Admin-Center-Synthetic-Preview.html`
+
+Open from the file manager, or paste this into the Alienware browser:
+`file:///home/blizz/Downloads/DIT-Admin-Center-Preview-691f6c5d/Admin-Center-Synthetic-Preview.html`
+
+| Delivered file | Bytes | SHA-256 |
+| --- | ---: | --- |
+| Admin-Center-Synthetic-Preview.html | 171378 | `691f6c5d68fdd429b216ce1942e50d85ebe972e51b2ee277f37bea908f7cdd70` |
+| READ-ME-FIRST.txt | 1742 | `0bbbaf3f27dd0cd7841dd60d5afd30560f1db15492ad11677f27be176c94795d` |
+
+Before transfer, the prior HTML independently read back as the unchanged rollback
+SHA `236cd862def35155295d0df707f86649e4a40e228798f6b3a204d329234f79c7`.
+No device GUI input, browser launch, restart, game/save access, new listener or
+access-control change was performed. File delivery is verified; new-version
+native visual/keyboard/download behavior remains for owner review.
