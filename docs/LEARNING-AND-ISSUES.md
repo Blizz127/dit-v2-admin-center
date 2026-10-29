@@ -112,3 +112,13 @@ missing. They now return 400 before constructing a reader. Authentication still
 runs first. Tests preserve non-final trace outcomes and omit raw bodies/private
 exception text. These results are in-process only; the running service has not
 been restarted or verified with this change.
+
+The inspector now also has one connected browser-free integration check in
+`tests/inspector_integration.test.js`: parsed shipped markup -> actual app
+login/fetch event -> real in-memory Python handler with projected synthetic
+rows -> actual inspector rendering/event handlers in a limited simulated DOM.
+Rejected and accepted login, all four learning evidence fixtures and
+preview/restore/clear passed without a listener or a new dependency. This
+narrows the disconnected-fixture gap; real DOM-engine execution and layout
+remain unverified. The standalone HTML now exposes seven source-input hashes
+for artifact identification, without claiming deployed-version equivalence.

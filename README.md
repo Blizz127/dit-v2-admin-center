@@ -155,6 +155,31 @@ errors or update token storage for the newer session. Existing source/correlatio
 request-version guards still apply. Initial login may load while the workspace
 is hidden; optional panel reads require a visible workspace and a token.
 
+## Browser-free inspector integration
+
+```sh
+timeout -k 3 20 node tests/inspector_integration.test.js
+```
+
+This dependency-free check connects the synthetic candidate fixture, actual
+Python projection, in-memory HTTP handler, and actual `app.js` inspector.
+Element IDs, initial visibility and select defaults come from the shipped HTML;
+missing selectors fail instead of silently creating test elements. The check
+exercises wrong-token and accepted login, four learning evidence rows, and
+preview/restore/clear with no extra reads. The overview collector and bridge
+observation are synthetic; real sockets, subprocess-backed collectors, databases
+and live readers are blocked in the Python fixture adapter.
+
+This uses a deliberately limited simulated DOM, not jsdom or a browser engine.
+It verifies data flow and event-handler behavior, not HTML layout, CSS, browser
+security or deployed collectors. It passed locally without a listener or any
+new package. Browser/jsdom execution remains parked.
+
+The standalone HTML artifact now has an expandable **Artifact source
+fingerprints** section. It records SHA256 hashes of its seven local source and
+fixture inputs at generation. Include those hashes when sharing a playtest
+result; they identify the artifact inputs, not a deployed version or a test pass.
+
 ## Security
 
 - Owner-only token auth for now.
