@@ -10,6 +10,7 @@ let healthVersion = 0;
 let interactionVersion = 0;
 let sessionVersion = 0;
 let selectedBotId = null;
+let rosterRecordIndex = null;
 let replyBotId = null;
 let assignmentBotId = null;
 let assignmentPage = 0;
@@ -34,6 +35,8 @@ function resetPanelSession() {
   document.querySelector('#model-call-coverage').textContent = 'Metric coverage unknown.';
   document.querySelector('#data-coverage').replaceChildren();
   document.querySelector('#bot-identity').value = '';
+  clearRosterGapSelection();
+  document.querySelector('#roster-gaps').replaceChildren();
   ledgerBotId = null; correlationFilter = '';
   document.querySelector('#correlation').value = '';
   document.querySelector('#ledger').replaceChildren();
@@ -508,11 +511,59 @@ function renderBotCoverage() {
 function usableBotRows() {
   return Array.isArray(currentSnapshot.bots) ? currentSnapshot.bots.filter(b => b && typeof b === 'object' && !Array.isArray(b)) : [];
 }
+function clearRosterGapSelection() {
+  rosterRecordIndex = null;
+  document.querySelector('#roster-gap-detail').replaceChildren();
+  document.querySelector('#roster-gap-detail').textContent = 'Select a loaded roster gap for record details.';
+}
+function renderRosterGaps() {
+  const panel = document.querySelector('#roster-gaps');
+  panel.replaceChildren();
+  const snapshot = currentSnapshot;
+  if (!Array.isArray(snapshot.bots)) {
+    item(panel, 'Roster gaps unknown', 'No usable roster collection.', 'No entity or row is inferred.'); return;
+  }
+  let gaps = 0;
+  snapshot.bots.forEach((bot, index) => {
+    if (!bot || typeof bot !== 'object' || Array.isArray(bot)) {
+      item(panel, `Snapshot row ${index + 1} · Unusable record`, 'Entity details unavailable.', 'No matching roster row can be displayed.');
+      gaps++; return;
+    }
+    if (uniqueRecord(snapshot.bots, bot.id)) return;
+    gaps++;
+    const matches = recordsForId(snapshot.bots, bot.id).length;
+    const reason = matches > 1 ? `Repeated loaded ID: ${matches} rows` : 'Missing usable loaded ID';
+    item(panel, `Snapshot row ${index + 1} · ${routingText(bot.name)}`, reason,
+      `${routingText(bot.game)} · ${routingText(bot.source, 'Source unknown')}`);
+    const button = document.createElement('button'); button.type = 'button';
+    button.textContent = `Review gap in snapshot row ${index + 1}`;
+    button.addEventListener('click', () => {
+      if (currentSnapshot !== snapshot) return;
+      const detail = document.querySelector('#roster-gap-detail'); detail.replaceChildren();
+      item(detail, `Snapshot row ${index + 1} · ${routingText(bot.name)}`, `${reason} · Reported ID: ${routingText(bot.id)}`,
+        `Game: ${routingText(bot.game)} · Source: ${routingText(bot.source, 'Source unknown')} · Observed: ${routingText(bot.observedAt)} · This row is not a verified native identity; no goals, replies or other evidence are joined.`);
+      const show = document.createElement('button'); show.type = 'button'; show.textContent = 'Show matching roster row';
+      show.addEventListener('click', () => {
+        if (currentSnapshot !== snapshot) return;
+        rosterRecordIndex = index;
+        document.querySelector('#bot-game').value = '';
+        document.querySelector('#bot-search').value = '';
+        document.querySelector('#bot-identity').value = 'unavailable';
+        renderBots(); document.querySelector('#bots').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+      });
+      detail.append(show); detail.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+    });
+    panel.lastElementChild.append(button);
+  });
+  if (!gaps) item(panel, 'No loaded roster identity gaps', 'Every supplied record has a unique nonblank ID, or the list is empty.', 'This does not verify native identity, presence or complete roster coverage.');
+}
 function filteredBots() {
   const game = document.querySelector('#bot-game').value;
   const identity = document.querySelector('#bot-identity').value;
   const query = (document.querySelector('#bot-search').value || '').trim().toLowerCase();
-  return usableBotRows().filter(b => (!game || b.game === game)
+  return (Array.isArray(currentSnapshot.bots) ? currentSnapshot.bots : []).filter((b, index) => b && typeof b === 'object' && !Array.isArray(b)
+    && (!game || b.game === game)
+    && (rosterRecordIndex === null || rosterRecordIndex === index)
     && (!identity || (identity === 'unique' ? Boolean(uniqueRecord(currentSnapshot.bots, b.id)) : !uniqueRecord(currentSnapshot.bots, b.id)))
     && (!query || routingText(b.name, '').toLowerCase().includes(query)));
 }
@@ -522,7 +573,7 @@ function updateBotCount(bots) {
   const selectedHidden = selectedBotId !== null && !selectedMissing && !bots.some(b => b.id === selectedBotId);
   const supplied = currentSnapshot.bots;
   const total = Array.isArray(supplied) && usableBotRows().length === supplied.length ? supplied.length : 'Unknown total';
-  document.querySelector('#bot-count').textContent = `Showing ${bots.length} of ${total} loaded roster records; coverage and presence may be unknown.${selectedAmbiguous ? ' Selected bot identity is ambiguous; scoped inspection is unavailable.' : selectedMissing ? ' Selected bot is no longer in the loaded data.' : selectedHidden ? ' Selected bot is outside this filtered roster; its inspector remains selected.' : ''}`;
+  document.querySelector('#bot-count').textContent = `Showing ${bots.length} of ${total} loaded roster records; coverage and presence may be unknown.${rosterRecordIndex !== null ? ' Pinned snapshot row: ' + (rosterRecordIndex + 1) + '.' : ''}${selectedAmbiguous ? ' Selected bot identity is ambiguous; scoped inspection is unavailable.' : selectedMissing ? ' Selected bot is no longer in the loaded data.' : selectedHidden ? ' Selected bot is outside this filtered roster; its inspector remains selected.' : ''}`;
 }
 function renderBots() {
   const panel = document.querySelector('#bots');
@@ -900,6 +951,7 @@ async function load() {
       ledgerBotId = null; correlationFilter = ''; document.querySelector('#correlation').value = '';
     }
     currentSnapshot = data;
+    clearRosterGapSelection();
     if (data.ffxiFocus) {
       const f = data.ffxiFocus, target = document.querySelector('#ffxi-focus');
       item(target, 'Closest documented slice', routingText(f.closest), routingText(f.source, 'Source unknown'));
@@ -952,6 +1004,7 @@ async function load() {
     renderLearningArtifacts();
     renderLearning();
     renderDataCoverage();
+    renderRosterGaps();
     document.querySelector('#updated').textContent = `Snapshot generated ${data.generatedAt} · Sources are labeled per view; lead task state comes from the coordinator board.`;
     loadedSource = source; sourceLoading = false;
     sessionStorage.setItem('dit-admin-token', token); workspace.hidden = false; form.hidden = true; loadBridge();
@@ -1018,16 +1071,18 @@ document.querySelector('#ffxi-evidence').addEventListener('click', () => {
   document.querySelector('#trace-search').scrollIntoView({behavior: 'smooth', block: 'nearest'});
 });
 document.querySelector('#ffxi-bots').addEventListener('click', () => {
+  rosterRecordIndex = null;
   document.querySelector('#bot-search').value = '';
   document.querySelector('#bot-identity').value = '';
   document.querySelector('#bot-game').value = 'FFXI';
   if (currentSnapshot) renderBots();
   document.querySelector('#bots').scrollIntoView({behavior: 'smooth', block: 'nearest'});
 });
-document.querySelector('#bot-game').addEventListener('change', () => { if (currentSnapshot) renderBots(); });
-document.querySelector('#bot-identity').addEventListener('change', () => { if (currentSnapshot) renderBots(); });
-document.querySelector('#bot-search').addEventListener('input', () => { if (currentSnapshot) renderBots(); });
+document.querySelector('#bot-game').addEventListener('change', () => { rosterRecordIndex = null; if (currentSnapshot) renderBots(); });
+document.querySelector('#bot-identity').addEventListener('change', () => { rosterRecordIndex = null; if (currentSnapshot) renderBots(); });
+document.querySelector('#bot-search').addEventListener('input', () => { rosterRecordIndex = null; if (currentSnapshot) renderBots(); });
 document.querySelector('#bot-reset').addEventListener('click', () => {
+  rosterRecordIndex = null;
   document.querySelector('#bot-game').value = '';
   document.querySelector('#bot-search').value = '';
   document.querySelector('#bot-identity').value = '';
