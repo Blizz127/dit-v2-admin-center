@@ -196,6 +196,10 @@ The loader coverage map and remaining native accessibility boundaries are in
 `docs/LEARNING-AND-ISSUES.md`. Passing these checks is not a browser, screen-reader
 or live-data result.
 
+The artifact generator tests also parse the fully assembled JavaScript with
+`node --check`. This checks syntax across app, driver and embedded fixtures;
+it does not execute the DOM or verify browser behavior.
+
 For roster/learning identity changes, run
 `timeout -k 2 15 node tests/identity_snapshot.test.cjs`. It checks duplicate IDs
 within/across games, filter independence, existing-selection clearing, disabled

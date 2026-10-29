@@ -134,6 +134,30 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+### Interaction scope and artifact assembly — 2026-10-29
+
+`a293c05` fixes a reproduced presentation gap: an interaction row marked fresh
+could show activity even with a missing actor key, caller or server instance.
+Activity now requires a complete, unique tuple across the full returned list.
+Repeated tuples withhold activity rather than selecting a first record; the same
+actor key in distinct adapter/server scopes remains separate. Reported freshness
+is still shown independently, and even a usable tuple does not authenticate a
+native identity. No roster join or delivery inference is added.
+
+`fe27ccc` closes the matching backend gap for whitespace-only identity fields.
+Such a payload is rejected rather than projected as activity. Valid key bytes are
+preserved; trimming is used only to detect blank values, never to merge identities.
+The focused async loader check, seven projection checks, selector regression and
+all nine pinned generated snapshots through the reader/cache passed offline.
+
+`db3b3da` adds a parse-only check of the complete generated JavaScript, including
+actual app source, driver and embedded fixtures. It passed using `node --check`,
+without executing the script or claiming a DOM pass. This complements the existing
+asset/CSP/fingerprint checks. Missing Chromium/jsdom and denied namespace setup
+remain recorded runtime blockers; none was retried or bypassed at this checkpoint.
+The five initial source tasks remain implemented. Further synthetic checks do
+not replace runtime availability, native keyboard or screen-reader evidence.
+
 ### Scoped ledger navigation and linked issues — 2026-10-29
 
 `984c577` fixes reproduced cross-bot broadening of an inspector's ledger link:
