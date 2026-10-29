@@ -4,7 +4,6 @@ No install, TCP listener, live data, persistent profile or sandbox bypass.
 Exit 2 means runtime/isolation blocked; exit 1 means incomplete/failed checks.
 """
 import json
-import math
 import argparse
 import hashlib
 import os
@@ -73,7 +72,10 @@ def valid_export_receipt(result):
             and isinstance(export.get('sha256'), str) and len(export['sha256']) == 64
             and all(c in '0123456789abcdef' for c in export['sha256'])
             and isinstance(table, dict) and table.get('rows') == 9 and table.get('columns') == 3
-            and type(table.get('width')) in (int, float) and math.isfinite(table['width']) and table['width'] > 0)
+            # The fixed native workflow uses 1280/390px viewports. Comparing
+            # bounds before any float conversion also rejects huge JSON ints,
+            # infinities and NaN without raising OverflowError.
+            and type(table.get('width')) in (int, float) and 0 < table['width'] <= 1280)
 
 
 def main(screenshots=False, gap_export=False):

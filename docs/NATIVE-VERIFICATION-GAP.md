@@ -80,3 +80,16 @@ executable/CDP endpoint and supplied no alternate browser runtime. The Alienware
 session remains untouched by Admin. Once a valid host/run is available, retain
 the complete receipt with artifact hash and distinguish automated results from
 the owner's visual review. No game, live hub, model or security change is needed.
+
+## Malformed receipt width follow-up
+
+An offline reproducer found that a 401-digit integer width raised `OverflowError`
+in the export validator's float conversion. Export width now must be a numeric
+value greater than zero and no greater than 1280 (the workflow's largest fixed
+viewport). The bounded comparison rejects huge integers, booleans, non-numbers,
+NaN and infinities without conversion or a crash. Malformed native-output fixtures
+return CLI exit 1 with no success receipt and no raw output disclosure.
+
+All six focused runner tests pass, including the malformed-width cases through
+the CLI's mocked browser boundary. No real browser was launched, no unchanged
+artifact was rebuilt, and no native verification status changed.

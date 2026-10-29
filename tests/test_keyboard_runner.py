@@ -13,6 +13,29 @@ SHELL = dict(status="passed", sections=8, widths=[1280, 390], traversal="Tab/Shi
 
 
 class KeyboardRunnerTests(unittest.TestCase):
+    def test_export_width_refuses_malformed_values_without_crashing(self):
+        keyboard = dict(status='passed', nativeKeyboard='passed', steps=12,
+                        escapeCancellation='passed', automaticDOM='passed', shell=SHELL)
+        export = dict(status='passed', savedBytes=1024, sha256='a' * 64, candidates=2,
+                      selectedSnapshotRow=2, nativeActivation='Enter', table=dict(rows=9, columns=3, width=390))
+        for width in (1, 390, 1280):
+            candidate = {**export, 'table': {**export['table'], 'width': width}}
+            self.assertTrue(runner.valid_export_receipt(dict(gapExport=candidate)))
+        for width in (True, None, '390', [], 0, -1, 1281, 10**400, float('inf'), float('-inf'), float('nan')):
+            with self.subTest(width_type=type(width).__name__):
+                candidate = {**export, 'table': {**export['table'], 'width': width}}
+                self.assertFalse(runner.valid_export_receipt(dict(gapExport=candidate)))
+                receipt = {**keyboard, 'gapExport': candidate, 'private': 'PRIVATE_RECEIPT_DETAIL'}
+                stdout, stderr = io.StringIO(), io.StringIO()
+                with patch.object(runner.shutil, 'which', side_effect=lambda name: '/fixture/' + name), \
+                        patch.object(runner, 'run_bounded', side_effect=[(0, '', ''), (0, json.dumps(receipt), '')]), \
+                        patch.object(runner, 'build', return_value='<html>fixture</html>'), \
+                        redirect_stdout(stdout), redirect_stderr(stderr):
+                    self.assertEqual(runner.main(gap_export=True), 1)
+                self.assertEqual(stdout.getvalue(), '')
+                self.assertIn('native gap download receipt incomplete', stderr.getvalue())
+                self.assertNotIn('PRIVATE', stderr.getvalue())
+
     def test_gap_export_requires_saved_file_and_layout_receipt(self):
         keyboard = dict(status='passed', nativeKeyboard='passed', steps=12,
                         escapeCancellation='passed', automaticDOM='passed', shell=SHELL)
