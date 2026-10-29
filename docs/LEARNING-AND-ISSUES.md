@@ -134,6 +134,19 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+Bot-detail follow-up (`99906b7`) keeps missing/null/malformed detail collections
+and duplicate exact-ID records Unknown instead of throwing or choosing the first
+record. Goals and memories are assessed separately; usable rows in a partial
+list remain visible with a coverage warning, and missing fields stay Unknown.
+The same offline check covers missing/malformed reply and assignment collections,
+valid empty lists, incomplete reply metadata, prior-text clearing and recovery.
+Selecting details makes no request. Model/bot editing and save paths remain off.
+`tests/overview_failure.test.js` passed after both fixes; the disabled-selector
+check also passed after the goals/memory fix. These execute actual UI code in a
+simulated DOM, not a browser. No live calls, ledger reads or service restarts.
+Playtest expectations are at `/playtest#selection-refresh`; the generated offline
+artifact contains the updated app, but native browser execution remains parked.
+
 Audit metadata follow-up (`6aa8dfc`) distinguishes absent/null/malformed lists
 from valid empty lists, keeping count and coverage Unknown locally. Incomplete
 row fields render explicit unknown values. The focused UI check passes for

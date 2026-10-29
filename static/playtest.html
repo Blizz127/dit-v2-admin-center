@@ -22,6 +22,7 @@
 </ol>
 </section>
 <section class="panel guide-followup" id="selection-refresh"><h2>Selections and filters after refresh</h2>
+<p>Bot goals and memory now show Unknown for missing lists or fields. Multiple detail records for the same bot ID are explicitly ambiguous; none is chosen. Valid rows in a partly malformed list remain visible beside an Unknown warning. Reply and assignment cards distinguish unavailable lists from valid empty examples. After Refresh, old detail text should disappear when the new snapshot cannot supply it. Inspecting these cards sends no request and applies no changes.</p>
 <p>If audit example metadata is missing or unusable, the card should show an Unknown count rather than zero, and other panels should remain available. A valid empty list shows 0 loaded examples. Missing actor, scope, result, time or source fields stay Unknown; search and reset do not fetch data.</p>
 <p>Needs Blizz now shows Unknown coverage if decision-summary metadata is missing or unusable, while the rest of the workspace stays available. This differs from a valid empty list. Neither state proves that no decisions are pending, and missing dates remain unknown.</p>
 <p>FFXI readiness now says Unknown when a snapshot supplies no summary. Partial summaries show Unknown for missing details, and a later missing summary replaces old text. Check the source note and confirm readiness with the owning lead; a feed response or bridge observation does not prove playable behavior. No readiness toggle is added.</p>
