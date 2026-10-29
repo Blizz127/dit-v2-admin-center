@@ -273,6 +273,13 @@ setImmediate(async () => {
   assert.match(get('learning-inspector').textContent, /Select a learning need/);
   assert.doesNotMatch(get('learning-count').textContent, /Selected need is outside/);
   get('learning-reset').listeners.click();
+  get('trace-game').value = 'swtor'; get('correlation').value = 'old-correlation';
+  const previousRequest = requestedUrl;
+  get('ffxi-evidence').listeners.click();
+  assert.equal(get('trace-game').value, 'ffxi');
+  assert.equal(get('correlation').value, '');
+  assert.equal(get('hub-trace').children.length, 0);
+  assert.equal(requestedUrl, previousRequest);
   context.fetch = async () => { throw new Error('offline'); };
   await get('bridge-refresh').listeners.click();
   assert.equal(get('ffxi-focus-bridge').children.length, 0);

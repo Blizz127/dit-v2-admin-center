@@ -486,6 +486,14 @@ document.querySelector('#clear-bot').addEventListener('click', () => {
   panel.replaceChildren(); panel.textContent = 'No bot selected.';
   if (currentSnapshot) { renderAssignments(); renderReplySource(); renderSafety(); if (document.querySelector('#issue-selected-bot').checked) renderIssues(); }
 });
+document.querySelector('#ffxi-evidence').addEventListener('click', () => {
+  document.querySelector('#trace-game').value = 'ffxi';
+  document.querySelector('#correlation').value = '';
+  correlationFilter = ''; traceVersion++;
+  document.querySelector('#hub-trace').replaceChildren();
+  if (currentSnapshot) renderLedger();
+  document.querySelector('#trace-search').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+});
 document.querySelector('#ffxi-bots').addEventListener('click', () => {
   document.querySelector('#bot-search').value = '';
   document.querySelector('#bot-game').value = 'FFXI';
