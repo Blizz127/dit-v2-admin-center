@@ -158,7 +158,7 @@ is hidden; optional panel reads require a visible workspace and a token.
 ## Browser-free inspector integration
 
 ```sh
-timeout -k 3 20 node tests/inspector_integration.test.js
+timeout -k 3 25 node tests/inspector_integration.test.js
 ```
 
 This dependency-free check connects the synthetic candidate fixture, actual
@@ -193,6 +193,14 @@ FFXI/SWTOR filtering, unknown service states, empty results, 401 before lookup,
 service data with Unknown. Synthetic private log/environment fields are omitted;
 service health is never promoted to bot presence. No service inspection or real
 cache timing is exercised by this path.
+
+Bridge scenarios connect the real `BridgeObserver`, in-memory handler and both
+UI cards using a fake command runner. Active state, a delayed-delivery fault,
+empty/malformed output, permission denial, timeout, owner-token rejection and
+recovery are checked. Observation failures produce HTTP 200 with Unknown state;
+401 is reserved here for the owner-token rejection, before the fake runner.
+Each exchange uses a fresh observer, so this does not test cache lifetime or SSH.
+The overview-triggered bridge refresh is allowed to settle before manual clicks.
 
 This uses a deliberately limited simulated DOM, not jsdom or a browser engine.
 It verifies data flow and event-handler behavior, not HTML layout, CSS, browser

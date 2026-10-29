@@ -184,6 +184,20 @@ service records. Private log/environment canaries and other-game records are
 omitted. Mock-source refresh makes no request. These are synthetic fixture
 results, not service observations, cache-timing tests or browser-engine results.
 
+## Connected bridge fixture coverage
+
+The same connected harness exercises `/api/bridge-status` using the actual
+`BridgeObserver` with an injected command runner. Active/absent-marker and
+failed/delayed-delivery-marker observations reach both bridge cards. Empty or
+malformed output, permission denial and timeout produce HTTP 200 with Unknown
+fields and no observation time; they are not fabricated 502/503 responses.
+Owner-token rejection returns 401 before the runner. Both cards discard prior
+observations on failure and recover after a later successful read, retaining
+the warnings that marker absence and service state do not prove delivery.
+Private payload/exception canaries are omitted. No SSH command runs; each
+exchange creates a fresh observer, leaving TTL behavior to the separate offline
+handler test. This does not verify a running bridge, browser layout or delivery.
+
 ## Client asynchronous response audit (2026-10-29)
 
 
