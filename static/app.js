@@ -88,17 +88,20 @@ async function loadHubHealth() {
 async function loadBridge() {
   if (bridgePending || !token || workspace.hidden) return;
   bridgePending = true;
+  const requestToken = token;
   const panel = document.querySelector('#bridge-status');
   try {
-    const response = await fetch('/api/bridge-status', {headers: {Authorization: `Bearer ${token}`}, cache: 'no-store'});
+    const response = await fetch('/api/bridge-status', {headers: {Authorization: `Bearer ${requestToken}`}, cache: 'no-store'});
     if (!response.ok) throw new Error('unavailable');
     const data = await response.json();
+    if (workspace.hidden || token !== requestToken) return;
     panel.replaceChildren();
     item(panel, `Unit: ${data.unit} · ${data.substate}`, `Result: ${data.result} · Fault marker: ${data.marker} · Classification: ${data.markerReason || 'unknown'}`, `${data.source} · Observed: ${data.observedAt || 'unknown'} · Marker absence does not prove delivery`);
     const focus = document.querySelector('#ffxi-focus-bridge');
     focus.replaceChildren();
     item(focus, `Bridge: ${data.unit} · ${data.substate}`, `Fault marker: ${data.marker} · Classification: ${data.markerReason || 'unknown'}`, `${data.source} · Observed: ${data.observedAt || 'unknown'} · Not proof of delivery`);
   } catch (_) {
+    if (workspace.hidden || token !== requestToken) return;
     panel.replaceChildren();
     panel.textContent = 'Bridge status unknown; read-only observation unavailable.';
     const focus = document.querySelector('#ffxi-focus-bridge');

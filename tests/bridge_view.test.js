@@ -16,12 +16,13 @@ class Element {
 const elements = new Map();
 const get = id => { if (!elements.has(id)) elements.set(id, new Element()); return elements.get(id); };
 const pending = [];
+let expectedToken = 'synthetic-view-token';
 const context = {
   document: {querySelector: s => get(s.slice(1)), getElementById: get, createElement: () => new Element()},
   sessionStorage: {getItem: () => '', setItem() {}, removeItem() {}},
   fetch: (url, options) => {
     assert.equal(url, '/api/bridge-status');
-    assert.equal(options.headers.Authorization, 'Bearer synthetic-view-token');
+    assert.equal(options.headers.Authorization, 'Bearer ' + expectedToken);
     assert.equal(options.cache, 'no-store');
     return new Promise((resolve, reject) => pending.push({resolve, reject}));
   },
@@ -75,5 +76,20 @@ async function success(data = good) {
   const count = pending.length;
   await context.loadBridge();
   assert.equal(pending.length, count);
+  get('workspace').hidden = false;
+  const hiddenReply = context.loadBridge();
+  get('workspace').hidden = true;
+  pending.at(-1).resolve({ok: true, json: async () => good});
+  await hiddenReply;
+  panels.forEach(id => assert.doesNotMatch(get(id).textContent, /active|running/, 'Reply after session closes is discarded'));
+  get('workspace').hidden = false;
+  const oldTokenReply = context.loadBridge();
+  expectedToken = 'synthetic-new-token';
+  vm.runInNewContext("token = 'synthetic-new-token'", context);
+  pending.at(-1).resolve({ok: true, json: async () => good});
+  await oldTokenReply;
+  panels.forEach(id => assert.doesNotMatch(get(id).textContent, /active|running/, 'Previous-token reply is discarded'));
+  await success();
+  panels.forEach(id => assert.match(get(id).textContent, /active.*running/, 'New-token read succeeds'));
   console.log('Bridge simulated-DOM checks passed: auth/visibility guard, single flight, 401/503/JSON/transport failures, both-card redaction and recovery.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
