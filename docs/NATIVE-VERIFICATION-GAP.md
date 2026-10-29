@@ -139,3 +139,13 @@ UI's contract: its Blob and copy field use the same string. Encoding damage,
 added duplicate keys and even added whitespace fail that exact-file check; valid
 multibyte text still passes. The focused fixture runner checks this with temporary
 local files and fabricated protocol calls, not a native browser download.
+
+## Keyboard observer cancellation and release coverage
+
+Focused fake-event checks cover Escape after keyup but before the scheduled
+default-action observation, untrusted or mismatched key releases, unexpected
+Ctrl/Alt/Meta/Shift modifiers and repeat events. Cancellation retains Start focus
+and cannot be overwritten by the pending callback. An untrusted/mismatched release
+cannot advance the step; a subsequent matching trusted release can. These exercise
+the observer's state transitions only, not native event trust, Tab order or browser
+default actions. The focused keyboard-observer check passed without a browser.

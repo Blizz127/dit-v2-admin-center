@@ -88,5 +88,37 @@ function fixture({prepareFails = false} = {}) {
   assert.equal(cancelled.state(), 'cancelled');
   await cancelled.start(); assert.equal(cancelled.state(), 'running');
   assert.match(cancelled.status(), /Step 1\/12/);
+
+  // A scheduled post-keyup check must not overwrite cancellation, even if its
+  // fake default action has already placed focus on the expected target.
+  const pendingCancel = fixture(); await pendingCancel.start();
+  pendingCancel.key('keydown', 'Tab');
+  pendingCancel.document.activeElement = pendingCancel.elements.get('assignment-prev');
+  pendingCancel.key('keyup', 'Tab');
+  pendingCancel.key('keydown', 'Escape'); pendingCancel.flush();
+  assert.equal(pendingCancel.state(), 'cancelled');
+  assert.equal(pendingCancel.document.activeElement.id, 'keyboard-start');
+
+  const released = fixture(); await released.start();
+  released.key('keydown', 'Tab');
+  released.document.activeElement = released.elements.get('assignment-prev');
+  released.key('keyup', 'Tab', {isTrusted: false}); released.flush();
+  assert.match(released.status(), /Step 1\/12/);
+  released.key('keyup', 'Enter'); released.flush();
+  assert.match(released.status(), /Step 1\/12/);
+  released.key('keyup', 'Tab'); released.flush();
+  assert.match(released.status(), /Step 2\/12/);
+
+  for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+    const modified = fixture(); await modified.start();
+    modified.key('keydown', 'Tab', {[modifier]: true});
+    assert.equal(modified.state(), 'failed', modifier);
+  }
+  const repeated = fixture(); await repeated.start();
+  repeated.key('keydown', 'Tab', {repeat: true});
+  repeated.key('keyup', 'Tab'); repeated.flush();
+  assert.match(repeated.status(), /Step 1\/12/);
+  repeated.press('Tab', 'assignment-prev', 1);
+  assert.match(repeated.status(), /Step 2\/12/);
   console.log('Keyboard observer logic passed with fake events: trust gating, sequence/default observations, failure and restart handling. Native browser keys NOT executed.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
