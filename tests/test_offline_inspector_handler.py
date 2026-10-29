@@ -133,6 +133,21 @@ class OfflineInspectorHandlerTests(unittest.TestCase):
         self.assertEqual(status, 501)
         self.overview.assert_not_called()
 
+    def test_unknown_control_paths_and_write_methods_cannot_reach_dependencies(self):
+        for path in ('/api/model', '/api/stop', '/api/unknown?token=OMIT_PRIVATE_QUERY'):
+            with self.subTest(path=path):
+                self.assertEqual(self.request(path, token='wrong')[0], 401)
+                status, _, body = self.request(path)
+                self.assertEqual(status, 404)
+                self.assertEqual(json.loads(body), {'error': 'not found'})
+        for path in ('/api/overview', '/api/trace', '/api/hub-health', '/api/interaction', '/api/bridge-status'):
+            for method in ('POST', 'PUT', 'PATCH', 'DELETE'):
+                with self.subTest(path=path, method=method):
+                    status, _, body = self.request(path, method=method)
+                    self.assertEqual(status, 501)
+                    self.assertNotIn(b'fixture-token', body)
+        self.overview.assert_not_called()
+
     def test_invalid_trace_values_rejected_before_configuration_or_reader(self):
         with patch.dict('os.environ', {}, clear=True), patch('server.HubReader') as reader:
             for query in ('gameId=other&correlationId=ok', 'gameId=ffxi&correlationId=',
