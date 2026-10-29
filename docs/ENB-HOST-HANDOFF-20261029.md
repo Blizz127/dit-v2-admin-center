@@ -23,3 +23,9 @@ handoff. Admin must not start the stopped AX41 rollback to make a status card gr
 Validation: focused markup checks cover placement, provenance, Unknown status and
 absence of controls. No DNS/SSH/service call, restart, live status check or Alienware
 delivery is part of this reconciliation. Native appearance remains unverified.
+
+Four markup checks passed. The local standalone preview was regenerated with
+the dated card; its asset/CSP contract and JavaScript syntax checks passed (two
+focused checks). Runtime fixtures remain synthetic; deployment handoffs are
+explicitly labeled separately. See `NATIVE-VERIFICATION-GAP.md` for the new local
+artifact hash. Previously delivered Alienware files remain unchanged.
