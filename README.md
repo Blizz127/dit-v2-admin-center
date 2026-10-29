@@ -67,7 +67,12 @@ fixtures. Its header starts at **NOT RUN**, then reports **PASS** or **FAIL**
 after automatic real-DOM inspector, preview, restore and clear checks. It also
 exercises synthetic bot goals/memory, safety, reply and assignment cards through
 unavailable, partial, empty and recovered snapshots. Missing safety identities
-must not become network-wide examples, and both model selectors stay disabled. Reload
+must not become network-wide examples, and both model selectors stay disabled.
+The artifact also leaves 23 matching assignment examples available for manual
+paging. Tab to Previous/Next assignment page, then use Enter or Space. Controls
+remain focusable at unavailable boundaries; activation there does nothing.
+Automatic artifact assertions check programmatic focus retention and page counts,
+not native keyboard activation. Reload
 the file to repeat, or use the displayed inspector manually. No token entry,
 account or feature activation is needed.
 
@@ -204,8 +209,9 @@ records replace old details with a missing-selection message. Explicit Clear
 removes that warning. `/playtest#selection-refresh` describes what to look for.
 
 Ordering checks preserve received snapshot order through filtering and refresh.
-The UI has no sort controls or pagination state: all matching loaded rows render,
-without requesting later pages. The test also covers unavailable-source fallback,
+Roster and learning lists have no sort controls or pagination state: all matching
+loaded rows render, without requesting later pages. Assignment examples now use
+local ten-row pages, preserving supplied order without fetching more history. The test also covers unavailable-source fallback,
 empty roster/learning warnings and an initial 503 that leaves login visible.
 No browser appearance or upstream completeness is established by these checks.
 

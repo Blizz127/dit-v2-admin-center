@@ -134,6 +134,22 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+Assignment paging follow-up (`528c95b`) adds local ten-row pages over loaded
+examples, with no upstream pagination or write capability. The shared synthetic
+fixture has 23 matching rows plus a different-bot row, empty/unavailable/partial
+states. Focused actual-app simulated-DOM checks passed for exact-ID counts/order,
+page boundaries, no requests, refresh preservation/clamping, HTTP 503 retention,
+unknown/empty counts and selection/session resets. Disabled-selector checks also
+passed. Native buttons keep document order and their DOM nodes across page
+changes, use `aria-disabled` with guarded activation, and describe the live count.
+Simulated focus ownership and shipped markup were checked; browser focus visuals,
+screen-reader announcements and native Tab/Enter/Space execution remain unverified.
+
+The offline artifact embeds the same fixture with a source fingerprint and adds
+programmatic focus/paging assertions. Regeneration does not execute those checks;
+open `build/inspector-playtest.html` locally and follow `/playtest#selection-refresh`.
+No runtime is installed or downloaded, and no live source or service is accessed.
+
 Safety metadata follow-up (`fce4687`) isolates absent/null/malformed collections
 without closing the workspace. Explicit `botId: null` denotes a network example;
 missing, blank or malformed identity is withheld with an Unknown scope warning.
@@ -207,7 +223,7 @@ Ordering/unavailable-source follow-up: `tests/overview_failure.test.js` passes
 for snapshot order through filtering, reordered refresh and filter reset;
 unavailable-source synthetic fallback; empty roster/learning Unknown warnings;
 and initial 503 login failure. There are no sort controls or pagination state
-in this UI, so persistence for those features is not claimed. All matching
+in the roster/learning lists, so persistence for those features is not claimed. All matching
 loaded rows render in received order; upstream truncation/coverage remains
 separate. No production fix was required for these simulated-DOM scenarios.
 

@@ -35,6 +35,7 @@ def snapshot():
 def source_fingerprints():
     paths = ('static/index.html', 'static/style.css', 'static/app.js',
              'r10_projection.py', 'tests/fixtures/learning-evidence-e8c81be.json',
+             'tests/fixtures/assignment-pages.json',
              'tools/inspector_playtest.js', 'tools/build_inspector_playtest.py')
     return {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in paths}
 
@@ -45,7 +46,8 @@ def build():
     app = (ROOT / 'static/app.js').read_text()
     driver = (ROOT / 'tools/inspector_playtest.js').read_text()
     data = json.dumps(snapshot()).replace('<', '\\u003c')
-    script = '(async function () {\nconst fixture = ' + data + ';\n' + driver.replace('/* APPLICATION */', app) + '\n})();'
+    assignment_data = json.dumps(json.loads((ROOT / 'tests/fixtures/assignment-pages.json').read_text())).replace('<', '\\u003c')
+    script = '(async function () {\nconst fixture = ' + data + ';\nconst assignmentFixtures = ' + assignment_data + ';\n' + driver.replace('/* APPLICATION */', app) + '\n})();'
     if '</script' in script.lower() or '</style' in css.lower():
         raise ValueError('Unsafe inline asset terminator')
     digest = base64.b64encode(hashlib.sha256(script.encode()).digest()).decode()
