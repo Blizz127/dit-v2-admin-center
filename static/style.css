@@ -13,3 +13,6 @@ details{margin-top:12px}summary{color:#a2e4e0;cursor:pointer;font-weight:600}sum
 .back-link{color:#a2e4e0}.guide-list{padding-left:22px}.guide-list li{margin:15px 0}.guide-followup{margin-top:16px}
 
 .check-line{display:flex;align-items:center;gap:8px;margin:12px 0}.check-line input[type=checkbox]{width:auto;margin:0}
+
+#assignment-prev:focus-visible,#assignment-next:focus-visible{outline:2px solid #f2ce8f;outline-offset:3px}
+#assignment-prev[aria-disabled="true"],#assignment-next[aria-disabled="true"]{opacity:.65;cursor:default}

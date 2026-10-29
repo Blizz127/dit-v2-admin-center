@@ -1,0 +1,226 @@
+{
+  "populated": [
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 01",
+      "effective": null,
+      "version": "fixture-01",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 02",
+      "effective": null,
+      "version": "fixture-02",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 03",
+      "effective": null,
+      "version": "fixture-03",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 04",
+      "effective": null,
+      "version": "fixture-04",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 05",
+      "effective": null,
+      "version": "fixture-05",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 06",
+      "effective": null,
+      "version": "fixture-06",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 07",
+      "effective": null,
+      "version": "fixture-07",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "other-bot",
+      "requested": "OTHER_BOT_MUST_NOT_APPEAR",
+      "source": "Synthetic fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 08",
+      "effective": null,
+      "version": "fixture-08",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 09",
+      "effective": null,
+      "version": "fixture-09",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 10",
+      "effective": null,
+      "version": "fixture-10",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 11",
+      "effective": null,
+      "version": "fixture-11",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 12",
+      "effective": null,
+      "version": "fixture-12",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 13",
+      "effective": null,
+      "version": "fixture-13",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 14",
+      "effective": null,
+      "version": "fixture-14",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 15",
+      "effective": null,
+      "version": "fixture-15",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 16",
+      "effective": null,
+      "version": "fixture-16",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 17",
+      "effective": null,
+      "version": "fixture-17",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 18",
+      "effective": null,
+      "version": "fixture-18",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 19",
+      "effective": null,
+      "version": "fixture-19",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 20",
+      "effective": null,
+      "version": "fixture-20",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 21",
+      "effective": null,
+      "version": "fixture-21",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 22",
+      "effective": null,
+      "version": "fixture-22",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    },
+    {
+      "botId": "fixture-bot",
+      "purpose": "conversation",
+      "requested": "Synthetic model 23",
+      "effective": null,
+      "version": "fixture-23",
+      "at": "synthetic-time",
+      "source": "Synthetic pagination fixture"
+    }
+  ],
+  "empty": [],
+  "unavailable": null,
+  "partial": [
+    {
+      "botId": "fixture-bot",
+      "requested": "Partial synthetic assignment",
+      "effective": false,
+      "source": {}
+    }
+  ]
+}

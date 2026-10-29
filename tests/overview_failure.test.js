@@ -2,19 +2,21 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
+const assignmentFixtures = require('./fixtures/assignment-pages.json');
 const {execFileSync} = require('node:child_process');
 const template = JSON.parse(execFileSync('python3', ['tests/inspector_runtime_fixture.py', '--template'], {encoding: 'utf8', timeout: 5000}));
 const fixture = JSON.parse(execFileSync('python3', ['-c', 'import json; from tools.build_inspector_playtest import snapshot; print(json.dumps(snapshot()))'], {encoding: 'utf8', timeout: 5000}));
 fixture.bots = [{id: 'fixture-bot', name: 'OLD_BOT_DETAIL', game: 'FFXI', source: 'Synthetic fixture', status: 'Unknown'}];
 fixture.learning[0].topic = 'OLD_LEARNING_DETAIL';
 class Element {
-  constructor(spec = {}) { this.children = []; this.listeners = {}; this.text = ''; this.hidden = Object.hasOwn(spec.attrs || {}, 'hidden'); this.value = spec.value || ''; }
+  constructor(spec = {}) { this.attributes = {...spec.attrs}; this.children = []; this.listeners = {}; this.text = ''; this.hidden = Object.hasOwn(spec.attrs || {}, 'hidden'); this.value = spec.value || ''; }
   append(...items) { this.children.push(...items); }
   replaceChildren() { this.children = []; this.text = ''; }
   set textContent(value) { this.children = []; this.text = String(value); }
   get textContent() { return this.text + this.children.map(c => c.textContent).join(' '); }
   addEventListener(name, fn) { this.listeners[name] = fn; }
-  setAttribute() {}
+  setAttribute(key, value) { this.attributes[key] = String(value); }
+  focus() { ctx.document.activeElement = this; }
   get lastElementChild() { return this.children.at(-1); }
 }
 const elements = new Map(Object.entries(template).map(([id, spec]) => [id, new Element(spec)]));
@@ -117,6 +119,12 @@ const ctx = {document: {querySelector: s => get(s.slice(1)), getElementById: get
         if (outcome === 'safety-empty') data.safetyRecords = [];
         if (outcome === 'safety-partial') data.safetyRecords = [{botId: 'fixture-bot', gate: false, killSwitch: {}, source: [], observedAt: true}];
         if (outcome === 'safety-unscoped') data.safetyRecords.push(...[undefined, '', false, 0, {}, []].map(botId => ({botId, scope: 'OMIT_UNSCOPED'})));
+      }
+      if (outcome.startsWith('pages-')) {
+        const mode = outcome.slice('pages-'.length);
+        data.assignmentHistory = structuredClone(assignmentFixtures[mode === 'shrink' || mode === 'orphan' ? 'populated' : mode]);
+        if (mode === 'shrink') data.assignmentHistory = data.assignmentHistory.slice(0, 5);
+        if (mode === 'orphan') data.bots = [];
       }
       return data;
     }};
@@ -387,5 +395,72 @@ function select() {
   assert.doesNotMatch(get('safety-records').textContent, /coverage unknown|scope unknown/);
   outcome = 'safety-good'; await get('refresh').listeners.click(); ctx.inspectBot('fixture-bot');
   assert.match(get('safety-records').textContent, /CURRENT_NETWORK_SAFETY.*CURRENT_BOT_SAFETY/);
-  console.log('Overview/detail checks passed, including safety coverage, field and scope Unknowns, selection isolation, empty states and recovery. Simulated DOM only.');
+  await login('pages-populated'); ctx.inspectBot('fixture-bot');
+  const pageCount = () => get('assignment-count').textContent;
+  const pageRows = () => get('assignment-history').textContent;
+  const previous = get('assignment-prev'), next = get('assignment-next');
+  assert.match(pageCount(), /Page 1 of 3.*Showing 1–10 of 23 loaded/);
+  assert.equal(get('assignment-history').children.length, 10);
+  assert.match(pageRows(), /Synthetic model 01.*Synthetic model 10/);
+  assert.doesNotMatch(pageRows(), /Synthetic model 11|OTHER_BOT/);
+  assert.equal(previous.attributes['aria-disabled'], 'true');
+  assert.equal(next.attributes['aria-disabled'], 'false');
+  const beforePaging = fetchCount;
+  next.focus(); next.listeners.click();
+  assert.equal(ctx.document.activeElement, next);
+  assert.match(pageCount(), /Page 2 of 3.*Showing 11–20/);
+  assert.doesNotMatch(pageRows(), /Synthetic model 01|Synthetic model 21/);
+  next.listeners.click();
+  assert.match(pageCount(), /Page 3 of 3.*Showing 21–23/);
+  assert.equal(get('assignment-history').children.length, 3);
+  assert.equal(next.attributes['aria-disabled'], 'true');
+  next.listeners.click(); assert.match(pageCount(), /Page 3 of 3/);
+  assert.equal(ctx.document.activeElement, next);
+  previous.focus(); previous.listeners.click(); assert.match(pageCount(), /Page 2 of 3/);
+  assert.equal(ctx.document.activeElement, previous);
+  previous.listeners.click(); previous.listeners.click(); assert.match(pageCount(), /Page 1 of 3/);
+  assert.equal(fetchCount, beforePaging);
+  // Native buttons use browser Enter/Space activation. No custom key trap or
+  // positive tabindex: verify the shipped order/associations, not native keys.
+  const ids = Object.keys(template);
+  assert.ok(ids.indexOf('assignment-count') < ids.indexOf('assignment-prev'));
+  assert.ok(ids.indexOf('assignment-prev') < ids.indexOf('assignment-next'));
+  assert.ok(ids.indexOf('assignment-next') < ids.indexOf('assignment-history'));
+  for (const id of ['assignment-prev', 'assignment-next']) {
+    assert.equal(template[id].attrs.type, 'button');
+    assert.equal(template[id].attrs['aria-controls'], 'assignment-history');
+    assert.equal(template[id].attrs['aria-describedby'], 'assignment-count');
+    assert.equal(template[id].attrs.tabindex, undefined);
+    assert.equal(get(id).listeners.keydown, undefined);
+  }
+  next.listeners.click(); next.listeners.click();
+  await get('refresh').listeners.click(); assert.match(pageCount(), /Page 3 of 3/);
+  outcome = '503'; await get('refresh').listeners.click();
+  assert.match(pageCount(), /Page 3 of 3/); assert.match(get('hub-banner').textContent, /Refresh failed/);
+  outcome = 'pages-shrink'; await get('refresh').listeners.click();
+  assert.match(pageCount(), /Page 1 of 1.*of 5 loaded/);
+  for (const mode of ['empty', 'unavailable', 'partial']) {
+    outcome = 'pages-' + mode; await get('refresh').listeners.click();
+    assert.equal(get('workspace').hidden, false);
+    assert.match(pageCount(), mode === 'empty' ? /0 loaded/ : mode === 'unavailable' ? /count unknown/ : /Page 1 of 1/);
+    assert.equal(previous.attributes['aria-disabled'], 'true');
+    assert.equal(next.attributes['aria-disabled'], 'true');
+    const countBefore = pageCount(), requestsBefore = fetchCount;
+    next.listeners.click(); previous.listeners.click();
+    assert.equal(pageCount(), countBefore); assert.equal(fetchCount, requestsBefore);
+  }
+  assert.match(pageRows(), /Partial synthetic assignment.*Effective: Unknown/);
+  outcome = 'pages-populated'; await get('refresh').listeners.click();
+  next.listeners.click(); assert.match(pageCount(), /Page 2 of 3/);
+  ctx.inspectBot('other-bot'); assert.match(pageCount(), /no longer in the loaded roster/);
+  ctx.inspectBot('fixture-bot'); assert.match(pageCount(), /Page 1 of 3/);
+  next.listeners.click(); get('clear-bot').listeners.click();
+  assert.match(pageCount(), /Select a bot/);
+  ctx.inspectBot('fixture-bot'); assert.match(pageCount(), /Page 1 of 3/);
+  outcome = 'pages-orphan'; await get('refresh').listeners.click();
+  assert.match(pageCount(), /no longer in the loaded roster/);
+  assert.equal(next.attributes['aria-disabled'], 'true');
+  await login('pages-populated'); ctx.inspectBot('fixture-bot');
+  assert.match(pageCount(), /Page 1 of 3/);
+  console.log('Overview/detail checks passed, including local assignment paging, scope/counts, boundary activation, stable controls, empty/error states and recovery. Native keyboard execution remains unverified. Simulated DOM only.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

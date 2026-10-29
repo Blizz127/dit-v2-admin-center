@@ -10,6 +10,10 @@ let healthVersion = 0;
 let interactionVersion = 0;
 let sessionVersion = 0;
 let selectedBotId = null;
+let assignmentBotId = null;
+let assignmentPage = 0;
+let assignmentPages = 0;
+const assignmentPageSize = 10;
 let correlationFilter = '';
 let bridgePending = false;
 let selectedLearningId = null;
@@ -21,6 +25,8 @@ function resetPanelSession() {
   sessionVersion++;
   currentSnapshot = null; loadedSource = null;
   selectedBotId = null; selectedLearningId = null;
+  assignmentBotId = null; assignmentPage = 0; assignmentPages = 0;
+  assignmentNavigation('Select a bot to view loaded assignment examples.');
   for (const [id, prompt] of [['bot-inspector', 'Select a bot to inspect.'],
                              ['learning-inspector', 'Select a learning need for details.']]) {
     const panel = document.getElementById(id);
@@ -455,17 +461,36 @@ function renderAudit() {
   rows.forEach(a => item(panel, `${routingText(a.action, 'Action unknown')} · ${routingText(a.scope, 'Scope unknown')}`,
     routingText(a.result), `${routingText(a.actor, 'Actor unknown')} · ${routingText(a.at, 'unknown time')} · ${routingText(a.source, 'Source unknown')}`));
 }
+function assignmentNavigation(message) {
+  document.querySelector('#assignment-count').textContent = message;
+  document.querySelector('#assignment-prev').setAttribute('aria-disabled', String(assignmentPage <= 0 || assignmentPages === 0));
+  document.querySelector('#assignment-next').setAttribute('aria-disabled', String(assignmentPage + 1 >= assignmentPages));
+}
+function changeAssignmentPage(delta) {
+  const next = assignmentPage + delta;
+  if (!currentSnapshot || next < 0 || next >= assignmentPages) return;
+  assignmentPage = next;
+  renderAssignments();
+}
 function renderAssignments() {
   const panel = document.querySelector('#assignment-history');
   panel.replaceChildren();
-  if (!selectedBotId) { item(panel, 'No bot selected', 'Select a bot to view synthetic assignment examples.', 'Real assignment history is unavailable.'); return; }
+  if (assignmentBotId !== selectedBotId) { assignmentPage = 0; assignmentBotId = selectedBotId; }
+  assignmentPages = 0;
+  assignmentNavigation('Assignment example count unknown.');
+  if (!selectedBotId) { assignmentPage = 0; assignmentNavigation('Select a bot to view loaded assignment examples.'); item(panel, 'No bot selected', 'Select a bot to view synthetic assignment examples.', 'Real assignment history is unavailable.'); return; }
   const bot = currentSnapshot.bots.find(b => b.id === selectedBotId);
   if (!Array.isArray(currentSnapshot.assignmentHistory) || currentSnapshot.assignmentHistory.some(a => !a || typeof a !== 'object' || Array.isArray(a))) {
+    assignmentPage = 0; assignmentNavigation('Assignment example count unknown.');
     item(panel, 'Assignment example coverage unknown', 'No usable assignment example list was supplied.', 'Real assignment history is unavailable; no model changes are applied.'); return;
   }
   const rows = currentSnapshot.assignmentHistory.filter(a => a.botId === selectedBotId);
-  if (!bot || !rows.length) { item(panel, 'No matching examples', 'No synthetic assignment history is available for this bot.', 'This does not prove no real assignment exists.'); return; }
-  rows.forEach(a => item(panel, `${bot.name} · ${routingText(a.purpose)}`, `Requested: ${routingText(a.requested)} · Effective: ${routingText(a.effective)}`, `Version: ${routingText(a.version)} · Recorded: ${routingText(a.at, 'unknown')} · ${routingText(a.source)}`));
+  if (!bot || !rows.length) { assignmentPage = 0; assignmentNavigation(bot ? '0 loaded assignment examples for this bot.' : 'Selected bot is no longer in the loaded roster.'); item(panel, 'No matching examples', 'No synthetic assignment history is available for this bot.', 'This does not prove no real assignment exists.'); return; }
+  assignmentPages = Math.ceil(rows.length / assignmentPageSize);
+  assignmentPage = Math.min(assignmentPage, assignmentPages - 1);
+  const start = assignmentPage * assignmentPageSize;
+  assignmentNavigation(`Page ${assignmentPage + 1} of ${assignmentPages} · Showing ${start + 1}–${Math.min(start + assignmentPageSize, rows.length)} of ${rows.length} loaded examples. Not a complete live history.`);
+  rows.slice(start, start + assignmentPageSize).forEach(a => item(panel, `${bot.name} · ${routingText(a.purpose)}`, `Requested: ${routingText(a.requested)} · Effective: ${routingText(a.effective)}`, `Version: ${routingText(a.version)} · Recorded: ${routingText(a.at, 'unknown')} · ${routingText(a.source)}`));
 }
 function rosterDetails(bot) {
   return `Status: ${routingText(bot.status)} · Character: ${routingText(bot.character)} · Level: ${routingText(bot.level)} · Body kind: ${routingText(bot.bodyKind)}`;
@@ -676,6 +701,8 @@ async function load() {
 }
 form.addEventListener('submit', e => { e.preventDefault(); resetPanelSession(); token = document.querySelector('#token').value; document.querySelector('#token').value = ''; load(); });
 document.querySelector('#refresh').addEventListener('click', load);
+document.querySelector('#assignment-prev').addEventListener('click', () => changeAssignmentPage(-1));
+document.querySelector('#assignment-next').addEventListener('click', () => changeAssignmentPage(1));
 document.querySelector('#audit-search').addEventListener('input', () => { if (currentSnapshot) renderAudit(); });
 document.querySelector('#audit-reset').addEventListener('click', () => {
   document.querySelector('#audit-search').value = '';
