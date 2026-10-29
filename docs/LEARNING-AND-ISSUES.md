@@ -136,6 +136,14 @@ can still be reconciled offline without changing those holds.
 
 ### Partial telemetry follow-up — 2026-10-29
 
+The same focused overview check subsequently reproduced missing/malformed
+`hubFeeds` closing the workspace. Feed rendering now keeps valid supplied rows,
+shows Unknown coverage for missing or incomplete metadata, and suppresses the
+all-available banner when any row is malformed or lacks game/view/status.
+The FFXI feed card retains its coverage warning even when one valid FFXI row
+exists. Missing, mixed, empty and recovery cases passed offline; no upstream
+request or current availability was verified.
+
 `d17a31d` and `003e044` fix two reproduced overview failures: absent model-call
 lists and absent spend summaries previously threw during rendering and closed
 the workspace. Each panel now handles missing data locally. Mixed model rows

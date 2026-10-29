@@ -665,18 +665,23 @@ async function load() {
     } else item(document.querySelector('#ffxi-focus'), 'FFXI readiness unknown',
       'No readiness summary was supplied in this snapshot.', 'Confirm readiness with the owning lead; feed availability does not establish game behavior.');
     renderOwnerAttention(data.ownerAttention);
-    const feeds = data.hubFeeds;
+    const supplied = data.hubFeeds;
+    const feeds = Array.isArray(supplied) ? supplied.filter(f => f && typeof f === 'object' && !Array.isArray(f)) : [];
+    const incomplete = !Array.isArray(supplied) || feeds.length !== supplied.length
+      || feeds.some(f => ['game', 'view', 'status'].some(key => typeof f[key] !== 'string' || !f[key].trim()));
     const banner = document.querySelector('#hub-banner');
-    if (feeds.some(f => f.status === 'Not configured')) banner.textContent = 'Hub not configured. Bot and learning views use synthetic fallback.';
+    if (incomplete) banner.textContent = 'Hub coverage unknown or incomplete. Check source labels for the supplied rows.';
+    else if (feeds.some(f => f.status === 'Not configured')) banner.textContent = 'Hub not configured. Bot and learning views use synthetic fallback.';
     else if (feeds.some(f => f.status === 'Mock selected')) banner.textContent = 'Synthetic examples selected. No hub read was attempted.';
     else if (feeds.some(f => f.status === 'Invalid configuration')) banner.textContent = 'Hub configuration invalid. Bot and learning views use synthetic fallback.';
     else if (feeds.some(f => f.status === 'Unavailable')) banner.textContent = 'Hub data is partially or fully unavailable. Check each feed for synthetic fallback.';
     else if (feeds.length && feeds.every(f => f.status === 'Live response')) banner.textContent = 'Hub reads available. Coverage and deployed revision remain unverified.';
     else banner.textContent = 'Hub status unknown. Check source labels for each view.';
-    data.hubFeeds.forEach(f => item(document.querySelector('#hub-feeds'), `${f.game} · ${f.view}`, f.status, `${f.note} · Fetched: ${f.at || 'unknown'}`));
-    const ffxiFeeds = data.hubFeeds.filter(f => f.game === 'FFXI' || f.game === 'All');
-    if (!ffxiFeeds.length) item(document.querySelector('#ffxi-feeds'), 'FFXI feed coverage', 'Unknown', 'No FFXI feed status in this snapshot');
-    ffxiFeeds.forEach(f => item(document.querySelector('#ffxi-feeds'), `${f.game} · ${f.view}`, f.status, `${f.note} · Fetched: ${f.at || 'unknown'} · Not proof of game presence or delivery`));
+    feeds.forEach(f => item(document.querySelector('#hub-feeds'), `${routingText(f.game)} · ${routingText(f.view)}`, routingText(f.status), `${routingText(f.note)} · Fetched: ${routingText(f.at)}`));
+    if (incomplete || !feeds.length) item(document.querySelector('#hub-feeds'), 'Feed coverage', 'Unknown', 'Missing or incomplete feed metadata does not establish availability.');
+    const ffxiFeeds = feeds.filter(f => f.game === 'FFXI' || f.game === 'All');
+    if (incomplete || !ffxiFeeds.length) item(document.querySelector('#ffxi-feeds'), 'FFXI feed coverage', 'Unknown', 'Missing or incomplete feed metadata; supplied rows do not establish complete FFXI coverage');
+    ffxiFeeds.forEach(f => item(document.querySelector('#ffxi-feeds'), `${routingText(f.game)} · ${routingText(f.view)}`, routingText(f.status), `${routingText(f.note)} · Fetched: ${routingText(f.at)} · Not proof of game presence or delivery`));
     renderBotCoverage();
     renderBots();
     if (selectedBotId !== null) inspectBot(selectedBotId);

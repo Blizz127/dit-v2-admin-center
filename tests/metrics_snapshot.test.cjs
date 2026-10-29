@@ -63,5 +63,21 @@ async function refresh(changes){
   await refresh({spendExample:{month:'Recovered month',settledUsd:1.25,reservedOpenUsd:2,budgetUsd:10,source:'Synthetic'}});
   assert.match(get('spend-example').textContent,/Recovered month.*\$1.25.*\$2.00.*\$10.00/);
   assert.doesNotMatch(get('spend-example').textContent,/Synthetic month/);
-  console.log('PASS: model telemetry missing/mixed/invalid/zero/recovery states via offline overview refresh. Simulated DOM only.');
+  for(const hubFeeds of [undefined,null,{},[null,[]],[]]) {
+    await refresh({hubFeeds});
+    assert.match(get('hub-banner').textContent,/unknown/i);
+    assert.match(get('ffxi-feeds').textContent,/Unknown/);
+  }
+  const live={game:'FFXI',view:'roster',status:'Live response',note:'Synthetic reported status',at:'fixture-time'};
+  await refresh({hubFeeds:[live,null]});
+  assert.match(get('hub-banner').textContent,/incomplete/i);
+  assert.doesNotMatch(get('hub-banner').textContent,/Hub reads available/);
+  assert.match(get('hub-feeds').textContent,/FFXI.*Live response/);
+  assert.match(get('ffxi-feeds').textContent,/coverage.*Unknown/i);
+  await refresh({hubFeeds:[{}]});
+  assert.doesNotMatch(get('hub-feeds').textContent,/undefined|\[object Object\]/);
+  await refresh({hubFeeds:[live]});
+  assert.match(get('hub-banner').textContent,/Hub reads available/);
+  assert.doesNotMatch(get('hub-feeds').textContent,/incomplete/i);
+  console.log('PASS: partial model/spend/feed metadata, zero values and recovery via offline overview refresh. Simulated DOM only.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
