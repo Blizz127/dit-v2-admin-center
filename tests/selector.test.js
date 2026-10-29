@@ -90,7 +90,10 @@ setImmediate(async () => {
   assert.match(routing[1].textContent, /Freshness: Unknown/);
   assert.ok(otherPanel.children.filter(child => child.tag === 'label').every(label => label.children[0].disabled));
   assert.match(routing[2].textContent, /does not provide an implemented per-bot routing policy/);
+  routingPanel.open = true;
   row.children.find(child => child.tag === 'button').listeners.click();
+  assert.equal(get('bots').children[0], row);
+  assert.equal(routingPanel.open, true);
   assert.equal(get('safety-records').children.length, 2);
   assert.match(get('safety-records').children[1].children[2].textContent, /Actual state unknown/);
   const reply = get('reply-source').children[0];
@@ -128,6 +131,8 @@ setImmediate(async () => {
   assert.match(get('ledger').children[0].children[0].textContent, /Observe/);
   get('trace-clear').listeners.click();
   get('clear-bot').listeners.click();
+  assert.equal(get('bots').children[0], row);
+  assert.equal(routingPanel.open, true);
   assert.equal(get('bot-inspector').textContent, 'No bot selected.');
   assert.equal(get('assignment-history').children[0].children[0].textContent, 'No bot selected');
   assert.equal(get('reply-source').children[0].children[0].textContent, 'No bot selected');
