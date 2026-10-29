@@ -134,6 +134,13 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+Audit metadata follow-up (`6aa8dfc`) distinguishes absent/null/malformed lists
+from valid empty lists, keeping count and coverage Unknown locally. Incomplete
+row fields render explicit unknown values. The focused UI check passes for
+prior-row clearing, other-panel availability, local search/reset and recovery.
+Malformed collections do not display a valid prefix as complete. No live audit
+data or browser runtime was accessed, and no audit actions are created.
+
 Decision-summary follow-up (`8a73941`) fixes an optional-summary failure that
 previously closed the workspace. Missing/null/malformed lists now show Unknown
 coverage locally; valid empty lists retain the incomplete-inventory warning.

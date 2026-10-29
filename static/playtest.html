@@ -22,6 +22,7 @@
 </ol>
 </section>
 <section class="panel guide-followup" id="selection-refresh"><h2>Selections and filters after refresh</h2>
+<p>If audit example metadata is missing or unusable, the card should show an Unknown count rather than zero, and other panels should remain available. A valid empty list shows 0 loaded examples. Missing actor, scope, result, time or source fields stay Unknown; search and reset do not fetch data.</p>
 <p>Needs Blizz now shows Unknown coverage if decision-summary metadata is missing or unusable, while the rest of the workspace stays available. This differs from a valid empty list. Neither state proves that no decisions are pending, and missing dates remain unknown.</p>
 <p>FFXI readiness now says Unknown when a snapshot supplies no summary. Partial summaries show Unknown for missing details, and a later missing summary replaces old text. Check the source note and confirm readiness with the owning lead; a feed response or bridge observation does not prove playable behavior. No readiness toggle is added.</p>
 <p>New: search audit examples by actor, action, scope or result. Try a case-insensitive term, then a term with no match; the count should reflect only loaded examples and the empty view must not claim no real actions occurred. Clear audit filter restores all loaded examples. The filter survives Refresh and makes no request itself.</p>

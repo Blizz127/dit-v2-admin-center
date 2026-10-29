@@ -235,6 +235,12 @@ empty list; incomplete fields show unknown values. The overview UI check covers
 prior-row clearing, other-panel availability and later recovery. This changes
 display only and neither records nor grants an approval.
 
+The audit card likewise distinguishes unavailable metadata (Unknown count) from
+a valid empty list (0 loaded examples). Missing row fields remain Unknown.
+Search/reset stay local and usable while the list is unavailable; a later valid
+snapshot replaces the coverage warning. The focused overview check covers this
+without accessing an audit ledger or a browser runtime.
+
 To check timeout/partial-feed recovery through the reader, cache and merge:
 
 ```sh
