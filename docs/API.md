@@ -173,6 +173,17 @@ no-request synthetic preview and source-change clearing. Raw requester data and
 private error canaries are omitted. These checks do not establish native roster
 identity, outcome delivery, a deployed revision or real-browser behavior.
 
+## Connected service-health fixture coverage
+
+The browser-free integration command also drives `/api/hub-health` through the
+real handler and `project_hub_health`, injecting only the cache lookup. It checks
+FFXI/SWTOR scope, unsupported state -> Unknown, timestamps, empty coverage,
+401 before lookup, malformed payload (502), failed/missing configuration (503),
+recovery and source reset. Each denial/failure replaces previously displayed
+service records. Private log/environment canaries and other-game records are
+omitted. Mock-source refresh makes no request. These are synthetic fixture
+results, not service observations, cache-timing tests or browser-engine results.
+
 ## Client asynchronous response audit (2026-10-29)
 
 

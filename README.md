@@ -187,6 +187,13 @@ check does not exercise cache timing or HTTP transport. It also covers
 panel on source change. Existing offline contract tests cover reader/cache
 behavior separately. No live endpoint is contacted by either test path.
 
+Service-health scenarios use the actual projection with an injected cache lookup:
+FFXI/SWTOR filtering, unknown service states, empty results, 401 before lookup,
+502/503 errors, recovery and source-change clearing. Every error replaces prior
+service data with Unknown. Synthetic private log/environment fields are omitted;
+service health is never promoted to bot presence. No service inspection or real
+cache timing is exercised by this path.
+
 This uses a deliberately limited simulated DOM, not jsdom or a browser engine.
 It verifies data flow and event-handler behavior, not HTML layout, CSS, browser
 security or deployed collectors. It passed locally without a listener or any
