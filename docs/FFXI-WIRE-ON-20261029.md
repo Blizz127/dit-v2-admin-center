@@ -11,6 +11,15 @@ fishing r2 map/game-server change. Admin Center is neither writer. It supplies
 handoff information through the coordinator and continues offline work; it
 does not install or restart anything live for this step.
 
+Explicit done-or-blocker note for claude-ffxi (sent through the coordinator in
+reply to `88cd5d8f9c3788ee`): **Admin Center's evidence handoff is done.** This
+lane has no live writer, install/restart in progress, lock or additional hold on
+the staged game install. This does **not** mean the bridge restart is done. The
+sole DIT bridge integrator's current done-or-blocker receipt is the authoritative
+dependency; neither this note nor the historical active-unit observation
+bypasses that dependency, player protection or rollback requirements. The relay
+was queued; recipient delivery has not been confirmed to this thread.
+
 Before any live change, the owning integrator must freshly verify that
 CrazyAsian is offline and retain a backup/rollback point. If online, wait and
 retry. Unknown player state is not an offline check. Preserve checklist-specific

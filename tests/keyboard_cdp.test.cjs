@@ -39,5 +39,23 @@ function fake() {
   const malformed = fake(); const request = malformed.send('Page.enable');
   malformed.child.stdio[4].emit('data', 'PRIVATE_NOT_JSON\0');
   await assert.rejects(request, /Browser pipe closed/);
+  for (const payload of ['null', '[]', 'false', '12', '"PRIVATE_SCALAR"']) {
+    const invalid = fake();
+    const waiting = invalid.send('Page.enable');
+    invalid.child.stdio[4].emit('data', payload + '\0');
+    await assert.rejects(waiting, error => error.message === 'Browser pipe closed');
+    const writes = invalid.writes.length;
+    await assert.rejects(invalid.send('Page.navigate'), /Browser pipe closed/);
+    assert.equal(invalid.writes.length, writes, 'Closed connection cannot accept new writes');
+  }
+  for (const event of ['end', 'close']) {
+    const ended = fake(); const waiting = ended.send('Page.enable');
+    ended.child.stdio[4].emit(event);
+    await assert.rejects(waiting, /Browser pipe closed/);
+    await assert.rejects(ended.send('Page.enable'), /Browser pipe closed/);
+  }
+  const writeFailure = fake();
+  writeFailure.child.stdio[3].write = () => { throw Error('PRIVATE_PIPE_ERROR'); };
+  await assert.rejects(writeFailure.send('Page.enable'), error => error.message === 'Browser pipe closed');
   console.log('CDP key/pipe contracts passed with fake pipes. Native keyboard execution NOT performed.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

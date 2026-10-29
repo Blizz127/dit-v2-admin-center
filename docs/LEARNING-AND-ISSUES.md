@@ -134,6 +134,13 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+Keyboard-runner pipe follow-up: non-object JSON replies now close the protocol
+connection through its redacted failure path rather than throwing in the stream
+callback. EOF, pipe closure and synchronous write failures reject outstanding
+commands, clear timers and reject future commands without writing. Focused fake-
+pipe checks passed for null/array/scalar replies, EOF/close and write exceptions.
+No browser was started; native input execution remains blocked on Chromium.
+
 Native-input runner follow-up (`1d41f1a`) uses installed Chromium's anonymous
 debugging pipes and `Input.dispatchKeyEvent`, not synthetic DOM events or click
 substitution. It focuses Start initially, then requires native Enter start,

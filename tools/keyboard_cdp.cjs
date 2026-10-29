@@ -14,13 +14,19 @@ function keyEvents(key, shift = false) {
 }
 
 function connection(child) {
-  let nextId = 0, buffer = '';
+  let nextId = 0, buffer = '', closed = false;
   const pending = new Map();
-  const fail = () => { for (const item of pending.values()) { clearTimeout(item.timer); item.reject(Error('Browser pipe closed')); } pending.clear(); };
+  const fail = () => {
+    closed = true; buffer = '';
+    for (const item of pending.values()) { clearTimeout(item.timer); item.reject(Error('Browser pipe closed')); }
+    pending.clear();
+  };
   child.on('error', fail); child.on('exit', fail);
   child.stdio[3].on('error', fail); child.stdio[4].on('error', fail);
+  child.stdio[4].on('end', fail); child.stdio[4].on('close', fail);
   child.stdio[4].setEncoding('utf8');
   child.stdio[4].on('data', data => {
+    if (closed) return;
     buffer += data;
     if (buffer.length > 4 * 1024 * 1024) { fail(); child.kill(); return; }
     let end;
@@ -28,6 +34,7 @@ function connection(child) {
       const raw = buffer.slice(0, end); buffer = buffer.slice(end + 1);
       let message;
       try { message = JSON.parse(raw); } catch { fail(); child.kill(); return; }
+      if (!message || typeof message !== 'object' || Array.isArray(message)) { fail(); child.kill(); return; }
       const item = pending.get(message.id);
       if (!item) continue;
       pending.delete(message.id); clearTimeout(item.timer);
@@ -36,10 +43,12 @@ function connection(child) {
     }
   });
   return (method, params = {}, sessionId) => new Promise((resolve, reject) => {
+    if (closed) { reject(Error('Browser pipe closed')); return; }
     const id = ++nextId;
     const timer = setTimeout(() => { pending.delete(id); reject(Error('Browser command timed out')); }, 4000);
     pending.set(id, {resolve, reject, timer});
-    child.stdio[3].write(JSON.stringify({id, method, params, ...(sessionId ? {sessionId} : {})}) + '\0');
+    try { child.stdio[3].write(JSON.stringify({id, method, params, ...(sessionId ? {sessionId} : {})}) + '\0'); }
+    catch { fail(); }
   });
 }
 
