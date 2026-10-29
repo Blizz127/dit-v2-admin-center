@@ -109,6 +109,10 @@ setImmediate(async () => {
   assert.equal(get('issue-selected-bot').checked, true);
   assert.equal(get('issue-scope').value, ''); assert.equal(get('issue-status').value, ''); assert.equal(get('issue-search').value, '');
   assert.equal(get('issues').children[0].children[0].textContent, 'Bot issue');
+  const missingSelected = data.bots.shift(); get('issue-selected-bot').listeners.change();
+  assert.equal(get('issues').children[0].children[0].textContent, 'No matching issues');
+  assert.match(get('issues').children[0].children[1].textContent, /Select a bot in the loaded roster/);
+  data.bots.unshift(missingSelected);
   get('issue-reset').listeners.click();
 
   assert.equal(inspector.children[1].children[1].textContent, 'Example persona');
@@ -130,7 +134,7 @@ setImmediate(async () => {
   assert.equal(get('safety-records').children.length, 1);
   get('issue-selected-bot').checked = true;
   get('issue-selected-bot').listeners.change();
-  assert.equal(get('issues').children[0].children[1].textContent, 'Select a bot to use this filter.');
+  assert.equal(get('issues').children[0].children[1].textContent, 'Select a bot in the loaded roster to use this filter.');
   get('issue-selected-bot').checked = false;
   get('issue-selected-bot').listeners.change();
   row.children.find(child => child.tag === 'button').listeners.click();

@@ -96,11 +96,12 @@ function renderIssues() {
   const scope = document.querySelector('#issue-scope').value;
   const status = document.querySelector('#issue-status').value;
   const selectedOnly = document.querySelector('#issue-selected-bot').checked;
+  const selectedExists = selectedBotId !== null && currentSnapshot.bots.some(b => b.id === selectedBotId);
   const query = (document.querySelector('#issue-search').value || '').trim().toLowerCase();
   panel.replaceChildren();
-  const records = currentSnapshot.issues.filter(i => (!scope || i.scope === scope) && (!status || i.status === status) && (!selectedOnly || (selectedBotId !== null && i.botId === selectedBotId)) && (!query || `${i.title} ${i.detail}`.toLowerCase().includes(query)));
+  const records = currentSnapshot.issues.filter(i => (!scope || i.scope === scope) && (!status || i.status === status) && (!selectedOnly || (selectedExists && i.botId === selectedBotId)) && (!query || `${i.title} ${i.detail}`.toLowerCase().includes(query)));
   document.querySelector('#issue-count').textContent = `Showing ${records.length} of ${currentSnapshot.issues.length} loaded issue records; coverage may be incomplete.`;
-  if (!records.length) item(panel, 'No matching issues', selectedOnly && selectedBotId === null ? 'Select a bot to use this filter.' : 'No matching records in the loaded data.', 'This does not establish a healthy state.');
+  if (!records.length) item(panel, 'No matching issues', selectedOnly && !selectedExists ? 'Select a bot in the loaded roster to use this filter.' : 'No matching records in the loaded data.', 'This does not establish a healthy state.');
   records.forEach(i => {
     item(panel, i.title, i.detail, `${i.scope} · ${i.status} · ${i.source} · ${i.timeLabel || 'Updated'}: ${i.updatedAt || 'unknown'}`);
     if (i.bridgeObservation) {
