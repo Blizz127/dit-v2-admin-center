@@ -170,6 +170,19 @@ Generator checks (not browser execution):
 timeout -k 3 20 python3 -m unittest discover -s tests -p test_inspector_playtest.py -v
 ```
 
+For changes to partial coordinator or status-card handling, focused offline
+checks use the real app with synthetic fetch responses and a minimal DOM:
+
+```sh
+timeout -k 2 15 node tests/coordinator_snapshot.test.cjs
+timeout -k 2 15 node tests/bridge_view.test.js
+```
+
+These cover missing/mixed records, nested histories, numeric bounds, recovery
+and stale bridge response handling. They read no coordinator ledger or service
+status and do not verify native browser appearance. The generated artifact
+contains the updated app; its empty histories now show Unknown coverage.
+
 No local browser runtime was found during this checkpoint, so only generator,
 JavaScript syntax and simulated-DOM checks were run here. A browser PASS in the
 artifact is still needed to establish its real-browser runtime result.

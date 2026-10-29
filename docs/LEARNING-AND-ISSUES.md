@@ -134,6 +134,33 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+### Coordinator and bridge partial records — 2026-10-29
+
+`b52937e` keeps both bridge cards readable when a response is partial or has
+wrongly typed fields. Valid supplied strings remain visible; other fields show
+unknown. Non-object responses clear both observations through the unavailable
+path, and a later valid response recovers. The focused bridge simulated-DOM
+check passed, including existing session/visibility, error and stale-response
+guards. No new bridge observation was collected.
+
+`9cedcb7` fixes reproduced workspace failures from absent or malformed lead,
+monitoring, activity, timeline, nudge, session-marker and quota lists. Missing
+or invalid nested event/history arrays also stay local to their cards. Usable
+rows survive with an Unknown coverage notice. Numeric quota is bounded to
+0–100%; reply/heuristic timings require finite nonnegative numbers and preserve
+zero. Heuristic records still do not establish work or causality. `87b792b`
+extends that handling to game settings and overview service summaries, including
+typed XP rates; reported settings remain separate from liveness and freshness.
+
+The focused coordinator snapshot check exercises actual overview refresh with
+synthetic fixtures, including missing/empty/mixed records, malformed nested
+histories, bounds, recovery and timeline filtering. It passed, as did the shared
+metrics snapshot and overview regression checks after the coordinator change.
+Two regression assertions were updated for the previous feed-coverage wording;
+their Unknown/fallback assertions remain. No real coordinator records were read.
+The shared harness is `tests/overview_snapshot_harness.cjs`; these are simulated
+DOM checks, not native browser or current-service verification.
+
 ### Partial telemetry follow-up — 2026-10-29
 
 The same focused overview check subsequently reproduced missing/malformed
