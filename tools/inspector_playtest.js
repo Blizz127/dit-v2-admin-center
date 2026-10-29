@@ -115,6 +115,20 @@ try {
   check(textOf('bot-count').includes('Showing 1 of Unknown') && textOf('bot-inspector').includes('Fixture memory'), 'Partial roster recovers unique selected bot details');
   fixture.bots = originalBots;
   await load();
+  fixture.bots = [...originalBots,
+    {id: 'duplicate-fixture', name: 'Repeated FFXI fixture', game: 'FFXI'},
+    {id: 'duplicate-fixture', name: 'Repeated SWTOR fixture', game: 'SWTOR'},
+    {name: 'Missing ID fixture', game: 'FFXI'}];
+  await load();
+  const identityFilter = document.getElementById('bot-identity');
+  const beforeIdentityFilter = requests.length;
+  identityFilter.value = 'unavailable'; identityFilter.dispatchEvent(new Event('change'));
+  document.getElementById('bot-game').value = 'FFXI'; document.getElementById('bot-game').dispatchEvent(new Event('change'));
+  check(textOf('bot-count').includes('Showing 2 of 4') && [...document.querySelectorAll('#bots button')].every(button => button.disabled), 'Game filter does not make a repeated loaded ID inspectable');
+  document.getElementById('bot-reset').click();
+  check(identityFilter.value === '' && requests.length === beforeIdentityFilter, 'Clear roster filters resets identity triage without requests');
+  fixture.bots = originalBots;
+  await load();
   for (const key of Object.keys(botExamples)) fixture[key] = null;
   await load();
   check(!workspace.hidden && textOf('bot-inspector').includes('Goals and memory'), 'Unavailable detail metadata keeps workspace open');

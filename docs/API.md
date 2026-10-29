@@ -379,3 +379,8 @@ Unknown, while usable rows remain counted. Roster/learning identity counts use
 exact nonblank string IDs across the full collection. A repeated-ID count is a
 count of affected rows, not distinct IDs or confirmed distinct bots. This is a
 presentation summary, not source authentication or completeness verification.
+
+The local roster ID filter checks exact nonblank string IDs against the full
+loaded `bots` collection before game/name filters. “Unique” means only one loaded
+row has that ID; it is not verified native identity. Filtering adds no API request
+or routing operation and cannot make a repeated ID inspectable.

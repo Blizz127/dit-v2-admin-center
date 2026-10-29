@@ -134,6 +134,23 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+### Connected coverage runtime and roster triage — 2026-10-29
+
+`e7129f8` connects projected fixtures to real in-memory handler bytes and then the
+shipped coverage/inspector UI in a template-backed simulated DOM. The focused test
+checks overview navigation, learning evidence inspection, bot detail recovery,
+three unavailable/partial collections and authorization reset. Socket, subprocess
+collector, database and live reader guards remain in the Python adapter. No listener
+or browser is launched; this narrows integration coverage, not native verification.
+
+`8db120c` adds a local roster ID filter for unique versus missing/repeated IDs.
+Uniqueness is checked across the full snapshot, including records hidden by game
+or name filters. Filter changes make no request; refresh retains the choice, while
+Clear roster filters, the FFXI shortcut and session reset clear it. The focused
+filter check and static naming/disabled-control checks passed. The offline artifact
+scripts cross-game duplication and missing identity, then restores its baseline.
+Native browser runtime remains unavailable; the prior isolation denial is unchanged.
+
 ### Loaded data coverage overview — 2026-10-29
 
 A read-only overview summarizes the current roster, learning and metric collections
