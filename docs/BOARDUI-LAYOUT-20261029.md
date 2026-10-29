@@ -84,3 +84,21 @@ SHA `236cd862def35155295d0df707f86649e4a40e228798f6b3a204d329234f79c7`.
 No device GUI input, browser launch, restart, game/save access, new listener or
 access-control change was performed. File delivery is verified; new-version
 native visual/keyboard/download behavior remains for owner review.
+
+## Follow-up: section focus and loaded coverage
+
+Sidebar links now focus their named section while retaining native fragment
+navigation. Destinations use `tabindex="-1"`, so the normal Tab order does not
+gain eight extra stops. Modified/cancelled clicks and hidden-workspace clicks do
+not steal focus. Coverage-card Review buttons focus and scroll to the existing
+loaded list; local filters and source selection remain unchanged.
+
+`tests/workspace_focus.test.cjs`, `tests/data_coverage.test.cjs` and the existing
+card markup checks passed. Coverage already uses the current snapshot; no second
+fixture source was added. Missing/partial collections, zero-valued metrics and
+duplicate IDs retain their existing semantics. These are synthetic handler/DOM
+and static checks, not trusted Tab/Enter input or rendered-width verification.
+Desktop/narrow CSS and naturally wrapping filter bars remain in place; actual
+responsive appearance and native key defaults still require a browser pass.
+The delivered `691f6c5d` file is immutable; these follow-up source changes are not
+silently substituted into that delivery.

@@ -21,6 +21,23 @@ let ledgerBotId = null;
 let bridgePending = false;
 let selectedLearningId = null;
 let token = sessionStorage.getItem('dit-admin-token') || '';
+function focusWorkspaceTarget(id, scroll = true) {
+  const target = document.getElementById(id);
+  if (!target) return;
+  // Programmatic destinations are not additional Tab stops. Native links and
+  // buttons retain their normal Tab/Enter/Space behavior; no key trap is added.
+  target.setAttribute('tabindex', '-1');
+  target.focus?.({preventScroll: true});
+  if (scroll) target.scrollIntoView({behavior: 'auto', block: 'start'});
+}
+const workspaceSections = ['overview', 'roster', 'ffxi', 'learning', 'evidence', 'operations', 'models', 'notes'];
+for (const section of workspaceSections) {
+  document.getElementById('nav-' + section).addEventListener('click', event => {
+    if (workspace.hidden || event.defaultPrevented || event.button > 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    // Let the anchor perform native fragment navigation and history updates.
+    focusWorkspaceTarget('view-' + section, false);
+  });
+}
 function panelSessionCurrent(requestToken, session) {
   return !workspace.hidden && token === requestToken && sessionVersion === session;
 }
@@ -897,7 +914,7 @@ function renderDataCoverage() {
     item(panel, `${label} · ${state}`, detail, 'Loaded snapshot only; these counts do not establish live coverage, freshness or game outcomes. Detail filters remain unchanged.');
     const button = document.createElement('button'); button.type = 'button';
     button.textContent = `Review ${label.toLowerCase()}`;
-    button.addEventListener('click', () => document.getElementById(target).scrollIntoView({behavior: 'smooth', block: 'nearest'}));
+    button.addEventListener('click', () => focusWorkspaceTarget(target));
     panel.lastElementChild.append(button);
   }
 }
