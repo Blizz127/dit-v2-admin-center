@@ -45,6 +45,19 @@
 <section class="workspace-section" id="view-operations" tabindex="-1" aria-labelledby="heading-operations"><div class="section-heading"><div><span class="eyebrow">WORKSPACE / OPERATIONS</span><h2 id="heading-operations">Network & operations</h2><p>Source coverage, services and coordinator observations.</p></div><a class="section-top" href="#main-content" aria-label="Back to workspace top">↑ Top</a></div><div class="grid ">
 <section class="panel wide"><h3>Hub data sources</h3><p class="muted">Live responses are fetched on refresh and may be shared for 15 seconds; fetched timestamps remain visible. Missing or unavailable views use synthetic examples. Deployed revision and coverage are not verified.</p><div id="hub-feeds"></div></section>
 <section class="panel"><h3>Service health</h3><p class="muted">Synthetic service observations appear below. To inspect the configured hub, select hub data and request a read-only health check; it may take several seconds. Service state is not bot health.</p><button id="hub-health-refresh" type="button">Check hub service health</button><div id="hub-health" aria-live="polite">Not requested.</div><div id="service-health"></div></section>
+<section class="panel" id="dit-r2-deployment" aria-labelledby="dit-r2-deployment-heading">
+<h3 id="dit-r2-deployment-heading">DIT FFXI model-only bridge r2</h3>
+<p class="muted">DIT activation receipt <code>9ba4ccb</code>, October 29, 2026 at 22:53:01 UTC (5:53 PM CT). Candidate source: <code>ce66285</code>. Dated owning-lead evidence, not a current poll.</p>
+<p>Reported bridge status: <strong>active/running</strong>; Result success; NRestarts 0; fault marker absent. The model-only flag was verified in the loaded clean-environment launch command. This supersedes the earlier r5 deployment baseline; Admin model controls remain disabled.</p>
+<dl><dt>Diagnostic poll at 22:53:00.474 UTC</dt><dd>Audit errors: 0; offset: 6635353; off: false.</dd><dt>Immediate trace readback</dt><dd>Polls: 1; input rows: 0; hub rows: 0; queue rows: 0.</dd><dt>Retirement counters</dt><dd>Not exercised in the empty window; observed values Unknown. Courtesy, fallback, dispute acknowledgement and linkshell starter counters count method-entry attempts, not proven messages prevented.</dd></dl>
+<p>Post-rollout model generation, queue delivery and native speech remain <strong>unverified</strong>. Native Lua retirement is a separate rollout and was not active at this bridge’s DONE. Current bridge health is Unknown; this card makes no request.</p>
+</section>
+<section class="panel wide" id="stackd-drift" aria-labelledby="stackd-drift-heading">
+<h3 id="stackd-drift-heading">Warning: stackd saved and running game lists differ</h3>
+<p class="notice"><strong>Blind restart unsafe.</strong> The reported runtime has six games, but the persisted list has five. A restart may lose the runtime-only entry.</p>
+<p>Coordinator relay, October 29, 2026 at 6:00 PM CT: saved <code>STACKD_GAMES</code> still ends <code>,ffxi</code>. Runtime: 6; persisted: 5. The complete lists and the differing game identity were not supplied.</p>
+<p>Reconciliation status: <strong>Unknown</strong>. The service owner must compare the exact saved and running lists and verify persistence before restart. No automatic fix, restart or service operation is available here; this is dated evidence, not a live configuration read.</p>
+</section>
 <section class="panel" id="enb-deployment" aria-labelledby="enb-deployment-heading">
 <h3 id="enb-deployment-heading">Earth &amp; Beyond deployment handoff</h3>
 <p class="muted">Coordinator-reported deployment, October 29, 2026 at 5:29 PM CT. Dated handoff, not a live status check or synthetic service reading.</p>

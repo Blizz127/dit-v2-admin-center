@@ -105,6 +105,21 @@ class CardMarkupTests(unittest.TestCase):
             self.assertIn(value, text)
         self.assertFalse(any(n.tag in ('a', 'button', 'input', 'form') for n in panel.descendants()))
 
+    def test_bridge_and_stackd_cards_keep_dated_evidence_limits(self):
+        for identity in ('dit-r2-deployment', 'stackd-drift'):
+            panel = self.by_id[identity]
+            self.assertIn(self.by_id['view-operations'], list(panel.ancestors()))
+            self.assertFalse(any(n.tag in ('a', 'button', 'input', 'form') for n in panel.descendants()))
+        bridge = self.by_id['dit-r2-deployment'].text()
+        for value in ('9ba4ccb', 'ce66285', '22:53:01 UTC', 'Audit errors: 0',
+                      'Polls: 1', 'input rows: 0', 'hub rows: 0', 'queue rows: 0',
+                      'Not exercised', 'values Unknown', 'unverified'):
+            self.assertIn(value, bridge)
+        drift = self.by_id['stackd-drift'].text()
+        for value in ('Blind restart unsafe', 'STACKD_GAMES', ',ffxi',
+                      'Runtime: 6; persisted: 5', 'identity were not supplied', 'Unknown'):
+            self.assertIn(value, drift)
+
     def test_model_and_operational_controls_remain_disabled(self):
         for identity in ('global-model', 'global-model-toggle'):
             node = self.by_id[identity]
