@@ -7,6 +7,7 @@ let sourceLoading = false;
 let requestVersion = 0;
 let traceVersion = 0;
 let healthVersion = 0;
+let interactionVersion = 0;
 let selectedBotId = null;
 let correlationFilter = '';
 let bridgePending = false;
@@ -18,6 +19,53 @@ function item(parent, title, detail, meta) {
   const text = document.createElement('p'); text.textContent = detail;
   const small = document.createElement('small'); small.textContent = meta || '';
   row.append(heading, text, small); parent.append(row);
+}
+function renderInteraction(data, source) {
+  const panel = document.querySelector('#interaction-status');
+  panel.replaceChildren();
+  const flag = value => value === true ? 'On' : value === false ? 'Off' : 'Unknown';
+  item(panel, source, data.coverage, `Fetched: ${data.fetchedAt || 'unknown'} · This view cannot change switches or send orders`);
+  item(panel, 'Reported interaction switches', `Contract: ${flag(data.switches.contract)} · Natural orders: ${flag(data.switches.naturalOrders)} · Self claims: ${flag(data.switches.selfClaims)}`, 'Reported values only; no model-routing or game controls are connected here');
+  item(panel, 'Coverage', `${data.bots.length} returned FFXI actors · Truncated: ${data.truncated === true ? 'Yes' : data.truncated === false ? 'No' : 'Unknown'}`, `Hub freshness threshold: ${data.freshForSeconds == null ? 'unknown' : data.freshForSeconds + ' s'} · Freshness is reported at fetch time and may be stale now`);
+  if (data.switches.contract !== true) {
+    item(panel, 'Current bot state unavailable', data.switches.contract === false ? 'The contract is reported off; no current bot inventory is inferred.' : 'Contract collection state is unknown.', 'An empty view does not establish healthy or absent bots');
+    return;
+  }
+  if (!data.bots.length) item(panel, 'No FFXI actor records returned', 'Coverage is unknown.', 'No outcome or absence is inferred');
+  const freshness = value => value === true ? 'Reported fresh' : value === false ? 'Reported stale' : 'Unknown';
+  data.bots.forEach(b => item(panel, b.actorKey,
+    `Reconciled view: ${freshness(b.fresh)} · Activity: ${b.fresh === true ? b.activity || 'Unknown' : 'Unknown'} · Raw snapshot: ${freshness(b.snapshotFresh)}`,
+    `Scope: ${b.caller} / ${b.serverInstanceId} · Source: ${b.source || 'unknown'} · Snapshot observed: ${b.observedAt || 'unknown'} · Hub-reported snapshot age: ${b.ageSeconds == null ? 'unknown' : b.ageSeconds + ' s'} · No roster identity join or delivery inference`));
+}
+async function loadInteraction() {
+  const id = ++interactionVersion;
+  const panel = document.querySelector('#interaction-status');
+  panel.replaceChildren();
+  if (document.querySelector('#data-source').value !== 'hub' || sourceLoading || loadedSource !== 'hub') {
+    panel.textContent = 'Load the selected hub source successfully before requesting this read-only check. Synthetic preview is available separately.';
+    return;
+  }
+  panel.textContent = 'Checking candidate FFXI interaction view…';
+  try {
+    const response = await fetch('/api/interaction', {headers: {Authorization: `Bearer ${token}`}, cache: 'no-store'});
+    if (!response.ok) throw new Error('unavailable');
+    const data = await response.json();
+    if (id !== interactionVersion) return;
+    renderInteraction(data, 'Hub interaction response · candidate contract, deployed revision unverified');
+  } catch (_) {
+    if (id === interactionVersion) { panel.replaceChildren(); panel.textContent = 'Interaction view unavailable; the hub may be unconfigured or may not implement this candidate endpoint. Switches and bot state remain unknown.'; }
+  }
+}
+function previewInteraction() {
+  interactionVersion++;
+  renderInteraction({switches: {contract: true, naturalOrders: false, selfClaims: false},
+    coverage: 'Synthetic illustration only. No hub read, provider call, switch change or game action.',
+    fetchedAt: null, freshForSeconds: 30, truncated: false, bots: [
+      {actorKey: 'Example current view', caller: 'fixture-adapter', serverInstanceId: 'fixture-server', fresh: true, snapshotFresh: false,
+       activity: 'waiting', source: 'native report', observedAt: '2026-01-01T00:00:00Z', ageSeconds: 45},
+      {actorKey: 'Example stale view', caller: 'fixture-adapter', serverInstanceId: 'fixture-server', fresh: false, snapshotFresh: false,
+       activity: null, source: 'native snapshot', observedAt: '2026-01-01T00:00:00Z', ageSeconds: 45}
+    ]}, 'Synthetic interaction preview · not live');
 }
 async function loadHubHealth() {
   const id = ++healthVersion;
@@ -491,8 +539,10 @@ form.addEventListener('submit', e => { e.preventDefault(); token = document.quer
 document.querySelector('#refresh').addEventListener('click', load);
 document.querySelector('#bridge-refresh').addEventListener('click', loadBridge);
 document.querySelector('#hub-health-refresh').addEventListener('click', loadHubHealth);
+document.querySelector('#interaction-refresh').addEventListener('click', loadInteraction);
+document.querySelector('#interaction-preview').addEventListener('click', previewInteraction);
 if (typeof setInterval === 'function') setInterval(() => { if (document.visibilityState !== 'hidden') loadBridge(); }, 15000);
-document.querySelector('#data-source').addEventListener('change', () => { traceVersion++; healthVersion++; document.querySelector('#hub-trace').replaceChildren(); document.querySelector('#hub-health').textContent = 'Not requested.'; return load(); });
+document.querySelector('#data-source').addEventListener('change', () => { traceVersion++; healthVersion++; interactionVersion++; document.querySelector('#interaction-status').replaceChildren(); document.querySelector('#interaction-status').textContent = 'Not requested.'; document.querySelector('#hub-trace').replaceChildren(); document.querySelector('#hub-health').textContent = 'Not requested.'; return load(); });
 document.querySelector('#quota-window').addEventListener('change', () => { if (currentSnapshot) renderQuotaHistory(); });
 document.querySelector('#timeline-kind').addEventListener('change', () => { if (currentSnapshot) renderLeadTimeline(); });
 document.querySelector('#show-routing').addEventListener('click', () => {

@@ -2,7 +2,7 @@
 
 Status: local presentation contract, draft pending coordination with the DIT v2 lead. Optional live reads use the source-reviewed r10 shapes; actual deployed revision is unverified. These are endpoints of this scaffold, not claims about hub r10 or its ledger. The browser never calls the hub directly. Blizz authorized read-only live hub calls; trusted SSH access has been verified; authenticated reads await the existing plaintext token file location. No live hub call has been made.
 
-All responses are JSON and `Cache-Control: no-store`. Requests to `/api/*` require `Authorization: Bearer <owner token>`; absent or incorrect tokens receive 401. The token must be provided to the process as `ADMIN_TOKEN` and is never included in responses. No mutation endpoints exist. Optional upstream reads are restricted to `/v1/control/bots`, `/v1/control/learning` with `light=true` and `tasksOnly=true`, `/v1/control/server-status`, and explicit `/v1/control/trace` and `/v1/control/health` queries; each game/view has independently labeled synthetic fallback. Read-only overview requests share an in-memory snapshot for up to 15 seconds, retaining original fetch times; token-file metadata changes invalidate it. Unknown API paths return 404. No CORS access is provided.
+All responses are JSON and `Cache-Control: no-store`. Requests to `/api/*` require `Authorization: Bearer <owner token>`; absent or incorrect tokens receive 401. The token must be provided to the process as `ADMIN_TOKEN` and is never included in responses. No mutation endpoints exist. Optional upstream reads are restricted to `/v1/control/bots`, `/v1/control/learning` with `light=true` and `tasksOnly=true`, `/v1/control/server-status`, and explicit `/v1/control/trace`, `/v1/control/health`, and candidate-only `/v1/control/interaction?limit=50` queries; each game/view has independently labeled synthetic fallback. Read-only overview requests share an in-memory snapshot for up to 15 seconds, retaining original fetch times; token-file metadata changes invalidate it. Unknown API paths return 404. No CORS access is provided.
 
 ## GET /api/hub-health
 
@@ -11,6 +11,12 @@ Requires the owner token and configured hub access. On explicit request, reads t
 ## GET /api/trace?gameId=&correlationId=
 
 Requires the owner token and an explicitly configured hub URL and token file. Fetches an allowlisted read-only upstream trace only on explicit request. Accepts FFXI or SWTOR and a bounded identifier. Returns envelope kind, type, occurrence time and outcome classification/disposition/finality when reported; raw envelope bodies are omitted. At r10 the hub scans a bounded recent window and returns at most 250 records, so an empty result does not prove absence or delivery. Hub access is currently unconfigured pending the token-file decision.
+
+## GET /api/interaction
+
+Owner authentication and configured hub access are required. On explicit request only, calls candidate e8c81be `GET /v1/control/interaction?limit=50`, an Admin-only route absent from r10. Source inspected: `InteractionAdminApi.Describe`, `FfxiInteraction.Views`, and `ActionLedger.Describe`; these read in-memory state and ledger copies without dispatch or switching. This does not establish the deployed revision. A 15-second cache preserves the original fetch time. The local route accepts no parameters or writes.
+
+Returns reported `switches` (contract, natural orders, self claims), `freshForSeconds`, `truncated`, FFXI `bots`, `fetchedAt` and coverage. Actor identity retains caller and server-instance scope and is not joined to the roster. Reconciled `fresh` and `snapshotFresh` are distinct; activity is unknown unless contract collection and reconciled freshness are explicitly true. Off or unknown collection yields no current inventory. Raw orders, requesters, receipts, chat and state-counter payloads are omitted. Unknown fields stay unknown. This endpoint has only been tested offline; the UI offers a separately labeled synthetic preview that makes no network request.
 
 ## GET /api/bridge-status
 
