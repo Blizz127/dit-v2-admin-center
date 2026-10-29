@@ -10,6 +10,7 @@
     "beforeVersion": 0,
     "afterVersion": 1,
     "result": "Simulated application",
+    "outcome": "applied",
     "source": "Generated in-memory fixture; not an actual admin audit",
     "changes": [
       {
@@ -36,6 +37,7 @@
     "beforeVersion": 1,
     "afterVersion": 2,
     "result": "Simulated application",
+    "outcome": "applied",
     "source": "Generated in-memory fixture; not an actual admin audit",
     "changes": [
       {
@@ -73,6 +75,7 @@
     "afterVersion": 2,
     "attemptedModel": "fixture-model-one",
     "result": "Simulated rejection: stale version",
+    "outcome": "rejected",
     "source": "Generated rejected-attempt illustration; simulator emits no audit entry for refusals",
     "changes": [
       {

@@ -1,6 +1,6 @@
 // Component behavior in actual app; synthetic snapshots, no DOM library or live reads.
 const assert=require('node:assert/strict');
-const {get,refresh,snapshot}=require('./overview_snapshot_harness.cjs');
+const {get,refresh,snapshot,requestCount}=require('./overview_snapshot_harness.cjs');
 (async()=>{
  await refresh({});
  let text=get('routing-audit').textContent;
@@ -34,5 +34,26 @@ const {get,refresh,snapshot}=require('./overview_snapshot_harness.cjs');
    assert.doesNotMatch(get('routing-audit').textContent,/Requested: .*→/);
  }
  await refresh({});assert.match(get('routing-audit-count').textContent,/Showing 3 of 3/);
+ // Outcome filtering uses the explicit fixture tag, never result-text guessing.
+ const beforeFilter=requestCount();
+ get('routing-audit-outcome').value='rejected';get('routing-audit-outcome').listeners.change();
+ assert.match(get('routing-audit-count').textContent,/Showing 1 of 3/);
+ assert.match(get('routing-audit').textContent,/Simulated rejection.*Version: 2 → 2/);
+ get('routing-audit-scope').value='all';get('routing-audit-scope').listeners.change();
+ assert.match(get('routing-audit-count').textContent,/Showing 0 of 3/);
+ assert.match(get('routing-audit').textContent,/No matching model-switch examples/);
+ get('routing-audit-reset').listeners.click();
+ assert.equal(get('routing-audit-scope').value,'');assert.equal(get('routing-audit-outcome').value,'');
+ assert.match(get('routing-audit-count').textContent,/Showing 3 of 3/);
+ assert.equal(requestCount(),beforeFilter,'Filtering must make no request');
+ get('routing-audit-outcome').value='applied';get('routing-audit-outcome').listeners.change();
+ await refresh({});assert.match(get('routing-audit-count').textContent,/Showing 2 of 3/);
+ const unknown={...snapshot.routingAudit[0],outcome:true,result:'Simulated application'};
+ await refresh({routingAudit:[unknown]});assert.match(get('routing-audit-count').textContent,/Showing 0 of 1/);
+ get('routing-audit-outcome').value='unknown';get('routing-audit-outcome').listeners.change();
+ assert.match(get('routing-audit-count').textContent,/Showing 1 of 1/);
+ await refresh({routingAudit:null});assert.match(get('routing-audit-count').textContent,/Showing 0 of Unknown/);
+ get('routing-audit-reset').listeners.click();await refresh({});
+ assert.match(get('routing-audit-count').textContent,/Showing 3 of 3/);
  console.log('PASS: read-only routing audit scopes, before/after requests, version zero, missing/mixed records, target ambiguity and recovery. Simulated DOM only.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

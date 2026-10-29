@@ -562,7 +562,10 @@ function renderRoutingAudit() {
   const supplied = currentSnapshot.routingAudit;
   const rows = observationRows(supplied, panel);
   const filter = document.querySelector('#routing-audit-scope').value;
-  const selected = rows.filter(row => !filter || row.scopeKind === filter);
+  const outcomeFilter = document.querySelector('#routing-audit-outcome').value;
+  const outcome = row => ['applied', 'rejected'].includes(row.outcome) ? row.outcome : 'unknown';
+  const selected = rows.filter(row => (!filter || row.scopeKind === filter)
+    && (!outcomeFilter || outcome(row) === outcomeFilter));
   const count = Array.isArray(supplied) && supplied.length === rows.length ? rows.length : 'Unknown';
   document.querySelector('#routing-audit-count').textContent = `Showing ${selected.length} of ${count} loaded synthetic events; actual audit coverage is unknown.`;
   if (!selected.length) item(panel, 'No matching model-switch examples', 'No real audit conclusion is available.', 'No model switching is connected.');
@@ -873,6 +876,12 @@ document.querySelector('#assignment-prev').addEventListener('click', () => chang
 document.querySelector('#assignment-next').addEventListener('click', () => changeAssignmentPage(1));
 document.querySelector('#audit-search').addEventListener('input', () => { if (currentSnapshot) renderAudit(); });
 document.querySelector('#routing-audit-scope').addEventListener('change', () => { if (currentSnapshot) renderRoutingAudit(); });
+document.querySelector('#routing-audit-outcome').addEventListener('change', () => { if (currentSnapshot) renderRoutingAudit(); });
+document.querySelector('#routing-audit-reset').addEventListener('click', () => {
+  document.querySelector('#routing-audit-scope').value = '';
+  document.querySelector('#routing-audit-outcome').value = '';
+  if (currentSnapshot) renderRoutingAudit();
+});
 document.querySelector('#audit-reset').addEventListener('click', () => {
   document.querySelector('#audit-search').value = '';
   if (currentSnapshot) renderAudit();

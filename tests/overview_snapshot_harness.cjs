@@ -20,10 +20,12 @@ class Element {
 const elements=new Map(Object.entries(template).map(([id,spec])=>[id,new Element(spec)]));
 const get=id=>{assert.ok(elements.has(id),'Missing template ID '+id);return elements.get(id);};
 let data=snapshot;
+let requestCount=0;
 const storage=new Map();
 const context={document:{querySelector:s=>get(s.slice(1)),getElementById:get,createElement:()=>new Element()},
   sessionStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
   fetch:async(path, options)=>{
+    requestCount++;
     assert.equal(options.method||'GET','GET');
     if(path==='/api/bridge-status')return {ok:true,json:async()=>({unit:'Unknown',source:'Synthetic'})};
     assert.equal(path,'/api/overview?source=mock');return {ok:true,json:async()=>data};
@@ -37,4 +39,4 @@ async function refresh(changes){
   return get('model-calls').textContent;
 }
 
-module.exports = {get, refresh, snapshot, context};
+module.exports = {get, refresh, snapshot, context, requestCount:()=>requestCount};

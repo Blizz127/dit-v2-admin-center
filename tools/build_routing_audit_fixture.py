@@ -28,6 +28,7 @@ def examples():
                          attemptedModel=event['changes'][0][2],
                          beforeVersion=event['version']-1, afterVersion=event['version'],
                          result='Simulated application',
+                         outcome='applied',
                          source='Generated in-memory fixture; not an actual admin audit',
                          changes=[dict(scope=asdict(key), beforeRequested=before,
                                        afterRequested=after, effective=None)
@@ -45,6 +46,7 @@ def examples():
                      reason='Stale version illustration', at='2026-01-01T12:02:00Z',
                      expectedVersion=1, beforeVersion=2, afterVersion=2,
                      attemptedModel='fixture-model-one', result='Simulated rejection: stale version',
+                     outcome='rejected',
                      source='Generated rejected-attempt illustration; simulator emits no audit entry for refusals',
                      changes=[dict(scope=asdict(a), beforeRequested=before['policies'][a],
                                    afterRequested=before['policies'][a], effective=None)]))
