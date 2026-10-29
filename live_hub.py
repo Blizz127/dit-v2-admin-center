@@ -81,7 +81,7 @@ class HubReader:
                 raise HubResponseTooLarge('Hub response exceeded limit')
             result = json.loads(raw)
             return result, datetime.now(timezone.utc).isoformat()
-        except (OSError, ValueError, urllib.error.URLError) as error:
+        except (OSError, ValueError, RecursionError, urllib.error.URLError):
             # Do not include paths, headers, response bodies, or credentials in errors.
             raise HubReadError('Hub read unavailable') from None
 
