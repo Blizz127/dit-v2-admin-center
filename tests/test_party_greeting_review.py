@@ -66,3 +66,24 @@ class PartyGreetingReviewTests(unittest.TestCase):
             self.assertEqual(review(self.data)['queuedReply'], 'Unknown')
         for data in (None, {}, [], 'invalid'):
             self.assertEqual(review(data)['nativeSpeech'], 'Unknown')
+
+    def test_multiple_or_mixed_reports_require_review_without_overriding_speech(self):
+        original = self.data['queuedReplies'][0]
+        positive = copy.deepcopy(original)
+        negative = {**original, 'enqueued': False}
+        self.data['ownerSpeech'] = self.speech()
+        for rows in ([positive, negative], [negative, positive]):
+            self.data['queuedReplies'] = rows
+            result = review(self.data)
+            self.assertIn('Mixed enqueue claims', result['queueReview'])
+            self.assertIn('matching new queue', result['queuedReply'])
+            self.assertIn('Owner-reported', result['nativeSpeech'])
+            self.assertEqual(result['modelOrigin'], 'Unknown')
+        self.data['queuedReplies'] = [positive, positive]
+        self.assertIn('distinct replies are not established', review(self.data)['queueReview'])
+        self.data['queuedReplies'] = [negative]
+        result = review(self.data)
+        self.assertEqual(result['queuedReply'], 'Unknown')
+        self.assertIn('do not prove no reply occurred', result['queueReview'])
+        self.data['queuedReplies'] = [positive, {**negative, 'correlationId': 'other'}]
+        self.assertIn('One positive report', review(self.data)['queueReview'])

@@ -20,7 +20,7 @@ def timestamp(value):
 
 
 def review(data):
-    result = dict(eligibility='Unknown', greeting='Unknown', queuedReply='Unknown',
+    result = dict(eligibility='Unknown', greeting='Unknown', queuedReply='Unknown', queueReview='Unknown',
                   nativeSpeech='Unknown', modelOrigin='Unknown',
                   coverage='Supplied metadata only; not authenticated or independently observed. No live data read.',
                   nextStep='Review missing evidence with the DIT lead; do not replay chat or restart automatically.')
@@ -59,11 +59,19 @@ def review(data):
 
     queue = data.get('queuedReplies')
     if isinstance(queue, list):
+        positive = negative = 0
         for row in queue:
             at = timestamp(row.get('observedAt')) if isinstance(row, dict) else None
-            if matching(row) and row.get('enqueued') is True and at and sent <= at <= through:
-                result['queuedReply'] = 'Reported matching new queue entry; not native speech'
-                break
+            if matching(row) and at and sent <= at <= through:
+                positive += row.get('enqueued') is True
+                negative += row.get('enqueued') is False
+        if positive:
+            result['queuedReply'] = 'Reported matching new queue entry; not native speech'
+            result['queueReview'] = ('Multiple positive reports; distinct replies are not established'
+                                     if positive > 1 else 'One positive report; complete queue coverage is not established')
+        if negative:
+            result['queueReview'] = ('Mixed enqueue claims; review chronology and record identity before concluding an outcome'
+                                     if positive else 'Non-enqueue reports only; these do not prove no reply occurred')
     speech = data.get('ownerSpeech')
     if matching(speech):
         heard, reported = timestamp(speech.get('heardAt')), timestamp(speech.get('reportedAt'))
@@ -75,6 +83,21 @@ def review(data):
     return result
 
 
+def decode_metadata(raw):
+    def object_fields(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError('ambiguous metadata')
+            result[key] = value
+        return result
+
+    def invalid_constant(_):
+        raise ValueError('invalid metadata number')
+
+    return json.loads(raw, object_pairs_hook=object_fields, parse_constant=invalid_constant)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('metadata', type=Path, help='Explicit local redacted review JSON; no live collection')
@@ -84,7 +107,7 @@ def main():
             raw = source.read(65537)
         if len(raw) > 65536:
             raise ValueError('oversized')
-        data = json.loads(raw)
+        data = decode_metadata(raw)
     except (OSError, ValueError, RecursionError):
         parser.exit(2, 'Unavailable or invalid review metadata; no evidence assessed.\n')
     print(json.dumps(review(data), indent=2))
