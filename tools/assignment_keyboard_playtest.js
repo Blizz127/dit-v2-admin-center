@@ -44,6 +44,11 @@ function installAssignmentKeyboardCheck({document, prepare, page, requests, sche
   });
   document.addEventListener('keydown', event => {
     if (!running || !event.isTrusted || event.repeat || ['Shift', 'Control', 'Alt', 'Meta'].includes(event.key)) return;
+    if (event.key === 'Escape' && !event.ctrlKey && !event.altKey && !event.metaKey) {
+      running = false; pending = null; state('cancelled'); start.focus();
+      status.textContent = 'CANCELLED — keyboard check stopped. Focus returned to Start; assignment data is unchanged.';
+      return;
+    }
     const [key, shift, from, , before] = steps[index];
     if (pending || event.key !== key || !!event.shiftKey !== shift || event.ctrlKey || event.altKey || event.metaKey ||
         document.activeElement?.id !== from || page() !== before || requests() !== baseline) {

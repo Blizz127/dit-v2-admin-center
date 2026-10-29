@@ -77,5 +77,16 @@ function fixture({prepareFails = false} = {}) {
   const unavailable = fixture({prepareFails: true}); await unavailable.start();
   assert.equal(unavailable.state(), 'failed'); assert.doesNotMatch(unavailable.status(), /private fixture detail/);
   assert.equal(unavailable.elements.get('keyboard-start').disabled, false);
+  const cancelled = fixture(); await cancelled.start();
+  cancelled.press('Tab', 'assignment-prev', 1);
+  cancelled.key('keydown', 'Escape', {isTrusted: false});
+  assert.equal(cancelled.state(), 'running');
+  cancelled.key('keydown', 'Escape');
+  assert.equal(cancelled.state(), 'cancelled');
+  assert.equal(cancelled.document.activeElement.id, 'keyboard-start');
+  cancelled.key('keyup', 'Escape'); cancelled.flush();
+  assert.equal(cancelled.state(), 'cancelled');
+  await cancelled.start(); assert.equal(cancelled.state(), 'running');
+  assert.match(cancelled.status(), /Step 1\/12/);
   console.log('Keyboard observer logic passed with fake events: trust gating, sequence/default observations, failure and restart handling. Native browser keys NOT executed.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
