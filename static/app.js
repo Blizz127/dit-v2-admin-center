@@ -8,11 +8,24 @@ let requestVersion = 0;
 let traceVersion = 0;
 let healthVersion = 0;
 let interactionVersion = 0;
+let sessionVersion = 0;
 let selectedBotId = null;
 let correlationFilter = '';
 let bridgePending = false;
 let selectedLearningId = null;
 let token = sessionStorage.getItem('dit-admin-token') || '';
+function panelSessionCurrent(requestToken, session) {
+  return !workspace.hidden && token === requestToken && sessionVersion === session;
+}
+function resetPanelSession() {
+  sessionVersion++;
+  currentSnapshot = null; loadedSource = null;
+  selectedBotId = null; selectedLearningId = null;
+  for (const id of ['interaction-status', 'hub-health', 'hub-trace', 'bridge-status', 'ffxi-focus-bridge']) {
+    const panel = document.getElementById(id);
+    panel.replaceChildren(); panel.textContent = 'Not requested in this session.';
+  }
+}
 function item(parent, title, detail, meta) {
   const row = document.createElement('div'); row.className = 'row';
   const heading = document.createElement('strong'); heading.textContent = title;
@@ -38,6 +51,8 @@ function renderInteraction(data, source) {
     `Scope: ${b.caller} / ${b.serverInstanceId} · Raw state source: ${b.source || 'unknown'} · Snapshot observed: ${b.observedAt || 'unknown'} · Hub-reported snapshot age: ${b.ageSeconds == null ? 'unknown' : b.ageSeconds + ' s'} · No roster identity join or delivery inference`));
 }
 async function loadInteraction() {
+  if (!token || workspace.hidden) return;
+  const requestToken = token, session = sessionVersion;
   const id = ++interactionVersion;
   const panel = document.querySelector('#interaction-status');
   panel.replaceChildren();
@@ -47,13 +62,13 @@ async function loadInteraction() {
   }
   panel.textContent = 'Checking candidate FFXI interaction view…';
   try {
-    const response = await fetch('/api/interaction', {headers: {Authorization: `Bearer ${token}`}, cache: 'no-store'});
+    const response = await fetch('/api/interaction', {headers: {Authorization: `Bearer ${requestToken}`}, cache: 'no-store'});
     if (!response.ok) throw new Error('unavailable');
     const data = await response.json();
-    if (id !== interactionVersion) return;
+    if (id !== interactionVersion || !panelSessionCurrent(requestToken, session)) return;
     renderInteraction(data, 'Hub interaction response · candidate contract, deployed revision unverified');
   } catch (_) {
-    if (id === interactionVersion) { panel.replaceChildren(); panel.textContent = 'Interaction view unavailable; the hub may be unconfigured or may not implement this candidate endpoint. Switches and bot state remain unknown.'; }
+    if (id === interactionVersion && panelSessionCurrent(requestToken, session)) { panel.replaceChildren(); panel.textContent = 'Interaction view unavailable; the hub may be unconfigured or may not implement this candidate endpoint. Switches and bot state remain unknown.'; }
   }
 }
 function previewInteraction() {
@@ -68,6 +83,8 @@ function previewInteraction() {
     ]}, 'Synthetic interaction preview · not live');
 }
 async function loadHubHealth() {
+  if (!token || workspace.hidden) return;
+  const requestToken = token, session = sessionVersion;
   const id = ++healthVersion;
   const panel = document.querySelector('#hub-health');
   panel.replaceChildren();
@@ -75,33 +92,33 @@ async function loadHubHealth() {
   if (sourceLoading || loadedSource !== 'hub') { panel.textContent = 'Load the selected hub source successfully before requesting this read-only check.'; return; }
   panel.textContent = 'Checking hub services…';
   try {
-    const response = await fetch('/api/hub-health', {headers: {Authorization: `Bearer ${token}`}, cache: 'no-store'});
+    const response = await fetch('/api/hub-health', {headers: {Authorization: `Bearer ${requestToken}`}, cache: 'no-store'});
     if (!response.ok) throw new Error('unavailable');
     const data = await response.json();
-    if (id !== healthVersion) return;
+    if (id !== healthVersion || !panelSessionCurrent(requestToken, session)) return;
     panel.replaceChildren();
     item(panel, 'Hub service health', data.coverage, `${data.source} · Fetched: ${data.fetchedAt} · Snapshot may be stale`);
     if (!data.services.length) item(panel, 'No matching service records', 'Coverage is unknown.', 'Empty data does not establish healthy services.');
     data.services.forEach(s => item(panel, `${s.game} · ${s.label}`, s.state, `Observed: ${s.observedAt || 'unknown'} · Service state is not bot presence`));
-  } catch (_) { if (id === healthVersion) panel.textContent = 'Hub service health unavailable; current state is unknown.'; }
+  } catch (_) { if (id === healthVersion && panelSessionCurrent(requestToken, session)) panel.textContent = 'Hub service health unavailable; current state is unknown.'; }
 }
 async function loadBridge() {
   if (bridgePending || !token || workspace.hidden) return;
   bridgePending = true;
-  const requestToken = token;
+  const requestToken = token, session = sessionVersion;
   const panel = document.querySelector('#bridge-status');
   try {
     const response = await fetch('/api/bridge-status', {headers: {Authorization: `Bearer ${requestToken}`}, cache: 'no-store'});
     if (!response.ok) throw new Error('unavailable');
     const data = await response.json();
-    if (workspace.hidden || token !== requestToken) return;
+    if (!panelSessionCurrent(requestToken, session)) return;
     panel.replaceChildren();
     item(panel, `Unit: ${data.unit} · ${data.substate}`, `Result: ${data.result} · Fault marker: ${data.marker} · Classification: ${data.markerReason || 'unknown'}`, `${data.source} · Observed: ${data.observedAt || 'unknown'} · Marker absence does not prove delivery`);
     const focus = document.querySelector('#ffxi-focus-bridge');
     focus.replaceChildren();
     item(focus, `Bridge: ${data.unit} · ${data.substate}`, `Fault marker: ${data.marker} · Classification: ${data.markerReason || 'unknown'}`, `${data.source} · Observed: ${data.observedAt || 'unknown'} · Not proof of delivery`);
   } catch (_) {
-    if (workspace.hidden || token !== requestToken) return;
+    if (!panelSessionCurrent(requestToken, session)) return;
     panel.replaceChildren();
     panel.textContent = 'Bridge status unknown; read-only observation unavailable.';
     const focus = document.querySelector('#ffxi-focus-bridge');
@@ -319,6 +336,8 @@ function renderLearning() {
   else renderLearningEvidence(null);
 }
 async function loadHubTrace(correlation) {
+  if (!token || workspace.hidden) return;
+  const requestToken = token, session = sessionVersion;
   const id = ++traceVersion;
   const panel = document.querySelector('#hub-trace');
   panel.replaceChildren();
@@ -327,15 +346,15 @@ async function loadHubTrace(correlation) {
   if (!['ffxi', 'swtor'].includes(game)) { panel.textContent = 'Choose a supported game.'; return; }
   panel.textContent = 'Loading read-only trace…';
   try {
-    const response = await fetch(`/api/trace?gameId=${encodeURIComponent(game)}&correlationId=${encodeURIComponent(correlation)}`, {headers: {Authorization: `Bearer ${token}`}, cache: 'no-store'});
+    const response = await fetch(`/api/trace?gameId=${encodeURIComponent(game)}&correlationId=${encodeURIComponent(correlation)}`, {headers: {Authorization: `Bearer ${requestToken}`}, cache: 'no-store'});
     if (!response.ok) throw new Error('unavailable');
     const data = await response.json();
-    if (id !== traceVersion) return;
+    if (id !== traceVersion || !panelSessionCurrent(requestToken, session)) return;
     panel.replaceChildren();
     item(panel, `Hub trace · ${game.toUpperCase()} · ${correlation}`, `${data.coverage} · ${data.records.length} returned ${data.records.length === 1 ? 'record' : 'records'}`, `Fetched: ${data.fetchedAt} · Deployed revision unverified · Bounded lookup, not proof of outcome`);
     if (!data.records.length) item(panel, 'No matching trace records', 'No matching records in the bounded trace window.', 'This does not prove an action did or did not occur.');
     data.records.forEach(r => item(panel, `${r.kind || 'Unknown'} · ${r.type || 'Unknown'}`, `Disposition: ${r.disposition || 'Unknown'} · Classification: ${r.classification || 'Unknown'} · Final: ${r.isFinal == null ? 'Unknown' : r.isFinal}`, `Occurred: ${r.occurredAt || 'unknown'} · Raw envelope body omitted`));
-  } catch (_) { if (id === traceVersion) panel.textContent = 'Hub trace unavailable; no delivery or outcome can be inferred.'; }
+  } catch (_) { if (id === traceVersion && panelSessionCurrent(requestToken, session)) panel.textContent = 'Hub trace unavailable; no delivery or outcome can be inferred.'; }
 }
 function renderLedger() {
   const panel = document.querySelector('#ledger');
@@ -509,6 +528,8 @@ function botItem(bot) {
 }
 async function load() {
   const requestId = ++requestVersion;
+  const requestToken = token, session = sessionVersion, wasVisible = !workspace.hidden;
+  const current = () => requestId === requestVersion && token === requestToken && session === sessionVersion && (!wasVisible || !workspace.hidden);
   sourceLoading = true;
   error.textContent = '';
   document.querySelector('#hub-banner').textContent = currentSnapshot && loadedSource
@@ -517,11 +538,11 @@ async function load() {
   let unauthorized = false, rendering = false;
   try {
     const source = document.querySelector('#data-source').value === 'hub' ? 'hub' : 'mock';
-    const response = await fetch(`/api/overview?source=${source}`, {headers: {Authorization: `Bearer ${token}`}, cache: 'no-store'});
-    if (requestId !== requestVersion) return;
+    const response = await fetch(`/api/overview?source=${source}`, {headers: {Authorization: `Bearer ${requestToken}`}, cache: 'no-store'});
+    if (!current()) return;
     if (!response.ok) { unauthorized = response.status === 401; throw new Error(unauthorized ? 'Token was not accepted.' : 'Could not load the workspace.'); }
     const data = await response.json();
-    if (requestId !== requestVersion) return;
+    if (!current()) return;
     rendering = true;
     for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage', 'bot-coverage', 'learning-plan', 'learning-evidence', 'game-status', 'spend-example', 'learning-artifacts', 'safety-records', 'ffxi-focus', 'ffxi-feeds']) document.getElementById(id).replaceChildren();
     currentSnapshot = data;
@@ -587,17 +608,17 @@ async function load() {
     loadedSource = source; sourceLoading = false;
     sessionStorage.setItem('dit-admin-token', token); workspace.hidden = false; form.hidden = true; loadBridge();
   } catch (e) {
-    if (requestId !== requestVersion) return;
+    if (!current()) return;
     sourceLoading = false;
     if (currentSnapshot && loadedSource && !unauthorized && !rendering) {
       document.querySelector('#hub-banner').textContent = `Refresh failed. Showing previous ${loadedSource} request snapshot from ${currentSnapshot.generatedAt || 'unknown time'}; selected source may not match. Check each feed's source.`;
       return;
     }
-    workspace.hidden = true; form.hidden = false; sessionStorage.removeItem('dit-admin-token');
+    workspace.hidden = true; form.hidden = false; sessionStorage.removeItem('dit-admin-token'); resetPanelSession();
     error.textContent = unauthorized ? 'Token was not accepted.' : 'Could not load the workspace.';
   }
 }
-form.addEventListener('submit', e => { e.preventDefault(); token = document.querySelector('#token').value; document.querySelector('#token').value = ''; load(); });
+form.addEventListener('submit', e => { e.preventDefault(); resetPanelSession(); token = document.querySelector('#token').value; document.querySelector('#token').value = ''; load(); });
 document.querySelector('#refresh').addEventListener('click', load);
 document.querySelector('#bridge-refresh').addEventListener('click', loadBridge);
 document.querySelector('#hub-health-refresh').addEventListener('click', loadHubHealth);
