@@ -6,6 +6,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
+from http.client import HTTPException
 from pathlib import Path
 
 MAX_RESPONSE = 1_000_000
@@ -81,7 +82,7 @@ class HubReader:
                 raise HubResponseTooLarge('Hub response exceeded limit')
             result = json.loads(raw)
             return result, datetime.now(timezone.utc).isoformat()
-        except (OSError, ValueError, RecursionError, urllib.error.URLError):
+        except (OSError, ValueError, RecursionError, HTTPException, urllib.error.URLError):
             # Do not include paths, headers, response bodies, or credentials in errors.
             raise HubReadError('Hub read unavailable') from None
 

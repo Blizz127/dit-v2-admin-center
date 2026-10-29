@@ -1,10 +1,11 @@
 """Exercise bounded response decoding with synthetic bytes, never a listener."""
 from contextlib import ExitStack
 import io
+from http.client import IncompleteRead
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 from live_hub import HubReader, HubReadError, HubResponseTooLarge, MAX_RESPONSE
 
@@ -42,6 +43,29 @@ class OfflineHubDecodeErrorTests(unittest.TestCase):
         args, kwargs = self.reader.opener.open.call_args
         self.assertEqual(args[0].get_method(), 'GET')
         self.assertEqual(kwargs['timeout'], 3)
+
+    def test_empty_and_truncated_bodies_are_read_failures_not_empty_services(self):
+        for raw in (b'', b' \n\t', b'{"services":[', b'{"services":[]'):
+            with self.subTest(raw=raw):
+                stream = io.BytesIO(raw)
+                self.reader.opener.open.return_value = stream
+                with self.assertRaisesRegex(HubReadError, '^Hub read unavailable$'):
+                    self.reader.health()
+                self.assertTrue(stream.closed)
+        self.reader.opener.open.return_value = io.BytesIO(b'{"services":[]}')
+        self.assertEqual(self.reader.health()[0], {'services': []})
+
+    def test_truncated_transport_error_is_redacted_and_response_closed(self):
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.read.side_effect = IncompleteRead(b'OMIT_PRIVATE_PARTIAL_BODY', 100)
+        self.reader.opener.open.return_value = response
+        with self.assertRaises(HubReadError) as raised:
+            self.reader.health()
+        self.assertEqual(str(raised.exception), 'Hub read unavailable')
+        self.assertTrue(raised.exception.__suppress_context__)
+        response.read.assert_called_once_with(MAX_RESPONSE + 1)
+        response.__exit__.assert_called_once()
 
 
 if __name__ == '__main__':
