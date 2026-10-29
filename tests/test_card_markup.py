@@ -86,6 +86,15 @@ class CardMarkupTests(unittest.TestCase):
             attrs = self.by_id[identity].attrs
             self.assertTrue(attrs.get('aria-live') == 'polite' or attrs.get('role') == 'status', identity)
 
+    def test_enb_handoff_is_dated_read_only_operations_context(self):
+        panel = self.by_id['enb-deployment']
+        self.assertIn(self.by_id['view-operations'], list(panel.ancestors()))
+        text = panel.text()
+        for value in ('37.27.113.160', 'enb.bansheerealm.com', '5:29 PM CT',
+                      'Coordinator-reported', 'Unknown', 'rollback', 'reported stopped'):
+            self.assertIn(value, text)
+        self.assertFalse(any(n.tag in ('a', 'button', 'input', 'form') for n in panel.descendants()))
+
     def test_model_and_operational_controls_remain_disabled(self):
         for identity in ('global-model', 'global-model-toggle'):
             node = self.by_id[identity]
