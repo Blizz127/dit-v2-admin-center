@@ -211,7 +211,7 @@ function select() {
   await get('data-source').listeners.change(); await settle();
   assert.equal(get('workspace').hidden, false);
   assert.match(get('hub-banner').textContent, /partially or fully unavailable.*synthetic fallback/);
-  assert.match(get('hub-feeds').textContent, /Unavailable.*Synthetic fallback.*Fetched: unknown/);
+  assert.match(get('hub-feeds').textContent, /Unavailable.*Synthetic fallback.*Fetched: [Uu]nknown/);
   assert.match(get('bots').textContent, /Synthetic fixture/);
   outcome = 'unavailable-empty'; await get('refresh').listeners.click();
   assert.match(get('hub-banner').textContent, /partially or fully unavailable/);
@@ -290,7 +290,7 @@ function select() {
   outcome = 'ffxi-missing'; await get('refresh').listeners.click();
   assert.match(get('ffxi-focus').textContent, /FFXI readiness unknown.*No readiness summary/);
   assert.doesNotMatch(get('ffxi-focus').textContent, /Synthetic partial note/);
-  assert.match(get('ffxi-feeds').textContent, /FFXI feed coverage.*Unknown.*No FFXI feed status/);
+  assert.match(get('ffxi-feeds').textContent, /FFXI feed coverage.*Unknown.*Missing or incomplete feed metadata/);
   assert.doesNotMatch(get('ffxi-feeds').textContent, /OTHER_GAME_FEED|Live response/);
   await login('decisions-valid');
   assert.match(get('owner-attention').textContent, /Synthetic decision scope.*DECISION_FIXTURE.*Synthetic project/);

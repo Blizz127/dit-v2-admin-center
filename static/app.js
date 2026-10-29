@@ -141,25 +141,73 @@ async function loadBridge() {
   }
   finally { bridgePending = false; }
 }
+function observationRows(value, panel) {
+  const rows = Array.isArray(value) ? value.filter(row => row && typeof row === 'object' && !Array.isArray(row)) : [];
+  if (!Array.isArray(value) || rows.length !== value.length || !value.length)
+    item(panel, 'Observation coverage', 'Unknown', 'Missing, empty or malformed records do not establish current state. Usable supplied rows follow.');
+  return rows;
+}
+function renderCoordinatorPanels() {
+  const panel = id => { const target = document.getElementById(id); target.replaceChildren(); return target; };
+  const leads = panel('leads');
+  observationRows(currentSnapshot.leads, leads).forEach(l => item(leads,
+    `${routingText(l.name)} · ${routingText(l.scope)}`, routingText(l.status),
+    `${routingText(l.source)} · Observed: ${routingText(l.observedAt)}`));
+  const summary = panel('lead-summary'), monitoring = panel('lead-monitoring');
+  const monitors = observationRows(currentSnapshot.leadMonitoring, summary);
+  observationRows(currentSnapshot.leadMonitoring, monitoring);
+  monitors.forEach(m => {
+    item(summary, routingText(m.lead), `Stall: ${routingText(m.stall)} · Lead quota: ${routingText(m.quota)}`,
+      `${routingText(m.stallReason, 'No watcher data')} · ${routingText(m.quotaReason, 'No per-lead quota data')} · Shared provider pool: ${routingText(m.poolCapacity)} (${routingText(m.poolReason)})`);
+    item(monitoring, routingText(m.lead), `Stall: ${routingText(m.stall)} · Quota: ${routingText(m.quota)}`,
+      `Provider: ${routingText(m.provider)} · ${routingText(m.binding, 'Current lead binding unverified')} · Binding observed: ${routingText(m.bindingObservedAt)} · Session activity: ${routingText(m.sessionActivity)} (not proof of work or a stall) · ${routingText(m.stallReason)} · ${routingText(m.quotaReason)} · Provider pool: ${routingText(m.poolCapacity)} (${routingText(m.poolReason)})`);
+  });
+  const activity = panel('lead-activity');
+  observationRows(currentSnapshot.leadActivity, activity).forEach(a => item(activity, routingText(a.lead),
+    `Task: ${routingText(a.taskStatus)} · ${routingText(a.taskSummary)}`,
+    `Task updated: ${routingText(a.taskUpdatedAt)} · ${routingText(a.taskSource)} · Checkout HEAD commit: ${routingText(a.commitAt)} · ${routingText(a.commitSource)}`));
+  const nudges = panel('nudge-history');
+  observationRows(currentSnapshot.nudgeHistory, nudges).forEach(lead => {
+    item(nudges, routingText(lead.lead), routingText(lead.coverage), 'Read-only coordinator metadata');
+    const group = nudges.lastElementChild;
+    observationRows(lead.nudges, group).forEach(n => {
+      const signal = n.resumeSignal;
+      const heuristic = signal && typeof signal === 'object' && !Array.isArray(signal)
+        && metricNumber(signal.seconds) && typeof signal.label === 'string' && signal.label.trim()
+        ? `${signal.label}: ${signal.seconds} s at ${routingText(signal.observedAt)}` : 'Tool activity heuristic: Unknown';
+      item(group, `Nudge · ${routingText(n.messageStatus)}`,
+        `Created: ${routingText(n.createdAt)} · Delivered: ${routingText(n.deliveredAt)} · Reply: ${routingText(n.repliedAt)}`,
+        `Time to reply: ${metricNumber(n.replySeconds) ? n.replySeconds + ' s' : 'Unknown'} · Time to resume: unknown · ${heuristic} · ${routingText(n.source)}`);
+    });
+  });
+  const markers = panel('session-markers');
+  observationRows(currentSnapshot.sessionMarkers, markers).forEach(report => {
+    item(markers, routingText(report.lead), routingText(report.coverage), 'Heuristic; no rollout text is displayed');
+    observationRows(report.markers, markers).forEach(m => item(markers, routingText(m.kind), routingText(m.observedAt),
+      `${routingText(m.source)} · Historical; current state unknown`));
+  });
+}
 function renderQuotaHistory() {
   const panel = document.querySelector('#quota-history');
   const window = document.querySelector('#quota-window').value;
-  const records = currentSnapshot.quotaHistory.filter(q => !window || q.window === window);
   panel.replaceChildren();
+  const records = observationRows(currentSnapshot.quotaHistory, panel).filter(q => !window || q.window === window);
   if (!records.length) item(panel, 'No matching observations', 'Quota history for this filter is unknown.', 'No account refresh is performed.');
-  records.forEach(q => item(panel, `Account ${q.account} · ${q.window}`, `Remaining: ${q.remainingPercent}% at observation`, `Observed: ${q.observedAt} · Cached Codex state; may be stale`));
+  records.forEach(q => item(panel, `Account ${routingText(q.account)} · ${routingText(q.window)}`,
+    `Remaining: ${metricNumber(q.remainingPercent) && q.remainingPercent <= 100 ? q.remainingPercent + '%' : 'Unknown'} at observation`,
+    `Observed: ${routingText(q.observedAt)} · Cached Codex state; may be stale`));
 }
 function renderLeadTimeline() {
   const panel = document.querySelector('#lead-timeline');
   const filter = document.querySelector('#timeline-kind').value;
   const kinds = {watcher: ['Watcher alert', 'Watcher classification'], task: ['Task status'], session: ['Session activity'], commit: ['Checkout commit']};
   panel.replaceChildren();
-  currentSnapshot.leadTimeline.forEach(t => {
-    item(panel, t.lead, t.coverage, `${t.watchCoverage} · ${t.commitCoverage}`);
+  observationRows(currentSnapshot.leadTimeline, panel).forEach(t => {
+    item(panel, routingText(t.lead), routingText(t.coverage), `${routingText(t.watchCoverage)} · ${routingText(t.commitCoverage)}`);
     const group = panel.lastElementChild;
-    const events = t.events.filter(e => !filter || (kinds[filter] || []).includes(e.kind));
+    const events = observationRows(t.events, group).filter(e => !filter || (kinds[filter] || []).includes(e.kind));
     if (!events.length) item(group, 'No matching evidence', 'This filter has no records in the available history.', 'Current activity remains unknown.');
-    events.forEach(e => item(group, `${e.kind}: ${e.status}`, e.at, e.source));
+    events.forEach(e => item(group, `${routingText(e.kind)}: ${routingText(e.status)}`, routingText(e.at), routingText(e.source)));
   });
 }
 function renderIssueCoverage() {
@@ -691,23 +739,8 @@ async function load() {
     else { renderAssignments(); renderReplySource(); renderSafety(); }
     data.gameStatus.forEach(s => item(document.querySelector('#game-status'), s.game, `XP rate: ${s.xpRate == null ? 'Unknown' : s.xpRate + '×'} · Server liveness: ${s.liveness}`, `${s.source} · Checked: ${s.checkedAt || 'unknown'} · Freshness unknown`));
     data.serviceHealth.forEach(h => item(document.querySelector('#service-health'), `${h.label} · ${h.game}`, `${h.status} · ${h.detail}`, `${h.source} · Observed: ${h.observedAt || 'unknown'} · May be stale`));
-    data.leads.forEach(l => item(document.querySelector('#leads'), `${l.name} · ${l.scope}`, l.status, `${l.source} · Observed: ${l.observedAt || 'unknown'}`));
-    if (!data.leadMonitoring.length) item(document.querySelector('#lead-summary'), 'No lead observations', 'Stall and quota are unknown.', 'Coordinator data unavailable or empty');
-    data.leadMonitoring.forEach(m => item(document.querySelector('#lead-summary'), m.lead, `Stall: ${m.stall || 'Unknown'} · Lead quota: ${m.quota || 'Unknown'}`, `${m.stallReason || 'No watcher data'} · ${m.quotaReason || 'No per-lead quota data'} · Shared provider pool: ${m.poolCapacity || 'Unknown'} (${m.poolReason || 'Unavailable'})`));
-    data.leadMonitoring.forEach(m => item(document.querySelector('#lead-monitoring'), m.lead, `Stall: ${m.stall} · Quota: ${m.quota}`, `Provider: ${m.provider || 'Unknown'} · ${m.binding || 'Current lead binding unverified'} · Binding observed: ${m.bindingObservedAt || 'unknown'} · Session activity: ${m.sessionActivity} (not proof of work or a stall) · ${m.stallReason} · ${m.quotaReason} · Provider pool: ${m.poolCapacity} (${m.poolReason})`));
-    data.leadActivity.forEach(a => item(document.querySelector('#lead-activity'), a.lead, `Task: ${a.taskStatus} · ${a.taskSummary}`, `Task updated: ${a.taskUpdatedAt || 'unknown'} · ${a.taskSource} · Checkout HEAD commit: ${a.commitAt || 'unknown'} · ${a.commitSource}`));
+    renderCoordinatorPanels();
     renderLeadTimeline();
-    data.nudgeHistory.forEach(lead => {
-      const panel = document.querySelector('#nudge-history');
-      item(panel, lead.lead, lead.coverage, 'Read-only coordinator metadata');
-      const group = panel.lastElementChild;
-      if (!lead.nudges.length) item(group, 'No matching records', 'Coverage may be incomplete.', 'Resume state unknown');
-      lead.nudges.forEach(n => item(group, `Nudge · ${n.messageStatus}`, `Created: ${n.createdAt} · Delivered: ${n.deliveredAt || 'unknown'} · Reply: ${n.repliedAt || 'unknown'}`, `Time to reply: ${n.replySeconds == null ? 'unknown' : n.replySeconds + ' s'} · Time to resume: unknown${n.resumeSignal ? ` · ${n.resumeSignal.label}: ${n.resumeSignal.seconds} s at ${n.resumeSignal.observedAt}` : ' · Tool activity heuristic: unknown'} · ${n.source}`));
-    });
-    data.sessionMarkers.forEach(report => {
-      item(document.querySelector('#session-markers'), report.lead, report.coverage, 'Heuristic; no rollout text is displayed');
-      report.markers.forEach(m => item(document.querySelector('#session-markers'), m.kind, m.observedAt, `${m.source} · Historical; current state unknown`));
-    });
     renderQuotaHistory();
     renderSpendExample();
     renderModelCalls();
