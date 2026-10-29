@@ -17,6 +17,11 @@ def _boolean(value):
     return value if type(value) is bool else None
 
 
+def _identity(value):
+    text = _text(value)
+    return text if text is not None and text.strip() else None
+
+
 def _number(value):
     if type(value) not in (int, float) or value < 0:
         return None
@@ -42,11 +47,11 @@ def project_interaction(data, fetched):
             raise ValueError('interaction limit exceeded')
         if scope.get('gameId') != 'ffxi':
             continue
-        caller, instance = _text(scope.get('caller')), _text(scope.get('serverInstanceId'))
+        caller, instance = _identity(scope.get('caller')), _identity(scope.get('serverInstanceId'))
         if caller is None or instance is None:
             raise ValueError('missing interaction identity')
         for bot in scope['bots']:
-            if not isinstance(bot, dict) or _text(bot.get('actorKey')) is None:
+            if not isinstance(bot, dict) or _identity(bot.get('actorKey')) is None:
                 raise ValueError('invalid interaction bot')
             identity = (caller, instance, bot['actorKey'])
             if identity in identities:

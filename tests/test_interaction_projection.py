@@ -42,6 +42,22 @@ class InteractionProjectionTests(unittest.TestCase):
         data['scopes'][0]['bots'].append(copy.deepcopy(data['scopes'][0]['bots'][0]))
         with self.assertRaises(ValueError): project_interaction(data, 'time')
 
+    def test_blank_identities_are_rejected_without_normalizing_valid_keys(self):
+        for field in ('caller', 'serverInstanceId', 'actorKey'):
+            for value in (' ', '\u2003', '\t', '', None):
+                with self.subTest(field=field, value=repr(value)):
+                    data = fixture()
+                    target = data['scopes'][0]['bots'][0] if field == 'actorKey' else data['scopes'][0]
+                    target[field] = value
+                    with self.assertRaises(ValueError):
+                        project_interaction(data, 'time')
+        data = fixture()
+        data['scopes'][0]['caller'] = ' adapter '
+        data['scopes'][0]['bots'][0]['actorKey'] = ' actor '
+        projected = project_interaction(data, 'time')['bots'][0]
+        self.assertEqual(projected['caller'], ' adapter ')
+        self.assertEqual(projected['actorKey'], ' actor ')
+
     def test_response_limit_and_bad_shapes_are_rejected(self):
         for data in ({}, {'scopes': None}, {'scopes': [], 'switches': []}):
             with self.assertRaises(ValueError): project_interaction(data, 'time')
