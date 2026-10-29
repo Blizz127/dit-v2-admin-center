@@ -141,6 +141,22 @@ class ProjectionTests(unittest.TestCase):
         self.assertEqual(merged['bots'][0]['source'], 'Synthetic')
         self.assertEqual(merged['mode'], 'mock')
 
+    def test_duplicate_learning_ids_fall_back_without_ambiguous_links(self):
+        from live_hub import read_views, merge_views
+        class Reader:
+            def get(self, view, game):
+                if view != 'learning': raise HubReadError('Unavailable')
+                return ({'gameId': 'ffxi', 'tasks': [
+                    {'id': 'same', 'gameId': 'ffxi', 'topic': 'One', 'status': 'failed'},
+                    {'id': 'same', 'gameId': 'ffxi', 'topic': 'Two', 'status': 'failed'}]}, 'time')
+        live = read_views(Reader(), ('ffxi',))
+        self.assertNotIn('ffxi', live['learning'])
+        self.assertNotIn('ffxi', live['issues'])
+        self.assertIn('Duplicate learning task IDs', live['feeds'][1]['note'])
+        snapshot = {'bots': [], 'learning': [{'id': 'mock', 'game': 'FFXI', 'source': 'Synthetic'}],
+                    'issues': [], 'gameStatus': []}
+        self.assertEqual(merge_views(snapshot, live)['learning'][0]['source'], 'Synthetic')
+
     def test_roster_invalid_metadata_remains_unknown(self):
         from live_hub import read_views
         class Reader:

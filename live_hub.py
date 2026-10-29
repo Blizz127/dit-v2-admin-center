@@ -26,6 +26,10 @@ class AmbiguousRoster(ValueError):
     pass
 
 
+class AmbiguousLearning(ValueError):
+    pass
+
+
 class HubReader:
     def __init__(self, url, token_file, timeout=3):
         parsed = urllib.parse.urlsplit(url)
@@ -108,6 +112,8 @@ def read_views(reader, games=('ffxi', 'swtor')):
                     rows = project_learning(data)
                     if data.get('gameId') != game:
                         raise ValueError('mismatched game')
+                    if len({row['id'] for row in rows}) != len(rows):
+                        raise AmbiguousLearning('duplicate learning task id')
                     for row in rows:
                         row['id'] = f'live:{game}:{row["id"]}'
                         row['game'] = game.upper()
@@ -121,6 +127,9 @@ def read_views(reader, games=('ffxi', 'swtor')):
             except AmbiguousRoster:
                 result['feeds'].append({'game': game.upper(), 'view': view, 'status': 'Unavailable', 'at': None,
                                         'note': 'Duplicate roster keys; bot identity is ambiguous. Synthetic fallback; no current hub data.'})
+            except AmbiguousLearning:
+                result['feeds'].append({'game': game.upper(), 'view': view, 'status': 'Unavailable', 'at': None,
+                                        'note': 'Duplicate learning task IDs; task identity is ambiguous. Synthetic fallback; no current hub data.'})
             except (HubReadError, ValueError, TypeError, KeyError):
                 result['feeds'].append({'game': game.upper(), 'view': view, 'status': 'Unavailable', 'at': None,
                                         'note': 'Synthetic fallback; no current hub data'})
