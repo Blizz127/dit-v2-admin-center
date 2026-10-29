@@ -1,11 +1,12 @@
 # DIT v2 Admin Center
 
 **2026-10-29 FFXI rollout update:** Blizz authorized DIT/FFXI wiring and the
-necessary bridge restart through the owning leads. Admin Center's bounded
-readback found the bridge active/running with no fault marker at 13:35 UTC;
-deployment, player-protection and rollback receipts are still pending from
-those leads. See [the scoped handoff and readback](docs/FFXI-WIRE-ON-20261029.md).
-Admin model controls remain disabled; this observation is not gameplay proof.
+necessary bridge restart through the owning leads. DIT receipt `8421f15` records
+the r5-only restart at 14:03:39 UTC after fresh player checks and a current-unit
+backup. Its 14:07:59 UTC readback confirms bridge/hub active, unchanged hashes
+and no fault marker; DONE/writer release is recorded. New queued replies and
+native speech remain unverified. See [the reconciled handoff](docs/FFXI-WIRE-ON-20261029.md).
+Admin model controls remain disabled; startup success is not gameplay proof.
 
 A web Admin Center for **DIT v2**, the platform for human-like game bots (the "neural network"). It manages the network and every bot from one place:
 

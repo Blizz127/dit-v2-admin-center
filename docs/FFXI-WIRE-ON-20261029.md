@@ -1,5 +1,40 @@
 # FFXI wire-on: Admin Center readback
 
+## Latest reconciled result — DIT receipt `8421f15`
+
+Read directly from the pinned DIT commit's
+`docs/evidence/ffxi-wire-on-20261029/RESTART-RECEIPT.md`:
+
+- DIT performed exactly one approved r5 bridge restart at **2026-10-29
+  14:03:39 UTC**. The source was already installed; no reinstall, flag/model
+  change, greeting-variety or lifecycle/schema4 activation occurred.
+- FFXI map DONE/writer release was reconciled before DIT START. Protected
+  character/account session counts were zero at 14:02:55.706 UTC and again at
+  **14:03:39.686 UTC immediately before backup/restart**. These were samples,
+  not a continuing absence guarantee or login lock.
+- DIT preserved a unique, fsynced mode-0600 backup of the current r5 unit at
+  `~/.local/state/dit-ffxi-chat-bridge-v2/backups/unit-before-approved-r5-restart-20261029T140339686267Z.service`.
+  Backup/current-unit SHA-256:
+  `d8ef5fc11a4f4d0c2eb3418b9e77d6c1205dfdd352762f796898c276d57f3e23`.
+- Restart returned exit 0; bridge active/running, `Result=success`, `Restart=no`.
+  Installed source retained approved r5 SHA-256
+  `3d160be2ea3ffc3fcc2d759cca191fcd9147124cdcbb79a7125e9d23b96aa9b4`.
+  The hub remained active with its original start time.
+- The **14:07:59.805 UTC** combined readback confirmed unchanged source/unit
+  hashes, bridge/hub active, `NRestarts=0`, marker absent and zero protected
+  character/account sessions. This is owning-lead evidence, not a new Admin
+  live probe. DIT issued DONE/writer release; no writer hold remains in this
+  reconciliation.
+- Bounded inbox/outbox observations found no post-restart reply/event. Transport
+  path alignment was checked, but **new queued delivery and native speech
+  remain unverified**. The requested owner retest is party `Hi!` with an eligible
+  bot. r5's greeting backup is canned, not evidence of a new model integration.
+
+This receipt supersedes the earlier map-DONE/player-check/restart waits below.
+Those entries are historical sequencing records, not outstanding blockers.
+Admin Center performed no live action and reran no historical test suite to
+reconcile it. Model controls remain disabled. No second restart is requested.
+
 ## Authority and ownership
 
 Coordinator message `015e8eb8311ca58f`, tag `ditv2wire-0827`, relays Blizz's
@@ -52,7 +87,7 @@ or restart was performed by this Admin Center lead.
 
 ## Receipt reconciliation
 
-### Consolidated DIT handoff: `d889971`
+### Historical pre-restart DIT handoff: `d889971`
 
 Read-only artifact review of DIT's
 `docs/evidence/ffxi-wire-on-20261029/READBACK.md` supplies the following
@@ -79,8 +114,8 @@ consolidated information handoff. They are not attributed to the earlier commit.
   13:57:30 UTC** as the single writer. Map DONE/writer release and the subsequent
   player check have not been received in this handoff. START is not completion.
 
-The bridge therefore remains dependent on both map DONE/writer release and a
-fresh protected-player absence check. DIT alone may resume its scoped sequence,
+At that checkpoint the bridge was dependent on map DONE/writer release and a
+fresh protected-player absence check. DIT alone could resume its scoped sequence,
 including the current-unit backup and readback safeguards. No duplicate deploy,
 restart, inbox replay or release of these prerequisites follows from this note.
 Historical tests were not rerun; Admin Center made no live calls for this review.
@@ -105,9 +140,9 @@ test files are `test_dirfd.py`, `test_delayed_fault.py`, `test_inbox_scope.py` a
 live inbox contents. The path, complete hash, historical receipt and evidence
 locations were sent through the coordinator for the sole DIT bridge integrator.
 
-### Remaining rollout receipts
+### Historical requested receipts — resolved by `8421f15` except speech
 
-Requested through the coordinator from the owning leads:
+Previously requested through the coordinator from the owning leads:
 
 1. FFXI map DONE and writer release; the current receipt contains START only.
 2. Fresh protected-player identity/session evidence after the map step and at
@@ -124,6 +159,6 @@ location and configured endpoint from the hub owner. No token is minted,
 searched for or copied by this handoff. The application remains loopback-only;
 the service was not restarted and model controls remain disabled.
 
-Reconcile the owners' receipts before labeling the UI or a report as deployed
-or playable. A later post-restart readback is useful only with the owning
-integrator's restart timestamp and exact artifact identity.
+The r5 restart is now supported by the pinned owning-lead receipt above. That
+does not establish playable dialogue or learned behavior. Native speech still
+requires separate evidence; no repeated restart or old inbox replay follows.
