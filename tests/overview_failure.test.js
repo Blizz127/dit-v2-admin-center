@@ -71,6 +71,11 @@ const ctx = {document: {querySelector: s => get(s.slice(1)), getElementById: get
       }
       if (outcome === 'ffxi-partial') data.ffxiFocus = {closest: 'Synthetic partial note', toggle: false, source: '   '};
       if (outcome === 'ffxi-missing') data.hubFeeds = [{game: 'SWTOR', view: 'bots', status: 'Live response', at: 'fixture-time', note: 'OTHER_GAME_FEED'}];
+      if (outcome === 'decisions-valid') data.ownerAttention = {coverage: 'Synthetic decision scope', items: [{title: 'DECISION_FIXTURE', project: 'Synthetic project'}]};
+      if (outcome === 'decisions-missing') delete data.ownerAttention;
+      if (outcome === 'decisions-null') data.ownerAttention = null;
+      if (outcome === 'decisions-malformed') data.ownerAttention = {items: 'OMIT_PRIVATE_BAD_SHAPE'};
+      if (outcome === 'decisions-invalid-row') data.ownerAttention = {items: [null]};
       return data;
     }};
   }};
@@ -237,5 +242,20 @@ function select() {
   assert.doesNotMatch(get('ffxi-focus').textContent, /Synthetic partial note/);
   assert.match(get('ffxi-feeds').textContent, /FFXI feed coverage.*Unknown.*No FFXI feed status/);
   assert.doesNotMatch(get('ffxi-feeds').textContent, /OTHER_GAME_FEED|Live response/);
-  console.log('Overview/detail checks passed, including FFXI readiness summary, partial/missing metadata and other-game feed isolation. Simulated DOM only.');
+  await login('decisions-valid');
+  assert.match(get('owner-attention').textContent, /Synthetic decision scope.*DECISION_FIXTURE.*Synthetic project/);
+  assert.match(get('owner-attention').textContent, /Created: unknown · Expires: unknown/);
+  assert.doesNotMatch(get('owner-attention').textContent, /undefined/);
+  for (const failure of ['decisions-missing', 'decisions-null', 'decisions-malformed', 'decisions-invalid-row']) {
+    outcome = failure; await get('refresh').listeners.click();
+    assert.equal(get('workspace').hidden, false);
+    assert.match(get('owner-attention').textContent, /Owner-decision coverage unknown.*No usable decision list/);
+    assert.match(get('owner-attention').textContent, /does not establish that no decisions are pending/);
+    assert.doesNotMatch(get('owner-attention').textContent, /DECISION_FIXTURE|OMIT_PRIVATE|No records listed/);
+    assert.match(get('bots').textContent, /OLD_BOT_DETAIL/);
+  }
+  outcome = 'good'; await get('refresh').listeners.click();
+  assert.match(get('owner-attention').textContent, /No records listed.*Not a complete decision inventory/);
+  assert.doesNotMatch(get('owner-attention').textContent, /No usable decision list/);
+  console.log('Overview/detail checks passed, including missing/malformed owner-decision summary isolation, unknown metadata and recovery. Simulated DOM only.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

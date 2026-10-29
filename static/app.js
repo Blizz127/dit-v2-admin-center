@@ -415,6 +415,19 @@ function renderReplySource() {
   if (!bot || !rows.length) { item(panel, 'No matching reply evidence', 'Source, fallback and delivery are unknown.', 'Absence of records does not prove no reply occurred.'); return; }
   rows.forEach(r => item(panel, `${bot.name} · ${r.wordingOrigin || 'Unknown source'}`, `Generation: ${r.generationStatus || 'Unknown'} · Fallback: ${r.fallbackPolicy || 'Unknown'} · Reason: ${r.fallbackReason || 'Not reported'}`, `Delivery: ${r.delivery || 'Unknown'} · Verification: ${r.verification || 'Unknown'} · Correlation: ${r.correlationId || 'unknown'} · ${r.source} · Observed: ${r.observedAt || 'unknown'}`));
 }
+function renderOwnerAttention(data) {
+  const panel = document.querySelector('#owner-attention');
+  panel.replaceChildren();
+  if (!data || !Array.isArray(data.items) || data.items.some(row => !row || typeof row !== 'object' || Array.isArray(row))) {
+    item(panel, 'Owner-decision coverage unknown', 'No usable decision list was supplied in this snapshot.',
+      'Missing data does not establish that no decisions are pending.');
+    return;
+  }
+  item(panel, 'Coverage', routingText(data.coverage), 'Coordinator task board · Read only');
+  if (!data.items.length) item(panel, 'No records listed', 'Other owner decisions may be tracked elsewhere.', 'Not a complete decision inventory');
+  data.items.forEach(a => item(panel, routingText(a.title, 'Decision title unknown'), routingText(a.project, 'Project unknown'),
+    `Created: ${routingText(a.createdAt, 'unknown')} · Expires: ${routingText(a.expiresAt, 'unknown')} · Coordinator approval record`));
+}
 function renderAudit() {
   const panel = document.querySelector('#audit');
   panel.replaceChildren();
@@ -571,9 +584,7 @@ async function load() {
       item(target, 'Not yet verified', routingText(f.unverified), 'A bridge observation does not establish delivery');
     } else item(document.querySelector('#ffxi-focus'), 'FFXI readiness unknown',
       'No readiness summary was supplied in this snapshot.', 'Confirm readiness with the owning lead; feed availability does not establish game behavior.');
-    item(document.querySelector('#owner-attention'), 'Coverage', data.ownerAttention.coverage, 'Coordinator task board · Read only');
-    if (!data.ownerAttention.items.length) item(document.querySelector('#owner-attention'), 'No records listed', 'Other owner decisions may be tracked elsewhere.', 'Not a complete decision inventory');
-    data.ownerAttention.items.forEach(a => item(document.querySelector('#owner-attention'), a.title, a.project, `Created: ${a.createdAt} · Expires: ${a.expiresAt} · Coordinator approval record`));
+    renderOwnerAttention(data.ownerAttention);
     const feeds = data.hubFeeds;
     const banner = document.querySelector('#hub-banner');
     if (feeds.some(f => f.status === 'Not configured')) banner.textContent = 'Hub not configured. Bot and learning views use synthetic fallback.';
