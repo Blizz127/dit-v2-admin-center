@@ -351,18 +351,18 @@ function previewLearningEvidence() {
 function renderLearningArtifacts() {
   const panel = document.querySelector('#learning-artifacts');
   const game = document.querySelector('#learning-game').value;
-  const rows = currentSnapshot.learningArtifacts.filter(a => !game || a.game === game);
   panel.replaceChildren();
+  const rows = observationRows(currentSnapshot.learningArtifacts, panel).filter(a => !game || a.game === game);
   if (!rows.length) item(panel, 'No artifact examples', 'No matching synthetic records.', 'This does not establish real artifact coverage.');
-  rows.forEach(a => item(panel, `${a.game} · ${a.kind} · ${a.name}`, `Validation: ${a.validation} · Adoption: ${a.adoption} · Demonstrated outcome: ${a.outcome}`, `Version: ${a.version || 'unknown'} · ${a.source} · Observed: ${a.observedAt || 'unknown'}`));
+  rows.forEach(a => item(panel, `${routingText(a.game)} · ${routingText(a.kind)} · ${routingText(a.name)}`, `Validation: ${routingText(a.validation)} · Adoption: ${routingText(a.adoption)} · Demonstrated outcome: ${routingText(a.outcome)}`, `Version: ${routingText(a.version, 'unknown')} · ${routingText(a.source)} · Observed: ${routingText(a.observedAt, 'unknown')}`));
 }
 function renderLearningPlan() {
   const panel = document.querySelector('#learning-plan');
   const game = document.querySelector('#learning-game').value;
-  const rows = currentSnapshot.learningPlan.filter(p => !game || p.game === game);
   panel.replaceChildren();
+  const rows = observationRows(currentSnapshot.learningPlan, panel).filter(p => !game || p.game === game);
   if (!rows.length) item(panel, 'No planning topics', 'No topics for this filter.', 'This does not establish coverage.');
-  rows.forEach(p => item(panel, `${p.game} · ${p.topic}`, p.next, `Evidence: ${p.evidence || 'Unknown'} · Datasets: ${p.datasets || 'Unknown'} · Policy: ${p.policy || 'Unknown'} · ${p.source}`));
+  rows.forEach(p => item(panel, `${routingText(p.game)} · ${routingText(p.topic)}`, routingText(p.next), `Evidence: ${routingText(p.evidence)} · Datasets: ${routingText(p.datasets)} · Policy: ${routingText(p.policy)} · ${routingText(p.source)}`));
 }
 function renderLearningCoverage() {
   const panel = document.querySelector('#learning-coverage');
