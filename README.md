@@ -16,6 +16,12 @@ model and effective state are separate; effective state remains Unknown. No mode
 switch is enabled. The running service has not been restarted for this feature.
 Generate the artifact with `python3 tools/build_inspector_playtest.py`.
 
+**Native export check prepared, not run:** the existing isolated Chromium runner
+accepts `--gap-export` to check the ambiguity table and activate its JSON download
+with native Enter. It requires a saved file matching the displayed report in a
+disposable directory. Offline protocol/file/receipt checks pass; missing runtime
+and the prior namespace-isolation restriction still block native execution.
+
 **Roster gap details:** expand Roster identity gap details in Loaded data coverage
 to inspect a missing/repeated-ID record and jump to its exact loaded roster row.
 A side-by-side table compares all exact-ID candidates and marks differing fields;

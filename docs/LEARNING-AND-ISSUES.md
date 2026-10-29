@@ -134,6 +134,27 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+### Native export verification runner — 2026-10-29
+
+The existing network-isolated Chromium runner now accepts `--gap-export` after
+its automatic DOM and native-keyboard checks. It focuses and activates the gap
+review and download with native Enter, checks the candidate table's fields and
+nonzero rendered width, then verifies an actual saved JSON file against the
+read-only copy field. The temporary directory must contain only the expected
+bounded regular file; symlinks, unfinished/unexpected files, malformed JSON and
+content mismatch fail. The receipt includes saved-byte count and SHA-256; the
+synthetic file/profile are removed with the disposable run directory.
+
+Offline fabricated protocol/file checks and all five focused Python runner
+contracts passed, including rejection of missing file/layout receipt fields.
+These fixtures are not native runtime evidence. JavaScript syntax checks passed.
+No browser launch, namespace retry, install, live call or security change occurred.
+Native rendering/download remains unrun because the documented local runtime and
+namespace-isolation requirements are unavailable. Visual and screen-reader review
+are also unverified; table geometry and saved bytes alone would not establish them.
+All five initial source tasks remain complete; none needs to be restarted to use
+this optional verification path when its environment requirements are satisfied.
+
 ### Ambiguity comparison and offline report — 2026-10-29
 
 The gap detail now compares every row sharing the exact selected loaded ID across
