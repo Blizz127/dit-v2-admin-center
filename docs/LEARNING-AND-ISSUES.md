@@ -94,3 +94,13 @@ installed jsdom module and blocks Node/DOM transports. A missing module exits
 found; the coordinator has been asked for an existing module path or approval
 for a pinned dependency download. Four artifact/runner checks pass, including
 the missing-dependency failure case. Actual jsdom execution remains pending.
+
+Four independent in-memory HTTP-handler checks now pass in
+`tests/test_offline_inspector_handler.py`. They pass raw request bytes through
+the actual handler and verify projected answer flags, evidence availability,
+privacy, authentication and rejected queries/methods without a listener. The
+overview collector is replaced by a synthetic fixture; sockets, subprocesses,
+database connections and live readers are blocked. This covers handler dispatch
+and serialization, not real overview collection or browser execution. A bounded
+follow-up search of existing local node_modules trees found no reusable jsdom,
+happy-dom or linkedom package; no package was downloaded.

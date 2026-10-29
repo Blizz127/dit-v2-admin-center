@@ -106,6 +106,19 @@ Current local result: **BLOCKED — jsdom unavailable**. A dependency path or
 approval to obtain one is pending with the coordinator; no DOM-runtime pass is
 claimed.
 
+The HTTP-handler portion can be checked independently of jsdom:
+
+```sh
+timeout -k 3 20 python3 -m unittest discover -s tests -p test_offline_inspector_handler.py -v
+```
+
+This feeds HTTP request bytes to the actual handler using in-memory streams,
+with its overview collector replaced by the projected synthetic fixture. It
+checks authentication, query rejection, method rejection, response headers and
+learning-field serialization. Sockets, subprocesses, databases and live readers
+are forbidden. It starts no listener and does not verify the real overview
+collectors, a deployed service or a browser. Four checks passed locally.
+
 ## Security
 
 - Owner-only token auth for now.
