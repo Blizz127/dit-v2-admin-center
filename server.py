@@ -26,6 +26,7 @@ from owner_attention import pending_owner_decisions
 from nudge_history import nudge_history
 from session_markers import admin_markers, binding_issues, claude_markers, handoff_codex_markers
 from r10_projection import project_health, project_learning, project_learning_attention, project_roster
+from routing_audit import examples as routing_audit_examples
 
 PROJECT = Path(__file__).resolve().parent
 ROOT = PROJECT / "static"
@@ -217,6 +218,7 @@ def overview(source='mock'):
              "effective": None, "version": "example-1", "at": "2026-01-01T12:00:00Z", "source": "Synthetic assignment fixture"},
         ],
         "spendExample": synthetic_spend,
+        "routingAudit": routing_audit_examples(),
         "modelCalls": [
             {"id": "example-call-1", "model": "Example model", "purpose": "conversation", "latencyMs": 240,
              "cost": None, "quality": None, "source": "Synthetic example", "observedAt": "2026-01-01T12:00:00Z"},

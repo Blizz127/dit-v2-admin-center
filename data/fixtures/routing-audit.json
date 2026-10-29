@@ -1,0 +1,61 @@
+[
+  {
+    "id": "fixture-routing-1",
+    "scopeKind": "bot",
+    "actor": "fixture-owner",
+    "reason": "Per-bot illustration",
+    "at": "2026-01-01T12:00:00Z",
+    "beforeVersion": 0,
+    "afterVersion": 1,
+    "result": "Simulated application",
+    "source": "Generated in-memory fixture; not an actual admin audit",
+    "changes": [
+      {
+        "scope": {
+          "game": "ffxi",
+          "realm": "fixture-realm",
+          "native_bot": "fixture-a",
+          "purpose": "conversation"
+        },
+        "beforeRequested": null,
+        "afterRequested": "fixture-model-one",
+        "effective": null
+      }
+    ]
+  },
+  {
+    "id": "fixture-routing-2",
+    "scopeKind": "all",
+    "actor": "fixture-owner",
+    "reason": "Fixed all-bots illustration",
+    "at": "2026-01-01T12:01:00Z",
+    "beforeVersion": 1,
+    "afterVersion": 2,
+    "result": "Simulated application",
+    "source": "Generated in-memory fixture; not an actual admin audit",
+    "changes": [
+      {
+        "scope": {
+          "game": "ffxi",
+          "realm": "fixture-realm",
+          "native_bot": "fixture-a",
+          "purpose": "conversation"
+        },
+        "beforeRequested": "fixture-model-one",
+        "afterRequested": "fixture-model-two",
+        "effective": null
+      },
+      {
+        "scope": {
+          "game": "ffxi",
+          "realm": "fixture-realm",
+          "native_bot": "fixture-b",
+          "purpose": "conversation"
+        },
+        "beforeRequested": null,
+        "afterRequested": "fixture-model-two",
+        "effective": null
+      }
+    ]
+  }
+]

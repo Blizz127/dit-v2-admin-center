@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from r10_projection import project_learning
 from tools.review_party_greeting import decode_metadata, review
+from routing_audit import examples as routing_audit_examples
 
 
 def snapshot():
@@ -25,7 +26,7 @@ def snapshot():
         'sessionMarkers', 'quotaHistory', 'modelCalls', 'safetyRecords', 'botDetails',
         'replyEvents', 'assignmentHistory', 'audit', 'gameStatus', 'serviceHealth',
         'issues', 'ledger', 'learningArtifacts', 'learningPlan')}
-    result.update(generatedAt='2026-01-01T12:00:00Z', learning=rows,
+    result.update(generatedAt='2026-01-01T12:00:00Z', learning=rows, routingAudit=routing_audit_examples(),
                   hubFeeds=[dict(game='All', view='hub', status='Not configured',
                                  note='Offline harness; no hub access', at=None)],
                   ownerAttention=dict(coverage='Synthetic empty fixture', items=[]),
@@ -35,7 +36,8 @@ def snapshot():
 
 
 def source_fingerprints():
-    paths = ('static/index.html', 'static/style.css', 'static/app.js',
+    paths = ('static/index.html', 'static/style.css', 'static/app.js', 'routing_audit.py',
+             'data/fixtures/routing-audit.json',
              'r10_projection.py', 'tests/fixtures/learning-evidence-e8c81be.json',
              'tests/fixtures/assignment-pages.json',
              'tests/fixtures/party-greeting-review.json', 'tools/review_party_greeting.py',

@@ -556,6 +556,43 @@ function renderAudit() {
   rows.forEach(a => item(panel, `${routingText(a.action, 'Action unknown')} · ${routingText(a.scope, 'Scope unknown')}`,
     routingText(a.result), `${routingText(a.actor, 'Actor unknown')} · ${routingText(a.at, 'unknown time')} · ${routingText(a.source, 'Source unknown')}`));
 }
+function renderRoutingAudit() {
+  const panel = document.querySelector('#routing-audit');
+  panel.replaceChildren();
+  const supplied = currentSnapshot.routingAudit;
+  const rows = observationRows(supplied, panel);
+  const filter = document.querySelector('#routing-audit-scope').value;
+  const selected = rows.filter(row => !filter || row.scopeKind === filter);
+  const count = Array.isArray(supplied) && supplied.length === rows.length ? rows.length : 'Unknown';
+  document.querySelector('#routing-audit-count').textContent = `Showing ${selected.length} of ${count} loaded synthetic events; actual audit coverage is unknown.`;
+  if (!selected.length) item(panel, 'No matching model-switch examples', 'No real audit conclusion is available.', 'No model switching is connected.');
+  const version = value => Number.isSafeInteger(value) && value >= 0 ? value : 'Unknown';
+  selected.forEach(row => {
+    const scopeLabel = row.scopeKind === 'bot' ? 'Per-bot example' : row.scopeKind === 'all' ? 'All-bots example (fixed target set)' : 'Unknown scope example';
+    item(panel, scopeLabel, `Actor: ${routingText(row.actor)} · Reason: ${routingText(row.reason)} · Result: ${routingText(row.result)}`,
+      `Version: ${version(row.beforeVersion)} → ${version(row.afterVersion)} · Recorded: ${routingText(row.at)} · ${routingText(row.source, 'Source unknown')}`);
+    const group = panel.lastElementChild;
+    const changes = observationRows(row.changes, group);
+    const key = change => {
+      const scope = change.scope;
+      return scope && ['game', 'realm', 'native_bot', 'purpose'].every(field => typeof scope[field] === 'string' && scope[field].trim())
+        ? JSON.stringify([scope.game, scope.realm, scope.native_bot, scope.purpose]) : null;
+    };
+    const counts = new Map();
+    changes.forEach(change => { const identity = key(change); if (identity !== null) counts.set(identity, (counts.get(identity) || 0) + 1); });
+    changes.forEach(change => {
+      const identity = key(change);
+      if (identity === null || counts.get(identity) !== 1) {
+        item(group, 'Target scope unknown or ambiguous', 'Requested change withheld.', 'No first target or roster identity is inferred.');
+        return;
+      }
+      const scope = change.scope;
+      item(group, `${scope.game} / ${scope.realm} / ${scope.native_bot} · ${scope.purpose}`,
+        `Requested: ${routingText(change.beforeRequested)} → ${routingText(change.afterRequested)}`,
+        'Effective model: Unknown · Fictional target only; no roster mapping or provider call.');
+    });
+  });
+}
 function assignmentNavigation(message) {
   document.querySelector('#assignment-count').textContent = message;
   document.querySelector('#assignment-prev').setAttribute('aria-disabled', String(assignmentPage <= 0 || assignmentPages === 0));
@@ -802,6 +839,7 @@ async function load() {
     renderSpendExample();
     renderModelCalls();
     renderAudit();
+    renderRoutingAudit();
     renderIssueCoverage();
     renderIssues();
     renderLedger();
@@ -828,6 +866,7 @@ document.querySelector('#refresh').addEventListener('click', load);
 document.querySelector('#assignment-prev').addEventListener('click', () => changeAssignmentPage(-1));
 document.querySelector('#assignment-next').addEventListener('click', () => changeAssignmentPage(1));
 document.querySelector('#audit-search').addEventListener('input', () => { if (currentSnapshot) renderAudit(); });
+document.querySelector('#routing-audit-scope').addEventListener('change', () => { if (currentSnapshot) renderRoutingAudit(); });
 document.querySelector('#audit-reset').addEventListener('click', () => {
   document.querySelector('#audit-search').value = '';
   if (currentSnapshot) renderAudit();
