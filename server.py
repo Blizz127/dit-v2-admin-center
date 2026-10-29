@@ -169,11 +169,11 @@ def overview(source='mock'):
         "mode": "mock", "generatedAt": datetime.now(timezone.utc).isoformat(),
         "ownerAttention": owner_attention,
         "ffxiFocus": {
-            "closest": "The October 28 receipt reports the r5 party-greeting bridge installed; the current rollout and active source remain unverified here.",
-            "whatToLookFor": "The DIT lead alone owns the bridge install/restart. After that lead confirms player protection, rollback and current readiness, follow its test instructions and confirm visible speech.",
+            "closest": "DIT receipt 8421f15 verifies the r5-only bridge restart on October 29 at 14:03:39 UTC; new party-chat speech remains unverified.",
+            "whatToLookFor": "Per the DIT lead's retest request, send Hi! in party chat with an eligible bot and report whether a new reply is visible. A queued row alone is not speech proof; Admin sends no test message.",
             "toggle": "No behavior or model toggle is connected in this Admin Center. Gate state is unknown.",
-            "unverified": "Player-visible reply delivery, current bridge source and exact gate state have not been verified by this view.",
-            "source": "Historical r5 deployment receipt, October 28, 2026; October 29 wire-on approval and corrected ownership (ditv2own-0836). Approval is not a current deployment receipt.",
+            "unverified": "New queued delivery, native party speech and model-generated behavior remain unverified. The r5 greeting backup is canned; no model or feature flags changed in this restart.",
+            "source": "DIT 8421f15 restart receipt; readback October 29, 2026 at 14:07:59 UTC: bridge/hub active, hashes unchanged, marker absent, writer released. Dated evidence, not a current poll.",
         },
         "bots": [
             {"id": "demo-1", "name": "Aster", "game": "FFXI", "status": "Paused", "character": "Example job", "level": "12", "bodyKind": "Example body", "personalitySummary": "Example: patient and curious", "source": "Synthetic fixture", "observedAt": "2026-01-01T12:00:00Z", "routing": {"purpose": "conversation", "requested": "Example provider / example model", "effective": None, "version": "example-1", "source": "Synthetic routing example", "observedAt": "2026-01-01T12:00:00Z", "availability": "Unavailable", "reason": "Example identity has not been verified"}},
