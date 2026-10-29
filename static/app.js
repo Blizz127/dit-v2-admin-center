@@ -517,6 +517,14 @@ function renderSafety() {
   if (!records.length) item(panel, 'No safety examples', 'Actual gate and kill-switch states are unknown.', 'No operational controls connected');
   records.forEach(r => item(panel, routingText(r.scope, 'Scope label unknown'), `Example gate: ${routingText(r.gate)} · Example kill switch: ${routingText(r.killSwitch)}`, `${routingText(r.source, 'Source unknown')} · Observed: ${routingText(r.observedAt, 'unknown')} · Actual state unknown`));
 }
+function showBotLedgerExample(bot, correlationId) {
+  correlationFilter = correlationId;
+  ledgerBotId = bot.id;
+  document.querySelector('#correlation').value = correlationId;
+  if (['FFXI', 'SWTOR'].includes(bot.game)) document.querySelector('#trace-game').value = bot.game.toLowerCase();
+  traceVersion++; document.querySelector('#hub-trace').replaceChildren();
+  renderLedger(); document.querySelector('#ledger').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+}
 function renderReplySource() {
   const panel = document.querySelector('#reply-source');
   panel.replaceChildren();
@@ -541,7 +549,15 @@ function renderReplySource() {
   if (!filtered.length) item(panel, correlation ? 'No matching correlation' : 'No matching reply evidence',
     correlation ? 'No usable loaded example matches this exact correlation ID for the selected bot.' : 'No usable loaded reply example matches the selected bot.',
     'This does not prove no reply occurred. Source, fallback and delivery remain unknown.');
-  filtered.forEach(r => item(panel, `${bot.name} · ${routingText(r.wordingOrigin, 'Unknown source')}`, `Generation: ${routingText(r.generationStatus)} · Fallback: ${routingText(r.fallbackPolicy)} · Reason: ${routingText(r.fallbackReason, 'Not reported')}`, `Delivery: ${routingText(r.delivery)} · Verification: ${routingText(r.verification)} · Correlation: ${routingText(r.correlationId, 'unknown')} · ${routingText(r.source, 'Source unknown')} · Observed: ${routingText(r.observedAt, 'unknown')}`));
+  filtered.forEach(r => {
+    item(panel, `${bot.name} · ${routingText(r.wordingOrigin, 'Unknown source')}`, `Generation: ${routingText(r.generationStatus)} · Fallback: ${routingText(r.fallbackPolicy)} · Reason: ${routingText(r.fallbackReason, 'Not reported')}`, `Delivery: ${routingText(r.delivery)} · Verification: ${routingText(r.verification)} · Correlation: ${routingText(r.correlationId, 'unknown')} · ${routingText(r.source, 'Source unknown')} · Observed: ${routingText(r.observedAt, 'unknown')}`);
+    if (typeof r.correlationId === 'string' && r.correlationId.trim()) {
+      const button = document.createElement('button'); button.type = 'button';
+      button.textContent = 'Find loaded ledger evidence';
+      button.addEventListener('click', () => showBotLedgerExample(bot, r.correlationId));
+      panel.lastElementChild.append(button);
+    }
+  });
 }
 function renderOwnerAttention(data) {
   const panel = document.querySelector('#owner-attention');
@@ -707,14 +723,7 @@ function inspectBot(id) {
     item(panel, routingText(e.request), `Result: ${routingText(e.result)} · Verification: ${routingText(e.verification)}`, `Correlation: ${routingText(e.correlationId)}`);
     if (typeof e.correlationId === 'string' && e.correlationId.trim()) {
       const button = document.createElement('button'); button.type = 'button'; button.textContent = 'View example episode in ledger';
-      button.addEventListener('click', () => {
-        correlationFilter = e.correlationId;
-        ledgerBotId = bot.id;
-        document.querySelector('#correlation').value = e.correlationId;
-        if (['FFXI', 'SWTOR'].includes(bot.game)) document.querySelector('#trace-game').value = bot.game.toLowerCase();
-        traceVersion++; document.querySelector('#hub-trace').replaceChildren();
-        renderLedger(); document.querySelector('#ledger').scrollIntoView({behavior: 'smooth', block: 'nearest'});
-      });
+      button.addEventListener('click', () => showBotLedgerExample(bot, e.correlationId));
       panel.lastElementChild.append(button);
     }
   });

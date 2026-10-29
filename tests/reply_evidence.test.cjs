@@ -7,7 +7,13 @@ const replyEvents = [
   {botId:'A', correlationId:'Party-10', wordingOrigin:'Canned fallback', delivery:'queued', verification:'Unknown'},
   {botId:'B', correlationId:'Party-1', wordingOrigin:'OTHER_BOT'}
 ];
-const data = {bots, replyEvents};
+const ledger = [
+  {botId:'A', correlationId:'Party-1',request:'A_EVIDENCE',result:'pending',verification:'Unknown'},
+  {botId:'B', correlationId:'Party-1',request:'B_EVIDENCE'},
+  {correlationId:'Party-1',request:'UNSCOPED_EVIDENCE'}
+];
+const data = {bots, replyEvents, ledger};
+const links = () => get('reply-source').children.flatMap(row=>row.children).filter(n=>n.textContent==='Find loaded ledger evidence');
 const filter = value => {get('reply-correlation').value=value; get('reply-correlation').listeners.input();};
 (async()=>{
   await refresh(data);context.inspectBot('A');
@@ -16,10 +22,21 @@ const filter = value => {get('reply-correlation').value=value; get('reply-correl
   assert.match(get('reply-count').textContent,/Showing 1 of 2/);
   assert.match(get('reply-source').textContent,/Generation: generated.*Delivery: Unknown.*Verification: Unknown/);
   assert.doesNotMatch(get('reply-source').textContent,/Party-10|OTHER_BOT/);
+  get('hub-trace').textContent='Previous trace';links()[0].listeners.click();
+  assert.match(get('ledger').textContent,/A_EVIDENCE.*pending.*Unknown/);
+  assert.doesNotMatch(get('ledger').textContent,/B_EVIDENCE|UNSCOPED_EVIDENCE/);
+  assert.equal(get('hub-trace').textContent,'');
+  assert.match(get('ledger-filter').textContent,/Pinned bot ID: A/);
+  assert.equal(requestCount(),before,'Ledger shortcut uses loaded evidence only');
   filter('party-1');assert.match(get('reply-source').textContent,/No matching correlation/);
   filter(' Party-1 ');assert.match(get('reply-count').textContent,/Showing 1 of 2/);
   assert.equal(requestCount(),before);
   await refresh(data);assert.match(get('reply-count').textContent,/Showing 1 of 2/);
+  get('reply-reset').listeners.click();links()[1].listeners.click();
+  assert.match(get('ledger').textContent,/No matching evidence.*not proof/);
+  await refresh({...data,replyEvents:[{botId:'A',correlationId:' '},{botId:'A',correlationId:42}]});
+  assert.equal(links().length,0,'Invalid correlation cannot navigate to broader evidence');
+  await refresh(data);
   get('reply-reset').listeners.click();assert.match(get('reply-count').textContent,/Showing 2 of 2/);
   filter('Party-10');context.inspectBot('B');assert.equal(get('reply-correlation').value,'');
   assert.match(get('reply-source').textContent,/OTHER_BOT/);
