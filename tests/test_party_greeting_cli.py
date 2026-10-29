@@ -27,7 +27,8 @@ class PartyGreetingCLITests(unittest.TestCase):
                  b'[' * 10000 + b']' * 10000,
                  b'{"ownerGenerated":false,"ownerGenerated":true}',
                  b'{"scope":{"botId":"one","botId":"two"}}',
-                 b'{"value":NaN}', b'{"value":Infinity}']
+                 b'{"value":NaN}', b'{"value":Infinity}', b'{"value":1e999}',
+                 b'{"scope":{"extra":-1e999}}']
         for raw in cases:
             with self.subTest(raw=repr(raw)[:45]):
                 result = self.run_file(raw)

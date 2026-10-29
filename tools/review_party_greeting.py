@@ -6,6 +6,7 @@ Reported states describe supplied evidence only, not independently verified fact
 import argparse
 from datetime import datetime
 import json
+import math
 from pathlib import Path
 
 
@@ -95,7 +96,14 @@ def decode_metadata(raw):
     def invalid_constant(_):
         raise ValueError('invalid metadata number')
 
-    return json.loads(raw, object_pairs_hook=object_fields, parse_constant=invalid_constant)
+    def finite_float(value):
+        result = float(value)
+        if not math.isfinite(result):
+            raise ValueError('invalid metadata number')
+        return result
+
+    return json.loads(raw, object_pairs_hook=object_fields, parse_constant=invalid_constant,
+                      parse_float=finite_float)
 
 
 def main():
