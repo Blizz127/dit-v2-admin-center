@@ -497,6 +497,12 @@ document.querySelector('#ffxi-learning').addEventListener('click', () => {
   if (currentSnapshot) { renderLearningPlan(); renderLearningArtifacts(); renderLearning(); }
   document.querySelector('#learning').scrollIntoView({behavior: 'smooth', block: 'nearest'});
 });
+document.querySelector('#clear-learning').addEventListener('click', () => {
+  selectedLearningId = null;
+  const panel = document.querySelector('#learning-inspector');
+  panel.replaceChildren(); panel.textContent = 'Select a learning need for details.';
+  if (currentSnapshot) updateLearningCount(filteredLearning());
+});
 document.querySelector('#learning-game').addEventListener('change', () => { if (currentSnapshot) { renderLearningPlan(); renderLearningArtifacts(); renderLearning(); } });
 document.querySelector('#learning-status').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
 document.querySelector('#learning-attention').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
