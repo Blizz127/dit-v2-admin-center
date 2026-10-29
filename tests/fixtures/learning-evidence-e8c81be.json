@@ -1,0 +1,35 @@
+{
+  "gameId": "ffxi",
+  "tasks": [
+    {
+      "id": "fixture-verified-answer",
+      "gameId": "ffxi",
+      "topic": "Synthetic verified task with model-answer flag",
+      "status": "verified",
+      "hasModelAnswer": true,
+      "updatedAtUtc": "2026-01-01T12:00:00Z"
+    },
+    {
+      "id": "fixture-no-answer",
+      "gameId": "ffxi",
+      "topic": "Synthetic task reporting no model answer",
+      "status": "verified",
+      "hasModelAnswer": false,
+      "evidence": null
+    },
+    {
+      "id": "fixture-present-evidence",
+      "gameId": "ffxi",
+      "topic": "Synthetic full task with opaque evidence",
+      "status": "verified",
+      "hasModelAnswer": true,
+      "evidence": {"fixtureCanary": "OMIT_RAW_ANSWER_AND_PLAYER_DATA"}
+    },
+    {
+      "id": "fixture-unknown-answer",
+      "gameId": "ffxi",
+      "topic": "Synthetic task without answer metadata",
+      "status": "verified"
+    }
+  ]
+}

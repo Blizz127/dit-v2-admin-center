@@ -241,6 +241,15 @@ setImmediate(async () => {
   assert.match(learningDetail.children[0].textContent, /Example FFXI/);
   assert.match(learningDetail.children[1].textContent, /Missing evidence/);
   assert.match(learningDetail.children[2].textContent, /Policy verification: Unknown/);
+  assert.match(learningDetail.children[2].textContent, /Model answer reported: Unknown/);
+  for (const [flag, label] of [[true, 'Yes'], [false, 'No'], ['true', 'Unknown'], [1, 'Unknown']]) {
+    data.learning[0].hasModelAnswer = flag;
+    context.inspectLearning('need-one');
+    assert.ok(get('learning-inspector').children[0].children[2].textContent.includes(`Model answer reported: ${label} (not outcome evidence or permission to call a model)`));
+    assert.ok(get('learning-evidence').children.slice(1).every(row => row.children[1].textContent === 'Evidence state: Unknown'));
+  }
+  delete data.learning[0].hasModelAnswer;
+  context.inspectLearning('need-one');
   assert.equal(get('learning-inspector').children[1].children[0].textContent, 'Related issue · Bot issue');
   const beforeChecklist = requestCount;
   const evidence = get('learning-evidence');

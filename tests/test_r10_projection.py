@@ -1,9 +1,23 @@
 import unittest
+import json
+from pathlib import Path
 
 from r10_projection import project_learning, project_learning_attention
 
 
 class ProjectionTests(unittest.TestCase):
+    def test_candidate_answer_flags_are_separate_from_evidence_and_outcomes(self):
+        payload = json.loads((Path(__file__).parent / 'fixtures/learning-evidence-e8c81be.json').read_text())
+        rows = project_learning(payload)
+        self.assertEqual([r['hasModelAnswer'] for r in rows], [True, False, True, None])
+        self.assertEqual([r['evidence'] for r in rows], ['Not included', 'Unknown', 'Present', 'Not included'])
+        self.assertTrue(all(r['status'] == 'verified' and r['policy'] == 'Unknown' and r['datasets'] == 'Unknown' for r in rows))
+        self.assertNotIn('OMIT_RAW', json.dumps(rows))
+        for invalid in ('true', 'false', 1, 0, {}, [], None):
+            with self.subTest(flag=invalid):
+                payload['tasks'][0]['hasModelAnswer'] = invalid
+                self.assertIsNone(project_learning(payload)[0]['hasModelAnswer'])
+
     def test_light_response_does_not_claim_evidence_or_policy(self):
         payload = {'gameId': 'ffxi', 'tasks': [
             {'id': 'one', 'gameId': 'ffxi', 'topic': 'Navigation', 'status': 'verified', 'updatedAtUtc': '2026-01-01T00:00:00Z'},

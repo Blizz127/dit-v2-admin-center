@@ -24,6 +24,8 @@ def project_learning(payload):
             'phase': task.get('phase') if isinstance(task.get('phase'), str) else None,
             'retryAt': task.get('retryAtUtc') if isinstance(task.get('retryAtUtc'), str) else None,
             'escalation': task.get('escalation') if isinstance(task.get('escalation'), str) else None,
+            # LightTask carries this flag without loading or exposing answer text.
+            'hasModelAnswer': task.get('hasModelAnswer') if type(task.get('hasModelAnswer')) is bool else None,
             # Light responses omit evidence, and a verified task is not a verified policy.
             'evidence': 'Not included' if 'evidence' not in task else 'Present' if task['evidence'] is not None else 'Unknown',
             'datasets': 'Unknown', 'policy': 'Unknown',
