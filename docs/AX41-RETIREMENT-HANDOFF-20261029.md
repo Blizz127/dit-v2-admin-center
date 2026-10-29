@@ -17,3 +17,8 @@ provided here; none is inferred. Admin adds no wake/reroute/retirement operation
 Focused markup checks verify dated attribution, placement under operations,
 the unresolved dependency and absence of action controls. These are source checks,
 not native rendering or live host verification. No Alienware file is replaced.
+
+All five focused markup checks passed. The local preview was regenerated at
+`b12ea82`; both asset/CSP and JavaScript syntax checks passed. Its size and hash
+are recorded in `NATIVE-VERIFICATION-GAP.md`. Native browser execution, appearance
+and live retirement/wake behavior remain unverified.
