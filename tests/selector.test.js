@@ -29,6 +29,7 @@ setImmediate(async () => {
   assert.match(get('ffxi-focus-bridge').children[0].children[2].textContent, /Observed: test time · Not proof of delivery/);
   assert.equal(get('owner-attention').children[1].children[0].textContent, 'Review example');
   assert.equal(get('safety-records').children.length, 1);
+  assert.match(get('lead-monitoring').children[0].children[2].textContent, /Provider: Unknown.*Current lead binding unverified/);
   assert.match(get('hub-banner').textContent, /Hub not configured.*synthetic fallback/);
   assert.match(get('hub-feeds').children[0].children[2].textContent, /Duplicate roster keys.*Synthetic fallback/);
   assert.match(get('ffxi-feeds').children[0].children[2].textContent, /Synthetic fallback.*Fetched: unknown.*Not proof of game presence or delivery/);

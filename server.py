@@ -14,6 +14,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from lead_timeline import add_checkout_history, add_current_evidence, monitoring_issues, timeline
 from lead_activity import lead_activity
+from lead_binding import current_codex_binding
 from live_hub import HubReadError, HubReader, merge_views, project_hub_health, project_spend, project_trace, read_views
 from hub_cache import HubViewsCache
 from bridge_status import BridgeObserver
@@ -90,9 +91,10 @@ def session_activity(session):
 
 
 def lead_monitoring():
-    root = Path.home() / ".local/share/devbox-coordinator-state"
-    targets = [("DIT v2 hub lead", "claude-dit-human-behavior-platform", None, None, "claude-dit-human-behavior-platform"),
-               ("Admin Center lead", "claude-dit-v2-admin-center", "codex", None, None)]
+    home = Path.home()
+    root = home / ".local/share/devbox-coordinator-state"
+    targets = [("DIT v2 hub lead", "claude-dit-human-behavior-platform", home / 'dev/dit-human-behavior-platform'),
+               ("Admin Center lead", "claude-dit-v2-admin-center", PROJECT)]
     try:
         config = json.loads((root / "watch.json").read_text())
         state = json.loads((root / "watch-state.json").read_text())
@@ -102,21 +104,29 @@ def lead_monitoring():
     except (OSError, ValueError, KeyError, TypeError):
         records, state = [], {}
     result = []
-    for name, project, agent, provider, session in targets:
+    for name, project, workspace_path in targets:
+        binding = current_codex_binding(home / '.local/share/devbox-failover' / (project + '.json'),
+                                        home / '.codex/state_5.sqlite', workspace_path)
+        provider, thread = binding['provider'], binding['thread']
         item = {"lead": name, "stall": "Unknown", "stallReason": "No available matching watcher classification", "quota": "Unknown", "quotaReason": "No per-lead quota source connected", "stallObservedAt": None}
-        if agent is None:
+        item.update(provider=provider, binding=binding['coverage'], bindingObservedAt=datetime.now(timezone.utc).isoformat())
+        if provider is None:
             item["stallReason"] = "Watcher-to-current-lead binding is unverified after provider rotation"
         item["poolCapacity"], item["poolReason"] = capacity_context(root, provider)
-        item["sessionActivity"] = session_activity(session)
-        matches = [t for t in records if isinstance(t, dict) and t.get("project") == project and t.get("agent") == agent and t.get("enabled", True)]
-        if agent is not None and len(matches) == 1:
+        item["sessionActivity"] = session_activity(project) if provider else "Unknown"
+        matches = [t for t in records if isinstance(t, dict) and t.get("project") == project
+                   and t.get("agent") == provider and t.get('session') == thread and t.get("enabled", True)]
+        if provider is not None and len(matches) == 1:
             entry = state.get(matches[0].get("name"), {})
-            if isinstance(entry, dict) and entry.get("kind") in ("STALLED", "STOPPED", "OFF-TRACK", "OK") and isinstance(entry.get("checked"), (int, float)):
+            if isinstance(entry, dict) and entry.get("kind") in ("STALLED", "STOPPED", "OFF-TRACK", "OK") and type(entry.get("checked")) in (int, float):
                 try:
                     at = datetime.fromtimestamp(entry["checked"], timezone.utc).isoformat()
                     item["stallObservedAt"] = at
-                    item["stall"] = entry["kind"]
-                    item["stallReason"] = "Coordinator watcher classification checked " + at + "; may be stale"
+                    if 0 <= time.time() - entry['checked'] <= 180:
+                        item["stall"] = entry["kind"]
+                        item["stallReason"] = "Coordinator watcher for the bound thread checked " + at + "; observation only"
+                    else:
+                        item["stallReason"] = "Bound-thread watcher observation stale or future-dated; checked " + at
                 except (ValueError, OverflowError, OSError):
                     pass
         result.append(item)

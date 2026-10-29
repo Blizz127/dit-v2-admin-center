@@ -10,6 +10,29 @@ from contextlib import closing
 from pathlib import Path
 
 
+def _resume_thread(args):
+    """Recognize the explicit resume form used by the coordinator; never match a prompt."""
+    if len(args) < 3 or args[1] != b'resume':
+        return None
+    valued = {b'--model', b'-m', b'--config', b'-c', b'--profile', b'-p',
+              b'--cd', b'-C', b'--sandbox', b'-s', b'--ask-for-approval', b'-a'}
+    flags = {b'--dangerously-bypass-approvals-and-sandbox', b'--no-alt-screen', b'--full-auto', b'--all'}
+    index = 2
+    while index < len(args):
+        arg = args[index]
+        if arg in valued:
+            index += 2
+        elif arg in flags:
+            index += 1
+        elif b'=' in arg and arg.split(b'=', 1)[0] in valued:
+            index += 1
+        elif arg.startswith(b'-'):
+            return None
+        else:
+            return arg
+    return None
+
+
 def current_codex_binding(lane_path, database, project, proc_root=Path('/proc')):
     unknown = {'provider': None, 'thread': None,
                'coverage': 'Current lead process binding is unverified'}
@@ -36,7 +59,7 @@ def current_codex_binding(lane_path, database, project, proc_root=Path('/proc'))
         if len(command) > 65536:
             return unknown
         args = command.rstrip(b'\0').split(b'\0')
-        if b'resume' not in args or thread.encode() not in args:
+        if _resume_thread(args) != thread.encode():
             return unknown
         with closing(sqlite3.connect(database.as_uri() + '?mode=ro', uri=True, timeout=1)) as db:
             rows = db.execute('SELECT cwd, archived FROM threads WHERE id=?', (thread,)).fetchall()

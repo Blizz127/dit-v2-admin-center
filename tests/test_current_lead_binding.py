@@ -45,11 +45,18 @@ class CurrentLeadBindingTests(unittest.TestCase):
                 self.assertIsNone(self.read()['provider'])
 
     def test_rejects_reused_process_or_wrong_native_metadata(self):
-        (self.process / 'cmdline').write_bytes(b'codex\0resume\0other-thread\0')
+        (self.process / 'cmdline').write_bytes(b'codex\0resume\0other-thread\0' + self.thread.encode() + b'\0')
         self.assertIsNone(self.read()['provider'])
         (self.process / 'cmdline').write_bytes(b'codex\0resume\0' + self.thread.encode() + b'\0')
         with sqlite3.connect(self.database) as db:
             db.execute('UPDATE threads SET archived=1')
+        self.assertIsNone(self.read()['provider'])
+
+    def test_supported_resume_options_and_wrong_process(self):
+        (self.process / 'cmdline').write_bytes(b'codex\0resume\0--model\0fixture\0-c\0option=value\0--no-alt-screen\0' + self.thread.encode() + b'\0')
+        self.assertEqual(self.read()['provider'], 'codex')
+        (self.process / 'cwd').unlink()
+        (self.process / 'cwd').symlink_to(self.root)
         self.assertIsNone(self.read()['provider'])
 
     def test_missing_database_is_not_created(self):
