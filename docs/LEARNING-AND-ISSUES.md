@@ -134,6 +134,29 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+### Model-switch audit examples — 2026-10-29
+
+`47a0a42` adds a read-only card for generated per-bot and fixed all-bots model
+change examples. A scope filter distinguishes the two; targets show explicit
+fictional game/realm/native-bot/purpose, actor/reason/time, version and before/after
+requested models. Effective state remains Unknown, including when an input claims
+an effective value. Missing/malformed events show Unknown coverage; incomplete
+or repeated target identities withhold requested-change attribution. Controls
+remain disabled and filtering makes no routing request.
+
+`4acd908` adds a rejected stale-version example. Attempted model is separate from
+unchanged requested model and unchanged stored version. The offline generator
+checks that the rejected call did not mutate the isolated simulator. It explicitly
+labels this as a generated attempt illustration because the simulator does not
+emit rejected-attempt audit entries. No authoritative hub audit contract is implied.
+
+Component checks (actual app in a minimal simulated DOM), two fixture checks,
+three static naming/control checks and the focused real in-memory overview-handler
+check passed. The handler test copies the committed fixture into its synthetic
+home and preserves its file/socket/process guards. The generator is never invoked
+by the server. The standalone artifact includes the committed examples; the running
+service was not restarted. jsdom/native rendering is still unavailable, so these
+component results are not a native DOM, keyboard or browser appearance pass.
 ### Interaction scope and artifact assembly — 2026-10-29
 
 `a293c05` fixes a reproduced presentation gap: an interaction row marked fresh

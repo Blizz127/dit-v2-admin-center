@@ -7,6 +7,14 @@ backup. Its 14:07:59 UTC readback confirms bridge/hub active, unchanged hashes
 and no fault marker; DONE/writer release is recorded. New queued replies and
 native speech remain unverified. See [the reconciled handoff](docs/FFXI-WIRE-ON-20261029.md).
 Admin model controls remain disabled; startup success is not gameplay proof.
+
+**New offline preview:** “Model-switch audit examples” shows per-bot, fixed
+all-bots and rejected stale-version cases in `build/inspector-playtest.html`.
+Use its scope filter to compare examples. Requested before/after values, attempted
+model and effective state are separate; effective state remains Unknown. No model
+switch is enabled. The running service has not been restarted for this feature.
+Generate the artifact with `python3 tools/build_inspector_playtest.py`.
+
 The [party greeting evidence checklist](docs/PARTY-GREETING-VERIFICATION.md) and
 `/playtest#party-greeting` separate owner input, a correlated queued reply and
 owner-reported native speech. Its review tool consumes local metadata only; it

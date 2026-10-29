@@ -4,6 +4,26 @@ Status: local presentation contract, draft pending coordination with the DIT v2 
 
 All responses are JSON and `Cache-Control: no-store`. Requests to `/api/*` require `Authorization: Bearer <owner token>`; absent or incorrect tokens receive 401. The token must be provided to the process as `ADMIN_TOKEN` and is never included in responses. No mutation endpoints exist. Optional upstream reads are restricted to `/v1/control/bots`, `/v1/control/learning` with `light=true` and `tasksOnly=true`, `/v1/control/server-status`, and explicit `/v1/control/trace`, `/v1/control/health`, and candidate-only `/v1/control/interaction?limit=50` queries; each game/view has independently labeled synthetic fallback. Read-only overview requests share an in-memory snapshot for up to 15 seconds, retaining original fetch times; token-file metadata changes invalidate it. Unknown API paths return 404. No CORS access is provided.
 
+## Synthetic routing audit field in GET /api/overview
+
+`routingAudit` contains committed examples from `data/fixtures/routing-audit.json`.
+It is a local presentation shape, not a hub endpoint or agreed audit contract.
+The server only reads this file; it never imports or invokes the routing simulator.
+Missing/invalid fixture data is null and the UI reports Unknown coverage.
+
+Each event has `scopeKind` (`bot` or `all`), actor, reason, fictional time, attempted
+model, expected/before/after version and a result explicitly labeled simulated.
+Its `changes` list contains explicit fictional game/realm/native-bot/purpose
+tuples, before/after requested models and null effective state. The UI does not
+join these keys to roster identities or infer effective routing. The all-bots
+example covers exactly its two listed fixture targets, not future registrations.
+
+The third example is a rejected stale-version attempt with unchanged requested
+model and version. It is generated separately from the simulator's success-only
+audit list and labeled accordingly. Actual rejection logging, rollback,
+partial-success semantics, authorization and authoritative audit provenance remain
+hub-contract work. No write route, model call or actual admin audit is added.
+
 ## GET /api/hub-health
 
 Requires the owner token and configured hub access. On explicit request, reads the upstream service-health snapshot; the r10 route may invoke read-only Docker and systemd inspection and can take time. Projects up to 50 FFXI/SWTOR records, omitting internal paths, environment and log data; service state does not establish bot presence. Shares a short 15-second cache and fails closed to unknown on errors. No automatic polling is performed.
