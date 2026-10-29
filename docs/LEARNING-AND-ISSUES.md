@@ -134,6 +134,12 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+Audit filtering (`e2f7026`) adds local actor/action/scope/result search, counts
+and reset over loaded synthetic examples. Focused overview and source-race
+checks passed: case/space handling, empty-match coverage warning, no requests,
+no fabricated actions, refresh persistence and reset. What’s-new and playtest
+instructions describe the controls. Live audit collection remains unconnected.
+
 Audit follow-up (`de91d84`): an empty example list previously left the panel
 blank. It now states that no examples/live audit source are available and makes
 no inference about real actions. The focused overview check passes for populated

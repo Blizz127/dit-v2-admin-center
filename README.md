@@ -218,6 +218,11 @@ and an explicit empty state. Bot selection never creates an audit event. No live
 audit source is connected, so an empty panel cannot establish that no actions
 occurred. These checks use the same offline overview command above.
 
+The audit panel now offers local search by actor, action, scope or result, with
+a loaded-example count and Clear audit filter. Matching ignores case and
+surrounding spaces. Search persists through refresh, makes no service request
+and does not create audit events. No pagination or live audit integration is added.
+
 To check timeout/partial-feed recovery through the reader, cache and merge:
 
 ```sh
