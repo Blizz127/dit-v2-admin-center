@@ -47,19 +47,23 @@ function item(parent, title, detail, meta) {
 function renderInteraction(data, source) {
   const panel = document.querySelector('#interaction-status');
   panel.replaceChildren();
+  if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('unavailable');
+  const switches = data.switches && typeof data.switches === 'object' && !Array.isArray(data.switches) ? data.switches : {};
+  const rows = observationRows(data.bots, panel);
+  const count = Array.isArray(data.bots) && rows.length === data.bots.length ? rows.length : 'Unknown count of';
   const flag = value => value === true ? 'On' : value === false ? 'Off' : 'Unknown';
-  item(panel, source, data.coverage, `Fetched: ${data.fetchedAt || 'unknown'} · This view cannot change switches or send orders`);
-  item(panel, 'Reported interaction switches', `Contract: ${flag(data.switches.contract)} · Natural orders: ${flag(data.switches.naturalOrders)} · Self claims: ${flag(data.switches.selfClaims)}`, 'Reported values only; no model-routing or game controls are connected here');
-  item(panel, 'Coverage', `${data.bots.length} returned FFXI actors · Truncated: ${data.truncated === true ? 'Yes' : data.truncated === false ? 'No' : 'Unknown'}`, `Hub freshness threshold: ${data.freshForSeconds == null ? 'unknown' : data.freshForSeconds + ' s'} · Freshness is reported at fetch time and may be stale now`);
-  if (data.switches.contract !== true) {
-    item(panel, 'Current bot state unavailable', data.switches.contract === false ? 'The contract is reported off; no current bot inventory is inferred.' : 'Contract collection state is unknown.', 'An empty view does not establish healthy or absent bots');
+  item(panel, source, routingText(data.coverage), `Fetched: ${routingText(data.fetchedAt, 'unknown')} · This view cannot change switches or send orders`);
+  item(panel, 'Reported interaction switches', `Contract: ${flag(switches.contract)} · Natural orders: ${flag(switches.naturalOrders)} · Self claims: ${flag(switches.selfClaims)}`, 'Reported values only; no model-routing or game controls are connected here');
+  item(panel, 'Coverage', `${count} returned FFXI actors · Truncated: ${data.truncated === true ? 'Yes' : data.truncated === false ? 'No' : 'Unknown'}`, `Hub freshness threshold: ${metricNumber(data.freshForSeconds) ? data.freshForSeconds + ' s' : 'unknown'} · Freshness is reported at fetch time and may be stale now`);
+  if (switches.contract !== true) {
+    item(panel, 'Current bot state unavailable', switches.contract === false ? 'The contract is reported off; no current bot inventory is inferred.' : 'Contract collection state is unknown.', 'An empty view does not establish healthy or absent bots');
     return;
   }
-  if (!data.bots.length) item(panel, 'No FFXI actor records returned', 'Coverage is unknown.', 'No outcome or absence is inferred');
+  if (!rows.length) item(panel, 'No FFXI actor records returned', 'Coverage is unknown.', 'No outcome or absence is inferred');
   const freshness = value => value === true ? 'Reported fresh' : value === false ? 'Reported stale' : 'Unknown';
-  data.bots.forEach(b => item(panel, b.actorKey,
-    `Reconciled view: ${freshness(b.fresh)} · Activity: ${b.fresh === true ? b.activity || 'Unknown' : 'Unknown'} · Raw snapshot: ${freshness(b.snapshotFresh)}`,
-    `Scope: ${b.caller} / ${b.serverInstanceId} · Raw state source: ${b.source || 'unknown'} · Snapshot observed: ${b.observedAt || 'unknown'} · Hub-reported snapshot age: ${b.ageSeconds == null ? 'unknown' : b.ageSeconds + ' s'} · No roster identity join or delivery inference`));
+  rows.forEach(b => item(panel, routingText(b.actorKey),
+    `Reconciled view: ${freshness(b.fresh)} · Activity: ${b.fresh === true ? routingText(b.activity) : 'Unknown'} · Raw snapshot: ${freshness(b.snapshotFresh)}`,
+    `Scope: ${routingText(b.caller)} / ${routingText(b.serverInstanceId)} · Raw state source: ${routingText(b.source, 'unknown')} · Snapshot observed: ${routingText(b.observedAt, 'unknown')} · Hub-reported snapshot age: ${metricNumber(b.ageSeconds) ? b.ageSeconds + ' s' : 'unknown'} · No roster identity join or delivery inference`));
 }
 async function loadInteraction() {
   if (!token || workspace.hidden) return;
@@ -108,9 +112,11 @@ async function loadHubHealth() {
     const data = await response.json();
     if (id !== healthVersion || !panelSessionCurrent(requestToken, session)) return;
     panel.replaceChildren();
-    item(panel, 'Hub service health', data.coverage, `${data.source} · Fetched: ${data.fetchedAt} · Snapshot may be stale`);
-    if (!data.services.length) item(panel, 'No matching service records', 'Coverage is unknown.', 'Empty data does not establish healthy services.');
-    data.services.forEach(s => item(panel, `${s.game} · ${s.label}`, s.state, `Observed: ${s.observedAt || 'unknown'} · Service state is not bot presence`));
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('unavailable');
+    const rows = observationRows(data.services, panel);
+    item(panel, 'Hub service health', routingText(data.coverage), `${routingText(data.source)} · Fetched: ${routingText(data.fetchedAt)} · Snapshot may be stale`);
+    if (!rows.length) item(panel, 'No matching service records', 'Coverage is unknown.', 'Empty data does not establish healthy services.');
+    rows.forEach(s => item(panel, `${routingText(s.game)} · ${routingText(s.label)}`, routingText(s.state), `Observed: ${routingText(s.observedAt, 'unknown')} · Service state is not bot presence`));
   } catch (_) { if (id === healthVersion && panelSessionCurrent(requestToken, session)) panel.textContent = 'Hub service health unavailable; current state is unknown.'; }
 }
 async function loadBridge() {
@@ -413,9 +419,12 @@ async function loadHubTrace(correlation) {
     const data = await response.json();
     if (id !== traceVersion || !panelSessionCurrent(requestToken, session)) return;
     panel.replaceChildren();
-    item(panel, `Hub trace · ${game.toUpperCase()} · ${correlation}`, `${data.coverage} · ${data.records.length} returned ${data.records.length === 1 ? 'record' : 'records'}`, `Fetched: ${data.fetchedAt} · Deployed revision unverified · Bounded lookup, not proof of outcome`);
-    if (!data.records.length) item(panel, 'No matching trace records', 'No matching records in the bounded trace window.', 'This does not prove an action did or did not occur.');
-    data.records.forEach(r => item(panel, `${r.kind || 'Unknown'} · ${r.type || 'Unknown'}`, `Disposition: ${r.disposition || 'Unknown'} · Classification: ${r.classification || 'Unknown'} · Final: ${r.isFinal == null ? 'Unknown' : r.isFinal}`, `Occurred: ${r.occurredAt || 'unknown'} · Raw envelope body omitted`));
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('unavailable');
+    const rows = observationRows(data.records, panel);
+    const complete = Array.isArray(data.records) && rows.length === data.records.length;
+    item(panel, `Hub trace · ${game.toUpperCase()} · ${correlation}`, `${routingText(data.coverage)} · ${complete ? rows.length : 'Unknown count of'} returned ${rows.length === 1 ? 'record' : 'records'}`, `Fetched: ${routingText(data.fetchedAt)} · Deployed revision unverified · Bounded lookup, not proof of outcome`);
+    if (!rows.length) item(panel, 'No matching trace records', 'No matching records in the bounded trace window.', 'This does not prove an action did or did not occur.');
+    rows.forEach(r => item(panel, `${routingText(r.kind)} · ${routingText(r.type)}`, `Disposition: ${routingText(r.disposition)} · Classification: ${routingText(r.classification)} · Final: ${typeof r.isFinal === 'boolean' ? r.isFinal : 'Unknown'}`, `Occurred: ${routingText(r.occurredAt, 'unknown')} · Raw envelope body omitted`));
   } catch (_) { if (id === traceVersion && panelSessionCurrent(requestToken, session)) panel.textContent = 'Hub trace unavailable; no delivery or outcome can be inferred.'; }
 }
 function renderLedger() {
