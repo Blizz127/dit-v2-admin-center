@@ -64,6 +64,15 @@ The endpoint remains absent from r10; deployed revision and live availability
 remain unverified. No live read, activation, model or control change is
 authorized by this handoff.
 
+The subsequent coordinator request `e855ecb641e726ca` adds the nine pinned
+snapshots to the existing offline contract harness. The byte-identical import
+and provenance are in `tests/fixtures/interaction-generated`; no sister checkout
+is needed to run it. Seven contract tests now pass, including one nine-snapshot
+matrix through the current reader, projection and cache with sockets forbidden.
+This extends local consumer coverage without repeating the upstream generator
+or its in-process route authorization checks. No production code changes were
+needed. The earlier no-rerun statement describes the initial reconciliation.
+
 ## Proposed routing read model
 
 A route is scoped by adapter-verified `(gameId, realmId, nativeBotId, purpose)`. Identity must not be inferred from a display name; a group turn requires a verified selected speaker. A read-only result should distinguish requested and effective provider/model, policy version, source, observed timestamp, readiness and unavailable/stale reason. An unknown rate, allowance, budget, identity, credentials or provider state is not healthy or zero. Treat the following as an illustrative field sketch, not an existing endpoint or agreed wire schema:

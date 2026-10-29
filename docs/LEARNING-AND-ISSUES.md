@@ -7,6 +7,7 @@ Planning inventory, not a claim of live capability. Bot, learning, dataset and p
 - Learn game-specific movement and navigation, camps and zones, party and job behavior, missions, combat timing and social conventions from appropriately sourced observations and outcomes. Keep player memory grounded in verified facts and scoped to the game.
 - Identify the available datasets, their provenance, consent/authorization, scope, freshness and coverage before displaying them as evidence. Dataset inventory is unknown here. Policy/weight versions, validation, approval, delivery, adoption and demonstrated outcomes must be separate states; current states are unknown.
 - The sister project's `docs/operators/FFXI_WORLD_REFERENCE.md` describes a reference and identifies missing live quest-progress and arbitrary quest movement coverage at its time of writing. Confirm current status with its lead; do not infer it from a historical note.
+- Candidate interaction freshness now has generated offline coverage: nine hub-owned synthetic snapshots exercise the Admin Center reader, projection and cache. A newer accepted receipt may leave current activity unknown even while the raw snapshot is fresh. This validates presentation semantics, not native presence, learned behavior or action delivery. Live observation coverage, adapter-verified roster identity and demonstrated game outcomes remain unresolved; retain caller/server scope and do not join actors by display name. See the [fixture provenance and checks](../tests/fixtures/interaction-generated/README.md).
 
 ## SWTOR — second
 

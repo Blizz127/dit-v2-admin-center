@@ -49,6 +49,10 @@ timeout 20s python3 -m unittest discover -s tests -p test_interaction_contract.p
 
 It uses a synthetic candidate fixture and rejects socket connections. It checks the reconciled f95fe8a interaction handoff, including scoped identity, freshness, cache timestamps and omitted private fields. Proposed model-routing payloads remain sketches, not implemented endpoints. See [API.md](docs/API.md#offline-interaction-contract-verification) for the verification limits.
 
+The same command also runs all nine hub-generated candidate snapshots through
+the reader, projection and cache. The [pinned fixture bundle](tests/fixtures/interaction-generated/README.md)
+includes provenance and needs no sister checkout, hub, listener or .NET build.
+
 ## Security
 
 - Owner-only token auth for now.
