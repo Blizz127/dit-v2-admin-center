@@ -24,6 +24,7 @@ async function loadHubHealth() {
   const panel = document.querySelector('#hub-health');
   panel.replaceChildren();
   if (document.querySelector('#data-source').value !== 'hub') { panel.textContent = 'Select configured hub data before requesting this read-only check.'; return; }
+  if (sourceLoading || loadedSource !== 'hub') { panel.textContent = 'Load the selected hub source successfully before requesting this read-only check.'; return; }
   panel.textContent = 'Checking hub services…';
   try {
     const response = await fetch('/api/hub-health', {headers: {Authorization: `Bearer ${token}`}, cache: 'no-store'});
