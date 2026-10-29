@@ -81,6 +81,20 @@ const ctx = {document: {querySelector: s => get(s.slice(1)), getElementById: get
       if (outcome === 'audit-malformed') data.audit = 'OMIT_PRIVATE_BAD_AUDIT';
       if (outcome === 'audit-invalid-row') data.audit = [{action: 'OMIT_PARTIAL_PREFIX'}, null];
       if (outcome === 'audit-partial') data.audit = [{action: 'Partial example', result: false, actor: null, at: {}, source: ' '}];
+      if (outcome.startsWith('details-')) {
+        data.botDetails = [{botId: 'fixture-bot', source: 'Synthetic detail fixture',
+          goals: [{text: 'CURRENT_GOAL', status: 'Pending', evidence: 'Not verified'}],
+          memories: [{text: 'CURRENT_MEMORY', grounding: 'Synthetic only'}]}];
+        if (outcome === 'details-missing') delete data.botDetails;
+        if (outcome === 'details-null') data.botDetails = null;
+        if (outcome === 'details-malformed') data.botDetails = 'OMIT_BAD_DETAILS';
+        if (outcome === 'details-duplicate') data.botDetails.push({...data.botDetails[0]});
+        if (outcome === 'details-invalid-row') data.botDetails = [null, [], 'OMIT_BAD_ROW'];
+        if (outcome === 'details-partial') data.botDetails = [{botId: 'fixture-bot', goals: null,
+          memories: [null, {text: 'PARTIAL_MEMORY', grounding: false}], observedAt: {}, source: ' '}];
+        if (outcome === 'details-empty') data.botDetails = [{botId: 'fixture-bot', goals: [], memories: []}];
+        if (outcome === 'details-fields') data.botDetails = [{botId: 'fixture-bot', goals: [{}], memories: [{}]}];
+      }
       return data;
     }};
   }};
@@ -283,5 +297,28 @@ function select() {
   outcome = 'empty'; await get('refresh').listeners.click();
   assert.match(get('audit-count').textContent, /Showing 0 of 0/);
   assert.match(get('audit').textContent, /No audit examples loaded/);
-  console.log('Overview/detail checks passed, including missing/malformed audit metadata isolation, unknown count and fields, safe local filters and empty recovery. Simulated DOM only.');
+  await login('details-good'); ctx.inspectBot('fixture-bot');
+  assert.match(get('bot-inspector').textContent, /CURRENT_GOAL.*CURRENT_MEMORY/);
+  for (const mode of ['missing', 'null', 'malformed', 'duplicate', 'invalid-row']) {
+    outcome = 'details-' + mode; await get('refresh').listeners.click();
+    assert.equal(get('workspace').hidden, false);
+    assert.match(get('bot-inspector').textContent, /Goals and memory.*Unknown/);
+    assert.doesNotMatch(get('bot-inspector').textContent, /CURRENT_GOAL|CURRENT_MEMORY|OMIT_BAD/);
+    if (mode === 'duplicate') assert.match(get('bot-inspector').textContent, /Multiple detail records/);
+    const before = fetchCount; ctx.inspectBot('fixture-bot'); assert.equal(fetchCount, before);
+  }
+  outcome = 'details-partial'; await get('refresh').listeners.click();
+  assert.equal(get('workspace').hidden, false);
+  assert.match(get('bot-inspector').textContent, /Goals.*Unknown.*Memory.*Unknown.*PARTIAL_MEMORY.*Grounding: Unknown/);
+  assert.match(get('bot-inspector').textContent, /Source unknown · Observed: unknown/);
+  assert.doesNotMatch(get('bot-inspector').textContent, /undefined|null|\[object Object\]/);
+  outcome = 'details-empty'; await get('refresh').listeners.click();
+  assert.match(get('bot-inspector').textContent, /Goals.*Unknown.*Memory.*Unknown/);
+  assert.doesNotMatch(get('bot-inspector').textContent, /PARTIAL_MEMORY/);
+  outcome = 'details-fields'; await get('refresh').listeners.click();
+  assert.match(get('bot-inspector').textContent, /Goal · Unknown.*Status: Unknown · Evidence: Unknown.*Memory · Unknown.*Grounding: Unknown/);
+  outcome = 'details-good'; await get('refresh').listeners.click();
+  assert.match(get('bot-inspector').textContent, /CURRENT_GOAL.*CURRENT_MEMORY/);
+  assert.doesNotMatch(get('bot-inspector').textContent, /Multiple detail records|Missing or incomplete list/);
+  console.log('Overview/detail checks passed, including missing, ambiguous, partial and recovered goals/memory details without requests or stale content. Simulated DOM only.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

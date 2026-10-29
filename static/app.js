@@ -485,14 +485,22 @@ function inspectBot(id) {
   });
   panel.lastElementChild.append(issuesButton);
   item(panel, 'Reported personality summary', routingText(bot.personalitySummary), `${bot.source} · Roster metadata, not proof of behavior`);
-  const details = currentSnapshot.botDetails.find(d => d.botId === bot.id);
-  if (!details) item(panel, 'Goals and memory', 'Unknown', 'No bot detail record in this view; missing data does not establish absence.');
+  const detailRows = Array.isArray(currentSnapshot.botDetails) ? currentSnapshot.botDetails : [];
+  const matches = detailRows.filter(d => d && typeof d === 'object' && !Array.isArray(d) && d.botId === bot.id);
+  const details = matches.length === 1 ? matches[0] : null;
+  if (!details) item(panel, 'Goals and memory', 'Unknown', matches.length > 1
+    ? 'Multiple detail records match this bot ID; no record was selected.'
+    : 'No usable bot detail record in this view; missing data does not establish absence.');
   else {
-    const meta = `${details.source} · Observed: ${details.observedAt || 'unknown'}`;
-    if (!details.goals.length) item(panel, 'Goals', 'Unknown', meta);
-    details.goals.forEach(g => item(panel, `Goal · ${g.text}`, `Status: ${g.status} · Evidence: ${g.evidence}`, meta));
-    if (!details.memories.length) item(panel, 'Memory', 'Unknown', meta);
-    details.memories.forEach(m => item(panel, `Memory · ${m.text}`, `Grounding: ${m.grounding}`, meta));
+    const meta = `${routingText(details.source, 'Source unknown')} · Observed: ${routingText(details.observedAt, 'unknown')}`;
+    for (const [key, title] of [['goals', 'Goals'], ['memories', 'Memory']]) {
+      const rows = details[key];
+      const usable = Array.isArray(rows) ? rows.filter(row => row && typeof row === 'object' && !Array.isArray(row)) : [];
+      if (!usable.length || usable.length !== rows.length) item(panel, title, 'Unknown', `${meta} · Missing or incomplete list does not establish absence.`);
+      usable.forEach(row => key === 'goals'
+        ? item(panel, `Goal · ${routingText(row.text)}`, `Status: ${routingText(row.status)} · Evidence: ${routingText(row.evidence)}`, meta)
+        : item(panel, `Memory · ${routingText(row.text)}`, `Grounding: ${routingText(row.grounding)}`, meta));
+    }
   }
   const events = currentSnapshot.ledger.filter(e => e.botId === bot.id);
   if (!events.length) item(panel, 'Evidence', 'No matching synthetic records', 'Absence of records does not prove inactivity.');
