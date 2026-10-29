@@ -134,6 +134,27 @@ can still be reconciled offline without changing those holds.
 
 ## Offline inspector runtime coverage
 
+### Per-record roster gap details — 2026-10-29
+
+`1934d0d` adds record details for missing/repeated roster IDs and links each usable
+gap record to its exact row in the current snapshot. Missing/malformed records
+without an object have no inferred entity link. Details show only supplied name,
+ID, game, source and observation time; no goal/reply/learning/metric evidence is
+joined. Bot inspection remains disabled for unresolved identities.
+
+Exact-row navigation clears game/name filters, selects identity gaps and labels
+the pinned snapshot row. Manual roster filters, Clear roster filters and the FFXI
+shortcut remove the pin. Successful refresh and session reset clear gap details;
+retained buttons from prior snapshots cannot retarget a new row at the same index.
+This is a snapshot locator, not an entity identifier or persisted mapping.
+
+Focused gap-detail and identity-filter checks passed, including same-name rows,
+missing IDs, exact-row isolation, unchanged bot selection, request-free navigation,
+stale links and session reset. Static naming/disabled-control checks passed. The
+artifact scripts the new navigation and leaves four fictional roster records
+(one unique, two repeated, one missing ID) for manual review. Native browser
+execution remains unrun for the documented missing runtime/isolation limitation.
+
 ### Connected coverage runtime and roster triage — 2026-10-29
 
 `e7129f8` connects projected fixtures to real in-memory handler bytes and then the

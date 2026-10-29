@@ -115,10 +115,11 @@ try {
   check(textOf('bot-count').includes('Showing 1 of Unknown') && textOf('bot-inspector').includes('Fixture memory'), 'Partial roster recovers unique selected bot details');
   fixture.bots = originalBots;
   await load();
-  fixture.bots = [...originalBots,
+  const gapRoster = [...originalBots,
     {id: 'duplicate-fixture', name: 'Repeated FFXI fixture', game: 'FFXI'},
     {id: 'duplicate-fixture', name: 'Repeated SWTOR fixture', game: 'SWTOR'},
     {name: 'Missing ID fixture', game: 'FFXI'}];
+  fixture.bots = gapRoster;
   await load();
   const identityFilter = document.getElementById('bot-identity');
   const beforeIdentityFilter = requests.length;
@@ -127,8 +128,17 @@ try {
   check(textOf('bot-count').includes('Showing 2 of 4') && [...document.querySelectorAll('#bots button')].every(button => button.disabled), 'Game filter does not make a repeated loaded ID inspectable');
   document.getElementById('bot-reset').click();
   check(identityFilter.value === '' && requests.length === beforeIdentityFilter, 'Clear roster filters resets identity triage without requests');
+  document.querySelector('#roster-gaps button').click();
+  const oldGapLink = document.querySelector('#roster-gap-detail button');
+  oldGapLink.click();
+  check(textOf('bot-count').includes('Showing 1 of 4') && textOf('bot-count').includes('Pinned snapshot row: 2'), 'Gap detail targets the exact snapshot roster row');
+  check(textOf('roster-gap-detail').includes('Repeated loaded ID: 2 rows') && [...document.querySelectorAll('#bots button')].every(button => button.disabled), 'Gap detail does not make repeated identity inspectable');
+  check(requests.length === beforeIdentityFilter, 'Gap details and exact-row navigation make no requests');
   fixture.bots = originalBots;
   await load();
+  oldGapLink.click();
+  check(!textOf('bot-count').includes('Pinned snapshot row') && textOf('roster-gap-detail').includes('Select a loaded roster gap'), 'Snapshot refresh invalidates old gap links');
+  document.getElementById('bot-reset').click();
   for (const key of Object.keys(botExamples)) fixture[key] = null;
   await load();
   check(!workspace.hidden && textOf('bot-inspector').includes('Goals and memory'), 'Unavailable detail metadata keeps workspace open');
@@ -214,6 +224,10 @@ try {
   await refresh('bridge-refresh', () => !bridgePending && textOf('bridge-status').includes('active'));
   check(textOf('ffxi-focus-bridge').includes('Not proof of delivery'), 'Both bridge cards recover without claiming delivery');
   check(unexpected.length === 0, 'Only allowlisted in-memory fixture reads occurred');
+  // Leave fictional gaps visible for manual inspection after the scripted checks.
+  fixture.bots = gapRoster;
+  document.getElementById('bot-reset').click();
+  await load();
   installAssignmentKeyboardCheck({document,
     prepare: async () => {
       fixture.assignmentHistory = assignmentFixtures.populated.map(row => ({...row, botId: row.botId === 'fixture-bot' ? 'offline-inspector-bot' : row.botId}));

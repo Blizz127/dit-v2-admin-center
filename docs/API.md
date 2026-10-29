@@ -384,3 +384,12 @@ The local roster ID filter checks exact nonblank string IDs against the full
 loaded `bots` collection before game/name filters. “Unique” means only one loaded
 row has that ID; it is not verified native identity. Filtering adds no API request
 or routing operation and cannot make a repeated ID inspectable.
+
+## Roster gap record details
+
+Gap details use positions in the current loaded roster, never display-name or
+ambiguous-ID joins. Navigation pins that snapshot row locally; successful refresh
+and session reset invalidate it and any retained buttons. No new endpoint, entity
+identity mapping, evidence join or routing operation is added. Missing-ID and
+repeated-ID records remain unavailable for bot inspection. Malformed non-object
+rows report unavailable details and offer no roster link.
