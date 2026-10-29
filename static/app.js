@@ -274,7 +274,7 @@ function renderIssues() {
       });
       panel.lastElementChild.append(button);
     }
-    if (i.learningId && currentSnapshot.learning.some(l => l.id === i.learningId)) {
+    if (i.learningId && uniqueRecord(currentSnapshot.learning, i.learningId)) {
       const button = document.createElement('button'); button.type = 'button';
       button.textContent = `Inspect learning need: ${i.title}`;
       button.addEventListener('click', () => {
@@ -290,9 +290,11 @@ function inspectLearning(id) {
   updateLearningCount(filteredLearning());
   const panel = document.querySelector('#learning-inspector');
   panel.replaceChildren();
-  const need = currentSnapshot.learning.find(l => l.id === id);
+  const need = uniqueRecord(currentSnapshot.learning, id);
   renderLearningEvidence(need);
-  if (!need) { panel.textContent = 'Selected learning need is no longer in this snapshot.'; return; }
+  if (!need) { panel.textContent = recordsForId(currentSnapshot.learning, id).length > 1
+    ? 'Selected learning identity is ambiguous; no task details or evidence are attributed.'
+    : 'Selected learning need is no longer in this snapshot.'; return; }
   item(panel, `Learning detail · ${need.game} · ${need.topic}`, `Status: ${need.status} · Phase: ${need.phase || 'Not reported'} · Reason: ${need.reason || 'Not reported'} · Escalation: ${need.escalation || 'Not reported'} · Retry at: ${need.retryAt || 'Not reported'}`,
     `Evidence: ${need.evidence} · Model answer reported: ${need.hasModelAnswer === true ? 'Yes' : need.hasModelAnswer === false ? 'No' : 'Unknown'} (not outcome evidence or permission to call a model) · Datasets: ${need.datasets} · Policy verification: ${need.policy} · Updated: ${need.updatedAt || 'unknown'} · ${need.source}`);
   const issues = currentSnapshot.issues.filter(i => i.learningId === need.id);
@@ -390,9 +392,10 @@ function filteredLearning() {
   return currentSnapshot.learning.filter(l => (!game || l.game === game) && (!status || l.status === status) && (!attention || attentionStatuses.has(l.status)) && (!query || `${l.topic} ${l.reason || ''}`.toLowerCase().includes(query)));
 }
 function updateLearningCount(records) {
-  const selectedMissing = selectedLearningId !== null && !currentSnapshot.learning.some(l => l.id === selectedLearningId);
+  const selectedMissing = selectedLearningId !== null && !Boolean(uniqueRecord(currentSnapshot.learning, selectedLearningId));
+  const selectedAmbiguous = recordsForId(currentSnapshot.learning, selectedLearningId).length > 1;
   const selectedHidden = selectedLearningId !== null && !selectedMissing && !records.some(l => l.id === selectedLearningId);
-  document.querySelector('#learning-count').textContent = `Showing ${records.length} of ${currentSnapshot.learning.length} loaded learning records; coverage may be incomplete.${selectedMissing ? ' Selected need is no longer in the loaded data.' : selectedHidden ? ' Selected need is outside this filtered list; its inspector remains selected.' : ''}`;
+  document.querySelector('#learning-count').textContent = `Showing ${records.length} of ${currentSnapshot.learning.length} loaded learning records; coverage may be incomplete.${selectedAmbiguous ? ' Selected learning identity is ambiguous; scoped inspection is unavailable.' : selectedMissing ? ' Selected need is no longer in the loaded data.' : selectedHidden ? ' Selected need is outside this filtered list; its inspector remains selected.' : ''}`;
 }
 function renderLearning() {
   const panel = document.querySelector('#learning');
@@ -404,7 +407,9 @@ function renderLearning() {
     item(panel, `${l.game} · ${l.topic}`, l.status, `Evidence: ${l.evidence} · Datasets: ${l.datasets} · Policy verification: ${l.policy} · Updated: ${l.updatedAt || 'unknown'} · ${l.source}`);
     if (l.id) {
       const button = document.createElement('button'); button.type = 'button';
-      button.textContent = `Inspect ${l.topic}`; button.addEventListener('click', () => inspectLearning(l.id));
+      const identified = Boolean(uniqueRecord(currentSnapshot.learning, l.id));
+      button.disabled = !identified;
+      button.textContent = identified ? `Inspect ${l.topic}` : 'Inspect unavailable: missing or ambiguous identity'; button.addEventListener('click', () => inspectLearning(l.id));
       panel.lastElementChild.append(button);
     }
   });
@@ -877,7 +882,7 @@ document.querySelector('#clear-learning').addEventListener('click', () => {
 });
 document.querySelector('#learning-evidence-preview').addEventListener('click', previewLearningEvidence);
 document.querySelector('#learning-evidence-selected').addEventListener('click', () => {
-  renderLearningEvidence(currentSnapshot?.learning.find(need => need.id === selectedLearningId));
+  renderLearningEvidence(uniqueRecord(currentSnapshot?.learning, selectedLearningId));
 });
 document.querySelector('#learning-game').addEventListener('change', () => { if (currentSnapshot) { renderLearningPlan(); renderLearningArtifacts(); renderLearning(); } });
 document.querySelector('#learning-status').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });

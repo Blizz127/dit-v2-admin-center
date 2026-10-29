@@ -29,5 +29,25 @@ const evidence={
  get('bot-game').value='';await refresh(evidence);
  assert.match(get('bot-inspector').textContent,/FIRST_BOT.*SCOPED_GOAL/);
  assert.match(get('reply-source').textContent,/SCOPED_REPLY/);
- console.log('PASS: duplicate bot IDs suppress scoped inspection across filters and games; recovery with a unique ID. Simulated DOM only.');
+ const need={id:'shared-need',game:'FFXI',topic:'FIRST_NEED',status:'verified',evidence:'Present',source:'Synthetic'};
+ const learningData={learning:[need],issues:[{learningId:'shared-need',title:'SCOPED_LEARNING_ISSUE'}]};
+ await refresh(learningData);context.inspectLearning('shared-need');
+ assert.match(get('learning-inspector').textContent,/FIRST_NEED/);
+ for(const game of ['FFXI','SWTOR']){
+   await refresh({...learningData,learning:[need,{...need,game,topic:'SECOND_NEED'}]});
+   assert.match(get('learning-inspector').textContent,/ambiguous/i);
+   assert.match(get('learning-count').textContent,/ambiguous/i);
+   assert.doesNotMatch(get('learning-inspector').textContent,/FIRST_NEED|SECOND_NEED|SCOPED_LEARNING_ISSUE/);
+   get('learning-evidence-selected').listeners.click();
+   assert.doesNotMatch(get('learning-evidence').textContent,/FIRST_NEED|SECOND_NEED|Assessment: Unknown/);
+   get('learning-game').value='FFXI';get('learning-game').listeners.change();
+   context.inspectLearning('shared-need');assert.match(get('learning-inspector').textContent,/ambiguous/i);
+   for(const row of get('learning').children){
+     for(const button of row.children.filter(c=>c.textContent.startsWith('Inspect '))) assert.equal(button.disabled,true);
+   }
+ }
+ get('learning-game').value='';await refresh(learningData);
+ assert.match(get('learning-inspector').textContent,/FIRST_NEED.*SCOPED_LEARNING_ISSUE/);
+ assert.match(get('learning-evidence').textContent,/Assessment: Unknown/);
+ console.log('PASS: duplicate bot/learning IDs suppress scoped inspection across filters and games; recovery with unique IDs. Simulated DOM only.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
