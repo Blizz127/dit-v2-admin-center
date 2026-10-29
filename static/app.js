@@ -11,6 +11,7 @@ let interactionVersion = 0;
 let sessionVersion = 0;
 let selectedBotId = null;
 let rosterRecordIndex = null;
+let rosterGapDownloadUrl = null;
 let replyBotId = null;
 let assignmentBotId = null;
 let assignmentPage = 0;
@@ -528,7 +529,14 @@ function renderBotCoverage() {
 function usableBotRows() {
   return Array.isArray(currentSnapshot.bots) ? currentSnapshot.bots.filter(b => b && typeof b === 'object' && !Array.isArray(b)) : [];
 }
+function releaseRosterGapDownload() {
+  if (rosterGapDownloadUrl !== null) {
+    URL.revokeObjectURL(rosterGapDownloadUrl);
+    rosterGapDownloadUrl = null;
+  }
+}
 function clearRosterGapSelection() {
+  releaseRosterGapDownload();
   rosterRecordIndex = null;
   document.querySelector('#roster-gap-detail').replaceChildren();
   document.querySelector('#roster-gap-detail').textContent = 'Select a loaded roster gap for record details.';
@@ -558,6 +566,7 @@ function rosterGapReport(snapshot, selectedIndex) {
   };
 }
 function appendRosterGapComparison(detail, report) {
+  releaseRosterGapDownload();
   const differences = report.differingFields.length ? report.differingFields.join(', ') : 'None among the included fields';
   item(detail, 'Candidate comparison', `Differing fields: ${differences}`,
     'Every row with the same exact loaded ID is included, even if hidden by roster filters. A missing ID is compared only with its selected row.');
@@ -582,9 +591,17 @@ function appendRosterGapComparison(detail, report) {
   }
   table.append(body); region.append(table); detail.append(region);
   const json = JSON.stringify(report, null, 2);
-  const link = document.createElement('a'); link.textContent = 'Download gap report JSON';
-  link.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(json));
-  link.setAttribute('download', `roster-gap-row-${report.selectedSnapshotRow}.json`); detail.append(link);
+  try {
+    const blob = new Blob([json], {type: 'application/json;charset=utf-8'});
+    rosterGapDownloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a'); link.textContent = 'Download gap report JSON';
+    link.setAttribute('href', rosterGapDownloadUrl);
+    link.setAttribute('download', `roster-gap-row-${report.selectedSnapshotRow}.json`); detail.append(link);
+  } catch {
+    const notice = document.createElement('p');
+    notice.textContent = 'Download unavailable in this environment. Copy the report JSON below.';
+    detail.append(notice);
+  }
   const copy = document.createElement('textarea'); copy.readOnly = true; copy.rows = 8; copy.value = json;
   copy.setAttribute('aria-label', 'Gap report JSON for local copy'); detail.append(copy);
 }

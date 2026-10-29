@@ -22,7 +22,7 @@ const get=id=>{assert.ok(elements.has(id),'Missing template ID '+id);return elem
 let data=snapshot;
 let requestCount=0;
 const storage=new Map();
-const context={document:{querySelector:s=>get(s.slice(1)),getElementById:get,createElement:()=>new Element()},
+const context={Blob,URL,document:{querySelector:s=>get(s.slice(1)),getElementById:get,createElement:()=>new Element()},
   sessionStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
   fetch:async(path, options)=>{
     requestCount++;

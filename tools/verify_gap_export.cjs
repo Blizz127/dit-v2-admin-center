@@ -33,9 +33,11 @@ async function verifyGapExport({send, evaluate, waitFor, press}, directory) {
     return {rows: table.querySelectorAll('tbody tr').length, columns: table.querySelectorAll('thead th').length,
       width: region.clientWidth, scrollWidth: region.scrollWidth,
       differences: [...table.querySelectorAll('tbody th')].filter(n => n.textContent.includes('(differs)')).map(n => n.textContent),
-      copy: document.querySelector('#roster-gap-detail textarea').value};
+      copy: document.querySelector('#roster-gap-detail textarea').value,
+      href: document.querySelector('#roster-gap-detail a[download]').getAttribute('href')};
   })()`);
   assert.equal(layout.rows, 9); assert.equal(layout.columns, 3);
+  assert.match(layout.href, /^blob:/, 'Native download must exercise the Blob URL');
   assert.ok(Number.isFinite(layout.width) && layout.width > 0 && layout.scrollWidth >= layout.width);
   assert.deepEqual(layout.differences, ['name (differs)', 'game (differs)']);
   await evaluate("document.querySelector('#roster-gap-detail a[download]').focus(); true");

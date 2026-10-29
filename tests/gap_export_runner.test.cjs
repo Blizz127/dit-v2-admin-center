@@ -26,7 +26,7 @@ const expected=JSON.stringify(report,null,2);
   const receipt=await verifyGapExport({
     send:async(method,params)=>sent.push({method,params}),
     evaluate:async expression=>{expressions.push(expression);return expression.includes('const region')
-      ? {rows:9,columns:3,width:390,scrollWidth:500,differences:['name (differs)','game (differs)'],copy:expected}:true;},
+      ? {rows:9,columns:3,width:390,scrollWidth:500,differences:['name (differs)','game (differs)'],copy:expected,href:'blob:synthetic-protocol-fixture'}:true;},
     waitFor:async expression=>assert.match(expression,/textarea/),
     press:async key=>{keys.push(key);if(keys.length===2)fs.writeFileSync(filename,expected);}
   },directory);

@@ -1,5 +1,6 @@
 // Projection + real in-memory handler + shipped UI; simulated DOM, no listener/browser.
 const assert=require('node:assert/strict');
+const {resolveObjectURL}=require('node:buffer');
 const vm=require('node:vm');
 const {execFileSync}=require('node:child_process');
 const {get,context}=require('./overview_snapshot_harness.cjs');
@@ -43,7 +44,7 @@ const flush=()=>new Promise(resolve=>setImmediate(resolve));
   get('roster-gaps').children[0].children.find(n=>n.textContent.startsWith('Review gap')).listeners.click();
   assert.match(get('roster-gap-detail').textContent,/Snapshot row 2.*FIRST_GAP_SOURCE/);
   const exportLink=get('roster-gap-detail').children.find(n=>n.textContent==='Download gap report JSON');
-  const report=JSON.parse(decodeURIComponent(exportLink.attributes.href.split(',').slice(1).join(',')));
+  const report=JSON.parse(await resolveObjectURL(exportLink.attributes.href).text());
   assert.deepEqual(report.candidates.map(r=>r.snapshotRow),[2,3]);
   assert.deepEqual(report.differingFields,['game','source']);
   assert.equal(report.candidates[1].fields.source,'SECOND_GAP_SOURCE');

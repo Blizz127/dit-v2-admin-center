@@ -1,5 +1,6 @@
 // Local comparison/export contract in actual UI; no browser download is claimed.
 const assert=require('node:assert/strict');
+const {resolveObjectURL}=require('node:buffer');
 const {get,refresh,requestCount}=require('./overview_snapshot_harness.cjs');
 const bots=[{id:'shared',name:'Same name',game:'FFXI',level:0,source:'First',token:'OMIT_SECRET',goals:['OMIT_GOAL']},
   {id:'shared',name:'Same name',game:'SWTOR',level:12,source:'Second',memory:'OMIT_MEMORY'},
@@ -28,11 +29,13 @@ function assertShape(report){
  assert.deepEqual(report.differingFields,fields.filter(key=>new Set(report.candidates.map(r=>r.fields[key])).size>1));
  assert.ok(Array.isArray(report.limits) && report.limits.length>0 && report.limits.every(s=>typeof s==='string' && s.trim()));
 }
-const exported=()=>{
+const exported=async()=>{
  const panel=get('roster-gap-detail');
  const link=panel.children.find(n=>n.textContent==='Download gap report JSON');
- assert.match(link.attributes.href,/^data:application\/json;charset=utf-8,/);
- const json=decodeURIComponent(link.attributes.href.split(',').slice(1).join(','));
+ assert.match(link.attributes.href,/^blob:/);
+ const blob=resolveObjectURL(link.attributes.href);
+ assert.equal(blob.type,'application/json;charset=utf-8');
+ const json=await blob.text();
  const copy=panel.children.find(n=>n.attributes['aria-label']==='Gap report JSON for local copy');
  assert.equal(copy.readOnly,true);assert.equal(copy.value,json);
  assert.doesNotMatch(json,/OMIT_SECRET|OMIT_GOAL|OMIT_MEMORY/);
@@ -43,7 +46,7 @@ const exported=()=>{
  await refresh({bots});const before=requestCount();
  get('bot-game').value='FFXI';get('bot-game').listeners.change();
  reviews()[0].listeners.click();
- let {report,link}=exported();
+ let {report,link}=await exported();
  assert.equal(report.schema,'dit-admin-roster-gap-report-v1');
  assert.equal(report.selectedSnapshotRow,1);assert.equal(report.reason,'repeated_loaded_id');
  assert.deepEqual(report.candidates.map(r=>r.snapshotRow),[1,2],'Include every exact-ID row despite game filter');
@@ -59,16 +62,16 @@ const exported=()=>{
  assert.equal(body.children.length,9);assert.ok(body.children.every(row=>row.children[0].attributes.scope==='row'));
  assert.match(get('roster-gap-detail').textContent,/Snapshot row 1.*Snapshot row 2.*game \(differs\).*FFXI.*SWTOR/);
  assert.doesNotMatch(get('roster-gap-detail').textContent,/Different key|Other missing ID/);
- reviews()[2].listeners.click();({report}=exported());
+ reviews()[2].listeners.click();({report}=await exported());
  assert.equal(report.reason,'missing_usable_loaded_id');assert.deepEqual(report.candidates.map(r=>r.snapshotRow),[4]);
  assert.deepEqual(report.differingFields,[]);assert.equal(requestCount(),before);
  await refresh({bots:[{id:'x',name:'<script>literal</script>',level:true},{id:'x',name:'<script>literal</script>',level:null}]});
- reviews()[0].listeners.click();({report}=exported());
+ reviews()[0].listeners.click();({report}=await exported());
  assert.deepEqual(report.differingFields,[]);assert.equal(report.candidates[0].fields.level,null);
  assert.equal(report.candidates[0].fields.name,'<script>literal</script>');
  await refresh({generatedAt:'   ',bots:[{id:'x',name:'Unicode 名 · %',level:Infinity,source:{token:'OMIT_SECRET'},observedAt:[]},
   {id:'x',name:'Unicode 名 · %',level:-1,status:false,character:42}]});
- reviews()[0].listeners.click();({report}=exported());
+ reviews()[0].listeners.click();({report}=await exported());
  assert.equal(report.snapshotGeneratedAt,null,'Blank timestamp remains Unknown');
  assert.equal(report.candidates[0].fields.name,'Unicode 名 · %');
  assert.equal(report.candidates[0].fields.level,null);

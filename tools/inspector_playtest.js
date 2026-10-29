@@ -1,6 +1,12 @@
 // Embedded by build_inspector_playtest.py around the unchanged application source.
 const requests = [];
 const unexpected = [];
+// Observe real object-URL/Blob creation without fetching through the network.
+const gapBlobs = new Map();
+const URL = {
+  createObjectURL(blob) { const url = globalThis.URL.createObjectURL(blob); gapBlobs.set(url, blob); return url; },
+  revokeObjectURL(url) { gapBlobs.delete(url); globalThis.URL.revokeObjectURL(url); },
+};
 let healthResponse = {ok: true, json: async () => ({services: [], source: 'Synthetic offline health', fetchedAt: 'fixture-time', coverage: 'Fixture coverage only'})};
 let bridgeResponse = {ok: true, json: async () => ({unit: 'unknown', substate: 'unknown', result: 'unknown', marker: 'unknown', source: 'Synthetic offline fixture', observedAt: null})};
 const sessionStorage = {getItem: () => 'synthetic-harness-token', setItem() {}, removeItem() {}};
@@ -132,7 +138,9 @@ try {
   document.querySelector('#roster-gaps button').click();
   check(textOf('roster-gap-detail').includes('game (differs)') && textOf('roster-gap-detail').includes('Repeated SWTOR fixture'), 'Ambiguity table includes the candidate hidden by the game filter');
   const exportLink = document.querySelector('#roster-gap-detail a');
-  const exportedGap = JSON.parse(decodeURIComponent(exportLink.getAttribute('href').split(',').slice(1).join(',')));
+  const exportBlob = gapBlobs.get(exportLink.getAttribute('href'));
+  check(exportLink.getAttribute('href').startsWith('blob:') && exportBlob?.type === 'application/json;charset=utf-8', 'Export uses a local JSON Blob');
+  const exportedGap = JSON.parse(await exportBlob.text());
   check(exportedGap.candidates.length === 2 && exportedGap.selectedSnapshotRow === 2 && exportedGap.differingFields.includes('game'), 'Local JSON export retains all candidate rows and differences');
   check(document.querySelector('#roster-gap-detail textarea').value === JSON.stringify(exportedGap, null, 2), 'Copy field and downloadable JSON agree');
   const oldGapLink = document.querySelector('#roster-gap-detail button');
