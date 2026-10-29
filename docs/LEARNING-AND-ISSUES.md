@@ -168,6 +168,14 @@ authentication ordering, rejection, redaction and the unchanged normal request.
 No service restart occurred. These checks do not verify real-time scheduling,
 concurrent shutdown, host observation or browser rendering.
 
+Parameter audit follow-up: `5fbd612` bounds overview/trace query parsing and
+rejects malformed fields, invalid UTF-8 and empty separators before any read.
+Three focused checks passed, including valid encoded/default requests and the
+existing trace projection/error path. `d157f3d` verifies unknown control paths
+and POST/PUT/PATCH/DELETE across all five read APIs cannot reach guarded
+dependencies. Its focused check passed; write routes remain absent. These
+checks use in-memory request bytes, not a browser or running HTTP listener.
+
 The extended connected check passed under a 25-second hard timeout. Bridge
 observation failures return 200 with Unknown fields; health projection/read
 failures return 502/503. These are deliberately different API semantics.

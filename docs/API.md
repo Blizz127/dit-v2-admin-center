@@ -35,6 +35,21 @@ Returns reported `switches` (contract, natural orders, self claims), `freshForSe
 
 `tests/test_interaction_contract.py` validates the f95fe8a handoff in `HUB-CONTRACT-DRAFT.md` using `tests/fixtures/interaction-e8c81be.json`, a synthetic fixture shaped from the recorded candidate DTOs. It drives `HubReader.interaction`, the projection and the 15-second cache through an in-memory HTTP response. Socket connection attempts fail the test; no hub credential or live response is used. Coverage includes the exact GET/limit, scope preservation, independent freshness, off/unknown collection, omission of private fields, original cache fetch time, copy isolation, duplicate identity rejection, malformed timing values and refusal of proposed routing endpoints. Oversized timing integers remain unknown rather than raising an overflow. This verifies the local reader only, not live endpoint availability, deployment, or an agreed model-write contract.
 
+## Query and method rejection
+
+Overview accepts at most one `source` field; trace requires exactly one `gameId`
+and one `correlationId`. Both parse UTF-8 strictly and reject bare fields, empty
+separators and excess fields with 400 before collection/configuration reads.
+Valid percent-encoded values and either trace-field order remain supported.
+An absent overview query still selects mock data. Authentication precedes
+query validation, including malformed requests.
+
+Unknown `/api/` GET paths require owner authentication and then return 404.
+POST/PUT/PATCH/DELETE are not implemented and return 501 before dependencies
+are reached. They do not enable control actions or parse a write payload.
+Focused in-memory checks cover this behavior across all five read APIs; no
+running service was contacted or restarted for this source change.
+
 ## GET /api/bridge-status
 
 Takes no query parameters. After owner authentication, any nonempty query
