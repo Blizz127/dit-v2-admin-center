@@ -141,3 +141,27 @@ task status, counts, acceptance or presence of raw evidence.
 This fixture shape is local UI test data, not a proposed or implemented hub
 contract. A compatible authoritative evidence contract remains unresolved. The
 preview never reads a review object from a loaded task or enables any controls.
+
+## Client asynchronous response audit (2026-10-29)
+
+The browser uses a local session counter as well as each request's captured
+token. Login submission increments the counter even if the token text is the
+same. A load failure that closes the workspace also increments it. Both events
+clear the prior selected snapshot, bot/learning selections and optional read
+panels. This is client display isolation, not a change to server authorization.
+
+| Async view | Existing ordering guard | Session isolation |
+| --- | --- | --- |
+| Overview (all overview-backed panels) | Latest overview request wins. | Token/counter must match; a refresh started in a visible workspace cannot render after it becomes hidden. Initial login may open the hidden workspace. |
+| Interaction | Source changes, new request and synthetic preview invalidate prior replies. | Visible workspace plus matching token/counter required for success and failure. |
+| Hub health | Source changes and newer health requests invalidate prior replies. | Visible workspace plus matching token/counter required for success and failure. |
+| Trace | Source or search-scope changes and newer trace requests invalidate prior replies. | Visible workspace plus matching token/counter required for success and failure. |
+| Bridge and FFXI bridge summary | One request in flight. | Visible workspace plus matching token/counter required, including same-token re-login. |
+
+Optional panel reads start only with a token and visible workspace. Old requests
+are ignored on completion; this does not cancel an already dispatched read.
+Synchronous filters, inspectors and synthetic previews have no independent
+network response to audit. Offline deferred-response cases cover each async
+path's success and failure behavior plus normal rendering and initial login.
+Actual browser/DOM-package execution and deployed-service verification remain
+parked; no live requests or restarts were used for this audit.

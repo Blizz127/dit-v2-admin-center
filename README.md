@@ -136,6 +136,25 @@ Late results are discarded while the workspace is hidden or its token differs
 from the request token. It uses no network, listener or real browser; layout and
 deployed runtime remain unverified.
 
+## Offline panel session checks
+
+```sh
+timeout -k 3 20 node tests/panel_session.test.js
+```
+
+The actual application runs against a minimal simulated DOM and deferred
+fixture responses. Coverage includes all five asynchronous paths: overview,
+interaction, hub health, trace and bridge. Sixty cases combine workspace hiding,
+token changes or same-token login with success, rejection, HTTP denial or delayed
+JSON. Five current-response paths and eight request-start guards are also
+checked. This is not a headless browser or deployed-service test.
+
+Login and a workspace-closing load failure invalidate the previous session's
+pending views and selected snapshot. Late replies cannot render data, replace
+errors or update token storage for the newer session. Existing source/correlation
+request-version guards still apply. Initial login may load while the workspace
+is hidden; optional panel reads require a visible workspace and a token.
+
 ## Security
 
 - Owner-only token auth for now.
