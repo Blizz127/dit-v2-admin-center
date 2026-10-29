@@ -737,8 +737,13 @@ async function load() {
     renderBots();
     if (selectedBotId !== null) inspectBot(selectedBotId);
     else { renderAssignments(); renderReplySource(); renderSafety(); }
-    data.gameStatus.forEach(s => item(document.querySelector('#game-status'), s.game, `XP rate: ${s.xpRate == null ? 'Unknown' : s.xpRate + '×'} · Server liveness: ${s.liveness}`, `${s.source} · Checked: ${s.checkedAt || 'unknown'} · Freshness unknown`));
-    data.serviceHealth.forEach(h => item(document.querySelector('#service-health'), `${h.label} · ${h.game}`, `${h.status} · ${h.detail}`, `${h.source} · Observed: ${h.observedAt || 'unknown'} · May be stale`));
+    const gamePanel = document.querySelector('#game-status'), servicePanel = document.querySelector('#service-health');
+    observationRows(data.gameStatus, gamePanel).forEach(s => item(gamePanel, routingText(s.game),
+      `XP rate: ${metricNumber(s.xpRate) ? s.xpRate + '×' : 'Unknown'} · Server liveness: ${routingText(s.liveness)}`,
+      `${routingText(s.source)} · Checked: ${routingText(s.checkedAt)} · Freshness unknown`));
+    observationRows(data.serviceHealth, servicePanel).forEach(h => item(servicePanel,
+      `${routingText(h.label)} · ${routingText(h.game)}`, `${routingText(h.status)} · ${routingText(h.detail)}`,
+      `${routingText(h.source)} · Observed: ${routingText(h.observedAt)} · May be stale`));
     renderCoordinatorPanels();
     renderLeadTimeline();
     renderQuotaHistory();
