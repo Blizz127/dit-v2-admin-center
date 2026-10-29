@@ -1,0 +1,24 @@
+{
+  "kind": "synthetic-only",
+  "sourceRevision": "e8c81be",
+  "runtime": "cached offline library with separate provenance changes; not a release artifact",
+  "inputPinsSha256": "8d45f28eee8224517fe9ac9316f94e22bf10cec8e34ea1411ca3a59fdde1ca83",
+  "harness": {
+    "Program.cs": "5c44c87374423b0f962fd3c3930ad8a4671e88067809fdc85c64be54f21ec070",
+    "RuntimeStub.cs": "482aae2c9f9223b5d9383189ffcec20f7a542654f597e2f143969ef26cecf505",
+    "Fixture.csproj": "7450ed1c91899e84d4641fc490b240c14b332f9fa764f6e3460de0f6882d1d86",
+    "generate.py": "40946bce3309f1446b2e85e33dc4c22bcf3ad039f9e80599b0ff4032b4a3aa73"
+  },
+  "files": {
+    "contract-off-empty.json": "1bf46f2a21935aab6a558a3aa9f53b23e9600d8ce048564d7899556ba0d2ec38",
+    "contract-off-retained.json": "5e8c92c588d199a59b5ff9734830de443960fe05807f065b345b3e4d37060b9b",
+    "contract-on-empty.json": "6971aa9f61fc4d070eedb87598c7051a15915133fb8344ad9e60fd48eef4378a",
+    "fresh-mode-stale-snapshot.json": "c7a418570eb3d3917ba1dc237a89625376be27216aff00478c068087fe926ed5",
+    "fresh-snapshot-superseded-view.json": "352e9b3c414c22064813028650fbda7e1a5b5741c1f850cb1499375eabcde123",
+    "fresh-snapshot.json": "04cdbc88973fbf70f107d4712a2672db164916b96bd08c5ebfb9730cf936e825",
+    "limit-50-truncated.json": "1447dd26d018d3c968595a1c5aa48906b07057c14c2c8d1a1044e5a21f5826c6",
+    "route-check.json": "ed93d0093fbca37a9a1dfefff78f737a995171f510e24ebda0d536e0cc42ac5f",
+    "same-actor-distinct-scopes.json": "26be7c488aae8b5bf3dc42dc0b18f5ca9207ca98a3b4338f7492b332cd513b9f",
+    "stale-mode-and-snapshot.json": "9ab4af91df0294eb5b7f623fc5282f5e4c3dfd7b6366df4e2ccabc88014179fb"
+  }
+}

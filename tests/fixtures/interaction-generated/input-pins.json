@@ -1,0 +1,35 @@
+{
+  "sources": {
+    "src/Dit.HumanBehavior.Neuronetwork.Hub/InteractionAdminApi.cs": "b499597fac7c16f96c9cf8839894585c6da9297037d51eafdcf922ec020fc7b7",
+    "src/Dit.HumanBehavior.Neuronetwork.Hub/HubTokens.cs": "0097657db3482f34f7a64089ec6803c49b9c4919b30dff0016326511372d383a",
+    "src/Dit.HumanBehavior.Neuronetwork/Interaction/FfxiInteraction.cs": "8449f8771dd21bad639b7bbae32b68a9ba4fe097eeecf49d6e2867c3cc3ab9bf",
+    "src/Dit.HumanBehavior.Neuronetwork/Interaction/ActionLedger.cs": "45539e58d9099b98ce09290524d2f024524bea2fc6a2225e3936eed8b34b6633",
+    "src/Dit.HumanBehavior.Neuronetwork/Interaction/ObservedStateStore.cs": "cf591dc4a6025ca07995a541f91e6c641139988ccc5b002abb6942119dc9b672"
+  },
+  "references": {
+    "Dit.HumanBehavior.AiSpend.dll": "ad2234dbfd75d6cddff3a4fec545c08ba5143b9682f4d70b7fe9949157e9f6f2",
+    "Dit.HumanBehavior.BehaviorPlanning.dll": "9ac8b9c7109de56aeca544221ba058f7c516b31f3786b2a51088d438133dc245",
+    "Dit.HumanBehavior.Contracts.dll": "93e19e128231255faf787c58b3fec048e99231176b85cb0968d8894f3596e135",
+    "Dit.HumanBehavior.DialogueWording.DeepSeek.dll": "fa32884b64bfaa44a4775edf7553a6f755d038d855e982e5cf34e0fac3c25e98",
+    "Dit.HumanBehavior.DialogueWording.dll": "41827f1fa13f4827ee820e2806016ebcee7bb7048a39b8c2deb7c8d149c47ac3",
+    "Dit.HumanBehavior.EarthAndBeyondAdapter.dll": "9d584133516172949e86cd92821c74d2b75127c8dd499a8700ed21791923da15",
+    "Dit.HumanBehavior.ExecutionTransport.dll": "53307f8bfd2c93e19115aaa777f220edfa0f6a4e74140d8447590296ef0612ab",
+    "Dit.HumanBehavior.FfxiContextualChatter.dll": "f69b2e546da94f1f2f60bf1bfd9640e524beba7466ae104aac71238bed5618ff",
+    "Dit.HumanBehavior.FfxiWordingExecution.dll": "e3f0f6e01b9f21cc368f2ea5518b6c02cb0fb65fc38234738ba2ff562a2d96e5",
+    "Dit.HumanBehavior.MarvelHeroesAdapter.dll": "53a43fd1c6ce88eaced5fa5f38048ae2f2e9ca255e3da9f2e58a2b3b4c5c08d5",
+    "Dit.HumanBehavior.Neuronetwork.dll": "0124fa789906e5ca06a2450bb005d5a387f13432746da52dbc8d9957cd74cbb7",
+    "Dit.HumanBehavior.ObservationBridge.dll": "e8e76190605b7bdeb49809ec650f6760954043b58e9647276e1071385fd88cc1",
+    "Dit.HumanBehavior.PolicyAuthoring.OpenAiCompatible.dll": "9482bcabe6134c493a48ee8be5b395d8a1b664cf7f1cc7afee08325a4f0b4ae4",
+    "Dit.HumanBehavior.WowRotationAuthoring.dll": "cc8b161cf8d836ecde9a8ab0a9b479ba33da27913963dcb136248b3335f82c78",
+    "Dit.HumanBehavior.WowWotlkAdapter.dll": "b3a8bb39d583f3eee678d3e3a9f378ef06dbf3ff1399f8cc6efdc558259622c7",
+    "Dit.HumanBehavior.WowWotlkLearning.dll": "8eae973bda137c243f381262bd03327758c7873470703c458b46d9958c8769ec",
+    "Humanizer.dll": "d6853075547d7e303efd60354d911a2ff18edba582cda2fa59d91a2e5dcf9e98",
+    "Json.More.dll": "d4ba3acb556d39d6583a68807e60cb73c0c79f351092d749ffa9a5447c03b7d2",
+    "JsonPointer.Net.dll": "94f6e275163ccba97444bd1b080589456d0c45b73a318e9b93ab45ad98549b10",
+    "JsonSchema.Net.dll": "b9def3b63178a679809f6a487f5ad35e746b421beb4511dbaa5fc8aca6d0702c",
+    "Microsoft.Data.Sqlite.dll": "b98d957462be432895b00dccca012d3c127e118d3d4262418014b92c7bbd66cf",
+    "SQLitePCLRaw.batteries_v2.dll": "815ce410c9eab531dd219318e3ba16c5e38e83d361cfbbdbb4bbca222c497b0b",
+    "SQLitePCLRaw.core.dll": "af340ac9eb9195795660d7fc1114f486b6ab63998f33176e2f24c8e0acb9aa84",
+    "SQLitePCLRaw.provider.e_sqlite3.dll": "df996bcae63c2cabcfe8d4b9c5110eb39a2a4706178b07d875665391c6eb3995"
+  }
+}

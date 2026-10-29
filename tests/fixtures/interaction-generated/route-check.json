@@ -1,0 +1,1 @@
+{"route":"/v1/control/interaction","method":"GET","requestedLimit":50,"anonymousStatus":403,"adapterStatus":403,"adminStatus":200,"transport":"in-process delegate; no listener"}

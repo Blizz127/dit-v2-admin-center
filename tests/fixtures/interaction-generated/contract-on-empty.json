@@ -1,0 +1,13 @@
+{
+  "switches": {
+    "contract": true,
+    "naturalOrders": false,
+    "selfClaims": false
+  },
+  "freshForSeconds": 30,
+  "note": "The contract is on, but no game has sent state yet (the bridge and map changes are not installed).",
+  "truncated": false,
+  "scopes": [],
+  "stateCounts": {},
+  "ledgerCounts": {}
+}

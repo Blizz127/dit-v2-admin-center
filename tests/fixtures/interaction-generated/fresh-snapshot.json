@@ -1,0 +1,49 @@
+{
+  "switches": {
+    "contract": true,
+    "naturalOrders": false,
+    "selfClaims": false
+  },
+  "freshForSeconds": 30,
+  "note": "",
+  "truncated": false,
+  "scopes": [
+    {
+      "gameId": "ffxi",
+      "caller": "fixture-adapter",
+      "serverInstanceId": "fixture-server",
+      "bots": [
+        {
+          "actorKey": "fixture-bot",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:00:00\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:00:00\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        }
+      ]
+    }
+  ],
+  "stateCounts": {
+    "accepted": 1
+  },
+  "ledgerCounts": {}
+}

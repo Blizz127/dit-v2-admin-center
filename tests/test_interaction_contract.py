@@ -4,6 +4,7 @@ The JSON fixture models candidate e8c81be's interaction wire shape; it is not
 live evidence. The routing sketch in the draft remains unimplemented.
 """
 import copy
+import hashlib
 import io
 import json
 import tempfile
@@ -17,6 +18,7 @@ from live_hub import HubReader
 
 
 FIXTURE = Path(__file__).parent / 'fixtures/interaction-e8c81be.json'
+GENERATED = FIXTURE.parent / 'interaction-generated'
 
 
 class InteractionContractTests(unittest.TestCase):
@@ -111,6 +113,57 @@ class InteractionContractTests(unittest.TestCase):
             with self.subTest(route=route), self.assertRaises(ValueError):
                 reader.get(route, 'ffxi')
         self.assertEqual(self.requests, [])
+
+    def test_generated_snapshots_through_reader_projection_and_cache(self):
+        # Expected semantics are explicit, independent of projection logic.
+        cases = {
+            'contract-off-empty': (0, None),
+            'contract-off-retained': (0, None),
+            'contract-on-empty': (0, None),
+            'fresh-snapshot': (1, (True, True, 'idle')),
+            'fresh-snapshot-superseded-view': (1, (False, True, None)),
+            'fresh-mode-stale-snapshot': (1, (True, False, 'following')),
+            'stale-mode-and-snapshot': (1, (False, False, None)),
+            'same-actor-distinct-scopes': (3, None),
+            'limit-50-truncated': (50, None),
+        }
+        manifest = json.loads((GENERATED / 'MANIFEST.json').read_text())
+        self.assertEqual(set(manifest['files']),
+                         {name + '.json' for name in cases} | {'route-check.json'})
+        for name, (count, freshness) in cases.items():
+            with self.subTest(snapshot=name):
+                raw = (GENERATED / (name + '.json')).read_bytes()
+                self.assertEqual(hashlib.sha256(raw).hexdigest(), manifest['files'][name + '.json'])
+                self.payload = json.loads(raw)
+                self.requests.clear()
+                clock = [0]
+                cache = HubViewsCache(
+                    lambda url, token: project_interaction(*HubReader(url, token).interaction()),
+                    clock=lambda: clock[0])
+                result = cache.get('http://127.0.0.1:7390', self.token)
+                self.assertEqual(len(result['bots']), count)
+                self.assertEqual(result['switches'], self.payload['switches'])
+                self.assertEqual(result['truncated'], name == 'limit-50-truncated')
+                if freshness:
+                    bot = result['bots'][0]
+                    self.assertEqual(tuple(bot[k] for k in ('fresh', 'snapshotFresh', 'activity')), freshness)
+                identities = {(b['caller'], b['serverInstanceId'], b['actorKey']) for b in result['bots']}
+                self.assertEqual(len(identities), count)
+                if name == 'same-actor-distinct-scopes':
+                    self.assertEqual(len({b['actorKey'] for b in result['bots']}), 1)
+                self.assertNotIn('FixtureRequester', json.dumps(result))
+                for row in [result, *result['bots']]:
+                    for field in ('currentOrder', 'recentOrders', 'mode', 'hold', 'follow',
+                                  'capabilities', 'stateCounts', 'ledgerCounts', 'botId'):
+                        self.assertNotIn(field, row)
+                expected = copy.deepcopy(result)
+                result['bots'].clear()
+                clock[0] = 14.9
+                self.assertEqual(cache.get('http://127.0.0.1:7390', self.token), expected)
+                self.assertEqual(len(self.requests), 1)
+                clock[0] = 15
+                cache.get('http://127.0.0.1:7390', self.token)
+                self.assertEqual(len(self.requests), 2)
 
 
 if __name__ == '__main__': unittest.main()

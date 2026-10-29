@@ -1,0 +1,1360 @@
+{
+  "switches": {
+    "contract": true,
+    "naturalOrders": false,
+    "selfClaims": false
+  },
+  "freshForSeconds": 30,
+  "note": "",
+  "truncated": true,
+  "scopes": [
+    {
+      "gameId": "ffxi",
+      "caller": "fixture-adapter",
+      "serverInstanceId": "fixture-other-server",
+      "bots": [
+        {
+          "actorKey": "fixture-bot",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        }
+      ]
+    },
+    {
+      "gameId": "ffxi",
+      "caller": "fixture-adapter",
+      "serverInstanceId": "fixture-server",
+      "bots": [
+        {
+          "actorKey": "fixture-bot",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:00:00\u002B00:00",
+          "ageSeconds": 131,
+          "fresh": false,
+          "snapshotFresh": false,
+          "activity": "unknown",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [],
+          "mode": {
+            "owner": "n:fixture-epoch:3",
+            "kind": "follow",
+            "requester": "FixtureRequester",
+            "source": "native report",
+            "seq": 3,
+            "atUtc": "2026-01-01T00:01:40\u002B00:00",
+            "ageSeconds": 31
+          },
+          "recentOrders": [
+            {
+              "actionId": "n:fixture-epoch:3",
+              "origin": "native",
+              "gameId": "ffxi",
+              "caller": "fixture-adapter",
+              "serverInstanceId": "fixture-server",
+              "actorKey": "fixture-bot",
+              "kind": "follow",
+              "requester": "FixtureRequester",
+              "phase": "executing",
+              "cancel": "none",
+              "ran": true,
+              "withdrawn": false,
+              "lastReceipt": {
+                "seq": 3,
+                "epoch": "fixture-epoch",
+                "state": "executing",
+                "atUtc": "2026-01-01T00:01:40\u002B00:00"
+              },
+              "createdAtUtc": "2026-01-01T00:01:40\u002B00:00"
+            }
+          ]
+        },
+        {
+          "actorKey": "limit-bot-00",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-01",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-02",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-03",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-04",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-05",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-06",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-07",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-08",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-09",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-10",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-11",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-12",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-13",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-14",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-15",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-16",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-17",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-18",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-19",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-20",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-21",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-22",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-23",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-24",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-25",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-26",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-27",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-28",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-29",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-30",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-31",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-32",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-33",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-34",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-35",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-36",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-37",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-38",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-39",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-40",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-41",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-42",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-43",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-44",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-45",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        },
+        {
+          "actorKey": "limit-bot-46",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        }
+      ]
+    },
+    {
+      "gameId": "ffxi",
+      "caller": "fixture-other-caller",
+      "serverInstanceId": "fixture-server",
+      "bots": [
+        {
+          "actorKey": "fixture-bot",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        }
+      ]
+    }
+  ],
+  "stateCounts": {
+    "accepted": 54
+  },
+  "ledgerCounts": {
+    "report_ignored": 1,
+    "report_adopted": 1
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "switches": {
+    "contract": false,
+    "naturalOrders": false,
+    "selfClaims": false
+  },
+  "freshForSeconds": 30,
+  "note": "The interaction contract is off: the hub collects no bot state and sends no orders. Bots play as before.",
+  "truncated": false,
+  "scopes": [],
+  "stateCounts": {},
+  "ledgerCounts": {}
+}

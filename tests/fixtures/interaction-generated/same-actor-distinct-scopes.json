@@ -1,0 +1,138 @@
+{
+  "switches": {
+    "contract": true,
+    "naturalOrders": false,
+    "selfClaims": false
+  },
+  "freshForSeconds": 30,
+  "note": "",
+  "truncated": false,
+  "scopes": [
+    {
+      "gameId": "ffxi",
+      "caller": "fixture-adapter",
+      "serverInstanceId": "fixture-other-server",
+      "bots": [
+        {
+          "actorKey": "fixture-bot",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        }
+      ]
+    },
+    {
+      "gameId": "ffxi",
+      "caller": "fixture-adapter",
+      "serverInstanceId": "fixture-server",
+      "bots": [
+        {
+          "actorKey": "fixture-bot",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:00:00\u002B00:00",
+          "ageSeconds": 131,
+          "fresh": false,
+          "snapshotFresh": false,
+          "activity": "unknown",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [],
+          "mode": {
+            "owner": "n:fixture-epoch:3",
+            "kind": "follow",
+            "requester": "FixtureRequester",
+            "source": "native report",
+            "seq": 3,
+            "atUtc": "2026-01-01T00:01:40\u002B00:00",
+            "ageSeconds": 31
+          },
+          "recentOrders": [
+            {
+              "actionId": "n:fixture-epoch:3",
+              "origin": "native",
+              "gameId": "ffxi",
+              "caller": "fixture-adapter",
+              "serverInstanceId": "fixture-server",
+              "actorKey": "fixture-bot",
+              "kind": "follow",
+              "requester": "FixtureRequester",
+              "phase": "executing",
+              "cancel": "none",
+              "ran": true,
+              "withdrawn": false,
+              "lastReceipt": {
+                "seq": 3,
+                "epoch": "fixture-epoch",
+                "state": "executing",
+                "atUtc": "2026-01-01T00:01:40\u002B00:00"
+              },
+              "createdAtUtc": "2026-01-01T00:01:40\u002B00:00"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "gameId": "ffxi",
+      "caller": "fixture-other-caller",
+      "serverInstanceId": "fixture-server",
+      "bots": [
+        {
+          "actorKey": "fixture-bot",
+          "source": "native snapshot",
+          "epoch": "fixture-epoch",
+          "seq": 1,
+          "observedAtUtc": "2026-01-01T00:02:11\u002B00:00",
+          "ageSeconds": 0,
+          "fresh": true,
+          "snapshotFresh": true,
+          "activity": "idle",
+          "phase": "idle",
+          "zone": "FixtureZone",
+          "capabilities": [
+            "wait",
+            "follow",
+            "stop",
+            "resume"
+          ],
+          "mode": {
+            "source": "snapshot",
+            "seq": 1,
+            "atUtc": "2026-01-01T00:02:11\u002B00:00",
+            "ageSeconds": 0
+          },
+          "recentOrders": []
+        }
+      ]
+    }
+  ],
+  "stateCounts": {
+    "accepted": 3
+  },
+  "ledgerCounts": {
+    "report_ignored": 1,
+    "report_adopted": 1
+  }
+}
