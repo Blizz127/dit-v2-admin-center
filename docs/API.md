@@ -37,6 +37,11 @@ Returns reported `switches` (contract, natural orders, self claims), `freshForSe
 
 ## GET /api/bridge-status
 
+Takes no query parameters. After owner authentication, any nonempty query
+returns 400 before the observer is called; rejected tokens still return 401
+first. The normal parameter-free UI request is unchanged. This is verified
+through the in-memory handler; the running service has not been restarted.
+
 Requires the owner token. Returns a bounded read-only observation of the FFXI bridge unit and private fault marker via verified SSH to Banshee. The observer caches results for 15 seconds, reports unavailable or unexpected data as unknown, and never reads chat, restarts a service, modifies a marker or returns credentials. The browser refreshes while the workspace is visible. Marker absence does not establish successful delivery; service and marker states may change between observations.
 
 ### Bridge observation failures

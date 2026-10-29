@@ -159,6 +159,15 @@ collector gap without reading real coordinator/account records or restarting the
 server. Real source compatibility, process binding, native browser execution
 and deployed-service behavior remain separate, unverified boundaries.
 
+Worker/handler follow-up: `7ada4a2` covers quota-worker cadence, deduplication,
+transient storage failure/recovery and preexisting stop using temporary
+synthetic files and an injected wait. Three checks passed without starting a
+thread or reading real accounts. `708965f` rejects unsupported bridge-status
+parameters before observation; one focused in-memory handler check covers
+authentication ordering, rejection, redaction and the unchanged normal request.
+No service restart occurred. These checks do not verify real-time scheduling,
+concurrent shutdown, host observation or browser rendering.
+
 The extended connected check passed under a 25-second hard timeout. Bridge
 observation failures return 200 with Unknown fields; health projection/read
 failures return 502/503. These are deliberately different API semantics.

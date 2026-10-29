@@ -181,6 +181,19 @@ execution, visual appearance and deployed-service behavior remain unverified.
 
 ## Browser-free inspector integration
 
+The quota background loop has a separate synthetic scheduling check:
+
+```sh
+timeout -k 2 10 python3 -m unittest discover -s tests -p test_quota_worker.py -v
+```
+
+It invokes the real worker with temporary account-state fixtures and an injected
+stop/wait object: no thread, sleep, account refresh or service starts. Checks
+cover 60-second retry requests, deduplication, subsequent samples, storage-error
+recovery, and a stop set before collection. Source data stays unchanged during
+recovery; stored records omit fixture secrets. This is not wall-clock scheduling
+or shutdown-race verification of the running worker.
+
 The actual overview collector has a separate offline handler check:
 
 ```sh
