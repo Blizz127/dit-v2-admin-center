@@ -107,7 +107,12 @@ def valid_export_receipt(result):
             and type(table.get('width')) in (int, float) and 0 < table['width'] <= 1280)
 
 
-def main(screenshots=False, gap_export=False):
+def main(screenshots=False, gap_export=False, expected_artifact_sha256=None):
+    if expected_artifact_sha256 is not None and (
+            not isinstance(expected_artifact_sha256, str) or len(expected_artifact_sha256) != 64
+            or any(c not in '0123456789abcdef' for c in expected_artifact_sha256)):
+        print('FAIL: expected artifact SHA-256 must be 64 lowercase hex characters.', file=sys.stderr)
+        return 1
     requested = os.environ.get('DIT_CHROMIUM')
     browser = shutil.which(requested) if requested else next(
         (path for name in ('chromium', 'chromium-browser', 'google-chrome', 'chrome-headless-shell')
@@ -122,8 +127,11 @@ def main(screenshots=False, gap_export=False):
         return 2
     with tempfile.TemporaryDirectory(prefix='dit-keyboard-') as directory:
         artifact = Path(directory) / 'playtest.html'
-        artifact.write_text(build())
+        artifact.write_bytes(build().encode('utf-8'))
         artifact_digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
+        if expected_artifact_sha256 is not None and artifact_digest != expected_artifact_sha256:
+            print('FAIL: generated artifact differs from expected SHA-256; no browser started.', file=sys.stderr)
+            return 1
         command = isolation + [node, str(ROOT / 'tools/keyboard_cdp.cjs'), browser,
                                str(artifact), str(Path(directory) / 'profile')]
         captures = Path(directory) / 'captures'
@@ -163,9 +171,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--screenshots', action='store_true', help='Capture synthetic comparisons after native checks pass')
     parser.add_argument('--gap-export', action='store_true', help='Check gap table and native Enter download in a disposable directory')
+    parser.add_argument('--expected-artifact-sha256', help='Refuse to start the browser if the generated preview differs from this exact hash')
     try:
         args = parser.parse_args()
-        sys.exit(main(screenshots=args.screenshots, gap_export=args.gap_export))
+        sys.exit(main(screenshots=args.screenshots, gap_export=args.gap_export,
+                      expected_artifact_sha256=args.expected_artifact_sha256))
     except (OSError, RuntimeError):
         print('FAIL: bounded browser run could not complete; no success claimed.', file=sys.stderr)
         sys.exit(1)

@@ -14,6 +14,46 @@ SHELL = dict(status="passed", sections=8, widths=[1280, 390], traversal="Tab/Shi
 
 
 class KeyboardRunnerTests(unittest.TestCase):
+    def test_expected_artifact_mismatch_stops_before_browser_and_removes_temp_file(self):
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        with TemporaryDirectory() as root:
+            owned = Path(root) / 'owned-profile-root'
+            owned.mkdir()
+            with patch.object(runner.shutil, 'which', side_effect=lambda name: '/fixture/' + name), \
+                    patch.object(runner, 'run_bounded', return_value=(0, '', '')) as run, \
+                    patch.object(runner, 'build', return_value='<html>changed fixture</html>'), \
+                    patch.object(runner.tempfile, 'tempdir', str(owned)), \
+                    redirect_stdout(io.StringIO()) as stdout, redirect_stderr(io.StringIO()) as stderr:
+                self.assertEqual(runner.main(expected_artifact_sha256='a' * 64), 1)
+                self.assertEqual(run.call_count, 1)  # Isolation preflight only, never browser.
+                self.assertEqual(list(owned.iterdir()), [])
+                self.assertEqual(stdout.getvalue(), '')
+                self.assertIn('no browser started', stderr.getvalue())
+        for invalid in ('', 'A' * 64, 'g' * 64, True, 'private/path'):
+            with patch.object(runner, 'run_bounded') as run, \
+                    patch.object(runner, 'build') as build, redirect_stderr(io.StringIO()):
+                self.assertEqual(runner.main(expected_artifact_sha256=invalid), 1)
+                run.assert_not_called()
+                build.assert_not_called()
+
+    def test_expected_artifact_match_is_still_subject_to_native_receipt_checks(self):
+        artifact = '<html>synthetic é</html>'
+        digest = hashlib.sha256(artifact.encode('utf-8')).hexdigest()
+        good = dict(status='passed', nativeKeyboard='passed', steps=12,
+                    escapeCancellation='passed', automaticDOM='passed', shell=SHELL)
+        for result, expected in ((good, 0), ({'status': 'passed'}, 1)):
+            with patch.object(runner.shutil, 'which', side_effect=lambda name: '/fixture/' + name), \
+                    patch.object(runner, 'run_bounded', side_effect=[(0, '', ''), (0, json.dumps(result), '')]) as run, \
+                    patch.object(runner, 'build', return_value=artifact), \
+                    redirect_stdout(io.StringIO()) as stdout, redirect_stderr(io.StringIO()):
+                self.assertEqual(runner.main(expected_artifact_sha256=digest), expected)
+                self.assertEqual(run.call_count, 2)
+                if expected == 0:
+                    self.assertEqual(json.loads(stdout.getvalue())['artifactSha256'], digest)
+                else:
+                    self.assertEqual(stdout.getvalue(), '')
+
     def test_ambiguous_nonfinite_and_oversized_receipts_are_rejected(self):
         good = dict(status='passed', nativeKeyboard='passed', steps=12,
                     escapeCancellation='passed', automaticDOM='passed', shell=SHELL)

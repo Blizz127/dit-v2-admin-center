@@ -157,3 +157,20 @@ and cannot be overwritten by the pending callback. An untrusted/mismatched relea
 cannot advance the step; a subsequent matching trusted release can. These exercise
 the observer's state transitions only, not native event trust, Tab order or browser
 default actions. The focused keyboard-observer check passed without a browser.
+
+## Optional exact-artifact guard in the current runner
+
+The current source runner accepts `--expected-artifact-sha256 HASH`. It writes
+explicit UTF-8 bytes and compares the generated artifact before launching the
+browser. A mismatch fails without browser execution or a success receipt;
+temporary artifact/profile files are removed by the existing owned-directory
+cleanup. Malformed hashes fail before runtime checks. A matching hash does not
+skip keyboard, layout or requested export validation.
+
+This option is for a separately scoped future run of the current runner. It is
+**not available in the approved 8eb2c9f bundle**, and is not a reason to replace
+that bundle or expand the device lead's current assignment. Its returned evidence
+must still be attributed only to its pinned artifact, not this newer preview.
+Three focused mocked runner checks passed, including mismatch/cleanup, matching
+hash with incomplete receipt refusal and existing artifact attribution. Neither
+a native run nor device delivery occurred.
