@@ -405,3 +405,25 @@ The DOM runner also treats an explicitly empty or unavailable `DIT_CHROMIUM`
 selection as blocked, matching the keyboard runner. It cannot silently substitute
 another PATH browser. Ten focused DOM-runner tests pass, including refusal before
 artifact generation or process launch for both explicit-selection failures.
+
+## Receipt reconciliation for relay f046d18732a5d51f
+
+On October 30, read-only inspection of `/home/blizz/scratch/admin-native-*`
+found only `admin-native-8eb2c9f-20261029T232006Z`: `native-result.json` is zero
+bytes and `native-stderr.txt` is 93 bytes with the original missing-runtime
+blocker. No separate-attempt receipt was found in that handoff location. This
+is a local inventory finding, not proof that the executor did not run elsewhere.
+No device contact, retry, installation or namespace probe was performed.
+
+The existing local preview still hashes to
+`d2765fd16eba26ee5d56708b4b6809f4f4608493816f5f67dda4ea8530fcc252`, matching the
+exact commands above. The five initial implementation tasks remain complete;
+subsequent trace/JSON hardening is committed through `b37f6de`. The working tree
+was clean at this reconciliation. No code check was rerun merely to renew its
+reported status.
+
+The next evidence-dependent actions remain: review an actual returned native
+receipt through the prepared intake tool, and reconcile authoritative hub
+contract/evidence feedback when supplied. Neither is satisfied by additional
+mock successes. The coordinator was asked for an existing receipt or a concrete
+new offline backlog item, not another device execution or owner permission.
