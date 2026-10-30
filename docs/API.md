@@ -619,3 +619,11 @@ had correct JSON lengths and omitted private input. Six focused checks passed,
 including aggregate-header bounds, body refusal and response-write separation.
 These results establish local socket behavior, not deployed-service or browser
 verification.
+
+EOF while acquiring headers is also a refusal: an unfinished line, or complete
+header lines without the terminating blank line, returns fixed JSON 400 before
+collection. The standard parser previously treated these EOF cases as complete
+authenticated requests; a regression reproduced three such collector calls.
+An entirely empty connection still closes without a response. Five focused
+checks passed after the fix, including valid authenticated requests, aggregate
+size bounds, simulated idle timeouts and measured trickle-deadline behavior.

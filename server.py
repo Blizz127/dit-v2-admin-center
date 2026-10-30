@@ -306,6 +306,10 @@ class _RequestDeadline:
         return bytes(line)
 
 
+class _IncompleteHeaders(Exception):
+    pass
+
+
 class _HeaderBudget:
     """Bound aggregate header acquisition, not just each individual line."""
     def __init__(self, stream, limit=65536):
@@ -321,6 +325,9 @@ class _HeaderBudget:
         if self.remaining < 0:
             # The stdlib parser maps this to 431; send_error redacts its text.
             raise http.client.LineTooLong('request headers')
+        if not line.endswith(b'\n'):
+            # EOF cannot substitute for the blank line terminating headers.
+            raise _IncompleteHeaders
         return line
 
 
@@ -374,6 +381,9 @@ class Handler(BaseHTTPRequestHandler):
         self.rfile = _HeaderBudget(original)
         try:
             parsed = super().parse_request()
+        except _IncompleteHeaders:
+            self.send_error(400)
+            parsed = False
         finally:
             self.rfile = original
         if not parsed:

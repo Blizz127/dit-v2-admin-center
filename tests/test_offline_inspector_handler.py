@@ -341,6 +341,24 @@ class OfflineInspectorHandlerTests(unittest.TestCase):
                     self.assertEqual(self.overview.call_count, before + 1)
                     self.assertEqual(stream.closed_at, len(request) + 65536)
 
+    def test_eof_before_header_terminator_cannot_collect(self):
+        for tail in (b'', b'X-OMIT_PRIVATE: unfinished', b'X-OMIT_PRIVATE: finished\r\n'):
+            with self.subTest(tail=tail):
+                wire = (b'GET /api/overview HTTP/1.1\r\n'
+                        b'Authorization: Bearer fixture-token\r\n' + tail)
+                connection = MemoryConnection(wire)
+                handler = server.Handler(connection, ('127.0.0.1', 0), SimpleNamespace(admin_token='fixture-token'))
+                head, body = bytes(connection.outgoing).split(b'\r\n\r\n', 1)
+                status, header_bytes = head.split(b'\r\n', 1)
+                self.assertEqual(int(status.split()[1]), 400)
+                self.assert_error_envelope(BytesParser().parsebytes(header_bytes), body)
+                self.assertTrue(handler.close_connection)
+        self.overview.assert_not_called()
+        # An empty connection is an orderly disconnect, not a malformed request.
+        connection = MemoryConnection(b'')
+        server.Handler(connection, ('127.0.0.1', 0), SimpleNamespace(admin_token='fixture-token'))
+        self.assertEqual(bytes(connection.outgoing), b'')
+
     def test_output_timeout_does_not_append_another_response(self):
         connection = MemoryConnection(b'GET /api/overview HTTP/1.1\r\n\r\n')
         calls = []
