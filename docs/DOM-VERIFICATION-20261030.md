@@ -199,3 +199,39 @@ New DOM assertions cover partial-history paging with warnings, omitted blank-ID
 rows, other-bot exclusion, duplicate selected identity refusal, unusable-history
 page clearing and complete recovery. Existing trusted-keyboard verification
 remains separate and NOT RUN. No live or device changes occurred.
+
+## Timeout isolation and Overview landing
+
+Coordinator `e36f6364165be13b`. Diagnostics (`68af3bb`) reproduced the earlier
+completion timeout on unchanged artifact `fca03f5`: 145 completed checks, last
+check “Complete assignment recovery restores pages and clears the partial
+warning”, 539 ms construction, 5668 ms completion wait, zero runtime errors and
+zero transport attempts. This isolated the observed failure to the old total
+wait limit; it does not prove why host scheduling varied between runs.
+
+Runner `95afcee` keeps a five-second **no assertion progress** limit and adds a
+ten-second total completion limit, both monotonic. `a3034f6` also rejects a
+completion first observed after the total deadline. The documented outer
+15-second process timeout is still required for synchronous hangs. This is an
+explicit timing-contract change, not a retrospective pass for the older run.
+Failures carry the artifact hash, completed count and last assertion truncated
+to 240 characters. Parse errors are reported directly.
+
+```sh
+DIT_JSDOM_MODULE="$PWD/build/dom-runtime/node_modules/jsdom" timeout 45 node tests/inspector_dom_refusals.cjs
+```
+
+Six refusal cases passed: wrong focus order, wrong filename, mismatched bytes,
+no-progress stall, endless progress and parse error. Stall/total failures emit
+no success receipt and are checked against measured 5–8 s / 10–13 s windows.
+Unchanged artifact `fca03f5` subsequently passed 163 checks with 491 ms
+construction and 5604 ms completion wait under the new bounds.
+
+Follow-on `66b63ca` aligns the standalone preview's landing URL fragment, DOM
+focus and selected sidebar cue on Overview. Its final artifact passed **164
+checks**, zero transport attempts, with **452 ms construction / 5902 ms
+completion wait**. Seven focused artifact checks passed. Final preview:
+**235622 bytes**, SHA-256
+`bd27c4e3d3a0caf85f0a586cb4413f0d03a56311eff012918faef0a1811d2ef8`.
+Native rendering, default keyboard and actual saving remain NOT RUN. Neither
+the delivered device preview nor the approved bundle was changed.
