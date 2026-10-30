@@ -42,6 +42,13 @@ class OfflineFeedRecoveryTests(unittest.TestCase):
                 data = {'bots': [{'key': phase[0] + '-bot', 'name': phase[0] + ' bot'}],
                         'learning': {'gameId': game, 'tasks': [task]},
                         'server-status': {'gameId': game, 'status': {'xpRate': 2}}}[view]
+                if phase[0] == 'ambiguous':
+                    if (game, view) == ('ffxi', 'bots'):
+                        return io.BytesIO(b'[{"key":"first","key":"last","name":"OMIT_PRIVATE_AMBIGUITY"}]')
+                    if (game, view) == ('ffxi', 'learning'):
+                        return io.BytesIO(b'{"gameId":"swtor","gameId":"ffxi","tasks":[]}')
+                    if (game, view) == ('swtor', 'server-status'):
+                        return io.BytesIO(b'{"gameId":"swtor","status":{"xpRate":1e999}}')
                 if phase[0] == 'partial':
                     if (game, view) == ('ffxi', 'bots'):
                         raise TimeoutError('OMIT_PRIVATE_TIMEOUT')
@@ -89,6 +96,27 @@ class OfflineFeedRecoveryTests(unittest.TestCase):
             self.assertTrue(all(row['id'].endswith('recovered-task') for row in recovered['learning']))
             self.assertTrue(all(feed['status'] == 'Live response' for feed in recovered['hubFeeds']))
             self.assertTrue(all(row['status'] == 'Unknown' for row in recovered['bots']))
+            phase[0], clock[0] = 'ambiguous', 45
+            ambiguous = load()
+            self.assertEqual(len(calls), 24, 'Invalid JSON is not retried within the refresh')
+            failed = {(feed['game'], feed['view']) for feed in ambiguous['hubFeeds'] if feed['status'] == 'Unavailable'}
+            self.assertEqual(failed, {('FFXI', 'bots'), ('FFXI', 'learning'), ('SWTOR', 'server-status')})
+            for field in ('bots', 'learning'):
+                ffxi = [row for row in ambiguous[field] if row['game'] == 'FFXI']
+                self.assertEqual(ffxi, [row for row in snapshot()[field] if row['game'] == 'FFXI'])
+            self.assertEqual([row for row in ambiguous['gameStatus'] if row['game'] == 'SWTOR'],
+                             [row for row in snapshot()['gameStatus'] if row['game'] == 'SWTOR'])
+            self.assertNotIn('recovered', json.dumps(ambiguous), 'Previous positive rows must not survive invalid refresh')
+            self.assertNotIn('OMIT_PRIVATE', json.dumps(ambiguous))
+            self.assertTrue(all(feed['at'] is None for feed in ambiguous['hubFeeds'] if feed['status'] == 'Unavailable'))
+            phase[0], clock[0] = 'final', 59
+            self.assertEqual(load()['hubFeeds'], ambiguous['hubFeeds'])
+            self.assertEqual(len(calls), 24)
+            clock[0] = 60
+            final = load()
+            self.assertEqual(len(calls), 30)
+            self.assertTrue(all(feed['status'] == 'Live response' for feed in final['hubFeeds']))
+            self.assertTrue(all(row['name'] == 'final bot' for row in final['bots']))
 
 
 if __name__ == '__main__':

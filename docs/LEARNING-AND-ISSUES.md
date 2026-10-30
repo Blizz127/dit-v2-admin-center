@@ -941,3 +941,14 @@ and artifact checks passed (17 Python checks plus the audit and fake-CDP Node
 checks). The local preview was rebuilt; full DOM/browser execution, native
 selection and appearance remain NOT RUN. See NATIVE-VERIFICATION-GAP.md for the
 candidate hash and the distinction from the unchanged approved device bundle.
+
+October 30 — raw read-only hub JSON now rejects duplicate object keys (even
+identical or escaped duplicates), non-finite literals and floating-point overflow.
+The decoder covers all six hub reads and retains generic unavailable errors.
+A synthetic reader → cache → overview test now replaces a previously good FFXI
+roster/learning feed and SWTOR stored-status feed with invalid JSON. It verifies
+that affected rows become labeled fallback, previous positive rows and private
+response text disappear, unaffected feeds remain available, there are no hidden
+retries, and the next valid cache refresh recovers. Six focused decoder/recovery
+tests passed. No hub call, server deployment, model action or device access was
+performed; native browser verification remains NOT RUN.
