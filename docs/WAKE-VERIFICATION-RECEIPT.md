@@ -187,3 +187,28 @@ completed cutover receipt was established by this review. No per-game status or
 hold is lifted. Two source-reader checks and the actual UI synthetic check passed,
 including a matched preparation note leaving cutover unavailable and games
 Unverified/Held. No live service, game state or device was accessed.
+
+## Local readiness filtering
+
+The twelve-row matrix has a labeled acceptance filter: all mapped games,
+Unverified, retained holds, or reported ready readbacks. Counts describe the
+current projected rows, not live health, the complete launcher catalog or every
+restriction mentioned in the row notes. WAR/Marvel retained holds remain
+separate from other per-game lifecycle or companion restrictions.
+
+Selection persists across overview refreshes. Only rows with the existing valid
+cutover/readback projection appear in the reported-ready filter. Duplicate or
+withdrawn observations return to Unverified. Filtering makes no API call. The
+renderer retains its most recent accepted/cleared view separately from the
+cached overall snapshot, so changing filters after a failed refresh cannot
+restore old positive claims. Session reset clears the filter to all games and
+removes prior readback claims. An explicit empty message accompanies zero matches.
+
+Offline playtest: the default standalone snapshot has no completed cutover receipt.
+All mapped games shows twelve rows, Unverified shows ten, retained holds shows
+WAR/Marvel, and reported ready shows no matches. These are presentation states,
+not actual service results. A synthetic projection/UI test additionally checks
+positive observations, duplicate withdrawal, filter persistence, failed refresh,
+filter changes after failure and recovery. Existing verification and two markup
+checks passed. Native focus, select keyboard behavior and screen-reader
+announcements have not been run for this newer preview.

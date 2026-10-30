@@ -497,3 +497,9 @@ intake gate and local blocker review. It is not the `wake-8450` transport receip
 and cannot supersede that dated runtime observation. Even a clear staged local
 review grants neither writer transfer nor runtime verification. No gate status,
 journal contents, player count or save acknowledgement is collected by Admin.
+
+The wake-readiness filter and displayed counts are browser-local derivatives of
+`wakeVerification`; they add no API field or request. Selection survives refresh
+but resets with the session. Failure-cleared readbacks cannot be recovered from
+the cached overview by changing the filter. Count labels explicitly describe the
+twelve mapped rows, not current service health or all retained game restrictions.

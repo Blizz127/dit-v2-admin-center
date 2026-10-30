@@ -193,3 +193,12 @@ class CardMarkupTests(unittest.TestCase):
         self.assertFalse(any(n.tag in ('a', 'button', 'input', 'form') for n in panel.descendants()))
         region = next(n for n in panel.descendants() if n.attrs.get('role') == 'region')
         self.assertEqual(region.attrs.get('tabindex'), '0')
+
+    def test_wake_readiness_filter_is_labeled_and_counts_are_announced(self):
+        control = self.by_id['wake-readiness-filter']
+        self.assertEqual(control.tag, 'select')
+        self.assertTrue(any(n.tag == 'label' and n.attrs.get('for') == 'wake-readiness-filter' for n in self.nodes))
+        self.assertEqual(control.attrs.get('aria-describedby'), 'wake-readiness-count')
+        self.assertEqual(self.by_id['wake-readiness-count'].attrs.get('role'), 'status')
+        self.assertEqual([n.attrs.get('value') for n in control.descendants() if n.tag == 'option'],
+                         ['all', 'unverified', 'held', 'reported'])

@@ -74,7 +74,10 @@ function renderOperationSources(data) {
       `${row.reference} · Reviewed SHA-256 ${row.sha256} · Current health unknown`);
   }
 }
+let wakeVerificationView = null;
+document.getElementById('wake-readiness-filter').addEventListener('change', () => renderWakeVerification(wakeVerificationView));
 function renderWakeVerification(data) {
+  wakeVerificationView = data;
   const games = ['wow-vanilla', 'wow-forever', 'firefall', 'eden', 'blacklight', 'tabula-rasa', 'ffxi', 'war', 'enb', 'planetside', 'marvel-heroes', 'rose'];
   let rows = data?.schema === 'dit-admin-wake-readback-v1' && Array.isArray(data.rows) ? data.rows : [];
   const summary = document.getElementById('wake-cutover-status');
@@ -87,20 +90,35 @@ function renderWakeVerification(data) {
   } else {
     rows = [];
   }
+  const filterControl = document.getElementById('wake-readiness-filter');
+  const filter = ['all', 'unverified', 'held', 'reported'].includes(filterControl.value) ? filterControl.value : 'all';
+  filterControl.value = filter;
+  const counts = {unverified: 0, held: 0, reported: 0};
+  let shown = 0;
   for (const game of games) {
     const cell = document.getElementById('wake-acceptance-' + game);
     const matches = rows.filter(row => row && row.game === game);
-    cell.textContent = ['war', 'marvel-heroes'].includes(game) ? 'Held — readback cannot lift hold' : 'Unverified';
-    if (['war', 'marvel-heroes'].includes(game) || matches.length !== 1) continue;
-    const row = matches[0];
-    if (row.status === 'Verified readback (reported)' && typeof row.observedAt === 'string'
-        && Number.isFinite(Date.parse(row.observedAt)) && typeof row.receipt === 'string'
-        && /^[A-Za-z0-9._-]{1,96}$/.test(row.receipt)) {
-      cell.textContent = `${row.status} · ${row.observedAt} · ${row.receipt}. Current health unknown.`;
+    let category = ['war', 'marvel-heroes'].includes(game) ? 'held' : 'unverified';
+    cell.textContent = category === 'held' ? 'Held — readback cannot lift hold' : 'Unverified';
+    if (category !== 'held' && matches.length === 1) {
+      const row = matches[0];
+      if (row.status === 'Verified readback (reported)' && typeof row.observedAt === 'string'
+          && Number.isFinite(Date.parse(row.observedAt)) && typeof row.receipt === 'string'
+          && /^[A-Za-z0-9._-]{1,96}$/.test(row.receipt)) {
+        category = 'reported';
+        cell.textContent = `${row.status} · ${row.observedAt} · ${row.receipt}. Current health unknown.`;
+      }
     }
+    counts[category]++;
+    const visible = filter === 'all' || filter === category;
+    document.getElementById('wake-row-' + game).hidden = !visible;
+    if (visible) shown++;
   }
+  document.getElementById('wake-readiness-count').textContent = `Showing ${shown} of ${games.length} mapped games · ${counts.reported} reported ready readbacks · ${counts.unverified} unverified · ${counts.held} retained holds. Counts describe these rows, not live health or all game restrictions.`;
+  document.getElementById('wake-filter-empty').hidden = shown !== 0;
 }
 function resetPanelSession() {
+  document.getElementById('wake-readiness-filter').value = 'all';
   renderWakeVerification(null);
   renderOperationSources(null);
   markWorkspaceSection(null);
