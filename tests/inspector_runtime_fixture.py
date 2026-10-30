@@ -144,7 +144,7 @@ def exchange(request):
     if path not in ('/api/overview?source=mock', '/api/overview?source=hub', '/api/bridge-status', '/api/interaction', '/api/hub-health') and urlsplit(path).path != '/api/trace':
         raise ValueError('Only synthetic inspector fixture routes are allowed')
     scenario = request.get('scenario', 'trace-pending')
-    allowed = {'trace-pending', 'trace-empty', 'trace-malformed', 'trace-unavailable', 'trace-unconfigured',
+    allowed = {'trace-pending', 'trace-empty', 'trace-ambiguous', 'trace-malformed', 'trace-unavailable', 'trace-unconfigured',
                'interaction-malformed', 'interaction-unavailable', 'interaction-unconfigured',
                'health-services', 'health-empty', 'health-malformed', 'health-unavailable', 'health-unconfigured',
                'bridge-active', 'bridge-fault', 'bridge-empty', 'bridge-malformed', 'bridge-denied', 'bridge-timeout'}
@@ -167,6 +167,9 @@ def exchange(request):
                                         'isFinal': False, 'message': 'OMIT_RAW_TRACE_BODY'})}]
         if scenario == 'trace-empty':
             records = []
+        elif scenario == 'trace-ambiguous':
+            records[0]['body'] = ('{"classification":"pending","classification":"completed",'
+                                  '"isFinal":false,"isFinal":true,"message":"OMIT_RAW_TRACE_BODY"}')
         elif scenario == 'trace-malformed':
             records = {'private': 'OMIT_RAW_TRACE_BODY'}
         trace = Mock(return_value=(records, 'fixture-trace-fetch'))

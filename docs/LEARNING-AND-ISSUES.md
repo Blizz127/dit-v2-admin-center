@@ -952,3 +952,14 @@ response text disappear, unaffected feeds remain available, there are no hidden
 retries, and the next valid cache refresh recovers. Six focused decoder/recovery
 tests passed. No hub call, server deployment, model action or device access was
 performed; native browser verification remains NOT RUN.
+
+October 30 — trace outcomes encoded as JSON strings now receive the same strict
+field/number checks as the outer hub response. Ambiguous bodies keep their
+bounded envelope metadata but expose no classification, disposition or finality;
+valid neighboring records remain usable. Eight focused in-memory handler/decoder
+checks passed. The connected browser-free inspector test also passed against
+the existing generated artifact: replacing a pending trace with conflicting
+classification/finality clears the previous claim and renders Unknown, while
+preserving occurrence metadata and omitting raw body text. This uses real handler
+serialization and actual app code in a simulated DOM; native rendering remains
+NOT RUN. No artifact rebuild, live call, deployment or device action was needed.
