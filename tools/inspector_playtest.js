@@ -158,9 +158,13 @@ try {
   const draftGoals = document.getElementById('bot-draft-goals');
   const draftPersonality = document.getElementById('bot-draft-personality');
   const draftForm = document.getElementById('bot-draft-form');
+  const draftPreview = document.getElementById('bot-draft-preview');
+  check(draftGoals.labels.length === 1 && draftPersonality.labels.length === 1 && draftGoals.getAttribute('aria-describedby').includes('bot-draft-status'), 'Draft fields have associated labels and validation status');
   draftGoals.value = 'Example goal: report observations without claiming progress';
   draftPersonality.value = 'Example personality: patient';
+  draftPreview.focus();
   draftForm.dispatchEvent(new Event('submit', {bubbles:true, cancelable:true}));
+  check(document.activeElement === draftPreview, 'Successful draft review preserves its preview-button DOM focus');
   check(textOf('bot-draft-result').includes('offline-inspector-bot') && textOf('bot-draft-result').includes('Example goal:'), 'Local draft preview stays scoped to the selected synthetic bot');
   check(textOf('bot-draft-result').includes('Current loaded text') && textOf('bot-draft-result').includes('Fixture goal') && textOf('bot-draft-result').includes('Proposed text differs'), 'Draft review shows reported goals beside proposed local text');
   check(textOf('bot-draft-result').includes('Comparison unavailable: current value Unknown'), 'Missing personality baseline stays Unknown in draft review');
@@ -171,8 +175,14 @@ try {
   draftGoals.value = 'x'.repeat(1001);
   draftForm.dispatchEvent(new Event('submit', {bubbles:true, cancelable:true}));
   check(textOf('bot-draft-result') === '' && draftGoals.getAttribute('aria-invalid') === 'true', 'Invalid draft removes the previous preview');
+  check(document.activeElement === draftGoals, 'Invalid goals receive DOM focus for correction');
+  draftGoals.value = 'Fixture goal'; draftPersonality.value = 'x'.repeat(501);
+  draftForm.dispatchEvent(new Event('submit', {bubbles:true, cancelable:true}));
+  check(document.activeElement === draftPersonality && draftPersonality.getAttribute('aria-invalid') === 'true', 'Invalid personality receives DOM focus for correction');
   document.getElementById('bot-draft-cancel').click();
   check(draftGoals.value === '' && draftPersonality.value === '', 'Discard removes local draft text');
+  draftForm.dispatchEvent(new Event('submit', {bubbles:true, cancelable:true}));
+  check(document.activeElement === draftGoals && textOf('bot-draft-result') === '', 'Empty draft returns DOM focus to goals without a review');
   draftGoals.value = 'Must not survive refresh';
   const originalBots = structuredClone(fixture.bots);
   fixture.bots = null;

@@ -984,17 +984,22 @@ function previewBotDraft(event) {
   const bot = draftBot();
   if (!bot) { resetBotDraft(); return; }
   const fields = [['bot-draft-goals', 'Proposed goals', 1000], ['bot-draft-personality', 'Proposed personality', 500]];
-  let invalid = false;
+  let invalid = null;
   for (const [id, , limit] of fields) {
     const value = document.getElementById(id).value;
     const bad = value.length > limit || /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(value);
     document.getElementById(id).setAttribute('aria-invalid', String(bad));
-    invalid = invalid || bad;
+    if (bad && invalid === null) invalid = id;
   }
   const status = document.getElementById('bot-draft-status');
-  if (invalid) { status.textContent = 'Draft not previewed: remove control characters and stay within each field limit.'; return; }
+  if (invalid) {
+    status.textContent = 'Draft not previewed: remove control characters and stay within each field limit.';
+    document.getElementById(invalid).focus?.();
+    return;
+  }
   if (!fields.some(([id]) => document.getElementById(id).value.trim())) {
     status.textContent = 'Enter at least one proposed goal or personality change. Blank fields do not clear existing data.';
+    document.getElementById('bot-draft-goals').focus?.();
     return;
   }
   item(panel, `Local draft · ${bot.id} · ${routingText(bot.game)}`, `Selected record: ${routingText(bot.name)}`,
