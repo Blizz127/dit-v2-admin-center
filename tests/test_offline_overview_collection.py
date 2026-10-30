@@ -107,6 +107,24 @@ class OfflineOverviewCollectionTests(unittest.TestCase):
         self.assertNotIn(b'OMIT_PRIVATE', body)
         return int(status.split()[1]), json.loads(body)
 
+    def test_wake_receipt_refresh_and_withdrawal_are_local_only(self):
+        from tests.test_wake_verification import receipt
+        self.seed()
+        path = self.local / 'wake-verification.json'
+        path.write_text(json.dumps(receipt()))
+        before = self.fingerprint()
+        status, data = self.request()
+        self.assertEqual(status, 200)
+        rows = {r['game']: r for r in data['wakeVerification']['rows']}
+        self.assertEqual(rows['enb']['status'], 'Verified readback (reported)')
+        self.assertEqual(rows['ffxi']['status'], 'Unverified')
+        self.assertEqual(rows['war']['status'], 'Held')
+        self.assertEqual(self.fingerprint(), before)
+        path.unlink()
+        status, data = self.request()
+        self.assertEqual(status, 200)
+        self.assertTrue(all(r['status'] in ('Unverified', 'Held') for r in data['wakeVerification']['rows']))
+
     def test_populated_collection_is_read_only_scoped_and_not_live(self):
         self.seed()
         before = self.fingerprint()

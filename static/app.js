@@ -58,7 +58,24 @@ for (const section of workspaceSections) {
 function panelSessionCurrent(requestToken, session) {
   return !workspace.hidden && token === requestToken && sessionVersion === session;
 }
+function renderWakeVerification(data) {
+  const games = ['wow-vanilla', 'wow-forever', 'firefall', 'eden', 'blacklight', 'tabula-rasa', 'ffxi', 'war', 'enb', 'planetside', 'marvel-heroes', 'rose'];
+  const rows = data?.schema === 'dit-admin-wake-readback-v1' && Array.isArray(data.rows) ? data.rows : [];
+  for (const game of games) {
+    const cell = document.getElementById('wake-acceptance-' + game);
+    const matches = rows.filter(row => row && row.game === game);
+    cell.textContent = ['war', 'marvel-heroes'].includes(game) ? 'Held — readback cannot lift hold' : 'Unverified';
+    if (['war', 'marvel-heroes'].includes(game) || matches.length !== 1) continue;
+    const row = matches[0];
+    if (row.status === 'Verified readback (reported)' && typeof row.observedAt === 'string'
+        && Number.isFinite(Date.parse(row.observedAt)) && typeof row.receipt === 'string'
+        && /^[A-Za-z0-9._-]{1,96}$/.test(row.receipt)) {
+      cell.textContent = `${row.status} · ${row.observedAt} · ${row.receipt}. Current health unknown.`;
+    }
+  }
+}
 function resetPanelSession() {
+  renderWakeVerification(null);
   markWorkspaceSection(null);
   sessionVersion++;
   currentSnapshot = null; loadedSource = null;
@@ -1097,6 +1114,7 @@ async function load() {
     observationRows(data.serviceHealth, servicePanel).forEach(h => item(servicePanel,
       `${routingText(h.label)} · ${routingText(h.game)}`, `${routingText(h.status)} · ${routingText(h.detail)}`,
       `${routingText(h.source)} · Observed: ${routingText(h.observedAt)} · May be stale`));
+    renderWakeVerification(data.wakeVerification);
     renderCoordinatorPanels();
     renderLeadTimeline();
     renderQuotaHistory();
@@ -1123,6 +1141,7 @@ async function load() {
     }
   } catch (e) {
     if (!current()) return;
+    renderWakeVerification(null);
     sourceLoading = false;
     if (currentSnapshot && loadedSource && !unauthorized && !rendering) {
       document.querySelector('#hub-banner').textContent = `Refresh failed. Showing previous ${loadedSource} request snapshot from ${currentSnapshot.generatedAt || 'unknown time'}; selected source may not match. Check each feed's source.`;

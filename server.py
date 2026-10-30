@@ -27,6 +27,7 @@ from nudge_history import nudge_history
 from session_markers import admin_markers, binding_issues, claude_markers, handoff_codex_markers
 from r10_projection import project_health, project_learning, project_learning_attention, project_roster
 from routing_audit import examples as routing_audit_examples
+from wake_verification import read as read_wake_verification
 
 PROJECT = Path(__file__).resolve().parent
 ROOT = PROJECT / "static"
@@ -168,6 +169,7 @@ def overview(source='mock'):
     add_checkout_history(lead_history, {'DIT v2 hub lead': hub_project, 'Admin Center lead': PROJECT})
     snapshot = {
         "mode": "mock", "generatedAt": datetime.now(timezone.utc).isoformat(),
+        "wakeVerification": read_wake_verification(LOCAL_DATA / 'wake-verification.json'),
         "ownerAttention": owner_attention,
         "ffxiFocus": {
             "closest": "DIT activation receipt 9ba4ccb reports model-only bridge r2 ready on October 29 at 22:53:01 UTC, superseding the earlier r5 baseline; post-rollout speech remains unverified.",
