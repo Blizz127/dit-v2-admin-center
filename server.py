@@ -1,5 +1,6 @@
 """Local, synthetic-only DIT Admin Center development server."""
 import hmac
+import http.client
 import json
 import os
 import sqlite3
@@ -276,6 +277,24 @@ def overview(source='mock'):
         return snapshot
 
 
+class _HeaderBudget:
+    """Bound aggregate header acquisition, not just each individual line."""
+    def __init__(self, stream, limit=65536):
+        self.stream = stream
+        self.remaining = limit
+
+    def readline(self, size=-1):
+        limit = self.remaining + 1
+        if size >= 0:
+            limit = min(limit, size)
+        line = self.stream.readline(limit)
+        self.remaining -= len(line)
+        if self.remaining < 0:
+            # The stdlib parser maps this to 431; send_error redacts its text.
+            raise http.client.LineTooLong('request headers')
+        return line
+
+
 class Handler(BaseHTTPRequestHandler):
     # Socket inactivity limit, including request-line/header reads. This is not
     # an overall deadline for a peer that continuously sends bytes.
@@ -316,7 +335,13 @@ class Handler(BaseHTTPRequestHandler):
                     pass
 
     def parse_request(self):
-        if not super().parse_request():
+        original = self.rfile
+        self.rfile = _HeaderBudget(original)
+        try:
+            parsed = super().parse_request()
+        finally:
+            self.rfile = original
+        if not parsed:
             return False
         # Mutation methods are already refused without consuming their bodies.
         # Validate framing before read routes can authenticate or collect data.

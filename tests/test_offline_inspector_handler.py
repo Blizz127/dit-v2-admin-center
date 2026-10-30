@@ -310,6 +310,37 @@ class OfflineInspectorHandlerTests(unittest.TestCase):
                 self.assert_error_envelope(BytesParser().parsebytes(header_bytes), body)
         self.overview.assert_not_called()
 
+    def test_aggregate_header_limit_accepts_boundary_and_bounds_acquisition(self):
+        class Counted(io.BytesIO):
+            def close(stream):
+                stream.closed_at = stream.tell()
+                super().close()
+
+        request = b'GET /api/overview HTTP/1.1\r\n'
+        fixed = b'Authorization: Bearer fixture-token\r\nX-One: '
+        second = b'\r\nX-Two: '
+        ending = b'\r\n\r\n'
+        padding = 65536 - len(fixed + second + ending)
+        for extra, expected in ((0, 200), (1, 431), (65536, 431)):
+            with self.subTest(extra=extra):
+                headers = fixed + b'x' * (padding // 2) + second + b'y' * (padding - padding // 2 + extra) + ending
+                stream = Counted(request + headers + b'OMIT_PRIVATE_TRAILING_BODY')
+                connection = MemoryConnection(b'')
+                connection.incoming = stream
+                before = self.overview.call_count
+                handler = server.Handler(connection, ('127.0.0.1', 0), SimpleNamespace(admin_token='fixture-token'))
+                head, body = bytes(connection.outgoing).split(b'\r\n\r\n', 1)
+                status, header_bytes = head.split(b'\r\n', 1)
+                self.assertEqual(int(status.split()[1]), expected)
+                self.assertLessEqual(stream.closed_at, len(request) + 65537)
+                self.assertTrue(handler.close_connection)
+                if expected == 431:
+                    self.assertEqual(self.overview.call_count, before)
+                    self.assert_error_envelope(BytesParser().parsebytes(header_bytes), body)
+                else:
+                    self.assertEqual(self.overview.call_count, before + 1)
+                    self.assertEqual(stream.closed_at, len(request) + 65536)
+
     def test_output_timeout_does_not_append_another_response(self):
         connection = MemoryConnection(b'GET /api/overview HTTP/1.1\r\n\r\n')
         calls = []

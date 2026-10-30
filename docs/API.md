@@ -579,7 +579,12 @@ headers such as Accept remain allowed. Write methods still take their existing
 405 path without parsing or consuming payloads, even with invalid body framing.
 
 The existing 65,536-byte request-line limit returns redacted 414; the standard
-library's header-line and header-count limits return redacted 431. A five-second
+library's header-line and header-count limits return redacted 431. The entire
+header block also has a 65,536-byte limit, including line endings and the final
+blank line but excluding the request line. Acquisition consumes at most one
+additional byte to detect an oversized block, then returns redacted 431 without
+draining further headers or a body. This prevents multiple individually valid
+header lines from combining into a multi-megabyte block. A five-second
 socket inactivity timeout now bounds stalled reads and writes. A request-line or
 header read timeout attempts a fixed JSON 408 and closes the connection. If
 output has already started, no second response is appended; if the peer cannot
@@ -593,3 +598,8 @@ timeouts, existing write-body refusal and HEAD/protocol errors. The memory
 connection records the configured socket timeout; tests inject TimeoutError
 without sleeping or opening sockets. Actual elapsed-time behavior on a real
 socket was not measured. No service restart, device run or artifact change.
+
+The aggregate-header follow-up passed five focused checks: exact 64 KiB
+acceptance, oversized-block refusal and acquisition bounds, existing line/count
+limits, header timeout handling, body refusal and GET framing behavior (the
+boundary scenarios share one check). No socket timing or native rendering claim.
