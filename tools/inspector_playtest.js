@@ -64,6 +64,7 @@ try {
   readinessFilter.dispatchEvent(new Event('change', {bubbles: true}));
   check(visibleReadiness().length === 12 && requests.length === readinessRequests,
     'Readiness filters restore all rows without requesting data');
+  check(textOf('model-comparison').includes('Example model A') && textOf('model-comparison').includes('120 ms (2/2 supplied)') && textOf('model-comparison').includes('Example model B'), 'Loaded synthetic models compare without selecting or running a provider');
   const issueRequests = requests.length;
   check(textOf('issues').includes('Native browser verification') && textOf('issues').includes('NOT RUN'), 'Document-fed issues keep native verification unconfirmed');
   document.getElementById('issue-status').value = 'Verification pending';
@@ -122,6 +123,7 @@ try {
   ];
   await load();
   check(textOf('model-call-coverage').includes('Latency 2/2') && textOf('model-call-coverage').includes('Cost 1/2'), 'Metric coverage preserves zero values and identifies missing fields');
+  check(textOf('model-comparison').includes('Mean supplied latency: 0 ms') && textOf('model-comparison').includes('Cost supplied: 0/1'), 'Comparison preserves zero latency and unknown cost coverage');
   check(textOf('data-coverage').includes('Rows with unknown numeric fields: 1'), 'Coverage overview reports numeric-field gaps without inferring quality');
   const availability = document.getElementById('model-call-availability');
   const beforeMetricFilter = requests.length;

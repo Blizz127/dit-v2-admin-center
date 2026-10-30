@@ -448,3 +448,8 @@ Update this block explicitly when authoritative evidence changes the gap.
 ]
 ```
 <!-- admin-issues:end -->
+
+Current post-panel preview commands and exact hash are kept in
+[NATIVE-CURRENT-COMMAND.md](NATIVE-CURRENT-COMMAND.md). The commands earlier in
+this history pin older artifacts. This separate file is not an embedded source
+input, so recording a new artifact hash cannot change the artifact itself.

@@ -225,10 +225,7 @@ def overview(source='mock'):
         ],
         "spendExample": synthetic_spend,
         "routingAudit": routing_audit_examples(),
-        "modelCalls": [
-            {"id": "example-call-1", "model": "Example model", "purpose": "conversation", "latencyMs": 240,
-             "cost": None, "quality": None, "source": "Synthetic example", "observedAt": "2026-01-01T12:00:00Z"},
-        ],
+        "modelCalls": json.loads((PROJECT / "data/fixtures/model-comparison.json").read_text()),
         "audit": [
             {"actor": "Example operator", "action": "Simulated model selection", "scope": "Example FFXI bot",
              "result": "Example only; no change applied", "at": "2026-01-01T12:00:00Z", "source": "Synthetic audit fixture"},

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "example-call-1",
+    "model": "Example model A",
+    "purpose": "conversation",
+    "latencyMs": 0,
+    "cost": 0,
+    "quality": null,
+    "source": "Synthetic comparison examples",
+    "observedAt": "2026-01-01T12:00:00Z"
+  },
+  {
+    "id": "example-call-2",
+    "model": "Example model A",
+    "purpose": "conversation",
+    "latencyMs": 240,
+    "cost": null,
+    "quality": null,
+    "source": "Synthetic comparison examples",
+    "observedAt": "2026-01-01T12:00:00Z"
+  },
+  {
+    "id": "example-call-3",
+    "model": "Example model B",
+    "purpose": "conversation",
+    "latencyMs": 180,
+    "cost": null,
+    "quality": null,
+    "source": "Synthetic comparison examples",
+    "observedAt": "2026-01-01T12:00:00Z"
+  }
+]

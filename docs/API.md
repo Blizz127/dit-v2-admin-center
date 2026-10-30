@@ -780,3 +780,13 @@ pending` status and `updatedAt: null`. Their source names the repository documen
 they are not live incidents or native pass receipts. Missing or invalid document
 inventories produce an Unknown placeholder. The same reader feeds the offline
 standalone preview without a hub, coordinator database or service observation.
+
+### Local model-call comparison
+
+The client groups the currently filtered call examples by exact model, purpose
+and source. Missing identities are excluded with a count. Each group displays
+its sample count, mean of finite nonnegative supplied latency values, and
+cost/quality field coverage. Missing values stay Unknown; no quality score or
+cost ranking is inferred. Groups with different provenance are never merged.
+This performs no request, provider call, routing write or benchmark execution.
+The default mock includes three fictional samples for two fictional models.

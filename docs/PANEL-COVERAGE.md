@@ -9,7 +9,7 @@ intentional; a synthetic UI must not silently activate them.
 | 1 | Bots, games, status | Roster filters, coverage, exact-ID inspector and ambiguity report | Live presence remains Unknown without authoritative evidence. |
 | 2 | Per-bot controls | Goals, memory and personality inspection; disabled command controls | Writes require upstream contract; no start/stop/pause is implemented here. |
 | 3 | LLM choice | Per-bot/global disabled selectors; requested/effective distinctions | Model switching stays disabled; mock audit examples do not apply changes. |
-| 4 | Call logging / bake-off | Loaded model-call examples, numeric coverage and filters | Add local comparison of loaded examples; no measured benchmark or provider calls. |
+| 4 | Call logging / bake-off | Loaded model-call examples, numeric coverage and filters | Local comparison groups loaded samples by exact model/purpose/source, preserves numeric coverage and shares the availability filter. No measured benchmark or provider calls. |
 | 5 | Action/evidence ledger | Exact scope/correlation filtering, request/result/verification, Unknown outcomes | Live action verification needs source evidence. |
 | 6 | Kill switches/gates | Disabled controls and synthetic safety records | Current live state remains Unknown; no control routes. |
 | 7 | Audit log | Searchable examples and scope/outcome model-audit filters | No real admin actions or write audit claimed. |
@@ -28,3 +28,9 @@ Validation: three Python tests (including an authenticated ephemeral localhost
 mock with live collectors forbidden), one actual-app simulated-DOM filter check,
 and seven artifact/markup/script checks passed. A localhost HTTP check is not a
 browser rendering check. Native rendering, keys and saving remain NOT RUN.
+
+Panel 4 now includes three fictional call samples for two example models in both
+the local mock API and standalone preview. Mean supplied latency is descriptive
+only; missing cost and quality are counted, not converted to zero or treated as
+comparable evaluation scores. Missing identities are excluded from grouping.
+A real bake-off remains dependent on agreed tasks, metrics and provider scope.

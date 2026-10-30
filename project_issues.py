@@ -30,7 +30,7 @@ def read(root=ROOT):
                     values[key] = value
                 return values
             rows = json.loads(body[8:-4], object_pairs_hook=unique)
-            if not isinstance(rows, list) or not 1 <= len(rows) <= 16:
+            if not isinstance(rows, list) or len(rows) > 16:
                 raise ValueError('invalid inventory')
             seen = set()
             for row in rows:

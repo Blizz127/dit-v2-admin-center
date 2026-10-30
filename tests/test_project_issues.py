@@ -44,6 +44,8 @@ class ProjectIssuesTests(unittest.TestCase):
                 self.assertEqual(len(rows), 2)
                 self.assertEqual(rows[0]['status'], 'Unknown')
                 self.assertEqual(rows[1]['status'], 'Verification pending')
+            target.write_text(project_issues.START + '\n```json\n[]\n```\n' + project_issues.END)
+            self.assertEqual([r['status'] for r in project_issues.read(root)], ['Verification pending'])
             target.unlink()
             rows = project_issues.read(root)
             self.assertEqual(rows[0]['status'], 'Unknown')
@@ -70,6 +72,9 @@ class ProjectIssuesTests(unittest.TestCase):
                         self.assertEqual(response.getheader('Cache-Control'), 'no-store')
                         if authorized:
                             self.assertEqual(body['issues'], project_issues.read())
+                            self.assertEqual(len(body['modelCalls']), 3)
+                            self.assertEqual({r['model'] for r in body['modelCalls']}, {'Example model A','Example model B'})
+                            self.assertTrue(all(r['quality'] is None for r in body['modelCalls']))
                         else:
                             overview.assert_not_called()
                     finally:

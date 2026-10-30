@@ -1015,6 +1015,34 @@ function renderDataCoverage() {
     panel.lastElementChild.append(button);
   }
 }
+function renderModelComparison(rows) {
+  const panel = document.getElementById('model-comparison');
+  panel.replaceChildren();
+  if (rows === null) {
+    item(panel, 'Comparison unavailable', 'Model-call coverage is Unknown.', 'No benchmark or zero-usage conclusion can be drawn.');
+    return;
+  }
+  const groups = new Map();
+  let unidentified = 0;
+  for (const row of rows) {
+    const identity = [row.model, row.purpose, row.source];
+    if (!identity.every(value => typeof value === 'string' && value.trim())) { unidentified++; continue; }
+    const key = JSON.stringify(identity);
+    if (!groups.has(key)) groups.set(key, {identity, rows: []});
+    groups.get(key).rows.push(row);
+  }
+  if (!groups.size) item(panel, 'No comparable loaded groups', 'No complete model/purpose/source identities in this selection.', 'This does not establish zero usage.');
+  if (unidentified) item(panel, 'Unattributed examples', `${unidentified} rows excluded from grouping.`, 'Missing model, purpose or source is not a shared identity.');
+  for (const {identity: [model, purpose, source], rows: samples} of groups.values()) {
+    const latencies = samples.filter(row => metricNumber(row.latencyMs)).map(row => row.latencyMs);
+    // Divide before summing to avoid overflowing an otherwise finite mean.
+    const mean = latencies.length ? latencies.reduce((sum, value) => sum + value / latencies.length, 0) : null;
+    const meanText = metricNumber(mean) ? `${Number(mean.toFixed(3))} ms` : 'Unknown';
+    item(panel, `${model} · ${purpose}`,
+      `${samples.length} loaded samples · Mean supplied latency: ${meanText} (${latencies.length}/${samples.length} supplied)`,
+      `${source} · Cost supplied: ${samples.filter(row => metricNumber(row.cost)).length}/${samples.length} · Quality supplied: ${samples.filter(row => metricNumber(row.quality)).length}/${samples.length} · No common quality scale or settled-spend claim.`);
+  }
+}
 function renderModelCalls() {
   const panel = document.querySelector('#model-calls');
   panel.replaceChildren();
@@ -1022,6 +1050,7 @@ function renderModelCalls() {
   coverage.textContent = 'Metric coverage unknown.';
   const calls = currentSnapshot.modelCalls;
   if (!Array.isArray(calls)) {
+    renderModelComparison(null);
     item(panel, 'Model call coverage', 'Unknown', 'No usable model-call list in this snapshot.');
     return;
   }
@@ -1032,6 +1061,7 @@ function renderModelCalls() {
   const complete = row => fields.every(([key]) => metricNumber(row[key]));
   const filter = document.querySelector('#model-call-availability').value;
   const selected = rows.filter(row => !filter || (filter === 'complete' ? complete(row) : !complete(row)));
+  renderModelComparison(selected);
   coverage.textContent = `Showing ${selected.length} of ${rows.length === calls.length ? rows.length : 'Unknown total'} loaded examples. Numeric fields supplied among ${rows.length} usable rows: `
     + fields.map(([key, label]) => `${label} ${rows.filter(row => metricNumber(row[key])).length}/${rows.length}`).join(' · ')
     + '. Counts describe supplied fields only, not verified usage, settled spend or model quality.';
@@ -1116,7 +1146,7 @@ async function load() {
     const data = await response.json();
     if (!current()) return;
     rendering = true;
-    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage', 'bot-coverage', 'learning-plan', 'learning-evidence', 'game-status', 'spend-example', 'learning-artifacts', 'safety-records', 'ffxi-focus', 'ffxi-feeds']) document.getElementById(id).replaceChildren();
+    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'model-comparison', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage', 'bot-coverage', 'learning-plan', 'learning-evidence', 'game-status', 'spend-example', 'learning-artifacts', 'safety-records', 'ffxi-focus', 'ffxi-feeds']) document.getElementById(id).replaceChildren();
     if (ledgerBotId !== null && loadedSource && loadedSource !== source) {
       ledgerBotId = null; correlationFilter = ''; document.querySelector('#correlation').value = '';
     }
