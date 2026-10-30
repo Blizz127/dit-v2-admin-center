@@ -44,6 +44,19 @@ try {
 /* APPLICATION */
   await settle(() => !document.querySelector('#workspace').hidden);
   check(document.querySelector('#error').textContent === '', 'Actual application loaded the projected fixture');
+  const sectionOrder = ['overview', 'roster', 'ffxi', 'learning', 'evidence', 'operations', 'models', 'notes'];
+  const sectionLinks = [...document.querySelectorAll('.workspace-nav a')];
+  const sectionRequests = requests.length;
+  check(sectionLinks.map(link => link.id).join(',') === sectionOrder.map(key => 'nav-' + key).join(',') && sectionLinks.every(link => link.tabIndex === 0), 'Sidebar DOM Tab candidates follow all eight sections without positive tabindex');
+  for (const link of sectionLinks) {
+    link.focus();
+    check(document.activeElement === link, `Sidebar programmatic focus reaches ${link.id}`);
+    link.click(); // DOM activation only; native Enter is checked by the separate browser runner.
+    const target = document.querySelector(link.getAttribute('href'));
+    await settle(() => document.activeElement === target);
+    check(target.tabIndex === -1 && link.getAttribute('aria-current') === 'location' && sectionLinks.filter(item => item.getAttribute('aria-current') === 'location').length === 1, `Sidebar DOM activation focuses ${target.id} and selects only its link`);
+  }
+  check(requests.length === sectionRequests, 'Sidebar DOM navigation does not fetch data');
   const readinessFilter = document.getElementById('wake-readiness-filter');
   const readinessRows = [...document.querySelectorAll('#wake-game-matrix tr[data-game]')];
   const visibleReadiness = () => readinessRows.filter(row => !row.hidden);
@@ -159,6 +172,19 @@ try {
   const draftPersonality = document.getElementById('bot-draft-personality');
   const draftForm = document.getElementById('bot-draft-form');
   const draftPreview = document.getElementById('bot-draft-preview');
+  document.getElementById('bot-draft-section').open = true;
+  const draftOrder = ['bot-draft-goals', 'bot-draft-personality', 'bot-draft-preview', 'bot-draft-cancel'];
+  const draftStops = [...draftForm.querySelectorAll('textarea,button,input,select')].filter(node => !node.matches(':disabled') && node.tabIndex >= 0);
+  check(JSON.stringify(draftStops.map(node => node.id)) === JSON.stringify(draftOrder) && draftStops.every(node => node.tabIndex === 0), 'Draft DOM Tab-order candidates follow field/preview/discard order without positive tabindex');
+  for (const shiftKey of [false, true]) {
+    for (const id of shiftKey ? [...draftOrder].reverse() : draftOrder) {
+      const node = document.getElementById(id); node.focus();
+      const event = new KeyboardEvent('keydown', {key:'Tab', shiftKey, bubbles:true, cancelable:true});
+      node.dispatchEvent(event);
+      check(document.activeElement === node && !event.defaultPrevented && !event.isTrusted,
+        `Draft ${shiftKey ? 'reverse' : 'forward'} programmatic focus ${id}; untrusted Tab is not native navigation`);
+    }
+  }
   check(draftGoals.labels.length === 1 && draftPersonality.labels.length === 1 && draftGoals.getAttribute('aria-describedby').includes('bot-draft-status'), 'Draft fields have associated labels and validation status');
   draftGoals.value = 'Example goal: report observations without claiming progress';
   draftPersonality.value = 'Example personality: patient';
@@ -214,6 +240,12 @@ try {
   const exportLink = document.querySelector('#roster-gap-detail a');
   const exportBlob = gapBlobs.get(exportLink.getAttribute('href'));
   check(exportLink.getAttribute('href').startsWith('blob:') && exportBlob?.type === 'application/json;charset=utf-8', 'Export uses a local JSON Blob');
+  check(exportLink.getAttribute('download') === 'roster-gap-row-2.json', 'Gap download filename identifies the selected snapshot row without a path');
+  const blobBytes = new Uint8Array(await exportBlob.arrayBuffer());
+  const copyField = document.querySelector('#roster-gap-detail textarea');
+  const copyBytes = new Uint8Array(await new Blob([copyField.value]).arrayBuffer());
+  check(copyField.readOnly && blobBytes.length > 0 && blobBytes.length === copyBytes.length && blobBytes.every((byte, index) => byte === copyBytes[index]), 'Gap Blob bytes equal the read-only JSON copy field; no file save claimed');
+  const previousExportUrl = exportLink.getAttribute('href');
   const exportedGap = JSON.parse(await exportBlob.text());
   check(exportedGap.candidates.length === 2 && exportedGap.selectedSnapshotRow === 2 && exportedGap.differingFields.includes('game'), 'Local JSON export retains all candidate rows and differences');
   check(document.querySelector('#roster-gap-detail textarea').value === JSON.stringify(exportedGap, null, 2), 'Copy field and downloadable JSON agree');
@@ -224,6 +256,7 @@ try {
   check(requests.length === beforeIdentityFilter, 'Gap details and exact-row navigation make no requests');
   fixture.bots = originalBots;
   await load();
+  check(!gapBlobs.has(previousExportUrl), 'Refreshing the snapshot revokes the previous gap Blob URL');
   oldGapLink.click();
   check(!textOf('bot-count').includes('Pinned snapshot row') && textOf('roster-gap-detail').includes('Select a loaded roster gap'), 'Snapshot refresh invalidates old gap links');
   document.getElementById('bot-reset').click();
@@ -327,6 +360,16 @@ try {
     page: () => assignmentPages === 3 ? assignmentPage + 1 : null,
     requests: () => requests.length,
   });
+  const keyboardStart = document.getElementById('keyboard-start');
+  keyboardStart.focus();
+  for (const key of ['Tab', 'Enter', ' ', 'Escape']) {
+    for (const type of ['keydown', 'keyup']) {
+      const event = new KeyboardEvent(type, {key, bubbles:true, cancelable:true});
+      keyboardStart.dispatchEvent(event);
+      check(!event.isTrusted && document.documentElement.dataset.keyboardPlaytest === 'not-run',
+        `Untrusted ${type} ${key === ' ' ? 'Space' : key} cannot produce native keyboard evidence`);
+    }
+  }
   document.querySelector('#harness-status').textContent = 'PASS — automatic DOM checks completed with synthetic data. Native keyboard check is separate and has NOT RUN.';
   document.documentElement.dataset.playtest = 'passed';
   // Scripted inspection navigates through several panels. Start the owner's review
