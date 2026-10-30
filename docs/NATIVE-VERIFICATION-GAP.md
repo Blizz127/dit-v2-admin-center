@@ -21,11 +21,11 @@ bypass is authorized. Approval is not an execution pass. See the exact pinned
 | Alienware `236cd862` | Original preview, owner viewed and supplied design feedback; retained unchanged |
 | Alienware `691f6c5d` | Redesigned layout, delivery hash verified; native checks not run by Admin |
 | Handoff `ef740241` | Exact approved runner/UI pin `8eb2c9f`; executed once at 23:20:30Z, BLOCKED rc2: Chromium aliases and Node missing from PATH; browser not launched. Separate attempt requested after coordinator runtime inventory/repair; result pending |
-| Local `e72625e1` | Adds separate migration-preparation evidence; source context remains unchecked in standalone; native pin and delivered previews unchanged |
+| Local `dc7599c6` | Adds local readiness filtering and counts with stale-evidence clearing; native pin and delivered previews unchanged |
 
-Latest local file: `build/inspector-playtest.html`, 197456 bytes, generated at source
-checkpoint `891142b`, separating new migration preparation from runtime cutover evidence.
-SHA-256: `e72625e169698acbbca553d9e24082e3451a479dec1e94e1ad8340d9c7dd4af7`.
+Latest local file: `build/inspector-playtest.html`, 199486 bytes, generated at source
+checkpoint `1a3461e`, adding local readiness filtering without reviving cleared readbacks.
+SHA-256: `dc7599c690127e17ecda51c288cbc6c926ab9d44ba5b3f94c3336b93f480a114`.
 Do not apply a result from an older file to this version. The native runner now
 includes `artifactSha256` in its successful result, computed from the exact
 temporary HTML it generated before launch.
