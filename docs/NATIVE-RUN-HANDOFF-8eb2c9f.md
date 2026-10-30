@@ -113,3 +113,82 @@ has not independently rechecked the device. No pass applies to this pin or a
 newer preview. The completed attempt remains BLOCKED on missing installed PATH
 runtimes. This evidence grants no installation, retry, substitution or expanded
 device scope, and the stale follow-up must not trigger a duplicate run.
+
+
+## Separately sequenced bazzite attempt — coordinator ece1ccc9149873b9
+
+Coordinator reported a read-only Alienware inventory and one reversible repair
+at the October 29 21:32 CT checkpoint. These are supplied coordinator findings,
+not independent Admin device observations:
+
+- `~/.local/bin/node` had pointed to the missing `~/.hermes/node/bin/node`.
+  It now points to `/home/linuxbrew/.linuxbrew/bin/node`, reported v26.12.1.
+  Rollback record: `~/.local/bin/.node-symlink-change.txt` on bazzite. Admin does
+  not repeat, modify or roll back this repair.
+- Existing installed Chromium:
+  `/home/blizz/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome`.
+  Reported version: Chrome for Testing 151.0.7922.34.
+- Existing alternate headless executable (inventory only; not an automatic
+  fallback): `/home/blizz/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell`.
+- `/usr/bin/unshare` and Python were already present. Their presence does not
+  establish that network namespace creation is permitted. Flatpak browsers are
+  outside this attempt; do not switch to them.
+
+The coordinator now requests **one separately sequenced attempt** by the same
+sole device lead `852bb105-8f9d-4a3f-a986-89a7981756dc` on **bazzite**. This is
+not a repeat of the withdrawn stale follow-up: it follows the new runtime
+inventory/repair. Keep the original 23:20:30Z BLOCKED receipt unchanged. This
+second attempt has no result yet.
+
+Use the unchanged bundle and hashes at the top of this document in a NEW owned
+temporary directory on bazzite, through the existing private route. Verify the
+archive hash before extraction and the 21 manifest entries before and after the
+pinned generator, as specified in packaged HANDOFF.md. Stop on any mismatch.
+Preserve all existing Downloads previews and the owner's occupied sessions.
+Do not execute this on Devbox.
+
+From the verified extracted package root, use this process-local environment;
+it does not edit the shell profile or global PATH:
+
+```sh
+export PATH=/home/blizz/.local/bin:/usr/bin:/bin
+export DIT_CHROMIUM=/home/blizz/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome
+command -v node || exit 1
+node --version || exit 1
+python3 --version || exit 1
+/usr/bin/unshare --version || exit 1
+"$DIT_CHROMIUM" --version || exit 1
+sha256sum -c SHA256SUMS > pre-sums.txt || exit 1
+python3 -B tools/build_inspector_playtest.py > build-log.txt || exit 1
+sha256sum -c SHA256SUMS > build-sums.txt || exit 1
+sha256sum build/inspector-playtest.html > artifact-sha256.txt
+date -u +%Y-%m-%dT%H:%M:%SZ > started-at.txt
+if timeout -k 3s 45s python3 -B tools/run_keyboard_playtest.py --gap-export > native-result.json 2> native-stderr.txt; then
+  native_exit=0
+else
+  native_exit=$?
+fi
+printf '%s\n' "$native_exit" > native-exit.txt
+date -u +%Y-%m-%dT%H:%M:%SZ > finished-at.txt
+if sha256sum -c SHA256SUMS > post-sums.txt; then
+  manifest_exit=0
+else
+  manifest_exit=$?
+fi
+printf '%s\n' "$manifest_exit" > post-manifest-exit.txt
+```
+
+Run the environment block in the dedicated attempt shell only. Do not add
+`DIT_NODE`, `--preflight-only` or `--expected-artifact-sha256`: this pin has none
+of them. Do not copy newer runner files into the package. Its built-in preflight
+performs one isolation check. If unshare fails, retain exit 2 and the exact
+redacted diagnostic as the new blocker, then stop. No retry, flag relaxation,
+namespace bypass, install or substitution follows from that failure.
+
+Return the second attempt's exit/stdout/stderr, UTC times, selected executable
+versions, archive/artifact identity and all three manifest reports through the
+coordinator. A timeout or partial output is not a pass. Preserve those result
+files before cleaning only this attempt's owned temporary files/profile. No
+screenshots, owner input, live/model calls, public listeners or service/browser
+restarts. Admin will apply the pinned result-reconciliation checklist above;
+newer previews remain outside the result's scope.

@@ -1,8 +1,10 @@
 # Native Admin Center verification handoff
 
 Status at 2026-10-29: all five initial source/setup tasks are complete. The open
-dependency is an available authorized native runtime, not another implementation
-of those tasks. The approved device attempt already ran once and returned
+dependency is the separately sequenced device execution/result, not another
+implementation of those tasks. Coordinator ece1ccc9149873b9 reports installed
+Alienware Chromium found and its Node symlink repaired; Admin has not polled the
+device. The new one-run handoff remains with the sole device lead. The approved device attempt already ran once and returned
 BLOCKED (exit 2) at 2026-10-29T23:20:30Z, before browser launch.
 Owner decision `654f7a27-9461-4342-b15b-3ac086e79af6`, reference `a67509c69867`,
 was explicitly ALLOWED at 18:08:28 CDT on October 29. Execution belongs only to
@@ -18,7 +20,7 @@ bypass is authorized. Approval is not an execution pass. See the exact pinned
 | --- | --- |
 | Alienware `236cd862` | Original preview, owner viewed and supplied design feedback; retained unchanged |
 | Alienware `691f6c5d` | Redesigned layout, delivery hash verified; native checks not run by Admin |
-| Handoff `ef740241` | Exact approved runner/UI pin `8eb2c9f`; executed once at 23:20:30Z, BLOCKED rc2: Chromium aliases and Node missing from PATH; browser not launched |
+| Handoff `ef740241` | Exact approved runner/UI pin `8eb2c9f`; executed once at 23:20:30Z, BLOCKED rc2: Chromium aliases and Node missing from PATH; browser not launched. Separate attempt requested after coordinator runtime inventory/repair; result pending |
 | Local `0a4d7168` | Latest offline preview separates dated 8450 cutover completion from game readiness; local sources remain unchecked in standalone; native pin and delivered previews unchanged |
 
 Latest local file: `build/inspector-playtest.html`, 196623 bytes, with UI source
@@ -260,3 +262,26 @@ remain distinct from any future separately sequenced attempt.
 All five initial source tasks are complete. There is no remaining implementation
 in that list that would establish native browser evidence; repeating fixtures or
 creating more UI features cannot resolve this host/runtime dependency.
+
+
+## New bazzite runtime evidence and sequenced attempt
+
+Coordinator `ece1ccc9149873b9` supersedes the unresolved host/ownership question
+above: the same device lead is to make one separately sequenced attempt on bazzite.
+The reported dangling Node symlink was repaired to
+`/home/linuxbrew/.linuxbrew/bin/node` (v26.12.1), with rollback recorded in
+`~/.local/bin/.node-symlink-change.txt` on that host. Existing Chromium was found
+at `/home/blizz/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome`
+(Chrome for Testing 151.0.7922.34); the existing headless-shell alternative is
+`/home/blizz/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell`.
+No runtime installation was reported. These are coordinator observations, not
+Admin live checks. Devbox remains excluded as a run host.
+
+The [exact new handoff](NATIVE-RUN-HANDOFF-8eb2c9f.md) uses the first Chromium
+path via DIT_CHROMIUM and process-local PATH=/home/blizz/.local/bin:/usr/bin:/bin.
+It retains the original archive, runner, artifact and all safeguards. No newer
+flags or files are mixed in. Namespace support remains untested on Alienware;
+a failure is a new narrow blocker, never a reason to retry or bypass isolation.
+The original 23:20:30Z BLOCKED receipt remains historical evidence; the second
+attempt is requested, not claimed executed or passed. Admin's local archive
+hash still matches a0bc47b1530d54ebb29b300e913f00a3ab6db434fca2007f0acabbafa1192ca7.
