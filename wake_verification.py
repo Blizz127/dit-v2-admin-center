@@ -24,7 +24,7 @@ def identifier(value):
 
 
 def project(data, now=None):
-    result = {'schema': SCHEMA, 'coverage': 'No valid local cutover receipt', 'rows': [
+    result = {'schema': SCHEMA, 'coverage': 'No valid local cutover receipt', 'cutover': None, 'rows': [
         {'game': game, 'status': 'Held' if game in HELD else 'Unverified',
          'observedAt': None, 'receipt': None} for game in GAMES]}
     now = now or datetime.now(timezone.utc)
@@ -38,6 +38,8 @@ def project(data, now=None):
             return result
         rows = data['games']
         result['coverage'] = 'Local owning-lead receipt; dated reported readbacks, not live observations'
+        result['cutover'] = {'id': cutover['id'], 'destination': 'banshee:8450',
+                             'completedAt': at.isoformat(), 'receipt': cutover['receipt']}
         for output in result['rows']:
             if output['game'] in HELD:
                 continue  # A readback receipt cannot lift the retained owner hold.

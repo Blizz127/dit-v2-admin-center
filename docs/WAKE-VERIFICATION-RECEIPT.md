@@ -128,3 +128,18 @@ Focused checks: two source-reader tests, one real in-memory overview-handler
 check, actual UI source-state/duplicate/reset/failure coverage, and the existing
 per-game verification UI check passed. Handler checks prohibit external calls
 and confine reads to a temporary synthetic home; no production ledger was read.
+
+## Cutover summary and per-game readiness
+
+The repoint card now shows a separate `cutover` projection containing only the
+validated ID, destination, completion timestamp and receipt reference. A valid
+completion with no game observations displays **Cutover completed (reported)**
+while all game rows remain Unverified or Held. This is a dated owning-lead claim,
+not a fresh authenticated sign-in, current route observation or lifecycle permit.
+The earlier fa843e8 observation remains explicitly historical context.
+
+Absent, incomplete, wrong-destination or future completion claims leave the
+summary unavailable. The UI also withholds per-game claims without a valid
+cutover projection, and clears both on session reset or failed refresh. Six
+projection/file tests and the actual UI synthetic refresh check passed. No
+completed production cutover receipt was supplied or installed.

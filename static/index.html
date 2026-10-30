@@ -95,8 +95,9 @@
 <p>Current realm/accounts status: <strong>Unknown</strong>. Always-on Banshee lifecycle guidance remains separate from launcher grant access. No grant, account or realm control is available here.</p>
 </section>
 <section class="panel" id="wake-signin-repoint" aria-labelledby="wake-signin-repoint-heading">
-<h3 id="wake-signin-repoint-heading">8450 sign-in address repoint · not cut over at last readback</h3>
-<p class="muted">DIT readback <code>fa843e8</code>, October 30, 2026 at 00:55–00:56 UTC, supersedes the earlier source-only checkpoint. No completed repoint receipt is reported.</p>
+<h3 id="wake-signin-repoint-heading">8450 sign-in address repoint · receipt readiness</h3>
+<p class="muted">DIT readback <code>fa843e8</code>, October 30, 2026 at 00:55–00:56 UTC, supersedes the earlier source-only checkpoint. No completed repoint was reported in that observation.</p>
+<p id="wake-cutover-status" role="status">Cutover receipt unavailable. Current route and authenticated sign-in remain unknown.</p>
 <p>The staged contract preserves TLS name <code>login.bansheerealm.com</code> and plans Banshee <code>37.27.113.160:8450</code> after backend readiness, state handoff and consumer checks. The separate <code>8446</code> forward remains outside that cutover.</p>
 <p>Applied address/configuration and authenticated launcher readback: <strong>Unknown</strong>. A configured address or unauthenticated 401 is not proof of sign-in or completed repoint. Existing DIT and launcher owners retain execution; this card makes no request.</p>
 <p>At that readback, AX41 stackd PID 1953169 and its TLS container were running; Banshee stackd/TLS units were not installed. The unchanged edge source/defaults and absent overrides support the retained AX41 route. Public 8450 returned 401 with successful TLS verification at 00:56:19 UTC, without credentials. This is availability/auth-required evidence, not authenticated acceptance. No Admin live check was made.</p>

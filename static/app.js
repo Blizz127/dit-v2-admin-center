@@ -76,7 +76,17 @@ function renderOperationSources(data) {
 }
 function renderWakeVerification(data) {
   const games = ['wow-vanilla', 'wow-forever', 'firefall', 'eden', 'blacklight', 'tabula-rasa', 'ffxi', 'war', 'enb', 'planetside', 'marvel-heroes', 'rose'];
-  const rows = data?.schema === 'dit-admin-wake-readback-v1' && Array.isArray(data.rows) ? data.rows : [];
+  let rows = data?.schema === 'dit-admin-wake-readback-v1' && Array.isArray(data.rows) ? data.rows : [];
+  const summary = document.getElementById('wake-cutover-status');
+  summary.textContent = 'Cutover receipt unavailable. Current route and authenticated sign-in remain unknown.';
+  const cutover = data?.schema === 'dit-admin-wake-readback-v1' ? data.cutover : null;
+  const validId = value => typeof value === 'string' && /^[A-Za-z0-9._-]{1,96}$/.test(value);
+  if (cutover?.destination === 'banshee:8450' && validId(cutover.id) && validId(cutover.receipt)
+      && typeof cutover.completedAt === 'string' && Number.isFinite(Date.parse(cutover.completedAt))) {
+    summary.textContent = `Cutover completed (reported) · ${cutover.completedAt} · ${cutover.receipt}. Destination: banshee:8450. Check each game below; current route, sign-in and lifecycle safety are not certified.`;
+  } else {
+    rows = [];
+  }
   for (const game of games) {
     const cell = document.getElementById('wake-acceptance-' + game);
     const matches = rows.filter(row => row && row.game === game);

@@ -22,6 +22,20 @@ class WakeVerificationTests(unittest.TestCase):
     def rows(self, data):
         return {r['game']: r for r in project(data, datetime(2026, 1, 2, tzinfo=timezone.utc))['rows']}
 
+    def test_cutover_summary_is_scoped_and_independent_of_game_readiness(self):
+        data = receipt(); data['games'] = []
+        data['cutover']['private'] = 'OMIT_PRIVATE'
+        result = project(data)
+        self.assertEqual(result['cutover'], {
+            'id': 'synthetic-cutover-1', 'destination': 'banshee:8450',
+            'completedAt': '2026-01-01T00:00:00+00:00', 'receipt': 'synthetic-cutover-receipt'})
+        self.assertTrue(all(r['status'] in ('Unverified', 'Held') for r in result['rows']))
+        for change in ({'completed': False}, {'completed': 1}, {'destination': 'ax41:8450'},
+                       {'completedAt': '2999-01-01T00:00:00Z'}, {'receipt': 'PRIVATE token'}):
+            candidate = copy.deepcopy(data); candidate['cutover'].update(change)
+            self.assertIsNone(project(candidate)['cutover'])
+        self.assertIsNone(project(None)['cutover'])
+
     def test_exact_partial_readbacks_and_hold_preservation(self):
         rows = self.rows(receipt())
         self.assertEqual(set(rows), set(GAMES))
