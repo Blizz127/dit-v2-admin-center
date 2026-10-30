@@ -546,3 +546,18 @@ A reported pass is a consistency result, not independent device authentication
 or verification of newer previews. Do not invent missing values or request a
 new device run just to populate reviewer metadata. The original 23:20:30Z blocked
 attempt remains separate. See the guide for required files and exit codes.
+
+### Readiness text snapshots without a browser
+
+For a source-level readiness check against the generated artifact:
+
+```sh
+python3 tools/build_inspector_playtest.py
+timeout 15s node tools/readiness_snapshot.cjs build/inspector-playtest.html > build/readiness-semantic-snapshot.json
+```
+
+Exit 0 means six semantic scenarios passed using parsed artifact markup and the
+matching app code in a synthetic DOM. The report pins the HTML hash and records
+visible rows/counts. It is not a screenshot, full-driver run, native layout or
+keyboard verification. Stale app bytes or missing readiness elements fail. See
+[the evidence guide](docs/WAKE-VERIFICATION-RECEIPT.md) for scope and remaining gaps.

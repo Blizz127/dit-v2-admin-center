@@ -44,6 +44,26 @@ try {
 /* APPLICATION */
   await settle(() => !document.querySelector('#workspace').hidden);
   check(document.querySelector('#error').textContent === '', 'Actual application loaded the projected fixture');
+  const readinessFilter = document.getElementById('wake-readiness-filter');
+  const readinessRows = [...document.querySelectorAll('#wake-game-matrix tr[data-game]')];
+  const visibleReadiness = () => readinessRows.filter(row => !row.hidden);
+  const readinessRequests = requests.length;
+  check(readinessRows.length === 12 && visibleReadiness().length === 12,
+    'Readiness matrix starts with twelve mapped rows, not live health claims');
+  readinessFilter.value = 'held';
+  readinessFilter.dispatchEvent(new Event('change', {bubbles: true}));
+  check(visibleReadiness().map(row => row.dataset.game).join(',') === 'war,marvel-heroes',
+    'Readiness held filter preserves the two explicit row holds');
+  check(textOf('wake-readiness-count').includes('Showing 2 of 12 mapped games'),
+    'Readiness count describes filtered mapped rows');
+  readinessFilter.value = 'reported';
+  readinessFilter.dispatchEvent(new Event('change', {bubbles: true}));
+  check(visibleReadiness().length === 0 && !document.getElementById('wake-filter-empty').hidden,
+    'No receipt yields an explicit empty reported-readback filter');
+  readinessFilter.value = 'all';
+  readinessFilter.dispatchEvent(new Event('change', {bubbles: true}));
+  check(visibleReadiness().length === 12 && requests.length === readinessRequests,
+    'Readiness filters restore all rows without requesting data');
   check(textOf('learning-evidence').includes('No learning record selected'), 'Initial render explains the empty selection');
   const answers = ['Yes', 'No', 'Yes', 'Unknown'];
   fixture.learning.forEach((need, index) => {

@@ -212,3 +212,35 @@ positive observations, duplicate withdrawal, filter persistence, failed refresh,
 filter changes after failure and recovery. Existing verification and two markup
 checks passed. Native focus, select keyboard behavior and screen-reader
 announcements have not been run for this newer preview.
+
+## Readiness semantic snapshots versus native rendering
+
+`tools/readiness_snapshot.cjs` reads a generated standalone artifact, requires it
+to contain the exact current application source, parses that artifact's element
+manifest, and runs the matching app in the existing minimal synthetic DOM. It
+checks six scenarios and emits a JSON text snapshot of visible game IDs,
+acceptance labels, cutover text, counts and empty-state visibility. The report
+includes the exact artifact SHA-256 and size, and explicitly marks native
+rendering and keyboard NOT RUN. It does not execute the full artifact driver,
+CSS layout, browser default actions or a browser engine.
+
+```sh
+python3 tools/build_inspector_playtest.py
+timeout 15s node tools/readiness_snapshot.cjs build/inspector-playtest.html > build/readiness-semantic-snapshot.json
+```
+
+The scenarios are no receipt/all rows, retained holds, no reported matches,
+synthetic reported readbacks, duplicate identity withholding, and failed refresh
+followed by filtering. Filtering must not add requests. The tool also refused
+a temporary artifact with stale application code and one with a missing readiness
+row, returning exit 1 without a success report. These refusal checks used copies,
+not edits to the built preview.
+
+The current standalone driver's automatic DOM path additionally contains five
+readiness assertions for the default twelve rows, the two retained row holds,
+counts, the empty reported filter and restoring all rows without requests. This
+prepares real-DOM coverage when that newer artifact is actually opened/run; those
+new driver assertions have only been compiled, not executed in a browser here.
+It does not alter the older approved device bundle. Visual wrapping/clipping,
+focus outlines, native select keyboard actions and screen-reader behavior remain
+unverified. A semantic text snapshot cannot close those native-rendering gaps.
