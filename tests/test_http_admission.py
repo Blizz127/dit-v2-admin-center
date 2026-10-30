@@ -5,7 +5,7 @@ import threading
 import unittest
 from unittest.mock import patch
 
-from server import BoundedHTTPServer
+from server import BoundedHTTPServer, Handler
 
 
 class ObservedServer(BoundedHTTPServer):
@@ -99,6 +99,44 @@ class HTTPAdmissionTests(unittest.TestCase):
             server.process_request(peer, 'success')
             self.assertEqual(server.finished.get(timeout=1), 'success')
             self.assertTrue(server.failures.empty())
+
+    def test_http_idle_timeouts_release_capacity_for_next_authenticated_route(self):
+        class ShortIdleHandler(Handler):
+            timeout = 0.3
+            request_timeout = 0.6
+
+        def response(client):
+            wire = bytearray()
+            while True:
+                chunk = client.recv(4096)
+                if not chunk:
+                    return bytes(wire)
+                wire.extend(chunk)
+
+        with ObservedServer(ShortIdleHandler) as server, patch('server.overview', side_effect=AssertionError('Collector forbidden')) as reader:
+            server.admin_token = 'fixture-token'
+            idle_clients = []
+            for number in range(2):
+                client, peer = self.pair()
+                idle_clients.append(client)
+                server.process_request(peer, ('idle', number))
+            client, peer = self.pair()
+            server.process_request(peer, ('excess', 0))
+            self.assertEqual(client.recv(1), b'')
+            for client in idle_clients:
+                wire = response(client)
+                self.assertTrue(wire.startswith(b'HTTP/1.0 408 '))
+                self.assertEqual(wire.count(b'HTTP/1.0 '), 1)
+            finished = {server.finished.get(timeout=1), server.finished.get(timeout=1)}
+            self.assertEqual(finished, {('idle', 0), ('idle', 1)})
+
+            client, peer = self.pair()
+            client.sendall(b'GET /api/overview HTTP/1.1\r\nHost: offline.invalid\r\n\r\n')
+            server.process_request(peer, ('recovery', 0))
+            self.assertTrue(response(client).startswith(b'HTTP/1.0 401 '))
+            self.assertEqual(server.finished.get(timeout=1), ('recovery', 0))
+            self.assertTrue(server.failures.empty())
+            reader.assert_not_called()
 
 
 if __name__ == '__main__':

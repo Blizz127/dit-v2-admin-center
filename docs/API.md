@@ -714,3 +714,10 @@ Three focused checks passed using real worker threads/socket pairs and an unboun
 server (never listening), with a two-handler test cap: saturation/refusal and
 recovery, handler failure recovery, and repeated thread-start failure recovery.
 No real collector, device, external host or service was accessed.
+
+A separate socket-pair integration check also passed with the actual HTTP
+handler and shortened test deadlines: two idle requests filled admission, an
+excess socket closed without dispatch, both admitted clients received 408, and
+a subsequent request reached normal token validation (401 without a token).
+No collector ran. This verifies timeout-to-capacity recovery, not just semaphore
+behavior with a synthetic handler; it does not measure production load capacity.
