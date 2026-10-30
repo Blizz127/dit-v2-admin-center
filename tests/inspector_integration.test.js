@@ -151,7 +151,10 @@ const flush = () => new Promise(resolve => setImmediate(resolve));
       const rows = interaction.children.slice(3);
       assert.equal(rows.length, 3);
       assert.equal(new Set(rows.map(row => row.children[0].textContent)).size, 1);
-      assert.deepEqual(rows.map(row => row.children[2].textContent.match(/^Scope: (.*?) · Raw/)[1]).sort(),
+      const scopeLabels = rows.map(row => row.children[2].textContent);
+      scopeLabels.forEach(label => assert.match(label,
+        /^Scope: .* · Supplied actor scope only; native identity remains unverified · Raw/));
+      assert.deepEqual(scopeLabels.map(label => label.match(/^Scope: (.*?) · Supplied actor scope only;/)[1]).sort(),
         ['fixture-adapter / fixture-other-server', 'fixture-adapter / fixture-server', 'fixture-other-caller / fixture-server']);
     }
     if (name === 'limit-50-truncated') assert.match(interaction.textContent, /Truncated: Yes/);

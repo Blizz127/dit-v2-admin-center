@@ -297,6 +297,20 @@ Native browser runtime remains unavailable; the prior isolation denial is unchan
 
 ### Loaded data coverage overview — 2026-10-29
 
+October 30 runtime follow-up `5cf9f24317d73897` ran the existing connected checks.
+Coverage passed; inspector integration exposed a stale expectation for actor
+scope labels after the UI added its native-identity caveat. The corrected test
+requires that caveat on every row and still checks all three exact caller/server
+scopes, so it does not weaken identity isolation. Inspector, trace, interaction,
+health and bridge empty/error/denial/recovery checks then passed through real
+in-memory handlers with synthetic dependencies. Coverage also passed with
+`DIT_TEST_ARTIFACT=build/inspector-playtest.html`: the parsed artifact markup and
+embedded current app source match preview SHA-256
+`1759671cd8a6faaf3b6ff672c2fd0e1f993cda4cc497dd2322dadadc39fc1daa`.
+These use a limited simulated DOM, not a browser or the standalone driver;
+native appearance/keyboard/download behavior remains unverified. No artifact
+was rebuilt or delivered, and no live/device action occurred.
+
 A read-only overview summarizes the current roster, learning and metric collections
 before local filters. It distinguishes unavailable, empty, partial and loaded list
 shapes. It counts rows without usable IDs and rows with repeated IDs separately;
