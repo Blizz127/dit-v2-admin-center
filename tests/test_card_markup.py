@@ -99,11 +99,25 @@ class CardMarkupTests(unittest.TestCase):
         panel = self.by_id['ax41-retirement']
         self.assertIn(self.by_id['view-operations'], list(panel.ancestors()))
         text = panel.text()
-        for value in ('trinitycore', '5:45 PM CT', 'WoW Forever wake controller',
-                      'still routed through AX41', 'Retirement completion:', 'Unknown',
+        for value in ('trinitycore', '95b32dd', 'always-on on Banshee',
+                      'shared AX41', 'Retirement completion:', 'Unknown',
                       'does not establish that every AX41 dependency has moved'):
             self.assertIn(value, text)
         self.assertFalse(any(n.tag in ('a', 'button', 'input', 'form') for n in panel.descendants()))
+
+    def test_service_moves_distinguish_reported_instance_from_staged_transport(self):
+        for identity in ('lotro-move', 'wake-move'):
+            panel = self.by_id[identity]
+            self.assertIn(self.by_id['view-operations'], list(panel.ancestors()))
+            self.assertFalse(any(n.tag in ('a', 'button', 'input', 'form') for n in panel.descendants()))
+        lotro = self.by_id['lotro-move'].text()
+        for value in ('Uncommitted source note', 'lotro.bansheerealm.com', 'Owner-only',
+                      '9080', '9000', '2900', 'resolver override', 'Unknown', 'runtime-only'):
+            self.assertIn(value, lotro)
+        wake = self.by_id['wake-move'].text()
+        for value in ('staged, not cut over', '9f24994', '95b32dd', '401',
+                      'pending', '8446/8450', 'not authenticated launcher acceptance'):
+            self.assertIn(value, wake)
 
     def test_bridge_and_stackd_cards_keep_dated_evidence_limits(self):
         for identity in ('dit-r2-deployment', 'stackd-drift'):
