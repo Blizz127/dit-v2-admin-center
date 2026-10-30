@@ -1118,7 +1118,10 @@ function renderModelComparison(rows) {
     if (!groups.has(key)) groups.set(key, {identity, rows: []});
     groups.get(key).rows.push(row);
   }
-  if (!groups.size) item(panel, 'No comparable loaded groups', 'No complete model/purpose/source identities in this selection.', 'This does not establish zero usage.');
+  if (!groups.size) item(panel, 'No comparable loaded groups', rows.length
+    ? 'No complete model/purpose/source identities in this selection.'
+    : 'No supplied rows in this selection. Check the numeric-availability filter or refresh the snapshot.',
+    'This does not establish zero usage.');
   if (unidentified) item(panel, 'Unattributed examples', `${unidentified} rows excluded from grouping.`, 'Missing model, purpose or source is not a shared identity.');
   for (const {identity: [model, purpose, source], rows: samples} of groups.values()) {
     const latencies = samples.filter(row => metricNumber(row.latencyMs)).map(row => row.latencyMs);

@@ -88,7 +88,7 @@ try {
   check(sampleGroups[0].querySelectorAll('th[scope="col"]').length === 5 && sampleGroups[0].querySelectorAll('th[scope="row"]').length === 2 && sampleGroups[0].querySelector('.model-samples').tabIndex === 0, 'Sample table has scoped headers and a focusable scroll region');
   document.getElementById('model-call-availability').value = 'complete';
   document.getElementById('model-call-availability').dispatchEvent(new Event('change', {bubbles:true}));
-  check(document.querySelectorAll('#model-comparison details').length === 0, 'Metric filter removes sample groups outside its selection');
+  check(document.querySelectorAll('#model-comparison details').length === 0 && textOf('model-comparison').includes('No supplied rows in this selection') && !textOf('model-comparison').includes('No complete model/purpose/source identities'), 'Empty metric selection removes sample groups without claiming missing identities');
   document.getElementById('model-call-availability').value = '';
   document.getElementById('model-call-availability').dispatchEvent(new Event('change', {bubbles:true}));
   check(document.querySelectorAll('#model-comparison tbody tr').length === 3 && requests.length === comparisonRequests, 'Reset restores only loaded sample rows without a request');
