@@ -183,3 +183,19 @@ fixture now uses null. A later stale expectation that mixed reply data discards
 usable scoped rows was corrected; assignment/safety refusal expectations stay
 unchanged. The final suite passed. No browser/native-key/file-save verification
 is claimed; no live service or device action occurred.
+
+## Partial scoped assignment history
+
+Coordinator `c8f0285fbdebd973`; source `d1a9e6f`. Actual-app refresh/paging checks
+passed (`node tests/overview_failure.test.js`). Generated JavaScript compilation
+also passed. The first expanded jsdom attempt hit the existing five-second
+completion deadline and returned failure; no receipt was accepted from it.
+An unchanged rerun passed **163 checks**, **zero transport attempts**, with
+`nativeKeyboard: not-run`. The timeout was not relaxed.
+
+Preview: **235390 bytes**, SHA-256
+`fca03f503b94991ede1eea89185b2ffa73d5297ac228dc557b2625f06b1840ec`.
+New DOM assertions cover partial-history paging with warnings, omitted blank-ID
+rows, other-bot exclusion, duplicate selected identity refusal, unusable-history
+page clearing and complete recovery. Existing trusted-keyboard verification
+remains separate and NOT RUN. No live or device changes occurred.

@@ -79,3 +79,11 @@ rows still render Unknown. Search/reset are local and retain partial-coverage
 warnings, including zero matches. An all-malformed list is not described as a
 known empty log. Missing collections clear old rows; complete snapshots remove
 the warning. These are loaded examples, not recorded admin actions.
+
+Panel 3 assignment history (`d1a9e6f`): malformed/unscoped history rows no longer
+hide usable rows explicitly keyed to the selected unique bot ID. Paging counts
+only these usable matches; every partial page states that the loaded total is
+Unknown. Other bots and blank IDs are withheld. Duplicate selected roster IDs
+remain ambiguous and cannot display assignments. All-unusable/unavailable
+collections clear old pages; complete recovery removes the partial warning.
+No model assignments or control actions are issued.
