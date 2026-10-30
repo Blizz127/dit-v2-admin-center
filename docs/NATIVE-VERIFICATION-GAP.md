@@ -217,3 +217,46 @@ and existing hash/receipt checks. No native browser was run. This code is not in
 the approved bundle; do not silently replace its files or claim a rerun is ready
 on Alienware until a scoped handoff identifies actual available runtimes and the
 exact intended runner/artifact. The old run is completed and blocked, not queued.
+
+
+## Host-specific runtime resolution — October 30
+
+Coordinator request `e77a8c5237cbc11d` asks for runtime resolution, including
+user-local installation if needed. This is a later request than the original
+installed-runtime-only decision, but does not explicitly transfer Alienware
+execution ownership from device lead `852bb105` to Admin. Admin returned the
+specific host/ownership conflict through the coordinator; no new execution was
+started and no dependency was installed.
+
+Read-only Devbox inventory and current-source preflight:
+
+| Host / evidence | Node | Chromium | Isolation | Run status |
+| --- | --- | --- | --- | --- |
+| Devbox, current nonexecuting preflight | `/home/blizz/.local/bin/node` found and executable | Missing from PATH; no candidate in checked locations below | Not checked now; previously denied, not retried | No browser run |
+| Alienware, saved 23:20:30Z executor receipt | Missing from checked PATH | Four supported aliases missing from checked PATH | Never reached by that run | Attempt completed, BLOCKED rc2 |
+
+Checked Devbox locations only: `~/.cache/ms-playwright`, `~/.cache/puppeteer`,
+`~/.local/share/puppeteer`, `/opt/google/chrome` (all absent), and `~/.local/bin`
+(no Chromium candidate). This is not an exhaustive filesystem inventory and says
+nothing about Alienware's files outside its recorded PATH. Node installation on
+Devbox is unnecessary and would not resolve the Alienware blocker. A browser
+installation alone would not remove Devbox's recorded isolation denial.
+
+The current-source `--preflight-only` result was:
+
+```json
+{"preflight":"blocked","executables":{"Chromium":"missing","Node":"found","unshare":"found","true":"found"},"nativeRun":"NOT RUN","isolation":"NOT CHECKED"}
+```
+
+The immutable approved **8eb2c9f** runner implements `DIT_CHROMIUM`, but neither
+`DIT_NODE` nor `--preflight-only`. Do not pass the new flag to that pin or assume
+DIT_NODE changes its Node selection. It resolves Node from its process PATH. Any
+newly scoped device handoff must identify the intended host, existing executor,
+actual installed executable locations and exact runner/artifact. No user profile
+or global PATH edit, runtime substitution, namespace bypass or silent replacement
+of the bundle follows from this documentation. The saved blocked attempt must
+remain distinct from any future separately sequenced attempt.
+
+All five initial source tasks are complete. There is no remaining implementation
+in that list that would establish native browser evidence; repeating fixtures or
+creating more UI features cannot resolve this host/runtime dependency.
