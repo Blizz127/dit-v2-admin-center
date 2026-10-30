@@ -400,3 +400,8 @@ Both commands retain internal process/output deadlines and network isolation.
 Neither was executed here; native rendering, input and saving remain NOT RUN.
 These commands describe current source, not the separately approved `8eb2c9f`
 device bundle. They grant no device execution, runtime install or isolation bypass.
+
+The DOM runner also treats an explicitly empty or unavailable `DIT_CHROMIUM`
+selection as blocked, matching the keyboard runner. It cannot silently substitute
+another PATH browser. Ten focused DOM-runner tests pass, including refusal before
+artifact generation or process launch for both explicit-selection failures.

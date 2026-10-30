@@ -120,10 +120,13 @@ def main(expected_artifact_sha256=None):
             or any(c not in '0123456789abcdef' for c in expected_artifact_sha256)):
         print('FAIL: expected artifact SHA-256 must be 64 lowercase hex characters.', file=sys.stderr)
         return 1
-    requested = os.environ.get('DIT_CHROMIUM')
-    browser = shutil.which(requested) if requested else next(
-        (path for name in ('chromium', 'chromium-browser', 'google-chrome', 'chrome-headless-shell')
-         if (path := shutil.which(name))), None)
+    if 'DIT_CHROMIUM' in os.environ:
+        requested = os.environ['DIT_CHROMIUM']
+        browser = shutil.which(requested) if requested else None
+    else:
+        browser = next(
+            (path for name in ('chromium', 'chromium-browser', 'google-chrome', 'chrome-headless-shell')
+             if (path := shutil.which(name))), None)
     if not browser:
         print('BLOCKED: no Chromium executable. Set DIT_CHROMIUM to an installed binary. No download attempted.', file=sys.stderr)
         return 2

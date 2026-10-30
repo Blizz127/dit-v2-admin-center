@@ -63,6 +63,16 @@ class HeadlessRunnerTests(unittest.TestCase):
             self.assertEqual(runner.main(), 2)
             run.assert_not_called()
 
+    def test_explicit_browser_selection_cannot_fall_back_to_path(self):
+        for requested in ('', '/fixture/missing-browser'):
+            with patch.dict(runner.os.environ, {'DIT_CHROMIUM': requested}), \
+                    patch.object(runner.shutil, 'which', side_effect=lambda name: None if name == requested else '/fixture/' + name) as which, \
+                    patch.object(runner, 'run_bounded') as run, patch.object(runner, 'build') as build:
+                self.assertEqual(runner.main(), 2)
+                self.assertEqual([call.args[0] for call in which.call_args_list], [requested] if requested else [])
+                run.assert_not_called()
+                build.assert_not_called()
+
     def test_denied_isolation_never_launches_browser(self):
         with patch.object(runner.shutil, 'which', side_effect=lambda name: '/fixture/' + name), \
                 patch.object(runner, 'run_bounded', return_value=(1, '', 'denied')) as run:
