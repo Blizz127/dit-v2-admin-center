@@ -25,5 +25,12 @@ const {get,refresh,requestCount}=require('./overview_snapshot_harness.cjs');
  await refresh({modelCalls:[{...row,latencyMs:Number.MAX_VALUE},{...row,latencyMs:Number.MAX_VALUE}]});
  assert.doesNotMatch(get('model-comparison').textContent,/Infinity|NaN/);
  assert.match(get('model-comparison').textContent,/2\/2 supplied/);
+ for(const count of [3,9,11]) {
+   await refresh({modelCalls:Array.from({length:count},()=>({...row,latencyMs:Number.MAX_VALUE}))});
+   assert.ok(get('model-comparison').textContent.includes(`Mean supplied latency: ${Number.MAX_VALUE} ms (${count}/${count} supplied)`),
+     'Finite maximum samples retain a finite mean instead of Unknown');
+ }
+ await refresh({modelCalls:[{...row,latencyMs:Number.MAX_VALUE},{...row,latencyMs:0}]});
+ assert.ok(get('model-comparison').textContent.includes(`Mean supplied latency: ${Number.MAX_VALUE/2} ms (2/2 supplied)`));
  console.log('PASS: exact group boundaries, missing identity/numbers, zero, filter, overflow and recovery. Simulated DOM only.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -1122,8 +1122,9 @@ function renderModelComparison(rows) {
   if (unidentified) item(panel, 'Unattributed examples', `${unidentified} rows excluded from grouping.`, 'Missing model, purpose or source is not a shared identity.');
   for (const {identity: [model, purpose, source], rows: samples} of groups.values()) {
     const latencies = samples.filter(row => metricNumber(row.latencyMs)).map(row => row.latencyMs);
-    // Divide before summing to avoid overflowing an otherwise finite mean.
-    const mean = latencies.length ? latencies.reduce((sum, value) => sum + value / latencies.length, 0) : null;
+    // Nonnegative finite samples keep each difference and running mean bounded.
+    // Summing value/count can still round above MAX_VALUE for three equal maxima.
+    const mean = latencies.length ? latencies.reduce((average, value, index) => average + (value - average) / (index + 1), 0) : null;
     const meanText = metricNumber(mean) ? `${Number(mean.toFixed(3))} ms` : 'Unknown';
     item(panel, `${model} · ${purpose}`,
       `${samples.length} loaded samples · Mean supplied latency: ${meanText} (${latencies.length}/${samples.length} supplied)`,
