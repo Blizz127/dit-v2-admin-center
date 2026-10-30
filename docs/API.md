@@ -567,3 +567,29 @@ A focused memory-only regression reproduced all three HTML error paths before
 the fix. Five checks then passed covering those cases, POST/PUT body refusal,
 HEAD and API error envelopes. No live dependency or listener was used; no native
 browser verification or running-service update is claimed.
+
+## Request headers and idle clients
+
+GET requests reject repeated Host, Authorization, Content-Length or
+Transfer-Encoding fields (case-insensitively), parser-reported malformed headers,
+any Transfer-Encoding, and any Content-Length other than an ASCII decimal zero.
+These return fixed redacted JSON 400 before authentication or collection, close
+the connection and never read a body. GET bodies are unsupported; repeated list
+headers such as Accept remain allowed. Write methods still take their existing
+405 path without parsing or consuming payloads, even with invalid body framing.
+
+The existing 65,536-byte request-line limit returns redacted 414; the standard
+library's header-line and header-count limits return redacted 431. A five-second
+socket inactivity timeout now bounds stalled reads and writes. A request-line or
+header read timeout attempts a fixed JSON 408 and closes the connection. If
+output has already started, no second response is appended; if the peer cannot
+receive the timeout response, the connection simply closes. This is an idle I/O
+limit, **not** a total deadline against a client continuously trickling bytes,
+and it does not time-limit collectors.
+
+Eight focused offline checks passed for ambiguous/framing headers, valid zero
+length and repeated Accept headers, request/header limits, simulated read/write
+timeouts, existing write-body refusal and HEAD/protocol errors. The memory
+connection records the configured socket timeout; tests inject TimeoutError
+without sleeping or opening sockets. Actual elapsed-time behavior on a real
+socket was not measured. No service restart, device run or artifact change.

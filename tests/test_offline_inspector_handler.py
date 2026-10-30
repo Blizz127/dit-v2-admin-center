@@ -29,6 +29,9 @@ class MemoryConnection:
     def sendall(self, data):
         self.outgoing.extend(data)
 
+    def settimeout(self, timeout):
+        self.timeout = timeout
+
 
 class OfflineInspectorHandlerTests(unittest.TestCase):
     def setUp(self):
@@ -234,6 +237,92 @@ class OfflineInspectorHandlerTests(unittest.TestCase):
                 self.assertEqual(json.loads(body)['error'],
                                  'method not supported' if expected == 501 else 'request rejected')
                 self.assertTrue(handler.close_connection)
+        self.overview.assert_not_called()
+
+    def test_ambiguous_get_headers_and_body_framing_fail_before_collection(self):
+        cases = (
+            'Host: offline.invalid\r\nhOsT: OMIT_PRIVATE_HOST',
+            'Authorization: Bearer fixture-token\r\nauthorization: Bearer OMIT_PRIVATE_TOKEN',
+            'Content-Length: 0\r\ncontent-length: 0',
+            'Content-Length: 0\r\nContent-Length: 1',
+            'Content-Length: 0, 0', 'Content-Length: -1', 'Content-Length: +0',
+            'Content-Length: invalid', 'Content-Length:', 'Content-Length: 1',
+            'Content-Length: ' + '9' * 5000,
+            'Content-Length: 0\r\nTransfer-Encoding: chunked',
+            'Transfer-Encoding: identity',
+            'Transfer-Encoding: chunked\r\ntransfer-encoding: chunked',
+            'OMIT_PRIVATE_MALFORMED_HEADER',
+        )
+        for headers in cases:
+            with self.subTest(headers=headers[:80]):
+                connection = MemoryConnection(('GET /api/overview HTTP/1.1\r\n' + headers + '\r\n\r\n').encode())
+                connection.incoming.read = Mock(side_effect=AssertionError('Request body read'))
+                handler = server.Handler(connection, ('127.0.0.1', 0), SimpleNamespace(admin_token='fixture-token'))
+                head, body = bytes(connection.outgoing).split(b'\r\n\r\n', 1)
+                status, header_bytes = head.split(b'\r\n', 1)
+                self.assertEqual(int(status.split()[1]), 400)
+                self.assert_error_envelope(BytesParser().parsebytes(header_bytes), body)
+                self.assertTrue(handler.close_connection)
+        self.overview.assert_not_called()
+        # Non-security list headers and a zero body remain compatible.
+        wire = (b'GET /api/overview HTTP/1.1\r\nAuthorization: Bearer fixture-token\r\n'
+                b'Content-Length: 0\r\nAccept: application/json\r\nAccept: */*\r\n\r\n')
+        connection = MemoryConnection(wire)
+        server.Handler(connection, ('127.0.0.1', 0), SimpleNamespace(admin_token='fixture-token'))
+        self.assertTrue(bytes(connection.outgoing).startswith(b'HTTP/1.0 200 '))
+        self.overview.assert_called_once_with('mock')
+
+    def test_request_line_and_header_limits_have_redacted_responses(self):
+        cases = (
+            (414, b'GET /api/OMIT_PRIVATE_' + b'x' * 65536 + b' HTTP/1.1\r\n\r\n'),
+            (431, b'GET /api/overview HTTP/1.1\r\nX-OMIT_PRIVATE: ' + b'x' * 65536 + b'\r\n\r\n'),
+            (431, b'GET /api/overview HTTP/1.1\r\n' + b'X-OMIT_PRIVATE: x\r\n' * 101 + b'\r\n'),
+        )
+        for expected, wire in cases:
+            with self.subTest(status=expected, length=len(wire)):
+                connection = MemoryConnection(wire)
+                handler = server.Handler(connection, ('127.0.0.1', 0), SimpleNamespace(admin_token='fixture-token'))
+                head, body = bytes(connection.outgoing).split(b'\r\n\r\n', 1)
+                status, header_bytes = head.split(b'\r\n', 1)
+                self.assertEqual(int(status.split()[1]), expected)
+                self.assert_error_envelope(BytesParser().parsebytes(header_bytes), body)
+                self.assertTrue(handler.close_connection)
+        self.overview.assert_not_called()
+
+    def test_idle_request_line_and_header_timeout_attempts_redacted_408(self):
+        class Stalled(io.BytesIO):
+            def readline(stream, *args):
+                line = super().readline(*args)
+                if not line:
+                    raise TimeoutError('OMIT_PRIVATE_SOCKET_DETAIL')
+                return line
+
+        for prefix in (b'', b'GET /api/overview HTTP/1.1\r\nHost: offline.invalid\r\n'):
+            with self.subTest(prefix=prefix):
+                connection = MemoryConnection(b'')
+                connection.incoming = Stalled(prefix)
+                handler = server.Handler(connection, ('127.0.0.1', 0), SimpleNamespace(admin_token='fixture-token'))
+                self.assertEqual(connection.timeout, 5)
+                self.assertTrue(handler.close_connection)
+                head, body = bytes(connection.outgoing).split(b'\r\n\r\n', 1)
+                status, header_bytes = head.split(b'\r\n', 1)
+                self.assertEqual(int(status.split()[1]), 408)
+                self.assert_error_envelope(BytesParser().parsebytes(header_bytes), body)
+        self.overview.assert_not_called()
+
+    def test_output_timeout_does_not_append_another_response(self):
+        connection = MemoryConnection(b'GET /api/overview HTTP/1.1\r\n\r\n')
+        calls = []
+
+        def stalled_send(data):
+            calls.append(data)
+            raise TimeoutError('OMIT_PRIVATE_WRITE_TIMEOUT')
+
+        connection.sendall = stalled_send
+        handler = server.Handler(connection, ('127.0.0.1', 0), SimpleNamespace(admin_token='fixture-token'))
+        self.assertTrue(handler.close_connection)
+        self.assertEqual(len(calls), 1)
+        self.assertNotIn(b'408', calls[0])
         self.overview.assert_not_called()
 
     def test_unknown_control_paths_and_write_methods_cannot_reach_dependencies(self):

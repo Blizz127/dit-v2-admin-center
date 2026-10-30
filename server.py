@@ -277,7 +277,64 @@ def overview(source='mock'):
 
 
 class Handler(BaseHTTPRequestHandler):
+    # Socket inactivity limit, including request-line/header reads. This is not
+    # an overall deadline for a peer that continuously sends bytes.
+    timeout = 5
+
+    def handle_one_request(self):
+        # Keep stdlib dispatch/size limits, but distinguish a read timeout from
+        # a timeout after a response may have started (never append a second one).
+        self.command = None
+        self.requestline = ''
+        self.request_version = 'HTTP/1.0'
+        self._response_started = False
+        reading = True
+        try:
+            self.raw_requestline = self.rfile.readline(65537)
+            if len(self.raw_requestline) > 65536:
+                self.send_error(414)
+                return
+            if not self.raw_requestline:
+                self.close_connection = True
+                return
+            if not self.parse_request():
+                return
+            reading = False
+            method = getattr(self, 'do_' + self.command, None)
+            if method is None:
+                self.send_error(501)
+                return
+            method()
+            self.wfile.flush()
+        except TimeoutError:
+            self.close_connection = True
+            if reading and not getattr(self, '_response_started', False):
+                try:
+                    self.send_error(408)
+                except OSError:
+                    # A stalled/disconnected peer may not accept the refusal.
+                    pass
+
+    def parse_request(self):
+        if not super().parse_request():
+            return False
+        # Mutation methods are already refused without consuming their bodies.
+        # Validate framing before read routes can authenticate or collect data.
+        if self.command == 'GET':
+            singleton = ('Host', 'Authorization', 'Content-Length', 'Transfer-Encoding')
+            ambiguous = any(len(self.headers.get_all(name, [])) > 1 for name in singleton)
+            length = self.headers.get('Content-Length')
+            invalid_length = length is not None and (
+                not length or not length.isascii() or not length.isdecimal() or
+                any(digit != '0' for digit in length))
+            if (ambiguous or self.headers.defects or invalid_length or
+                    'Transfer-Encoding' in self.headers):
+                self.send_error(400)
+                return False
+        return True
+
     def send_content(self, status, content_type, body, *, allow=None):
+        self._response_started = True
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Cache-Control", "no-store")
