@@ -128,3 +128,16 @@ class MockRoutingAPITests(unittest.TestCase):
         self.assertIn(b'405 Method Not Allowed', headers)
         self.assertEqual(json.loads(response), {'error':'method not allowed'})
         self.assertEqual(self.snapshot()['version'], 0)
+
+    def test_retry_returns_original_receipt_without_rolling_back_newer_state(self):
+        self.api = MockRoutingAPI([BotKey('example-game', 'example-realm', 'example-bot', 'conversation')],
+                                   ['example-model', 'second-example-model'])
+        first = self.post()
+        self.assertEqual(self.post({**self.data, 'requestId':'newer', 'expectedVersion':1,
+                                   'model':'second-example-model'})[0], 200)
+        before = self.snapshot()
+        self.assertEqual(self.post(), first)
+        self.assertEqual(first[1]['version'], 1)
+        self.assertEqual(self.snapshot(), before)
+        self.assertEqual(before['version'], 2)
+        self.assertEqual(before['policies'][0]['model'], 'second-example-model')
