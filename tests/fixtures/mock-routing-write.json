@@ -1,0 +1,9 @@
+{
+  "contract": "dit-admin-mock-routing-v1",
+  "environment": "synthetic",
+  "requestId": "fixture-request-1",
+  "expectedVersion": 0,
+  "targets": [{"game": "example-game", "realm": "example-realm", "nativeBot": "example-bot", "purpose": "conversation"}],
+  "model": "example-model",
+  "reason": "Exercise the proposed contract in memory only"
+}
