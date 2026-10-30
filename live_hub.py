@@ -35,6 +35,29 @@ class AmbiguousLearning(ValueError):
     pass
 
 
+def _decode_response(raw):
+    """Do not select one conflicting field or admit non-JSON numeric values."""
+    def unique_fields(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError('Ambiguous response field')
+            result[key] = value
+        return result
+
+    def reject_constant(_value):
+        raise ValueError('Non-finite response number')
+
+    def finite_float(value):
+        number = float(value)
+        if not math.isfinite(number):
+            raise ValueError('Response number overflow')
+        return number
+
+    return json.loads(raw, object_pairs_hook=unique_fields,
+                      parse_constant=reject_constant, parse_float=finite_float)
+
+
 class HubReader:
     def __init__(self, url, token_file, timeout=3):
         parsed = urllib.parse.urlsplit(url)
@@ -80,7 +103,7 @@ class HubReader:
                 raw = response.read(MAX_RESPONSE + 1)
             if len(raw) > MAX_RESPONSE:
                 raise HubResponseTooLarge('Hub response exceeded limit')
-            result = json.loads(raw)
+            result = _decode_response(raw)
             return result, datetime.now(timezone.utc).isoformat()
         except (OSError, ValueError, RecursionError, HTTPException, urllib.error.URLError):
             # Do not include paths, headers, response bodies, or credentials in errors.

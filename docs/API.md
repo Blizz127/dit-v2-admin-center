@@ -749,3 +749,15 @@ excess socket closed without dispatch, both admitted clients received 408, and
 a subsequent request reached normal token validation (401 without a token).
 No collector ran. This verifies timeout-to-capacity recovery, not just semaphore
 behavior with a synthetic handler; it does not measure production load capacity.
+
+### Ambiguous or non-finite hub JSON
+
+The shared read-only hub response decoder rejects duplicate object fields
+(including identical duplicates and escaped spellings of the same key), NaN,
+Infinity and numeric exponents that overflow to infinity. This applies to roster,
+learning, stored server status, health, interaction and trace reads. A conflicting
+field is not resolved by choosing its last value. The existing redacted
+`Hub read unavailable` error and per-feed fallback/cache behavior apply; paths,
+response bodies and tokens are not returned in the error. Finite numbers and
+repeated field names in distinct objects remain valid. These are source changes
+checked with synthetic response bytes, not observations of a deployed hub.

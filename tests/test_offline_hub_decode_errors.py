@@ -32,6 +32,36 @@ class OfflineHubDecodeErrorTests(unittest.TestCase):
                 self.assertEqual(str(raised.exception), 'Hub read unavailable')
                 self.assertTrue(raised.exception.__suppress_context__)
 
+    def test_duplicate_fields_and_nonfinite_numbers_are_unavailable_on_every_read(self):
+        reads = (self.reader.health, self.reader.interaction,
+                 lambda: self.reader.trace('ffxi', 'fixture-correlation'),
+                 *(lambda view=view: self.reader.get(view, 'ffxi')
+                   for view in ('bots', 'learning', 'server-status')))
+        invalid = (
+            b'{"gameId":"ffxi","gameId":"swtor","private":"OMIT_PRIVATE"}',
+            b'{"row":{"key":"one","key":"two"}}',
+            b'{"row":{"key":"same","key":"same"}}',
+            b'{"key":"one","\\u006bey":"two"}',
+            b'{"metric":NaN}', b'{"metric":Infinity}', b'{"metric":-Infinity}',
+            b'{"metric":1e999}', b'{"metric":-1e999}',
+        )
+        for read in reads:
+            for raw in invalid:
+                stream = io.BytesIO(raw)
+                self.reader.opener.open.return_value = stream
+                with self.subTest(raw=raw), self.assertRaises(HubReadError) as raised:
+                    read()
+                self.assertEqual(str(raised.exception), 'Hub read unavailable')
+                self.assertTrue(raised.exception.__suppress_context__)
+                self.assertTrue(stream.closed)
+            # Valid field names may repeat in separate objects. Zero and finite
+            # scientific notation must not be lost to numeric rejection.
+            self.reader.opener.open.return_value = io.BytesIO(
+                b'{"rows":[{"key":"one"},{"key":"two"}],"zero":0,"fraction":1.25e-2}')
+            data, fetched = read()
+            self.assertEqual(data, {'rows':[{'key':'one'}, {'key':'two'}], 'zero':0, 'fraction':0.0125})
+            self.assertTrue(fetched)
+
     def test_oversize_stays_distinct_and_next_valid_read_recovers(self):
         self.reader.opener.open.return_value = io.BytesIO(b'x' * (MAX_RESPONSE + 1))
         with self.assertRaises(HubResponseTooLarge):
