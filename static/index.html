@@ -63,10 +63,10 @@
 </section>
 <section class="panel" id="enb-deployment" aria-labelledby="enb-deployment-heading">
 <h3 id="enb-deployment-heading">Earth &amp; Beyond deployment handoff</h3>
-<p class="muted">Coordinator-reported deployment, October 29, 2026 at 5:29 PM CT. Dated handoff, not a live status check or synthetic service reading.</p>
-<p>New Banshee host: <code>37.27.113.160</code> · <code>enb.bansheerealm.com</code>. The coordinator reports that <code>enb</code> stack control is local to that host.</p>
+<p class="muted">Coordinator relay at October 29, 2026, 7:42 PM CT attributes a live-on-Banshee report at 22:19 UTC to the E&amp;B Rust lead. Dated handoff, not a live status check or synthetic service reading.</p>
+<p>Reported live target: <code>enb.bansheerealm.com</code> on Banshee <code>37.27.113.160</code>. The earlier 5:29 PM CT coordinator handoff reports <code>enb</code> stack control local to that host.</p>
 <p>AX41 copy: reported stopped and retained as rollback. Do not use it as the active E&amp;B target.</p>
-<p>Current service status: <strong>Unknown</strong>. Unit names, ports and launcher control readback are not included in this handoff. Status/start/stop/restart integration belongs to the launcher’s Server Operations and E&amp;B leads; this card performs no operation.</p>
+<p>Current service status and owner gameplay acceptance: <strong>Unknown</strong>. The relay supplies no exact deployed revision, unit names, ports or authenticated launcher control readback. Attribution to the Rust lead does not establish which server implementation is deployed. Status/start/stop/restart integration belongs to the launcher’s Server Operations and E&amp;B leads; this card performs no operation.</p>
 </section>
 <section class="panel" id="ax41-retirement" aria-labelledby="ax41-retirement-heading">
 <h3 id="ax41-retirement-heading">AX41 retirement dependency</h3>
@@ -74,6 +74,12 @@
 <p>WoW Forever is reported <strong>always-on on Banshee</strong>, with no supported automated sleep/wake lifecycle. The earlier “Forever wake controller” description is superseded; the remaining dependency is the shared AX41 <code>8446/8450</code> transport.</p>
 <p>Retirement completion: <strong>Unknown</strong>. E&amp;B’s reported move does not establish that every AX41 dependency has moved. The staged readiness-only Forever route is not yet connected to production or native probes.</p>
 <p>This card does not wake, stop, reroute or retire any service. Existing owning leads retain the shared-controller cutover.</p>
+</section>
+<section class="panel" id="planetside-release" aria-labelledby="planetside-release-heading">
+<h3 id="planetside-release-heading">PlanetSide · r16.170 owner-channel publication</h3>
+<p class="muted">Coordinator relay, October 29, 2026 at 7:42 PM CT: <code>r16.170</code> published to the owner channel at October 30, 00:22 UTC (October 29, 7:22 PM CT).</p>
+<p>Reported milestone: <strong>published to owner channel</strong>. Exact package hash, owner download/install, running version and gameplay acceptance: <strong>Unknown</strong>. Publication is not a deployment or native-client pass.</p>
+<p>This release observation is separate from the dated AX41 catcher retirement and unfinished shared-controller migration. No download, launch, update or service action is available here.</p>
 </section>
 <section class="panel" id="ashes-move" aria-labelledby="ashes-move-heading">
 <h3 id="ashes-move-heading">Ashes of Creation · SandalCore on Banshee</h3>

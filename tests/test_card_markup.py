@@ -91,7 +91,7 @@ class CardMarkupTests(unittest.TestCase):
         self.assertIn(self.by_id['view-operations'], list(panel.ancestors()))
         text = panel.text()
         for value in ('37.27.113.160', 'enb.bansheerealm.com', '5:29 PM CT',
-                      'Coordinator-reported', 'Unknown', 'rollback', 'reported stopped'):
+                      'Coordinator relay', '22:19 UTC', 'E&B Rust lead', 'Unknown', 'rollback', 'reported stopped'):
             self.assertIn(value, text)
         self.assertFalse(any(n.tag in ('a', 'button', 'input', 'form') for n in panel.descendants()))
 
@@ -110,6 +110,14 @@ class CardMarkupTests(unittest.TestCase):
             panel = self.by_id[identity]
             self.assertIn(self.by_id['view-operations'], list(panel.ancestors()))
             self.assertFalse(any(n.tag in ('a', 'button', 'input', 'form') for n in panel.descendants()))
+
+    def test_planetside_publication_does_not_claim_install_or_acceptance(self):
+        panel = self.by_id['planetside-release']
+        self.assertIn(self.by_id['view-operations'], list(panel.ancestors()))
+        for value in ('r16.170', 'October 30, 00:22 UTC', 'published to owner channel',
+                      'Unknown', 'not a deployment', 'separate from'):
+            self.assertIn(value, panel.text())
+        self.assertFalse(any(n.tag in ('a', 'button', 'input', 'form') for n in panel.descendants()))
         lotro = self.by_id['lotro-move'].text()
         for value in ('Uncommitted source note', 'lotro.bansheerealm.com', 'Owner-only',
                       '9080', '9000', '2900', 'resolver override', 'Unknown', 'runtime-only'):
