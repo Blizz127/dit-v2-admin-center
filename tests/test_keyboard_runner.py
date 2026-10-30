@@ -14,6 +14,44 @@ SHELL = dict(status="passed", sections=8, widths=[1280, 390], traversal="Tab/Shi
 
 
 class KeyboardRunnerTests(unittest.TestCase):
+    def test_audit_option_composes_with_capture_and_download_slots(self):
+        from pathlib import Path
+        audit = dict(status='passed', counts=[3, 2, 1, 0, 3], traversal='Tab/Shift+Tab',
+                     selection='Home/ArrowDown', reset='Enter', focusRetained=True)
+        good = dict(status='passed', nativeKeyboard='passed', steps=12,
+                    escapeCancellation='passed', automaticDOM='passed', shell=SHELL,
+                    routingAudit=audit,
+                    gapExport=dict(status='passed', savedBytes=12, candidates=2,
+                                   selectedSnapshotRow=2, nativeActivation='Enter', sha256='a'*64,
+                                   table=dict(rows=9, columns=3, width=390)))
+        for captures, downloads in ((False, False), (True, False), (False, True), (True, True)):
+            with self.subTest(captures=captures, downloads=downloads):
+                commands = []
+
+                def simulated_process(command, *_args, **_kwargs):
+                    commands.append(command)
+                    if len(commands) == 1:
+                        return 0, '', ''  # Fabricated isolation outcome; no process launched.
+                    capture_slot, download_slot, audit_slot = command[-3:]
+                    self.assertEqual(audit_slot, 'routing-audit')
+                    self.assertEqual(Path(capture_slot).name if capture_slot else '', 'captures' if captures else '')
+                    self.assertEqual(Path(download_slot).name if download_slot else '', 'downloads' if downloads else '')
+                    for slot in (capture_slot, download_slot):
+                        if slot:
+                            self.assertTrue(Path(slot).is_dir())
+                    return 0, json.dumps(good), ''
+
+                with patch.object(runner.shutil, 'which', side_effect=lambda name: '/fixture/' + name), \
+                        patch.object(runner, 'run_bounded', side_effect=simulated_process), \
+                        patch.object(runner, 'build', return_value='<html>synthetic</html>'), \
+                        patch.object(runner, 'publish_captures', return_value='synthetic-output') as publish, \
+                        redirect_stdout(io.StringIO()) as stdout:
+                    self.assertEqual(runner.main(screenshots=captures, gap_export=downloads, routing_audit=True), 0)
+                    self.assertEqual(publish.call_count, int(captures))
+                    self.assertEqual(json.loads(stdout.getvalue())['routingAudit'], audit)
+                self.assertEqual(len(commands), 2)
+                self.assertFalse(Path(commands[-1][-4]).parent.exists(), 'Disposable run root cleaned')
+
     def test_optional_audit_receipt_requires_all_checks(self):
         good = dict(status='passed', nativeKeyboard='passed', steps=12,
                     escapeCancellation='passed', automaticDOM='passed', shell=SHELL)

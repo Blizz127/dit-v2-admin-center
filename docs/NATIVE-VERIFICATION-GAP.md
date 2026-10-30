@@ -338,3 +338,10 @@ d2765fd16eba26ee5d56708b4b6809f4f4608493816f5f67dda4ea8530fcc252`
 (on one line). Native execution remains NOT RUN. This candidate changes neither
 the approved `8eb2c9f` bundle nor the delivered Alienware previews, and is not a
 request for another device run. Model controls remain disabled.
+
+The candidate's optional argument composition is checked for all four
+screenshots/gap-export combinations with audit enabled. Fabricated process
+outputs verify positional slots, disposable directories, cleanup and receipt
+handling; capture publication is mocked. Eleven focused runner tests passed.
+This checks orchestration only and supplies no isolation, download or browser
+execution evidence.
