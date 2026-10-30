@@ -58,6 +58,17 @@ It is not a reviewed hub contract and is not wired into the UI/server. The next
 dependency for this slice is the owning lead's review of identity/provenance,
 freshness and partial-data semantics, not replacement of Unknown by mock support.
 
+Follow-up `a514f635ddb839a7` now has real engine evidence: the installed system
+Python's jsonschema 4.19.2 passed Draft 2020-12 schema checking, all three fixture
+structures, nine structural refusals and four structurally valid semantic
+refusals. The draft's strict UTC timestamp checker was explicitly registered;
+no dependency was installed. The contract document also now supplies the Admin
+lead's proposed answers: adapter/hub-owned binding, registered scoped receipts,
+an explicit 300-second pilot freshness policy with no future tolerance, whole-
+envelope refusal for inconsistencies, and evaluator-owned claims distinct from
+native observations and adoption. These are proposals, not accepted defaults or
+live implementation. The existing native receipt checklist remains unchanged.
+
 ### Fishing artifact review (2026-10-29)
 
 Reviewed, not imported: `ffxi/handoffs/2026-10-29-fishing-offline-bundle-r1/`

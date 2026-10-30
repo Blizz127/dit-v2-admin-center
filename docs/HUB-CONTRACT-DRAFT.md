@@ -155,6 +155,48 @@ integration be considered. The existing native-device intake checklist and
 verifier remain [NATIVE-RECEIPT-INTAKE.md](NATIVE-RECEIPT-INTAKE.md); this learning
 proposal cannot fill, replace or validate a device execution receipt.
 
+### Admin lead's proposed answers for hub/adapter review
+
+These are concrete proposals, not a record of hub agreement. They add no live
+fields, endpoint, credentials or controls; the current synthetic draft remains
+unchanged and the reference reviewer continues to require an explicit policy.
+
+| Review topic | Proposed answer | Producer responsibility / current limit |
+| --- | --- | --- |
+| Authoritative scope and binding | The adapter owns native bot, realm and instance identity; the hub owns caller registration and the learning task association. Build the expected six-field scope from that established binding, independently of the assessment payload. Never join by name, reuse a restarted instance's evidence or infer presence from identity. | Hub/adapter must identify the actual binding record and revision/instance lifecycle. The draft compares supplied values only; it cannot prove their authority. A future binding revision would need an explicit versioned contract addition. |
+| Evidence and receipt provenance | Allow only registered source IDs owned by the relevant adapter/evaluator. Receipt IDs must resolve to immutable records under the same complete scope and retain original observation times. Generation and queue acceptance are context, never native outcome evidence. | The hub owns the source registry and receipt lookup/retention semantics. An arbitrary matching opaque receipt ID is insufficient. The draft does not resolve IDs, create a registry or authenticate a source. |
+| Freshness and clock skew | For a first live-summary pilot, propose a **300-second** maximum age for both report and observations, supplied explicitly by the caller, with **zero future-clock tolerance**. A newer report never refreshes older evidence. A malformed, future or expired record yields Unknown. | This is a proposed pilot value, not an implemented default or agreed TTL. Producers must document clock basis. Historical assessment archives need separate retention/validity semantics; expiration here means unavailable current evidence, not erased learning or disproved history. |
+| Partial and conflicting data | Keep the draft's all-or-nothing refusal for malformed structure, scope mismatches, duplicates, dangling refs or invalid temporal ordering. Missing assessment kinds are valid and remain Unknown. A well-formed contradictory claim stays distinct from support. Do not collapse all dimensions into an overall verified badge. | This favors withholding over a misleading partial success. If producers need row-level recovery, propose a new version with explicit per-row coverage/error fields; do not silently change draft-v1 semantics. |
+| Assessment ownership | Adapters produce native observations; a named hub evaluator owns the reported assessment and its referenced scenario/evaluation. Admin validates consistency and displays source-qualified claims, without promoting them to independent verification. | The hub must define evaluator identity and evaluation records. Current source authenticity remains unverified even when structure and scope match. |
+
+Proposed minimum evidence behind each kind (criteria for the producer's referenced
+record, **not fields already present in the envelope**):
+
+- `nativeIdentity`: adapter binding record with native bot/realm/instance and
+  observation time. This answers identity only, never online presence.
+- `navigationAndMissions`: defined starting state/objective and subsequent native
+  position or mission-milestone result, including failure. An accepted action
+  request does not satisfy it.
+- `partyAndSocial`: a defined party/job/social scenario, scoped participants,
+  native outcome and failure/safe-fallback observations. Generated wording alone
+  does not establish native delivery or successful party behavior.
+- `groundedMemory`: permitted source fact, scope and fact/version provenance,
+  with a defined recall evaluation. Do not send raw player memory or chat to
+  Admin as proof; use the access-controlled receipt's permitted metadata.
+- `measuredPolicyBenefit`: dataset/policy versions, baseline/comparison scenario
+  and measured native outcome. Keep policy validation, delivery, adoption and
+  measured benefit as independent records. A supported benefit claim never
+  populates the currently Unknown adoption field.
+
+Recommended first integration candidate after producer agreement: a bounded,
+explicit read of one already-selected task's scope with the same evidence limits
+as the draft, returning only permitted metadata. Do not add a poll loop, use an
+overview/store scan as a substitute, or connect mutable model/game controls.
+No URL or implemented route is asserted here. Producer acceptance, source
+authenticity and deployment/readback remain distinct from the passing schema and
+synthetic checks. The review can now respond to explicit choices rather than an
+open-ended request to design the contract.
+
 ## Proposed routing read model
 
 A route is scoped by adapter-verified `(gameId, realmId, nativeBotId, purpose)`. Identity must not be inferred from a display name; a group turn requires a verified selected speaker. A read-only result should distinguish requested and effective provider/model, policy version, source, observed timestamp, readiness and unavailable/stale reason. An unknown rate, allowance, budget, identity, credentials or provider state is not healthy or zero. Treat the following as an illustrative field sketch, not an existing endpoint or agreed wire schema:
