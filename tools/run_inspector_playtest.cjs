@@ -62,10 +62,15 @@ const artifactSha256 = crypto.createHash('sha256').update(html).digest('hex');
 (async () => {
   const started = performance.now();
   try {
-    const deadline = started + 5000;
+    const deadline = started + 10000;
+    let lastProgress = started, completedChecks = 0;
     while (!dom.window.document.documentElement.dataset.playtest) {
       if (errors.length) throw new Error('DOM runtime errors: ' + errors.join('; '));
-      if (performance.now() > deadline) throw Object.assign(new Error('Harness did not finish within five seconds'), {code:'DOM_COMPLETION_TIMEOUT'});
+      const now = performance.now();
+      const count = dom.window.document.querySelectorAll('#harness-checks li').length;
+      if (count > completedChecks) { completedChecks = count; lastProgress = now; }
+      if (now > deadline) throw Object.assign(new Error('Harness did not finish within ten seconds'), {code:'DOM_TOTAL_TIMEOUT'});
+      if (now - lastProgress > 5000) throw Object.assign(new Error('Harness made no assertion progress within five seconds'), {code:'DOM_COMPLETION_TIMEOUT'});
       await new Promise(resolve => setTimeout(resolve, 10));
     }
     const doc = dom.window.document;
@@ -85,7 +90,7 @@ const artifactSha256 = crypto.createHash('sha256').update(html).digest('hex');
     console.error('FAIL: ' + error.message);
     const checks = [...dom.window.document.querySelectorAll('#harness-checks li')];
     console.error('DIAGNOSTIC: ' + JSON.stringify({status:'failed',
-      reason: error.code === 'DOM_COMPLETION_TIMEOUT' ? 'completion-timeout' : 'runtime-or-assertion',
+      reason: error.code === 'DOM_COMPLETION_TIMEOUT' ? 'progress-timeout' : error.code === 'DOM_TOTAL_TIMEOUT' ? 'total-timeout' : 'runtime-or-assertion',
       artifactSha256, completedChecks:checks.length,
       lastCheck:(checks.at(-1)?.textContent || '').slice(0, 240),
       constructionMs:Math.round(constructedAt - constructionStarted), completionWaitMs:Math.round(performance.now() - started),

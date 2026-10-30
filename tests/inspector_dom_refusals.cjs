@@ -16,7 +16,9 @@ const cases = [
   ['different Blob bytes', 'new Blob([json],', 'new Blob([json + " "],',
     'Gap Blob bytes equal'],
   ['stalled driver', 'const readinessFilter =', 'await new Promise(() => {}); const readinessFilter =',
-    'Harness did not finish within five seconds'],
+    'Harness made no assertion progress within five seconds'],
+  ['endless progress', 'const readinessFilter =', 'globalThis.setInterval(() => report("Synthetic progress"), 100); await new Promise(() => {}); const readinessFilter =',
+    'Harness did not finish within ten seconds'],
   ['script parse error', 'const requests = [];', 'const requests = ;', 'DOM runtime errors:'],
 ];
 const child = `
@@ -30,7 +32,7 @@ for (const [name, before, after, failure] of cases) {
   assert.equal(html.split(before).length, 2, name + ': mutation target must be unique');
   const result = spawnSync(process.execPath, ['-e', child], {
     cwd: root, env: process.env, input: html.replace(before, after), encoding: 'utf8',
-    timeout: 10000, maxBuffer: 1024 * 1024,
+    timeout: 15000, maxBuffer: 1024 * 1024,
   });
   assert.ifError(result.error);
   assert.equal(result.status, 1, name + ': must fail, not pass or block');
@@ -41,10 +43,15 @@ for (const [name, before, after, failure] of cases) {
   assert.equal(diagnostic.artifactSha256, require('node:crypto').createHash('sha256').update(html.replace(before, after)).digest('hex'));
   assert.ok(diagnostic.lastCheck.length <= 240);
   if (name === 'stalled driver') {
-    assert.equal(diagnostic.reason, 'completion-timeout');
+    assert.equal(diagnostic.reason, 'progress-timeout');
     assert.ok(diagnostic.completedChecks > 0);
     assert.match(diagnostic.lastCheck, /Sidebar DOM navigation/);
     assert.ok(diagnostic.completionWaitMs >= 5000 && diagnostic.completionWaitMs < 8000);
+  }
+  if (name === 'endless progress') {
+    assert.equal(diagnostic.reason, 'total-timeout');
+    assert.ok(diagnostic.completedChecks > 20);
+    assert.ok(diagnostic.completionWaitMs >= 10000 && diagnostic.completionWaitMs < 13000);
   }
   if (name === 'script parse error') {
     assert.equal(diagnostic.reason, 'runtime-or-assertion');
