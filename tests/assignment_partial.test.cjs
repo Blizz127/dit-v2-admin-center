@@ -1,0 +1,36 @@
+// Actual app with a synthetic adapter; no browser, server or assignment writes.
+const assert = require('node:assert/strict');
+const {get, refresh, context, requestCount} = require('./overview_snapshot_harness.cjs');
+const bot = {id:'one', name:'Shared name', game:'FFXI'};
+const rows = Array.from({length:11}, (_, index) => ({botId:'one', requested:`TARGET_${index}`, source:'Synthetic'}));
+const mixed = [...rows, {botId:'two', requested:'OTHER_BOT'}, null, {requested:'UNSCOPED'}, {botId:1, requested:'NUMERIC_ID'}];
+(async () => {
+  await refresh({bots:[bot, {id:'two', name:bot.name, game:'FFXI'}], assignmentHistory:mixed});
+  context.inspectBot('one');
+  assert.match(get('assignment-count').textContent, /Page 1 of 2.*loaded total Unknown/);
+  assert.match(get('assignment-history').textContent, /TARGET_0/);
+  assert.doesNotMatch(get('assignment-history').textContent, /TARGET_10|OTHER_BOT|UNSCOPED|NUMERIC_ID/);
+  const before = requestCount();
+  get('assignment-next').listeners.click();
+  assert.match(get('assignment-history').textContent, /coverage unknown.*TARGET_10/);
+  assert.match(get('assignment-count').textContent, /Showing 11–11 of 11.*loaded total Unknown/);
+  assert.equal(requestCount(), before);
+  await refresh({bots:[bot, {...bot}], assignmentHistory:mixed});
+  assert.match(get('assignment-count').textContent, /identity is ambiguous/);
+  assert.doesNotMatch(get('assignment-history').textContent, /TARGET_|OTHER_BOT/);
+  assert.equal(get('assignment-next').attributes['aria-disabled'], 'true');
+  get('assignment-next').listeners.click();
+  assert.doesNotMatch(get('assignment-history').textContent, /TARGET_/);
+  await refresh({bots:[{id:'two', name:bot.name}], assignmentHistory:mixed});
+  assert.match(get('assignment-count').textContent, /no longer in the loaded roster/);
+  assert.doesNotMatch(get('assignment-history').textContent, /TARGET_|OTHER_BOT/);
+  await refresh({bots:[bot], assignmentHistory:[null, {botId:' ', requested:'UNSCOPED'}]});
+  assert.match(get('assignment-count').textContent, /0 usable.*loaded total Unknown/);
+  assert.doesNotMatch(get('assignment-history').textContent, /TARGET_|UNSCOPED/);
+  await refresh({bots:[bot], assignmentHistory:rows.slice(0,1)});
+  assert.match(get('assignment-count').textContent, /Page 1 of 1/);
+  assert.doesNotMatch(get('assignment-count').textContent, /loaded total Unknown/);
+  assert.match(get('assignment-history').textContent, /TARGET_0/);
+  assert.doesNotMatch(get('assignment-history').textContent, /coverage unknown|TARGET_10/);
+  console.log('PASS: partial assignment paging, exact ID scope, ambiguity/orphan refusal and recovery. Native NOT RUN.');
+})().catch(error => {console.error(error); process.exitCode = 1;});
