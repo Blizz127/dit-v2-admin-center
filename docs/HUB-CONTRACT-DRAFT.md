@@ -158,6 +158,11 @@ engine, including mutation cases for unknown schema/fixture files, invalid fixtu
 structure and an incorrect cross-instance semantic expectation. No full test
 suite or native/browser check was run for this integration.
 
+The follow-up dependency-refusal check also passed: a real `python -S` child
+(installed site packages excluded) returns BLOCKED/exit 2, and an explicit
+nonexistent `DIT_SCHEMA_PYTHON` fails the discovered test without fallback.
+These are expected refusal outcomes, not schema passes or installation requests.
+
 Review requests for the owning hub/adapter lead: establish the authoritative
 scope/binding source, allowed observation and receipt provenance, freshness and
 clock-skew policy, partial-envelope refusal policy, and assessment ownership.

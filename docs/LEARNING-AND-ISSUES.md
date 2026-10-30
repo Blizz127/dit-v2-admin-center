@@ -69,6 +69,15 @@ envelope refusal for inconsistencies, and evaluator-owned claims distinct from
 native observations and adoption. These are proposals, not accepted defaults or
 live implementation. The existing native receipt checklist remains unchanged.
 
+Follow-up `29924830ccadb354` integrates real engine validation into normal Python
+test discovery, with exact formal-schema and fixture inventories. Four focused
+checks passed for automatic validation and inventory/expectation refusal; a
+separate dependency-refusal check passed for a genuinely missing engine and an
+invalid explicit runtime override. The command is in
+[README](../README.md#automatic-offline-schema-checks). No schema-validation
+integration remains pending for this draft; producer contract agreement and
+native execution evidence remain separate from these offline checks.
+
 ### Fishing artifact review (2026-10-29)
 
 Reviewed, not imported: `ffxi/handoffs/2026-10-29-fishing-offline-bundle-r1/`

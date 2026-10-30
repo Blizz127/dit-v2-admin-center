@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -75,6 +76,21 @@ class OfflineContractChecks(unittest.TestCase):
         cases['cross-instance-refusal.json']['reviewStatus'] = 'reviewed-synthetic'
         manifest.write_text(json.dumps(cases))
         self.assertEqual(self.run_check(root).returncode, 1)
+
+    def test_missing_engine_and_invalid_override_are_explicit_failures(self):
+        environment = dict(os.environ)
+        environment.pop('PYTHONPATH', None)
+        # -S excludes installed site packages. This actually exercises the
+        # tool's missing-engine branch rather than fabricating its stdout.
+        result = subprocess.run([sys.executable, '-S', str(ROOT / 'tools/check_offline_contracts.py')],
+                                cwd=ROOT, env=environment, capture_output=True, text=True, timeout=10)
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(json.loads(result.stdout),
+                         {'status': 'blocked', 'reason': 'JSON Schema engine unavailable'})
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.dict(os.environ, {'DIT_SCHEMA_PYTHON': str(Path(directory) / 'missing-python')}):
+                with self.assertRaisesRegex(AssertionError, 'Schema runtime unavailable'):
+                    self.run_check(ROOT)
 
 
 if __name__ == '__main__':
