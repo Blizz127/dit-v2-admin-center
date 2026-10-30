@@ -37,3 +37,42 @@ Node/Python versions, and pre/post manifest results through the coordinator.
 This older pin has no stdout artifactSha256; retain the verified manifest and
 artifact hash alongside its result. Approval/package creation is not a native
 pass, visual review, screen-reader check or live game acceptance.
+
+
+## Returned-result reconciliation (Admin, no device action)
+
+Follow-up sent through coordinator message `6a76f324acc86bc9`; this is not an
+execution receipt. Do not rerun a device test because the returned package is
+older than current source. The package and executor assignment above are fixed.
+
+When the device lead returns evidence:
+
+1. Match the reported source, bundle and artifact hashes to this document. Require
+   both pre-run and post-run manifest verification. A missing/mismatched identity
+   leaves attribution unresolved; an exit code alone is insufficient.
+2. Preserve the actual exit code, timestamp, browser executable/version and
+   Node/Python versions. Exit 2 means blocked prerequisites/isolation; exit 1 means
+   failed/incomplete checks; an outer timeout is incomplete. Neither is a pass,
+   even if partial stdout contains a success fragment. Record a denial without
+   retrying it or changing the approved flags.
+3. For exit 0, review the returned JSON against the **8eb2c9f** fields: status,
+   nativeKeyboard, escapeCancellation and automaticDOM must be passed; steps 12;
+   shell passed with eight sections, widths [1280, 390], Tab/Shift+Tab traversal
+   and Enter activation. The gapExport receipt must include passed status,
+   positive bounded savedBytes, a SHA-256, two candidates, selectedSnapshotRow 2,
+   nativeActivation Enter, and table rows 9/columns 3/positive finite width.
+   Missing or contradictory fields require clarification, not an inferred pass.
+4. This pin has no stdout artifactSha256 and no shell.coverage geometry field.
+   Bind it to the verified manifest/artifact instead. Do not run the current
+   stricter validator and misreport absent newer fields as a failure of this
+   older approved test. Conversely, do not claim those newer checks passed.
+5. Report only the verified scope: the pin's native navigation and saved JSON
+   parsed-value comparison, if supported by the complete device evidence. Blob
+   downloads, byte-for-byte UTF-8 parity, coverage geometry, newer operations
+   cards, current preview rendering and human visual acceptance remain untested.
+
+Do not paste raw browser errors, user paths or unrelated device information into
+product cards. Keep the returned receipt with its identity evidence; summarize
+only the relevant failure or measured checks. No result has arrived in this
+Admin turn, so native execution remains NOT RUN/unknown here. This checklist
+changes no packaged bytes, device instructions, runtime or approval scope.
