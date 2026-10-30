@@ -770,3 +770,13 @@ remain available, but classification, disposition and finality are all `null`
 never returned, and a malformed body does not become a positive outcome by
 selecting its last field value. Focused in-memory handler checks cover this
 behavior without connecting to a hub.
+
+### Repository planning issues
+
+`issues` also includes curated inventories embedded in
+`docs/LEARNING-AND-ISSUES.md` and `docs/NATIVE-VERIFICATION-GAP.md`. These have
+`documentIssue: true`, document-qualified IDs, `Documented gap` or `Verification
+pending` status and `updatedAt: null`. Their source names the repository document;
+they are not live incidents or native pass receipts. Missing or invalid document
+inventories produce an Unknown placeholder. The same reader feeds the offline
+standalone preview without a hub, coordinator database or service observation.

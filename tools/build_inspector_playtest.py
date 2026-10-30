@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT))
 from r10_projection import project_learning
 from operation_sources import read as read_operation_sources
 from tools.review_party_greeting import decode_metadata, review
+from project_issues import read as read_project_issues
 from routing_audit import examples as routing_audit_examples
 
 
@@ -27,7 +28,7 @@ def snapshot():
         'sessionMarkers', 'quotaHistory', 'modelCalls', 'safetyRecords', 'botDetails',
         'replyEvents', 'assignmentHistory', 'audit', 'gameStatus', 'serviceHealth',
         'issues', 'ledger', 'learningArtifacts', 'learningPlan')}
-    result.update(operationSources=read_operation_sources(), generatedAt='2026-01-01T12:00:00Z', learning=rows, routingAudit=routing_audit_examples(),
+    result.update(issues=read_project_issues(), operationSources=read_operation_sources(), generatedAt='2026-01-01T12:00:00Z', learning=rows, routingAudit=routing_audit_examples(),
                   hubFeeds=[dict(game='All', view='hub', status='Not configured',
                                  note='Offline harness; no hub access', at=None)],
                   ownerAttention=dict(coverage='Synthetic empty fixture', items=[]),
@@ -38,7 +39,7 @@ def snapshot():
 
 def source_fingerprints():
     paths = ('static/index.html', 'static/style.css', 'static/app.js', 'routing_audit.py', 'operation_sources.py', 'local_evidence.py',
-             'data/fixtures/routing-audit.json',
+             'data/fixtures/routing-audit.json', 'project_issues.py', 'docs/LEARNING-AND-ISSUES.md', 'docs/NATIVE-VERIFICATION-GAP.md',
              'r10_projection.py', 'tests/fixtures/learning-evidence-e8c81be.json',
              'tests/fixtures/assignment-pages.json',
              'tests/fixtures/party-greeting-review.json', 'tools/review_party_greeting.py',

@@ -427,3 +427,24 @@ receipt through the prepared intake tool, and reconcile authoritative hub
 contract/evidence feedback when supplied. Neither is satisfied by additional
 mock successes. The coordinator was asked for an existing receipt or a concrete
 new offline backlog item, not another device execution or owner permission.
+
+## Curated Admin Center issue inventory
+
+These records feed the local mock and standalone preview. They summarize the
+planning/evidence gaps above, not current service health or live observations.
+Update this block explicitly when authoritative evidence changes the gap.
+
+<!-- admin-issues:start -->
+```json
+[
+  {
+    "id": "native-check",
+    "title": "Native browser verification is not recorded",
+    "scope": "Network",
+    "status": "Verification pending",
+    "detail": "Current preview rendering, keyboard and download checks remain NOT RUN. The original device attempt was blocked before browser launch.",
+    "suggestedFix": "Review an actual separately sequenced executor receipt; synthetic checks and owner viewing of an older preview are not a current native pass."
+  }
+]
+```
+<!-- admin-issues:end -->

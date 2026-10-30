@@ -21,6 +21,7 @@ from interaction_projection import project_interaction
 from live_hub import CORRELATION, HubReadError, HubReader, merge_views, project_hub_health, project_spend, project_trace, read_views
 from hub_cache import HubViewsCache
 from bridge_status import BridgeObserver
+from project_issues import read as read_project_issues
 from issue_evidence import bridge_fault_issue, pending_decision_issues
 from quota_history import collect, history
 from owner_attention import pending_owner_decisions
@@ -258,7 +259,7 @@ def overview(source='mock'):
             {"title": "Controls unavailable", "detail": "Bot commands, gates and model changes are not connected.", "status": "Open", "scope": "Network", "source": "Synthetic planning example"},
             {"title": "Example routing identity is unverified", "botId": "demo-1", "detail": "The synthetic routing record cannot select a model.", "status": "Open", "scope": "Bots", "source": "Synthetic routing example", "updatedAt": "2026-01-01T12:00:00Z"},
             {"title": "Bot presence lacks current evidence", "detail": "Mock bot statuses cannot establish current game presence.", "status": "Open", "scope": "Bots", "source": "Synthetic planning example"},
-        ] + project_learning_attention(projected) + monitoring_issues(monitoring) + marker_issues + binding_issues(hub_report) + [bridge_fault_issue()] + pending_decision_issues(owner_attention),
+        ] + read_project_issues() + project_learning_attention(projected) + monitoring_issues(monitoring) + marker_issues + binding_issues(hub_report) + [bridge_fault_issue()] + pending_decision_issues(owner_attention),
     }
     url, token_file = os.environ.get('HUB_READONLY_URL'), os.environ.get('HUB_TOKEN_FILE')
     if not url or not token_file:

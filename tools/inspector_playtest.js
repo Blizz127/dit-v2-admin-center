@@ -64,6 +64,13 @@ try {
   readinessFilter.dispatchEvent(new Event('change', {bubbles: true}));
   check(visibleReadiness().length === 12 && requests.length === readinessRequests,
     'Readiness filters restore all rows without requesting data');
+  const issueRequests = requests.length;
+  check(textOf('issues').includes('Native browser verification') && textOf('issues').includes('NOT RUN'), 'Document-fed issues keep native verification unconfirmed');
+  document.getElementById('issue-status').value = 'Verification pending';
+  document.getElementById('issue-status').dispatchEvent(new Event('change', {bubbles: true}));
+  check(textOf('issue-count').includes('Showing 1 of 6'), 'Issue status filter selects the documented verification gap');
+  document.getElementById('issue-reset').click();
+  check(textOf('issue-count').includes('Showing 6 of 6') && requests.length === issueRequests, 'Issue reset restores document gaps without a fetch');
   const auditRequests = requests.length;
   const auditScope = document.getElementById('routing-audit-scope');
   const auditOutcome = document.getElementById('routing-audit-outcome');

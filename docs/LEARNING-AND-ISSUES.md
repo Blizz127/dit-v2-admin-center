@@ -963,3 +963,56 @@ classification/finality clears the previous claim and renders Unknown, while
 preserving occurrence metadata and omitting raw body text. This uses real handler
 serialization and actual app code in a simulated DOM; native rendering remains
 NOT RUN. No artifact rebuild, live call, deployment or device action was needed.
+
+## Curated Admin Center issue inventory
+
+These records feed the local mock and standalone preview. They summarize the
+planning/evidence gaps above, not current service health or live observations.
+Update this block explicitly when authoritative evidence changes the gap.
+
+<!-- admin-issues:start -->
+```json
+[
+  {
+    "id": "ffxi-evidence",
+    "title": "FFXI adapter evidence gaps",
+    "scope": "FFXI",
+    "status": "Documented gap",
+    "detail": "Native identity, navigation, party behavior and grounded memory need scoped observations; task status does not establish capability.",
+    "suggestedFix": "Obtain scoped adapter observations and distinguish policy adoption from demonstrated behavior."
+  },
+  {
+    "id": "swtor-inventory",
+    "title": "SWTOR adapter coverage needs inventory",
+    "scope": "SWTOR",
+    "status": "Documented gap",
+    "detail": "Adapter capabilities, datasets and policy verification remain unknown in this planning inventory.",
+    "suggestedFix": "Review SWTOR-specific coverage with the hub lead; do not transfer FFXI findings as verified behavior."
+  },
+  {
+    "id": "controls",
+    "title": "Bot and model controls are not connected",
+    "scope": "Network",
+    "status": "Documented gap",
+    "detail": "The local mock does not implement bot commands, model writes, gates or authoritative action audit.",
+    "suggestedFix": "Agree upstream authorization and command/readback contracts; keep controls disabled."
+  },
+  {
+    "id": "measurements",
+    "title": "Model comparison lacks measured evidence",
+    "scope": "Network",
+    "status": "Documented gap",
+    "detail": "Cost, latency and quality examples are synthetic; there is no real task bake-off evidence.",
+    "suggestedFix": "Use an agreed evaluation dataset and measured per-call records before choosing a model on claimed performance."
+  },
+  {
+    "id": "assessment",
+    "title": "Learning assessment contract remains a draft",
+    "scope": "Network",
+    "status": "Documented gap",
+    "detail": "The synthetic assessment schema is consumer-side work, not an authoritative hub implementation or verified game outcome.",
+    "suggestedFix": "Reconcile producer review of identity, freshness and evidence contracts before live integration."
+  }
+]
+```
+<!-- admin-issues:end -->
