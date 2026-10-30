@@ -1,6 +1,7 @@
 // Embedded by build_inspector_playtest.py around the unchanged application source.
 const requests = [];
 const unexpected = [];
+const previewProgress = installPreviewProgress({document});
 // Observe real object-URL/Blob creation without fetching through the network.
 const gapBlobs = new Map();
 const URL = {
@@ -25,6 +26,7 @@ document.querySelectorAll('a').forEach(a => { if (!a.getAttribute('href')?.start
 const report = (name) => {
   const row = document.createElement('li'); row.textContent = 'PASS — ' + name;
   document.querySelector('#harness-checks').append(row);
+  previewProgress.record(name);
 };
 const check = (condition, name) => { if (!condition) throw new Error(name); report(name); };
 const textOf = id => document.getElementById(id).textContent;
@@ -439,9 +441,11 @@ try {
   check(location.hash === '#view-overview' && document.activeElement.id === 'view-overview'
     && document.getElementById('nav-overview').getAttribute('aria-current') === 'location',
     'Preview landing fragment, DOM focus and selected section agree on Overview');
+  if (!previewProgress.finish()) throw new Error('Local preview check limit reached; reload to retry.');
   document.querySelector('#harness-status').textContent = 'PASS — automatic DOM checks completed with synthetic data. Native keyboard check is separate and has NOT RUN.';
   document.documentElement.dataset.playtest = 'passed';
 } catch (error) {
+  previewProgress.fail();
   document.querySelector('#harness-status').textContent = 'FAIL — ' + error.message;
   document.documentElement.dataset.playtest = 'failed';
 }

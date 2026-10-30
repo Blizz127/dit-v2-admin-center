@@ -43,7 +43,7 @@ def source_fingerprints():
              'r10_projection.py', 'tests/fixtures/learning-evidence-e8c81be.json',
              'tests/fixtures/assignment-pages.json',
              'tests/fixtures/party-greeting-review.json', 'tools/review_party_greeting.py',
-             'tools/inspector_playtest.js', 'tools/assignment_keyboard_playtest.js', 'tools/build_inspector_playtest.py')
+             'tools/inspector_playtest.js', 'tools/preview_progress.js', 'tools/assignment_keyboard_playtest.js', 'tools/build_inspector_playtest.py')
     return {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in paths}
 
 
@@ -85,7 +85,7 @@ def build():
     html = (ROOT / 'static/index.html').read_text()
     css = (ROOT / 'static/style.css').read_text()
     app = (ROOT / 'static/app.js').read_text()
-    driver = (ROOT / 'tools/assignment_keyboard_playtest.js').read_text() + '\n' + (ROOT / 'tools/inspector_playtest.js').read_text()
+    driver = (ROOT / 'tools/preview_progress.js').read_text() + '\n' + (ROOT / 'tools/assignment_keyboard_playtest.js').read_text() + '\n' + (ROOT / 'tools/inspector_playtest.js').read_text()
     data = json.dumps(snapshot()).replace('<', '\\u003c')
     assignment_data = json.dumps(json.loads((ROOT / 'tests/fixtures/assignment-pages.json').read_text())).replace('<', '\\u003c')
     script = '(async function () {\nconst fixture = ' + data + ';\nconst assignmentFixtures = ' + assignment_data + ';\n' + driver.replace('/* APPLICATION */', app) + '\n})();'
@@ -113,6 +113,12 @@ def build():
     html = html.replace('</main>', party_review_html() + report + '</main>', 1)
     keyboard = '<p id="keyboard-status" role="status" aria-live="polite">NOT RUN — native keyboard check. Automatic DOM checks do not verify keyboard defaults.</p><button id="keyboard-start" type="button" disabled aria-describedby="keyboard-status">Start native assignment keyboard check</button>'
     html = html.replace('<p id="assignment-count"', keyboard + '<p id="assignment-count"', 1)
+    for location, marker in [('overview', '<div id="data-coverage"'), ('assignment', '<p id="assignment-count"')]:
+        progress = ('<details class="preview-report"><summary id="preview-progress-label-' + location + '">Local preview checks: NOT RUN</summary>'
+                    '<p>5-second no-progress limit; 10-second total limit. This observes preview checks, not bots or services. '
+                    'Reload this file to start a new check run.</p>'
+                    '<p id="preview-progress-' + location + '" data-state="not-run">NOT RUN</p></details>')
+        html = html.replace(marker, progress + marker, 1)
     fingerprints = html_escape.escape(json.dumps(source_fingerprints(), indent=2))
     provenance = '<details id="harness-provenance"><summary>Artifact source fingerprints</summary><p>SHA256 of local inputs at generation; not a deployment revision or browser result.</p><pre>' + fingerprints + '</pre></details>'
     html = html.replace('<ol id="harness-checks"></ol>', '<ol id="harness-checks"></ol>' + provenance, 1)

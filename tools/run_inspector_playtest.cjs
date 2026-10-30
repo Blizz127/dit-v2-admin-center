@@ -80,6 +80,10 @@ const artifactSha256 = crypto.createHash('sha256').update(html).digest('hex');
     if (errors.length) throw new Error('DOM runtime errors: ' + errors.join('; '));
     const checks = [...doc.querySelectorAll('#harness-checks li')];
     if (checks.length < 20 || checks.some(row => !row.textContent.startsWith('PASS — '))) throw new Error('Incomplete runtime assertions');
+    for (const id of ['preview-progress-overview', 'preview-progress-assignment']) {
+      const progress = doc.getElementById(id);
+      if (progress?.dataset.state !== 'passed' || Number(progress.dataset.checks) !== checks.length) throw new Error('Incomplete preview progress view');
+    }
     const result = {status: 'passed', runtime: 'jsdom', checks: checks.length, transportAttempts: blocked.length,
       artifactSha256,
       timingMs: {construction: Math.round(constructedAt - constructionStarted), completionWait: Math.round(performance.now() - started)},
