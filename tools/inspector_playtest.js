@@ -432,12 +432,15 @@ try {
         `Untrusted ${type} ${key === ' ' ? 'Space' : key} cannot produce native keyboard evidence`);
     }
   }
+  // Scripted inspection navigates through several panels. Start the owner's review
+  // with matching focus, section cue and fragment, without adding a history entry.
+  history.replaceState(null, '', '#view-overview');
+  focusWorkspaceTarget('view-overview');
+  check(location.hash === '#view-overview' && document.activeElement.id === 'view-overview'
+    && document.getElementById('nav-overview').getAttribute('aria-current') === 'location',
+    'Preview landing fragment, DOM focus and selected section agree on Overview');
   document.querySelector('#harness-status').textContent = 'PASS — automatic DOM checks completed with synthetic data. Native keyboard check is separate and has NOT RUN.';
   document.documentElement.dataset.playtest = 'passed';
-  // Scripted inspection navigates through several panels. Start the owner's review
-  // at the dashboard instead of leaving the viewport at the last test action.
-  document.getElementById('main-content').scrollIntoView({block: 'start', behavior: 'instant'});
-  markWorkspaceSection('overview');
 } catch (error) {
   document.querySelector('#harness-status').textContent = 'FAIL — ' + error.message;
   document.documentElement.dataset.playtest = 'failed';
