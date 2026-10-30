@@ -55,3 +55,34 @@ artifact `524ed94c8f7d1807baf9e80a8d60619b28763fa23c5493a9feaa9c6bf2be6260`
 The earlier 100-check receipt remains evidence for its earlier artifact only.
 Ten focused Python mock/artifact checks also passed after this source change;
 no browser rendering or native input is claimed.
+
+## Sidebar, focus order and Blob export execution
+
+Coordinator request `898e02a832bd569a`; source checkpoint `fde7d05`.
+The same pinned jsdom command passed **143 checks**, with **zero transport
+attempts**, on `build/inspector-playtest.html` (**225123 bytes**), SHA-256
+`ad55e2ea0f8ce53f2ab26d7c70f4c66fd3773b50d61954f4f7f9e956b6e19e3d`.
+Seven focused `python3 -m unittest tests.test_inspector_playtest` checks passed.
+
+- All eight sidebar links follow the declared DOM order with zero tabindex;
+  programmatic focus reaches each link, DOM click/fragment navigation focuses
+  its destination and selects exactly one section, without a fixture fetch.
+- The draft details section is opened before focus assertions. Goals,
+  personality, preview and discard remain in DOM order; forward/reverse
+  programmatic focus and untrusted Tab events do not trap focus or claim native
+  navigation. Untrusted Tab/Enter/Space/Escape key events leave the native
+  keyboard observer `not-run`.
+- The JSON Blob has the expected MIME type and filename `roster-gap-row-2.json`.
+  Its exact bytes equal the read-only copy field; parsed data retains both
+  ambiguous candidates. Refresh revokes the old object URL.
+
+The earlier intermediate 125-check run passed on artifact
+`bece369cfa46a5987f9d7729453c87a6f943e68cdae0a8ae947defb0f572cdcc`;
+it preceded the sidebar assertions and is not evidence for this final artifact.
+
+Native visual layout, trusted keyboard/default Tab/Enter behavior and actual
+browser file saving remain **NOT RUN**. The request to leave only visual
+verification open cannot be supported by jsdom evidence: Node Blob/object URLs
+and the scroll no-op are still explicit shims. No service or device changed.
+The exact candidate native commands are in `NATIVE-CURRENT-COMMAND.md`; the
+previously approved device bundle remains unchanged.
