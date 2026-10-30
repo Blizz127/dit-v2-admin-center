@@ -216,6 +216,26 @@ class OfflineInspectorHandlerTests(unittest.TestCase):
             self.assertEqual(json.loads(response.split(b'\r\n\r\n', 1)[1]), {'error': 'method not allowed'})
         self.overview.assert_not_called()
 
+    def test_protocol_errors_before_write_dispatch_keep_details_private(self):
+        cases = (
+            (400, b'POST /api/overview OMIT_PRIVATE_TARGET HTTP/1.1\r\n\r\n'),
+            (431, b'PUT http://offline.invalid/api/bridge-status HTTP/1.1\r\n'
+                  b'X-OMIT_PRIVATE_HEADER: ' + b'x' * 65536 + b'\r\n\r\n'),
+            (501, b'OMIT_PRIVATE_METHOD http://offline.invalid/api/overview HTTP/1.1\r\n\r\n'),
+        )
+        for expected, wire in cases:
+            with self.subTest(status=expected):
+                connection = MemoryConnection(wire)
+                handler = server.Handler(connection, ('127.0.0.1', 0), SimpleNamespace(admin_token='fixture-token'))
+                head, body = bytes(connection.outgoing).split(b'\r\n\r\n', 1)
+                status, headers = head.split(b'\r\n', 1)
+                self.assertEqual(int(status.split()[1]), expected)
+                self.assert_error_envelope(BytesParser().parsebytes(headers), body)
+                self.assertEqual(json.loads(body)['error'],
+                                 'method not supported' if expected == 501 else 'request rejected')
+                self.assertTrue(handler.close_connection)
+        self.overview.assert_not_called()
+
     def test_unknown_control_paths_and_write_methods_cannot_reach_dependencies(self):
         for path in ('/api/model', '/api/stop', '/api/unknown?token=OMIT_PRIVATE_QUERY'):
             with self.subTest(path=path):

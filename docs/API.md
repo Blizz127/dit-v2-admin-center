@@ -553,3 +553,17 @@ parse attempts and live dependencies were forbidden in the new payload check;
 no listener, credential read, service restart or device action was used.
 Existing socket-suite status expectations were aligned to 405, but that broader
 suite was not run for this focused change. Standalone preview bytes are unchanged.
+
+Protocol errors raised before write dispatch also use fixed JSON errors. The
+handler no longer depends on an already-assigned `/api/` path to redact parser
+errors: malformed request syntax can fail before path assignment, and
+absolute-form API targets previously missed that check. Parser status codes
+remain unchanged (including 400 and 431); unknown methods retain 501. Messages
+are `request rejected`, or `method not supported` for 501, without request,
+header or parser details. This policy also applies to non-API protocol errors.
+HEAD still omits the body; the HTTP parser's framing behavior is unchanged.
+
+A focused memory-only regression reproduced all three HTML error paths before
+the fix. Five checks then passed covering those cases, POST/PUT body refusal,
+HEAD and API error envelopes. No live dependency or listener was used; no native
+browser verification or running-service update is claimed.

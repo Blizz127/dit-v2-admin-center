@@ -292,14 +292,11 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(body)
 
     def send_error(self, code, message=None, explain=None):
-        if getattr(self, 'path', '').split('?', 1)[0].startswith('/api/'):
-            # BaseHTTPRequestHandler otherwise emits HTML including request details.
-            # Preserve its status code without reflecting method/path/parser text.
-            self.close_connection = True
-            error = 'method not supported' if code == 501 else 'request rejected'
-            self.send_content(code, 'application/json', json.dumps({'error': error}).encode())
-            return
-        super().send_error(code, message, explain)
+        # Parser errors can precede path assignment or use absolute-form targets.
+        # Redact uniformly rather than relying on an already-parsed API path.
+        self.close_connection = True
+        error = 'method not supported' if code == 501 else 'request rejected'
+        self.send_content(code, 'application/json', json.dumps({'error': error}).encode())
 
     def reject_write(self):
         # No write routes exist. Do not read, decode or drain any request body,
