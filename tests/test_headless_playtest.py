@@ -2,6 +2,9 @@
 import unittest
 import io
 import json
+import hashlib
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from contextlib import redirect_stdout, redirect_stderr
 from unittest.mock import patch
 
@@ -15,6 +18,40 @@ def completed_document():
 
 
 class HeadlessRunnerTests(unittest.TestCase):
+    def test_artifact_pin_refuses_mismatch_and_cleans_generated_file(self):
+        with TemporaryDirectory() as directory:
+            with patch.object(runner.tempfile, 'tempdir', directory), \
+                    patch.object(runner.shutil, 'which', side_effect=lambda name: '/fixture/' + name), \
+                    patch.object(runner, 'build', return_value='<html>changed</html>'), \
+                    patch.object(runner, 'run_bounded', return_value=(0, '', '')) as run:
+                self.assertEqual(runner.main(expected_artifact_sha256='a'*64), 1)
+                self.assertEqual(run.call_count, 1)  # Fabricated isolation check only.
+                self.assertEqual(list(Path(directory).iterdir()), [])
+
+    def test_invalid_pin_does_not_resolve_or_launch_any_runtime(self):
+        for invalid in ('', 'A'*64, 'g'*64, True, 'private/path'):
+            with patch.object(runner.shutil, 'which') as which, \
+                    patch.object(runner, 'build') as build, patch.object(runner, 'run_bounded') as run:
+                self.assertEqual(runner.main(expected_artifact_sha256=invalid), 1)
+                which.assert_not_called()
+                build.assert_not_called()
+                run.assert_not_called()
+
+    def test_matching_pin_is_utf8_and_still_requires_completed_dom(self):
+        artifact = '<html>synthetic 名é</html>'
+        digest = hashlib.sha256(artifact.encode('utf-8')).hexdigest()
+        for document, expected in ((completed_document(), 0), ('<html>incomplete</html>', 1)):
+            output = io.StringIO()
+            with patch.object(runner.shutil, 'which', side_effect=lambda name: '/fixture/' + name), \
+                    patch.object(runner, 'build', return_value=artifact), \
+                    patch.object(runner, 'run_bounded', side_effect=[(0, '', ''), (0, document, '')]), \
+                    redirect_stdout(output):
+                self.assertEqual(runner.main(expected_artifact_sha256=digest), expected)
+            if expected == 0:
+                self.assertEqual(json.loads(output.getvalue())['artifactSha256'], digest)
+            else:
+                self.assertEqual(output.getvalue(), '')
+
     def setUp(self):
         # A fabricated browser success must not look like a real runtime receipt.
         for redirect in (redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO())):

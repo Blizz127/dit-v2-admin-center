@@ -368,3 +368,35 @@ on its second simulated Enter, asserts the helper is still pending, then writes
 the exact report and verifies the resulting receipt. Thus the completion wait
 is tested through the same helper the headless runner calls, not just its file
 validator. This remains fabricated protocol/file evidence, not native input.
+
+## Current Devbox preflight and exact commands (October 30)
+
+Coordinator request `cef10d51c1628003`: executable-only preflight still reports
+Chromium missing, with Node, unshare and true found. No browser was found in the
+checked user Playwright Chromium cache or standard `/opt/google/chrome`,
+`/usr/lib/chromium`, `/usr/lib64/chromium-browser` locations. This is a bounded
+inventory, not a claim that every filesystem location was searched. No runtime
+was installed and the previously denied namespace operation was not retried.
+All five initial source tasks remain complete.
+
+The DOM-only runner now supports the same exact-preview guard as the keyboard
+runner and reports `artifactSha256`. The guard refuses a mismatched generated
+artifact before browser launch. Focused synthetic tests cover invalid hashes,
+mismatch cleanup, UTF-8 matching and incomplete DOM reports; a matching hash
+alone never establishes success. Twenty focused headless/keyboard runner tests
+passed with fabricated process outputs, not real runtime execution.
+
+For an authorized host with an installed Chromium selected via `DIT_CHROMIUM`,
+these are the exact current-source commands from the repository root:
+
+```sh
+# Automatic DOM checks only; no native input or download claim.
+python3 tools/run_headless_playtest.py --expected-artifact-sha256 d2765fd16eba26ee5d56708b4b6809f4f4608493816f5f67dda4ea8530fcc252
+# Native assignment/sidebar keys, audit selectors and disposable gap download.
+python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --expected-artifact-sha256 d2765fd16eba26ee5d56708b4b6809f4f4608493816f5f67dda4ea8530fcc252
+```
+
+Both commands retain internal process/output deadlines and network isolation.
+Neither was executed here; native rendering, input and saving remain NOT RUN.
+These commands describe current source, not the separately approved `8eb2c9f`
+device bundle. They grant no device execution, runtime install or isolation bypass.

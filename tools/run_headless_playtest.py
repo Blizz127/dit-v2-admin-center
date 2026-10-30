@@ -4,6 +4,8 @@ No browser installation, server, credentials or sandbox-disabling flags.
 Missing runtime/isolation exits 2; failed or incomplete DOM checks exit 1.
 """
 import json
+import argparse
+import hashlib
 import os
 from pathlib import Path
 import shutil
@@ -112,7 +114,12 @@ class Result(HTMLParser):
                 and any('Both bridge cards recover' in row for row in self.rows))
 
 
-def main():
+def main(expected_artifact_sha256=None):
+    if expected_artifact_sha256 is not None and (
+            not isinstance(expected_artifact_sha256, str) or len(expected_artifact_sha256) != 64
+            or any(c not in '0123456789abcdef' for c in expected_artifact_sha256)):
+        print('FAIL: expected artifact SHA-256 must be 64 lowercase hex characters.', file=sys.stderr)
+        return 1
     requested = os.environ.get('DIT_CHROMIUM')
     browser = shutil.which(requested) if requested else next(
         (path for name in ('chromium', 'chromium-browser', 'google-chrome', 'chrome-headless-shell')
@@ -130,7 +137,11 @@ def main():
         return 2
     with tempfile.TemporaryDirectory(prefix='dit-headless-') as directory:
         artifact = Path(directory) / 'playtest.html'
-        artifact.write_text(build())
+        artifact.write_bytes(build().encode('utf-8'))
+        artifact_digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
+        if expected_artifact_sha256 is not None and artifact_digest != expected_artifact_sha256:
+            print('FAIL: generated artifact differs from expected SHA-256; no browser started.', file=sys.stderr)
+            return 1
         command = isolation + [browser, '--headless', '--disable-gpu', '--disable-background-networking',
                                '--no-first-run', '--no-default-browser-check',
                                '--user-data-dir=' + directory + '/profile', '--dump-dom',
@@ -141,6 +152,7 @@ def main():
             print('FAIL: browser exited unsuccessfully or artifact checks were incomplete.', file=sys.stderr)
             return 1
         print(json.dumps({'status': 'passed', 'runtime': browser, 'checks': len(result.rows),
+                          'artifactSha256': artifact_digest,
                           'nativeKeyboard': result.keyboard_status,
                           'network': 'isolated namespace; inline synthetic responses',
                           'limitations': 'Automatic DOM execution; this runner does not inject native keys. No visual review, HTTP listener or live integration'}))
@@ -149,7 +161,10 @@ def main():
 
 if __name__ == '__main__':
     try:
-        sys.exit(main())
+        parser = argparse.ArgumentParser(description=__doc__)
+        parser.add_argument('--expected-artifact-sha256', help='Refuse browser launch if the generated preview differs from this hash')
+        args = parser.parse_args()
+        sys.exit(main(expected_artifact_sha256=args.expected_artifact_sha256))
     except (OSError, RuntimeError) as error:
         print('FAIL: ' + str(error), file=sys.stderr)
         sys.exit(1)
