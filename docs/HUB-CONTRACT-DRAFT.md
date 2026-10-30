@@ -238,3 +238,79 @@ A future separately authorized administrative change requires versioned compare-
 5. Which ledger provides request-to-attempt attribution, and how will version, availability and reconciliation be established without merging separate stores?
 
 No live health polling, tokens or service writes are approved by this draft. Blizz approved the design draft; the owning hub lead must review its unresolved details before any proposed shape is treated as an implemented authoritative contract. Separate authorization is needed for future live changes.
+
+## Isolated mock routing write proposal — October 30
+
+Coordinator request `69470423e9a03dda`; implementation `30b8f30`, conflicting-writer
+check `7e5c7cf`, older-receipt replay check `fdfccc1`. This is a **new proposal for
+review**, not hub agreement or authority to remove the holds above.
+`mock_routing_api.MockRoutingAPI` wraps the existing `MockRouting` fixture in a
+callable, in-process request/response interface. It is not imported by the web
+server, has no listener, and writes only its own finite in-memory state. The
+string `/mock/v1/routing` is a mock dispatch key, not a registered HTTP route.
+The actual Admin Center handler refuses POST to it with 405, including when the
+owner token is supplied. UI model controls stay disabled.
+
+Example request: `tests/fixtures/mock-routing-write.json`.
+
+| Required field | Proposed mock rule |
+| --- | --- |
+| `contract`, `environment` | Exactly `dit-admin-mock-routing-v1`, `synthetic` |
+| `requestId` | Opaque ASCII token, at most 96 characters; identifies one accepted proposal |
+| `expectedVersion` | Nonnegative integer up to 2^53−1; booleans are refused; must equal the fixture version |
+| `targets` | 1–32 explicit unique scopes with exactly `game`, `realm`, `nativeBot`, `purpose`; every value is a bounded token and every key must be configured in the fixture |
+| `model` | Bounded token on the fixture's exact model allowlist; no provider/account lookup or fallback |
+| `reason` | Nonblank text, at most 256 characters, no control characters |
+
+Unknown fields are refused, including a body-supplied actor. The actor is a fixed
+fixture constructor argument, **not authenticated identity or an authorization
+mechanism**. The body is UTF-8 JSON bytes up to 16 KiB, with duplicate keys,
+non-finite tokens, malformed scopes and invalid field types refused. This is a
+Python validator plus executable examples, not a registered JSON Schema or
+negotiated hub wire format. Errors contain fixed messages, never body contents.
+
+`request('POST', PATH, body)` returns a `(status, JSON-compatible-body)` pair:
+
+- 200: `applied-synthetic`, original request ID, version and target count,
+  `kind: synthetic`, `liveEffect: false`. This is never a live effective-route claim.
+- 400/413: malformed or oversized input; 404/405: unknown mock path/method.
+- 409: version conflict or reuse of an accepted request ID with different content.
+- 422: fixture scope/model not allowed; 429: the 256-accepted-request lifetime cap.
+
+All targets validate before one compare-and-set update. An invalid batch leaves
+version, policies and audit unchanged. Requests are serialized within one mock
+object. Two different requests at the same version have one winner. Identical
+retries return the original receipt without another mutation/audit entry, even
+if newer state now exists; use mock GET for current state. JSON object key order
+is ignored by equality, but target-array order and reason text remain part of
+the request. Reusing an accepted ID with different content conflicts. Rejected
+requests are not cached: they may be resubmitted after a corrected read/version.
+At capacity, identical accepted retries remain available; new requests fail.
+
+`request('GET', PATH)` returns synthetic policies and accepted-change audit with
+actor, reason, timestamp, explicit scope and before/after model. Rejected attempts
+are not added to this example audit. Responses cannot mutate stored state. The
+fixture clock, allowlist and identities have no authoritative source. Data and
+idempotency records disappear with the object; no restart persistence, recovery,
+real authentication, permissions, budgets, credentials or device/game safety
+implementation is claimed. “All bots” is only an explicit supplied target list,
+never future roster members or a live inventory scan.
+
+Executed: eight initial focused checks (`tests.test_mock_routing_api` and
+`tests.test_mock_routing`), then two new focused checks for conflicting writers
+and retry after a later change; all passed. Socket/subprocess access is forbidden
+in the new suite. The production-handler refusal check runs in memory, not on a
+listener. No browser/deployment/live run occurred; the standalone artifact did
+not change.
+
+Reproduce the complete focused set:
+
+```sh
+python3 -m unittest tests.test_mock_routing_api tests.test_mock_routing
+```
+
+Hub review still must settle native/instance binding authority, real actor/access
+checks, persistent idempotency retention, rejected-action audit, provider/account
+allowlists, concurrent/restart behavior, fixed versus evolving global targets,
+and failure/rollback semantics. This mock is concrete material for that review,
+not permission to connect it to an HTTP mutation route.

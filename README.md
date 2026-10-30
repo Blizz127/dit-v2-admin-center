@@ -607,3 +607,15 @@ matching app code in a synthetic DOM. The report pins the HTML hash and records
 visible rows/counts. It is not a screenshot, full-driver run, native layout or
 keyboard verification. Stale app bytes or missing readiness elements fail. See
 [the evidence guide](docs/WAKE-VERIFICATION-RECEIPT.md) for scope and remaining gaps.
+
+### Isolated synthetic write-contract checks
+
+```sh
+python3 -m unittest tests.test_mock_routing_api tests.test_mock_routing
+```
+
+These exercise an in-process routing proposal, exact fixture scope, atomic
+version checks, bounded retries, concurrent conflicts and audit copies. They
+also confirm the real HTTP handler still refuses the mock dispatch path with
+405. No write listener, UI control, provider call or live change is enabled.
+See [the proposed contract](docs/HUB-CONTRACT-DRAFT.md#isolated-mock-routing-write-proposal--october-30).

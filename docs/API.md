@@ -827,3 +827,14 @@ or non-synthetic envelope clears the examples and shows unavailable coverage.
 Every case states live presence is Unknown and is not attached to a selected
 bot. This is not an authoritative hub contract, a presence evaluator or a new
 endpoint. It neither changes roster states nor enables a write action.
+
+### Isolated write-contract mock (not an HTTP endpoint)
+
+`mock_routing_api.MockRoutingAPI.request` is an in-process proposal over the
+existing synthetic routing simulation. Its `/mock/v1/routing` dispatch key is
+**not** registered on `server.Handler`; all real HTTP write methods still return
+405 without reading bodies. No UI action calls this object. Strict synthetic
+scope/version validation, atomic fixture updates, bounded idempotent retries and
+JSON-compatible audit/readback are described in
+[the mock contract proposal](HUB-CONTRACT-DRAFT.md#isolated-mock-routing-write-proposal--october-30).
+No authoritative write contract, live audit, credentials or deployment is implied.

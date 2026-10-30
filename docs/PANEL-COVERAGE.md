@@ -110,3 +110,10 @@ observations and mismatched native identity. The UI accepts only a synthetic
 envelope, withholds malformed cases, renders literal text and never associates
 a case with the selected bot. Every case retains Live presence: Unknown.
 This is explanatory review, not a new hub schema or evidence evaluator.
+
+Row 3 write-contract preparation (`30b8f30`, `7e5c7cf`, `fdfccc1`) now has an
+isolated in-process mock request/response interface over the existing routing
+simulation. It exercises strict synthetic inputs, explicit target sets, version
+conflicts, bounded idempotent retries and audit/readback. It is not registered
+with the mock web server: actual HTTP POST remains 405 and UI controls stay
+disabled. The hub contract/authority dependency in the table remains open.
