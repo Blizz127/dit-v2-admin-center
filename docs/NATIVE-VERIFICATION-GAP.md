@@ -17,12 +17,11 @@ bypass is authorized. Approval is not an execution pass. See the exact pinned
 | Alienware `236cd862` | Original preview, owner viewed and supplied design feedback; retained unchanged |
 | Alienware `691f6c5d` | Redesigned layout, delivery hash verified; native checks not run by Admin |
 | Handoff `ef740241` | Exact approved runner/UI pin `8eb2c9f`; packaged for device lead, not yet executed; older than latest local preview |
-| Local `2e4795c2` | Latest offline preview includes reviewed 8450/Ashes/LOTRO source context, explicitly unchecked in standalone; native pin and delivered previews unchanged |
+| Local `0a4d7168` | Latest offline preview separates dated 8450 cutover completion from game readiness; local sources remain unchecked in standalone; native pin and delivered previews unchanged |
 
-Latest local file: `build/inspector-playtest.html`, 195683 bytes, generated at
-source checkpoint `9befc72`, adding reviewed local-source context separately from
-per-game acceptance. SHA-256:
-`2e4795c25a65bdc45e8c4a0e72c70d7496ea7364b938ddcfe6be3860c4ebf716`.
+Latest local file: `build/inspector-playtest.html`, 196623 bytes, with UI source
+checkpoint `1fbc5bb`, separating cutover receipt readiness from per-game acceptance.
+SHA-256: `0a4d7168c019456b2993eefcf45e6cbd85ddcbe90a1aa91e36732c92c622ef62`.
 Do not apply a result from an older file to this version. The native runner now
 includes `artifactSha256` in its successful result, computed from the exact
 temporary HTML it generated before launch.
