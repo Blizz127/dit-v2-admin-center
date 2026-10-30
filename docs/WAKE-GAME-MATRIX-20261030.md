@@ -38,3 +38,8 @@ remains Unknown; public availability is not successful sign-in.
 
 The native-test package8eb2c9f remains separate and unchanged. No result for
 its old artifact can validate this new table or later status-card revisions.
+
+Validation at609851f: two focused changed-card/matrix checks passed after fixing
+an assertion's wording to match the scope notice; two generated-artifact asset/CSP
+and JavaScript syntax checks passed. No native rendering, scrolling, keyboard or
+live service check ran. Preview fingerprint is in NATIVE-VERIFICATION-GAP.md.
