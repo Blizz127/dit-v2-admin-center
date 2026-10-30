@@ -650,3 +650,11 @@ checks additionally forbid body reads/JSON parsing, including actual payloads
 over 1 MiB. Socket buffering may prefetch bytes; zero ingestion refers to
 application consumption, not a claim that the kernel receives no body bytes.
 No listener, live service, token-file access or device action was used.
+
+If an aborted upload disconnects during request acquisition or while the refusal
+is being sent, BrokenPipeError/ConnectionResetError now close the handler without
+retrying output or propagating a peer-disconnect traceback. No delivered response
+is claimed when the peer cannot receive it. The regression first reproduced both
+write failures and a read reset; four focused checks passed after the fix,
+including partial-body/pipelined refusal, response timeout handling and measured
+trickle deadlines. Other unexpected exception types are not blanket-suppressed.

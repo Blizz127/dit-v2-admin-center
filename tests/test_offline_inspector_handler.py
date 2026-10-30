@@ -374,6 +374,22 @@ class OfflineInspectorHandlerTests(unittest.TestCase):
         self.assertNotIn(b'408', calls[0])
         self.overview.assert_not_called()
 
+    def test_disconnected_write_client_closes_without_another_response(self):
+        for failure in (BrokenPipeError, ConnectionResetError):
+            with self.subTest(failure=failure.__name__):
+                connection = MemoryConnection(b'POST /api/bridge-status HTTP/1.1\r\nContent-Length: 999\r\n\r\n')
+                connection.sendall = Mock(side_effect=failure('OMIT_PRIVATE_PEER_DETAIL'))
+                handler = server.Handler(connection, ('127.0.0.1', 0), SimpleNamespace(admin_token='fixture-token'))
+                self.assertTrue(handler.close_connection)
+                connection.sendall.assert_called_once()
+                self.assertTrue(connection.sendall.call_args.args[0].startswith(b'HTTP/1.0 405 '))
+        connection = MemoryConnection(b'')
+        connection.incoming.readline = Mock(side_effect=ConnectionResetError('OMIT_PRIVATE_READ_RESET'))
+        handler = server.Handler(connection, ('127.0.0.1', 0), SimpleNamespace(admin_token='fixture-token'))
+        self.assertTrue(handler.close_connection)
+        self.assertEqual(bytes(connection.outgoing), b'')
+        self.overview.assert_not_called()
+
     def test_unknown_control_paths_and_write_methods_cannot_reach_dependencies(self):
         for path in ('/api/model', '/api/stop', '/api/unknown?token=OMIT_PRIVATE_QUERY'):
             with self.subTest(path=path):

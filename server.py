@@ -373,6 +373,10 @@ class Handler(BaseHTTPRequestHandler):
                 except OSError:
                     # A stalled/disconnected peer may not accept the refusal.
                     pass
+        except (BrokenPipeError, ConnectionResetError):
+            # An aborted upload may disconnect before receiving its refusal.
+            # Do not retry a response or bubble a normal peer failure to the server.
+            self.close_connection = True
         finally:
             self.rfile = original
 
