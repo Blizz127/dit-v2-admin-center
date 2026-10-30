@@ -28,6 +28,7 @@ from session_markers import admin_markers, binding_issues, claude_markers, hando
 from r10_projection import project_health, project_learning, project_learning_attention, project_roster
 from routing_audit import examples as routing_audit_examples
 from wake_verification import read as read_wake_verification
+from operation_sources import read as read_operation_sources
 
 PROJECT = Path(__file__).resolve().parent
 ROOT = PROJECT / "static"
@@ -169,6 +170,7 @@ def overview(source='mock'):
     add_checkout_history(lead_history, {'DIT v2 hub lead': hub_project, 'Admin Center lead': PROJECT})
     snapshot = {
         "mode": "mock", "generatedAt": datetime.now(timezone.utc).isoformat(),
+        "operationSources": read_operation_sources(home),
         "wakeVerification": read_wake_verification(LOCAL_DATA / 'wake-verification.json'),
         "ownerAttention": owner_attention,
         "ffxiFocus": {

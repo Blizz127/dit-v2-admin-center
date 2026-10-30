@@ -58,6 +58,22 @@ for (const section of workspaceSections) {
 function panelSessionCurrent(requestToken, session) {
   return !workspace.hidden && token === requestToken && sessionVersion === session;
 }
+function renderOperationSources(data) {
+  const panel = document.getElementById('operation-sources');
+  panel.replaceChildren();
+  const rows = data?.schema === 'dit-admin-operation-sources-v1' && Array.isArray(data.rows) ? data.rows : [];
+  for (const id of ['wake-8450', 'ashes', 'lotro']) {
+    const matches = rows.filter(row => row && row.id === id);
+    const row = matches.length === 1 ? matches[0] : null;
+    const fields = ['title', 'state', 'reported', 'missing', 'reference', 'sha256'];
+    if (!row || !fields.every(key => typeof row[key] === 'string' && row[key].length <= 500)) {
+      item(panel, id, 'Source coverage unknown', 'No acceptance claim');
+      continue;
+    }
+    item(panel, `${row.title} · ${row.state}`, `Dated report: ${row.reported} Missing evidence: ${row.missing}`,
+      `${row.reference} · Reviewed SHA-256 ${row.sha256} · Current health unknown`);
+  }
+}
 function renderWakeVerification(data) {
   const games = ['wow-vanilla', 'wow-forever', 'firefall', 'eden', 'blacklight', 'tabula-rasa', 'ffxi', 'war', 'enb', 'planetside', 'marvel-heroes', 'rose'];
   const rows = data?.schema === 'dit-admin-wake-readback-v1' && Array.isArray(data.rows) ? data.rows : [];
@@ -76,6 +92,7 @@ function renderWakeVerification(data) {
 }
 function resetPanelSession() {
   renderWakeVerification(null);
+  renderOperationSources(null);
   markWorkspaceSection(null);
   sessionVersion++;
   currentSnapshot = null; loadedSource = null;
@@ -1115,6 +1132,7 @@ async function load() {
       `${routingText(h.label)} · ${routingText(h.game)}`, `${routingText(h.status)} · ${routingText(h.detail)}`,
       `${routingText(h.source)} · Observed: ${routingText(h.observedAt)} · May be stale`));
     renderWakeVerification(data.wakeVerification);
+    renderOperationSources(data.operationSources);
     renderCoordinatorPanels();
     renderLeadTimeline();
     renderQuotaHistory();
@@ -1142,6 +1160,7 @@ async function load() {
   } catch (e) {
     if (!current()) return;
     renderWakeVerification(null);
+    renderOperationSources(null);
     sourceLoading = false;
     if (currentSnapshot && loadedSource && !unauthorized && !rendering) {
       document.querySelector('#hub-banner').textContent = `Refresh failed. Showing previous ${loadedSource} request snapshot from ${currentSnapshot.generatedAt || 'unknown time'}; selected source may not match. Check each feed's source.`;

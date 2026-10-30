@@ -107,6 +107,28 @@ class OfflineOverviewCollectionTests(unittest.TestCase):
         self.assertNotIn(b'OMIT_PRIVATE', body)
         return int(status.split()[1]), json.loads(body)
 
+    def test_operation_notes_refresh_without_promoting_game_acceptance(self):
+        import operation_sources
+        self.seed()
+        raw = b'OMIT_PRIVATE source report'
+        spec = dict(operation_sources.SOURCES[0], path='note.md',
+                    sha256=hashlib.sha256(raw).hexdigest())
+        path = self.home / 'note.md'
+        path.write_bytes(raw)
+        with patch.object(operation_sources, 'SOURCES', (spec,)):
+            before = self.fingerprint()
+            status, data = self.request()
+            self.assertEqual(status, 200)
+            self.assertEqual(data['operationSources']['rows'][0]['state'], 'Reviewed bytes match')
+            self.assertTrue(all(r['status'] in ('Unverified', 'Held') for r in data['wakeVerification']['rows']))
+            self.assertEqual(self.fingerprint(), before)
+            path.write_bytes(b'changed')
+            _, data = self.request()
+            self.assertEqual(data['operationSources']['rows'][0]['state'], 'Source changed — review required')
+            path.unlink()
+            _, data = self.request()
+            self.assertEqual(data['operationSources']['rows'][0]['state'], 'Source unavailable')
+
     def test_wake_receipt_refresh_and_withdrawal_are_local_only(self):
         from tests.test_wake_verification import receipt
         self.seed()
