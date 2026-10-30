@@ -13,7 +13,8 @@ from server import Handler
 
 
 class SocketDeadlineTests(unittest.TestCase):
-    def exchange(self, handler_type, prefix, trickle=False, expected_status=408, trickle_chunk=b'x'):
+    def exchange(self, handler_type, prefix, trickle=False, expected_status=408,
+                 trickle_chunk=b'x', chunks=None):
         client, peer = socket.socketpair()
         errors = []
         stopped = threading.Event()
@@ -30,10 +31,14 @@ class SocketDeadlineTests(unittest.TestCase):
                 errors.append(error)
 
         def feed():
+            sequence = iter(chunks) if chunks is not None else None
             while not stopped.wait(0.04):
                 try:
-                    client.sendall(trickle_chunk)
+                    chunk = next(sequence) if sequence is not None else trickle_chunk
+                    client.sendall(chunk)
                     sent.append(time.monotonic())
+                except StopIteration:
+                    return
                 except OSError:
                     return
 
@@ -73,7 +78,8 @@ class SocketDeadlineTests(unittest.TestCase):
             status, raw_headers = head.split(b'\r\n', 1)
             headers = BytesParser().parsebytes(raw_headers)
             self.assertEqual(int(status.split()[1]), expected_status)
-            self.assertEqual(json.loads(body), {'error': 'method not allowed' if expected_status == 405 else 'request rejected'})
+            error = {405: 'method not allowed', 401: 'unauthorized'}.get(expected_status, 'request rejected')
+            self.assertEqual(json.loads(body), {'error': error})
             if expected_status == 405:
                 self.assertEqual(headers['Allow'], 'GET')
                 self.assertEqual(headers['Connection'], 'close')
@@ -164,6 +170,21 @@ class SocketDeadlineTests(unittest.TestCase):
         self.assertLess(elapsed, 2)
         self.assertGreaterEqual(len(sent), 5)
         print(f'completed-header trickle: {elapsed:.3f}s, {len(sent)} lines (total 0.65s)', flush=True)
+
+    def test_headers_completed_in_time_reach_normal_authentication(self):
+        class ShortDeadline(Handler):
+            timeout = 0.25
+            request_timeout = 0.8
+
+        # Total acquisition exceeds the idle interval, but each arrival is
+        # timely and the terminating blank line arrives before the total limit.
+        chunks = [b'X-Probe: completed\r\n'] * 8 + [b'\r\n']
+        elapsed, sent = self.exchange(ShortDeadline, b'GET /api/overview HTTP/1.1\r\n',
+                                      trickle=True, expected_status=401, chunks=chunks)
+        self.assertEqual(len(sent), len(chunks))
+        self.assertGreater(elapsed, ShortDeadline.timeout)
+        self.assertLess(elapsed, ShortDeadline.request_timeout)
+        print(f'completed within budget: {elapsed:.3f}s, ordinary 401 (idle 0.25s / total 0.8s)', flush=True)
 
     def test_partial_chunk_and_pipelined_request_cannot_reach_readers(self):
         for framing, body in ((b'Content-Length: 1', b'x'),

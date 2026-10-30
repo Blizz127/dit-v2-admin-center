@@ -680,3 +680,14 @@ and `1f2472a` (aborted clients), plus the measured checks above. New write-body
 parsing, drains or alternative size/time limits are not pending implementations.
 These are local handler checks; running-service deployment, external-network
 load behavior and native browser verification remain outside this evidence.
+
+**Completed-header deadline outcome: PASS, not an open defect.** A stream that
+keeps sending header lines without terminating the block must eventually receive
+408. Conversely, a block completed inside the total budget proceeds to ordinary
+authentication. The complementary socket-pair check sent eight header lines and
+the final blank line at 40 ms intervals: it received the expected unauthenticated
+401 at **0.367 seconds**, exceeding the test idle interval of 0.25 seconds while
+remaining inside its 0.8-second total budget. No collector ran. Both this check
+and the over-budget completed-header check passed. There is no requested or
+pending relaxation of the total deadline; further changes need a concrete new
+failure or requirement, rather than treating this successful refusal as a gap.
