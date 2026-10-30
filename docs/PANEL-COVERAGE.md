@@ -61,3 +61,14 @@ actual-app checks cover 3/9/11 equal maxima plus maximum/zero; existing missing
 values, zero and scope grouping cases still pass. The rebuilt artifact passes
 143 jsdom checks with zero transport attempts. This is a numeric display fix,
 not a benchmark, live usage measurement or browser-verification claim.
+
+Panel 4 sample review (`3f8362a`): each exact model/purpose/source group now has a
+collapsed disclosure with the supplied observation labels, latency, cost and
+quality for its rows. Missing values remain Unknown; row numbers are positions
+within the group, not stable call identities. The existing numeric-availability
+filter governs both means and sample tables. Refresh replaces the disclosures;
+unavailable data clears them. Captions retain group provenance and explicitly
+avoid verified freshness. Supplied strings are rendered as text. Tables have
+scoped headers and a focusable horizontal scroll region for narrow viewports;
+actual visual layout and native disclosure keyboard behavior are unverified.
+No provider request, model selection, write control or export was added.

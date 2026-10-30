@@ -134,3 +134,21 @@ Native status remains `not-run`. No browser installation or namespace retry
 was performed: the documented Devbox isolation denial remains independently
 unresolved. The current command document pins this new preview; prior receipts
 remain tied to their earlier hashes.
+
+## Grouped model sample review
+
+Coordinator `00b2f207c3180b11`; source `3f8362a`. Added a read-only disclosure
+table per exact model/purpose/source group. Focused actual-app comparison tests
+passed, including distinct groups, missing observations, zeros and Unknown
+measurements. Seven artifact checks passed before the final three refresh/text
+assertions were added; the final complete artifact then passed **152 jsdom
+checks**, with **zero transport attempts**.
+
+Final preview: **230095 bytes**, SHA-256
+`a0adae84cc23371f673ad3f65ff0cd91c81e3ed3617e52a42cd3fcfab629b447`.
+The DOM run verified disclosure activation, scoped headers, local filtering,
+literal markup in source/time labels, removal of old rows on unavailable data
+and recovery from a new snapshot. The intermediate 149-check run applied to
+`9acfbc62f147b5308f01d51e44daff84b9a65adca0568c48ca26de4ab2b7a5a7`,
+not this final artifact. Native rendering, keyboard defaults and file saving
+remain NOT RUN; no live services or devices were used.

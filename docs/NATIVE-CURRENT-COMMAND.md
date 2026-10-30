@@ -1,8 +1,8 @@
 # Current local preview verification commands
 
-UI checkpoint: `538ae44` (finite latency means; sidebar/draft/export assertions retained).
-Local artifact: `build/inspector-playtest.html`, **225233 bytes**.
-SHA-256: `feb22d78b00929fbfb0452baa8b2b91c19ac100fd28331017b688db8f50c65f2`.
+UI checkpoint: `3f8362a` (expandable grouped model samples; prior checks retained).
+Local artifact: `build/inspector-playtest.html`, **230095 bytes**.
+SHA-256: `a0adae84cc23371f673ad3f65ff0cd91c81e3ed3617e52a42cd3fcfab629b447`.
 
 ## Executed DOM fallback
 
@@ -12,7 +12,7 @@ From this checkout with the pinned local tool dependency:
 DIT_JSDOM_MODULE="$PWD/build/dom-runtime/node_modules/jsdom" timeout 15 node tools/run_inspector_playtest.cjs
 ```
 
-Actual result: **143 checks passed**, jsdom 26.1.0, zero transport attempts,
+Actual result: **152 checks passed**, jsdom 26.1.0, zero transport attempts,
 artifact hash as above, `nativeKeyboard: not-run`. The runner uses Node
 Blob/object URLs and a no-op scroll shim. Checks include draft input labels,
 successful-preview focus retention, invalid goals/personality focus, empty-form
@@ -22,6 +22,9 @@ DOM Tab-order candidates in both directions, untrusted key events staying
 `not-run`, the exact JSON download filename, Blob/copy byte equality and object
 URL revocation after refresh. Programmatic focus and DOM clicks do not test
 browser Tab/Enter defaults; the Blob assertion does not save a file.
+Grouped sample review also checks DOM disclosure, exact group rows, zero versus
+Unknown, scoped table headers, filtering, text-only provenance and stale-row
+removal/recovery.
 See [DOM verification evidence](DOM-VERIFICATION-20261030.md) for installation,
 first failure and first successful run history.
 
@@ -53,8 +56,8 @@ On an authorized host with existing Chromium/Node selected through
 `DIT_CHROMIUM` / `DIT_NODE`:
 
 ```sh
-python3 tools/run_headless_playtest.py --expected-artifact-sha256 feb22d78b00929fbfb0452baa8b2b91c19ac100fd28331017b688db8f50c65f2
-python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 feb22d78b00929fbfb0452baa8b2b91c19ac100fd28331017b688db8f50c65f2
+python3 tools/run_headless_playtest.py --expected-artifact-sha256 a0adae84cc23371f673ad3f65ff0cd91c81e3ed3617e52a42cd3fcfab629b447
+python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 a0adae84cc23371f673ad3f65ff0cd91c81e3ed3617e52a42cd3fcfab629b447
 ```
 
 The previous Chromium attempt against artifact `96d4b70e` exited 2 before browser
