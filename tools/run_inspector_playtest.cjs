@@ -73,6 +73,7 @@ const artifactSha256 = crypto.createHash('sha256').update(html).digest('hex');
       if (now - lastProgress > 5000) throw Object.assign(new Error('Harness made no assertion progress within five seconds'), {code:'DOM_COMPLETION_TIMEOUT'});
       await new Promise(resolve => setTimeout(resolve, 10));
     }
+    if (performance.now() > deadline) throw Object.assign(new Error('Harness did not finish within ten seconds'), {code:'DOM_TOTAL_TIMEOUT'});
     const doc = dom.window.document;
     if (doc.documentElement.dataset.playtest !== 'passed') throw new Error(doc.querySelector('#harness-status').textContent);
     if (blocked.length) throw new Error('Blocked transport attempts: ' + blocked.join(', '));
