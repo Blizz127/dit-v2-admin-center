@@ -87,3 +87,12 @@ Unknown. Other bots and blank IDs are withheld. Duplicate selected roster IDs
 remain ambiguous and cannot display assignments. All-unusable/unavailable
 collections clear old pages; complete recovery removes the partial warning.
 No model assignments or control actions are issued.
+
+Standalone preview diagnostics (`6cfad70`, `d21042b`) are injected only by the
+artifact builder, not into the running Admin Center template. Overview and
+assignment history have disclosures showing local check progress, bounded last
+check text and elapsed time. Running, completed, check failure, five-second
+no-progress timeout and ten-second total timeout are distinct; terminal states
+cannot be changed by late progress. “Open check log” opens and focuses the
+report. A timeout marks it INCOMPLETE. No bot/service stall, owner/device result,
+trusted native input or successful file save is inferred from these views.

@@ -1,8 +1,8 @@
 # Current local preview verification commands
 
-UI checkpoint: `66b63ca` (consistent Overview landing; prior checks retained).
-Local artifact: `build/inspector-playtest.html`, **235622 bytes**.
-SHA-256: `bd27c4e3d3a0caf85f0a586cb4413f0d03a56311eff012918faef0a1811d2ef8`.
+UI checkpoint: `d21042b` (visible local progress diagnostics and check-log navigation).
+Local artifact: `build/inspector-playtest.html`, **240341 bytes**.
+SHA-256: `df5f099798c50172d1c871f17a4227ede851cbe21ee6e86474ae88ad7a2327d4`.
 
 ## Executed DOM fallback
 
@@ -12,9 +12,9 @@ From this checkout with the pinned local tool dependency:
 DIT_JSDOM_MODULE="$PWD/build/dom-runtime/node_modules/jsdom" timeout 15 node tools/run_inspector_playtest.cjs
 ```
 
-Actual result: **164 checks passed**, jsdom 26.1.0, zero transport attempts,
+Actual result: **166 checks passed**, jsdom 26.1.0, zero transport attempts,
 artifact hash as above, `nativeKeyboard: not-run`.
-Measured DOM construction: 452 ms; completion wait: 5902 ms. Runner checkpoints
+Measured DOM construction: 429 ms; completion wait: 5197 ms. Runner checkpoints
 `68af3bb`, `95afcee`, `a3034f6` use a monotonic five-second no-assertion-progress
 limit and ten-second total completion limit, with the outer 15-second process
 limit in the command above. Failures report bounded progress/hash diagnostics;
@@ -31,6 +31,10 @@ browser Tab/Enter defaults; the Blob assertion does not save a file.
 Grouped sample review also checks DOM disclosure, exact group rows, zero versus
 Unknown, scoped table headers, filtering, text-only provenance and stale-row
 removal/recovery.
+Preview-only diagnostics in Overview and assignment history display their local
+check state/count/last check. A five-second stall or ten-second total timeout
+remains terminal; “Open check log” focuses the report without a request. These
+are not imported executor receipts or bot/service health observations.
 See [DOM verification evidence](DOM-VERIFICATION-20261030.md) for installation,
 first failure and first successful run history.
 
@@ -62,8 +66,8 @@ On an authorized host with existing Chromium/Node selected through
 `DIT_CHROMIUM` / `DIT_NODE`:
 
 ```sh
-python3 tools/run_headless_playtest.py --expected-artifact-sha256 bd27c4e3d3a0caf85f0a586cb4413f0d03a56311eff012918faef0a1811d2ef8
-python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 bd27c4e3d3a0caf85f0a586cb4413f0d03a56311eff012918faef0a1811d2ef8
+python3 tools/run_headless_playtest.py --expected-artifact-sha256 df5f099798c50172d1c871f17a4227ede851cbe21ee6e86474ae88ad7a2327d4
+python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 df5f099798c50172d1c871f17a4227ede851cbe21ee6e86474ae88ad7a2327d4
 ```
 
 The previous Chromium attempt against artifact `96d4b70e` exited 2 before browser

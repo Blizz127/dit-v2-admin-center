@@ -235,3 +235,38 @@ completion wait**. Seven focused artifact checks passed. Final preview:
 `bd27c4e3d3a0caf85f0a586cb4413f0d03a56311eff012918faef0a1811d2ef8`.
 Native rendering, default keyboard and actual saving remain NOT RUN. Neither
 the delivered device preview nor the approved bundle was changed.
+
+## Visible bounded preview diagnostics
+
+Coordinator `747172f06692284c`; source `6cfad70`, follow-on `d21042b`.
+The artifact builder now inserts local progress disclosures in Overview and
+assignment history. A preview-owned monitor observes completed check assertions
+with a monotonic clock. It displays running/completed/failure/stall/total-limit
+states, freezes terminal elapsed time, truncates last-check text to 240
+characters and cancels its timer on completion/failure. It cannot stop
+synchronously blocked JavaScript: the external runner/process deadlines remain
+separate requirements. The display does not load an external executor receipt.
+
+Executed focused commands:
+
+```sh
+DIT_JSDOM_MODULE="$PWD/build/dom-runtime/node_modules/jsdom" node tests/preview_progress.test.cjs
+DIT_JSDOM_MODULE="$PWD/build/dom-runtime/node_modules/jsdom" timeout 45 node tests/inspector_dom_refusals.cjs
+python3 -m unittest tests.test_inspector_playtest
+```
+
+All passed. The diagnostic view tests use actual jsdom elements with a controlled
+clock for stall, total limit, failure, completion, late-progress refusal, bounded
+literal text, elapsed-time freezing and timer cleanup. The follow-on tests also
+open/focus the INCOMPLETE check log from both timed-out views. These controlled
+clock checks are not measured browser timeout evidence. Six separate runner
+refusal cases exercised real waiting; seven artifact checks passed before the
+log-navigation follow-on.
+
+The final full artifact passed **166 jsdom assertions**, zero transport attempts,
+429 ms construction / 5197 ms completion wait. Both progress views must report
+completion with the exact assertion count before the runner accepts a pass.
+Final artifact: **240341 bytes**, SHA-256
+`df5f099798c50172d1c871f17a4227ede851cbe21ee6e86474ae88ad7a2327d4`.
+Native keyboard, rendering and actual saving remain NOT RUN. No services,
+devices, models or game state were touched; delivered artifacts are unchanged.
