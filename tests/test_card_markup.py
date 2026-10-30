@@ -166,7 +166,7 @@ class CardMarkupTests(unittest.TestCase):
         expected = {
             'ashes-move': ('19:30 UTC', '23:01 UTC', 'disposable staging', 'Unknown', 'not proof of gameplay'),
             'forever-move': ('forever-70', '6:42 PM CT', '7:21 PM CT', 'October 30, 00:21 UTC', 'owner-only for now', 'Unknown'),
-            'wake-signin-repoint': ('not cut over at last readback', 'fa843e8', 'No completed repoint receipt',
+            'wake-signin-repoint': ('receipt readiness', 'Cutover receipt unavailable', 'fa843e8', 'No completed repoint was reported in that observation',
                                     'login.bansheerealm.com', '37.27.113.160:8450', '8446', 'Unknown',
                                     '00:56:19 UTC', 'without credentials'),
         }
