@@ -33,3 +33,10 @@ identify shared transport, rather than imply an active Forever wake lifecycle.
 
 E&B's existing dated move card remains; no fresh runtime status is inferred from
 source presence. All cards remain observations with no control or network link.
+
+Validation at `da36f7e`: seven markup checks and two generated-artifact asset/CSP
+and JavaScript syntax checks passed. Native rendering remains unverified. Local
+artifact identity is recorded in `NATIVE-VERIFICATION-GAP.md`. The approved
+8eb2c9f handoff archive still hashes to
+`a0bc47b1530d54ebb29b300e913f00a3ab6db434fca2007f0acabbafa1192ca7`;
+new cards are not silently included in that approved older test package.

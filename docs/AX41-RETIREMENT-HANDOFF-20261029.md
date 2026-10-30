@@ -1,5 +1,10 @@
 # AX41 retirement direction and remaining wake dependency
 
+Historical note: the 5:45 PM relay below is superseded by DIT `95b32dd`'s later
+Forever handback. Forever is always-on on Banshee with no supported sleep/wake;
+the remaining dependency is shared8446/8450 transport. The operations card now
+reflects that distinction. See `SERVICE-MOVES-20261029.md` for provenance.
+
 Source: coordinator message `44fc3bf7ab81e189`, October 29, 2026 at
 5:45 PM CT, relaying trinitycore's report. Admin has not independently retrieved
 the original report or contacted either host.
