@@ -152,3 +152,11 @@ and recovery from a new snapshot. The intermediate 149-check run applied to
 `9acfbc62f147b5308f01d51e44daff84b9a65adca0568c48ca26de4ab2b7a5a7`,
 not this final artifact. Native rendering, keyboard defaults and file saving
 remain NOT RUN; no live services or devices were used.
+
+Follow-on `acaa673` distinguishes an empty filtered/loaded selection from supplied
+rows lacking model/purpose/source identity. Focused comparison checks and all
+152 jsdom checks passed, zero transport attempts. Current preview is 230411
+bytes, SHA-256
+`f19a14394d581e7d0b8dbc6235973484ee039791dc9334a66592c6d7753fde05`.
+The earlier sample-review hash is retained above as historical evidence only.
+Native verification remains NOT RUN.

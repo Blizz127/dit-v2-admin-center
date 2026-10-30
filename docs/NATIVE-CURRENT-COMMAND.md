@@ -1,8 +1,8 @@
 # Current local preview verification commands
 
-UI checkpoint: `3f8362a` (expandable grouped model samples; prior checks retained).
-Local artifact: `build/inspector-playtest.html`, **230095 bytes**.
-SHA-256: `a0adae84cc23371f673ad3f65ff0cd91c81e3ed3617e52a42cd3fcfab629b447`.
+UI checkpoint: `acaa673` (grouped sample review and distinct empty/unknown states).
+Local artifact: `build/inspector-playtest.html`, **230411 bytes**.
+SHA-256: `f19a14394d581e7d0b8dbc6235973484ee039791dc9334a66592c6d7753fde05`.
 
 ## Executed DOM fallback
 
@@ -56,8 +56,8 @@ On an authorized host with existing Chromium/Node selected through
 `DIT_CHROMIUM` / `DIT_NODE`:
 
 ```sh
-python3 tools/run_headless_playtest.py --expected-artifact-sha256 a0adae84cc23371f673ad3f65ff0cd91c81e3ed3617e52a42cd3fcfab629b447
-python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 a0adae84cc23371f673ad3f65ff0cd91c81e3ed3617e52a42cd3fcfab629b447
+python3 tools/run_headless_playtest.py --expected-artifact-sha256 f19a14394d581e7d0b8dbc6235973484ee039791dc9334a66592c6d7753fde05
+python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 f19a14394d581e7d0b8dbc6235973484ee039791dc9334a66592c6d7753fde05
 ```
 
 The previous Chromium attempt against artifact `96d4b70e` exited 2 before browser
