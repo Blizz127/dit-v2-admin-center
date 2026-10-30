@@ -549,6 +549,43 @@ class OfflineInspectorHandlerTests(unittest.TestCase):
             self.assertIsNone(row[field])
         self.assertNotIn(b'OMIT_PRIVATE_TRACE', body)
 
+    def test_ambiguous_trace_outcome_keeps_envelope_without_selecting_a_claim(self):
+        bodies = (
+            '{"isFinal":false,"isFinal":true}',
+            '{"classification":"pending","classification":"completed"}',
+            '{"disposition":"queued","disposition":"executed"}',
+            '{"isFinal":true,"isFinal":true}',
+            '{"isFinal":false,"\\u0069sFinal":true}',
+            '{"isFinal":true,"metric":NaN}',
+            '{"isFinal":true,"metric":Infinity}',
+            '{"isFinal":true,"metric":1e999}',
+            '{"isFinal":true,"unused":{"key":"one","key":"two"}}',
+        )
+        base = {'kind':'outcome', 'type':'fixture.outcome', 'occurredAtUtc':'2026-01-01T00:00:00Z'}
+        good = {**base, 'body':json.dumps({'classification':'queued_for_native_delivery',
+                                         'disposition':'queued', 'isFinal':False,
+                                         'private':'OMIT_PRIVATE_TRACE'})}
+        read = Mock()
+        with patch.dict('os.environ', {'HUB_READONLY_URL':'http://127.0.0.1:1',
+                                      'HUB_TOKEN_FILE':'/fixture/not-read'}, clear=True), \
+                patch('server.HubReader', return_value=SimpleNamespace(trace=read)):
+            for raw in bodies:
+                read.return_value = ([{**base, 'body':raw}, good], 'fixture-fetch')
+                with self.subTest(raw=raw):
+                    status, headers, body = self.request('/api/trace?gameId=ffxi&correlationId=fixture')
+                    self.assertEqual(status, 200)
+                    self.assertEqual(headers['Cache-Control'], 'no-store')
+                    rejected, accepted = json.loads(body)['records']
+                    self.assertEqual(rejected['type'], base['type'])
+                    self.assertEqual(rejected['occurredAt'], base['occurredAtUtc'])
+                    for field in ('classification', 'disposition', 'isFinal'):
+                        self.assertIsNone(rejected[field])
+                    self.assertEqual(accepted['classification'], 'queued_for_native_delivery')
+                    self.assertEqual(accepted['disposition'], 'queued')
+                    self.assertIs(accepted['isFinal'], False)
+                    self.assertNotIn(b'OMIT_PRIVATE_TRACE', body)
+                    self.assertNotIn(b'"body"', body)
+
     def test_bridge_auth_and_method_rejection_do_not_reach_observer(self):
         runner = Mock(side_effect=AssertionError('Observer must not be reached'))
         with patch('server.BRIDGE', BridgeObserver(runner, lambda: 0)):

@@ -761,3 +761,12 @@ field is not resolved by choosing its last value. The existing redacted
 response bodies and tokens are not returned in the error. Finite numbers and
 repeated field names in distinct objects remain valid. These are source changes
 checked with synthetic response bytes, not observations of a deployed hub.
+
+Trace records may carry a JSON-encoded outcome `body` inside the outer response.
+That embedded body uses the same strict decoder. If it has duplicate keys or
+non-finite/overflowing numbers, the envelope's kind, type and observation time
+remain available, but classification, disposition and finality are all `null`
+(Unknown). Other valid records in the response remain usable. Raw body text is
+never returned, and a malformed body does not become a positive outcome by
+selecting its last field value. Focused in-memory handler checks cover this
+behavior without connecting to a hub.

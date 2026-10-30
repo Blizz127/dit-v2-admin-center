@@ -198,7 +198,7 @@ def project_trace(data):
             raise ValueError('invalid envelope metadata')
         body = record.get('body')
         try:
-            body = json.loads(body) if isinstance(body, str) else {}
+            body = _decode_response(body) if isinstance(body, str) else {}
         except (ValueError, RecursionError):
             body = {}
         body = body if isinstance(body, dict) and kind.lower() == 'outcome' else {}
