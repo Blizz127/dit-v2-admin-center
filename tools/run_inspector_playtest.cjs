@@ -1,6 +1,7 @@
 // Execute the generated inspector artifact in an installed, offline jsdom runtime.
 // A missing dependency is an error, never a skipped/passing browser check.
 const path = require('node:path');
+const crypto = require('node:crypto');
 const {execFileSync} = require('node:child_process');
 const root = path.resolve(__dirname, '..');
 const runtime = process.env.DIT_JSDOM_MODULE || 'jsdom';
@@ -33,11 +34,21 @@ virtualConsole.on('jsdomError', error => errors.push(error.message));
 const html = execFileSync(process.env.PYTHON || 'python3', ['-c',
   'from tools.build_inspector_playtest import build; print(build(), end="")'],
   {cwd: root, encoding: 'utf8', timeout: 10000, maxBuffer: 2 * 1024 * 1024});
+const objectUrls = new Set();
 const dom = new JSDOM(html, {
   url: 'https://offline.invalid/', runScripts: 'dangerously',
   resources: new OfflineResources(), virtualConsole,
   beforeParse(window) {
     window.structuredClone = globalThis.structuredClone;
+    // jsdom supplies a DOM engine, not these browser facilities. Use Node's
+    // in-memory Blob implementation and make unsupported scrolling a no-op.
+    // Receipt limitations explicitly exclude downloads, scrolling and layout.
+    window.Blob = globalThis.Blob;
+    window.URL.createObjectURL = blob => {
+      const url = URL.createObjectURL(blob); objectUrls.add(url); return url;
+    };
+    window.URL.revokeObjectURL = url => {objectUrls.delete(url); URL.revokeObjectURL(url);};
+    window.HTMLElement.prototype.scrollIntoView = function () {};
     window.fetch = deny('window.fetch');
     window.XMLHttpRequest = deny('XMLHttpRequest');
     window.WebSocket = deny('WebSocket');
@@ -58,11 +69,13 @@ const dom = new JSDOM(html, {
     const checks = [...doc.querySelectorAll('#harness-checks li')];
     if (checks.length < 20 || checks.some(row => !row.textContent.startsWith('PASS — '))) throw new Error('Incomplete runtime assertions');
     const result = {status: 'passed', runtime: 'jsdom', checks: checks.length, transportAttempts: blocked.length,
+      artifactSha256: crypto.createHash('sha256').update(html).digest('hex'),
+      shims: ['Node Blob/object URLs', 'scrollIntoView no-op'],
       nativeKeyboard: doc.documentElement.dataset.keyboardPlaytest || 'unknown',
-      limitations: 'DOM execution only; no native keyboard activation, browser rendering, CSP enforcement, HTTP server or deployed-service verification'};
+      limitations: 'DOM execution only; no native keyboard activation, browser rendering, scrolling, file download, CSP enforcement, HTTP server or deployed-service verification'};
     console.log(JSON.stringify(result));
   } catch (error) {
     console.error('FAIL: ' + error.message);
     process.exitCode = 1;
-  } finally { dom.window.close(); }
+  } finally { dom.window.close(); for (const url of objectUrls) URL.revokeObjectURL(url); }
 })();
