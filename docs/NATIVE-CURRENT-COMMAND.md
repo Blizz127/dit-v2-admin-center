@@ -48,3 +48,10 @@ fixture-baseline failures; twelve runner tests passed with fabricated process
 outputs. This runner uses the network-isolated standalone file, not a localhost
 HTTP page. Localhost mock HTTP checks are separate and do not establish browser
 rendering. No device run, runtime installation or namespace bypass was requested.
+
+Runner candidate checkpoint: `f014678` adds `--draft-review`; it is separate from
+the UI/artifact checkpoint above. Follow-on orchestration checks cover all eight
+combinations of draft review with screenshots, gap export and routing audit.
+Thirteen focused runner tests pass, plus fake-CDP and artifact-bound simulated
+input checks. Capture publication and process execution are fabricated in these
+tests. No success receipt exists from a real draft-review browser run.

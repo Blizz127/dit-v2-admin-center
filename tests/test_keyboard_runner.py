@@ -38,6 +38,36 @@ class KeyboardRunnerTests(unittest.TestCase):
                 else:
                     self.assertEqual(json.loads(stdout.getvalue())['draftReview'], draft)
 
+    def test_draft_option_composes_with_all_existing_options(self):
+        from itertools import product
+        from pathlib import Path
+        good = dict(status='passed', nativeKeyboard='passed', steps=12,
+                    escapeCancellation='passed', automaticDOM='passed', shell=SHELL,
+                    draftReview=dict(status='passed', targetId='offline-inspector-bot', traversal='Tab/Shift+Tab',
+                                     activation='Enter', textInput='Input.insertText', unknownBaseline='personality',
+                                     matchesLoadedGoal=True, discardCleared=True, focusRetained=True),
+                    routingAudit=dict(status='passed', counts=[3,2,1,0,3], traversal='Tab/Shift+Tab',
+                                      selection='Home/ArrowDown', reset='Enter', focusRetained=True),
+                    gapExport=dict(status='passed', savedBytes=12, candidates=2, selectedSnapshotRow=2,
+                                   nativeActivation='Enter', sha256='a'*64, table=dict(rows=9, columns=3, width=390)))
+        for captures, downloads, audit in product((False, True), repeat=3):
+            with self.subTest(captures=captures, downloads=downloads, audit=audit), \
+                    patch.object(runner.shutil, 'which', side_effect=lambda name: '/fixture/' + name), \
+                    patch.object(runner, 'build', return_value='<html>synthetic</html>'), \
+                    patch.object(runner, 'run_bounded', side_effect=[(0, '', ''), (0, json.dumps(good), '')]) as run, \
+                    patch.object(runner, 'publish_captures', return_value='synthetic-output') as publish, \
+                    redirect_stdout(io.StringIO()):
+                self.assertEqual(runner.main(screenshots=captures, gap_export=downloads,
+                                            routing_audit=audit, draft_review=True), 0)
+                command = run.call_args.args[0]
+                capture, download, audit_flag, draft_flag = command[-4:]
+                self.assertEqual(Path(capture).name if capture else '', 'captures' if captures else '')
+                self.assertEqual(Path(download).name if download else '', 'downloads' if downloads else '')
+                self.assertEqual(audit_flag, 'routing-audit' if audit else '')
+                self.assertEqual(draft_flag, 'draft-review')
+                self.assertEqual(publish.call_count, int(captures))
+                self.assertFalse(Path(command[-5]).parent.exists(), 'Owned run directory cleaned')
+
     def test_audit_option_composes_with_capture_and_download_slots(self):
         from pathlib import Path
         audit = dict(status='passed', counts=[3, 2, 1, 0, 3], traversal='Tab/Shift+Tab',
