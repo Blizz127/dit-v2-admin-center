@@ -556,10 +556,38 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 
+class BoundedHTTPServer(ThreadingHTTPServer):
+    """Bound active handlers; excess accepted connections are closed immediately."""
+    max_handlers = 16
+
+    def __init__(self, *args, **kwargs):
+        self._handler_slots = threading.BoundedSemaphore(self.max_handlers)
+        super().__init__(*args, **kwargs)
+
+    def process_request(self, request, client_address):
+        if not self._handler_slots.acquire(blocking=False):
+            # Do not read a request, start a rejection thread or block the
+            # accept loop writing to an already saturated set of clients.
+            self.shutdown_request(request)
+            return
+        try:
+            super().process_request(request, client_address)
+        except BaseException:
+            # Thread creation/start failed; no worker will release this slot.
+            self._handler_slots.release()
+            raise
+
+    def process_request_thread(self, request, client_address):
+        try:
+            super().process_request_thread(request, client_address)
+        finally:
+            self._handler_slots.release()
+
+
 def make_server(port, token):
     if not token or not token.strip():
         raise ValueError("ADMIN_TOKEN must be set")
-    server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    server = BoundedHTTPServer(("127.0.0.1", port), Handler)
     server.admin_token = token
     return server
 

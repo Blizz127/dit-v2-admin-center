@@ -691,3 +691,26 @@ remaining inside its 0.8-second total budget. No collector ran. Both this check
 and the over-budget completed-header check passed. There is no requested or
 pending relaxation of the total deadline; further changes need a concrete new
 failure or requirement, rather than treating this successful refusal as a gap.
+
+## Concurrent request admission
+
+The local server now admits at most **16 active handlers**, across API and static
+requests. Previously ThreadingHTTPServer could start a new thread for every
+accepted connection despite the per-request deadlines. Admission is nonblocking:
+when full, an additional accepted connection is closed before parsing,
+authentication, collection or thread creation. There is no application waiting
+queue and no HTTP overload response; a client may observe EOF/reset and must
+retry later. This avoids blocking the accept loop on a slow client's refusal
+write. The operating system's existing listen backlog remains separate.
+
+Slots are released when handlers finish, including handler failures and aborted
+connections. Failed thread creation/start also returns its reserved slot.
+Loopback binding, token authentication and read-only method policy are unchanged.
+The cap bounds concurrent handlers, not requests per second, total collector
+runtime or global process memory; a blocked collector retains its slot until it
+returns. No running service has been restarted to apply this source change.
+
+Three focused checks passed using real worker threads/socket pairs and an unbound
+server (never listening), with a two-handler test cap: saturation/refusal and
+recovery, handler failure recovery, and repeated thread-start failure recovery.
+No real collector, device, external host or service was accessed.
