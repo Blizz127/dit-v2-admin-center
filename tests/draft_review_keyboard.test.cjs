@@ -23,9 +23,11 @@ function adapter(fault){return {evaluate,waitFor,
      if(fault==='focus')return;
      get(ids[ids.indexOf(active.id)+(shift?-1:1)]).focus();
    }else{
-     assert.equal(key,'Enter');
-     if(active.id==='bot-draft-preview')get('bot-draft-form').listeners.submit({preventDefault(){}});
-     else if(fault!=='discard')active.listeners.click();
+     assert.ok(key==='Enter' || key===' ');
+     if(active.id==='bot-draft-preview') {
+       get('bot-draft-form').listeners.submit({preventDefault(){}});
+       if(fault==='validation-focus' && !get('bot-draft-goals').value)active.focus();
+     } else if(fault!=='discard' && !(fault==='space' && key===' '))active.listeners.click();
    }
  }
 };}
@@ -33,8 +35,9 @@ function adapter(fault){return {evaluate,waitFor,
  await prepare();const before=requestCount();
  const result=await verifyDraftReview(adapter());
  assert.equal(result.unknownBaseline,'personality');assert.equal(result.discardCleared,true);
+ assert.equal(result.emptySubmissionFocus,'goals');assert.equal(result.discardActivation,'Space');
  assert.equal(requestCount(),before,'Draft input/review/discard makes no request');
- for(const fault of ['typing','focus','discard']){
+ for(const fault of ['typing','focus','discard','space','validation-focus']){
    await prepare();await assert.rejects(verifyDraftReview(adapter(fault)));
  }
  await prepare('Known personality in wrong fixture');

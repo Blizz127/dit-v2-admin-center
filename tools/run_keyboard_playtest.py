@@ -141,6 +141,7 @@ def valid_draft_receipt(result):
             and draft.get('targetId') == 'offline-inspector-bot'
             and draft.get('traversal') == 'Tab/Shift+Tab' and draft.get('activation') == 'Enter'
             and draft.get('textInput') == 'Input.insertText' and draft.get('unknownBaseline') == 'personality'
+            and draft.get('emptySubmissionFocus') == 'goals' and draft.get('discardActivation') == 'Space'
             and all(draft.get(key) is True for key in ('matchesLoadedGoal', 'discardCleared', 'focusRetained')))
 
 

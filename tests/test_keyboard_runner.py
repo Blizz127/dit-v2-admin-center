@@ -17,7 +17,8 @@ class KeyboardRunnerTests(unittest.TestCase):
     def test_optional_draft_receipt_and_argument_slots(self):
         draft = dict(status='passed', targetId='offline-inspector-bot', traversal='Tab/Shift+Tab',
                      activation='Enter', textInput='Input.insertText', unknownBaseline='personality',
-                     matchesLoadedGoal=True, discardCleared=True, focusRetained=True)
+                     matchesLoadedGoal=True, discardCleared=True, focusRetained=True,
+                     emptySubmissionFocus='goals', discardActivation='Space')
         good = dict(status='passed', nativeKeyboard='passed', steps=12,
                     escapeCancellation='passed', automaticDOM='passed', shell=SHELL, draftReview=draft)
         self.assertTrue(runner.valid_draft_receipt(good))
@@ -45,7 +46,8 @@ class KeyboardRunnerTests(unittest.TestCase):
                     escapeCancellation='passed', automaticDOM='passed', shell=SHELL,
                     draftReview=dict(status='passed', targetId='offline-inspector-bot', traversal='Tab/Shift+Tab',
                                      activation='Enter', textInput='Input.insertText', unknownBaseline='personality',
-                                     matchesLoadedGoal=True, discardCleared=True, focusRetained=True),
+                                     matchesLoadedGoal=True, discardCleared=True, focusRetained=True,
+                     emptySubmissionFocus='goals', discardActivation='Space'),
                     routingAudit=dict(status='passed', counts=[3,2,1,0,3], traversal='Tab/Shift+Tab',
                                       selection='Home/ArrowDown', reset='Enter', focusRetained=True),
                     gapExport=dict(status='passed', savedBytes=12, candidates=2, selectedSnapshotRow=2,

@@ -4,7 +4,10 @@ async function verifyDraftReview({command,evaluate,press,waitFor}) {
   await evaluate("document.getElementById('bot-draft-section').open = true; document.getElementById('bot-draft-cancel').focus(); true");
   await press('Enter');
   assert.equal(await evaluate("document.getElementById('bot-draft-fields').disabled"), false);
-  await evaluate("document.getElementById('bot-draft-goals').focus(); true");
+  await press('Tab', true);
+  await waitFor("document.activeElement.id === 'bot-draft-preview'");
+  await press('Enter');
+  await waitFor("document.activeElement.id === 'bot-draft-goals' && document.getElementById('bot-draft-status').textContent.includes('Enter at least one') && document.getElementById('bot-draft-result').textContent === ''");
   await command('Input.insertText', {text:'Fixture goal'});
   await press('Tab');
   await waitFor("document.activeElement.id === 'bot-draft-personality'");
@@ -21,7 +24,7 @@ async function verifyDraftReview({command,evaluate,press,waitFor}) {
   await waitFor("document.activeElement.id === 'bot-draft-preview'");
   await press('Tab');
   await waitFor("document.activeElement.id === 'bot-draft-cancel'");
-  await press('Enter');
+  await press(' ');
   await waitFor("document.getElementById('bot-draft-result').textContent === '' && document.getElementById('bot-draft-goals').value === '' && document.getElementById('bot-draft-personality').value === '' && document.activeElement.id === 'bot-draft-cancel'");
   for (const id of ['bot-draft-preview','bot-draft-personality','bot-draft-goals']) {
     await press('Tab', true);
@@ -29,7 +32,7 @@ async function verifyDraftReview({command,evaluate,press,waitFor}) {
   }
   return {status:'passed', targetId:'offline-inspector-bot', traversal:'Tab/Shift+Tab', activation:'Enter',
     textInput:'Input.insertText', unknownBaseline:'personality', matchesLoadedGoal:true,
-    discardCleared:true, focusRetained:true,
+    discardCleared:true, focusRetained:true, emptySubmissionFocus:'goals', discardActivation:'Space',
     limitations:'Synthetic local draft only; no save, live bot action, visual or screen-reader certification'};
 }
 module.exports = {verifyDraftReview};
