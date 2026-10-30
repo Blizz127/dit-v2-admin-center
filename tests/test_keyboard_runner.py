@@ -14,6 +14,30 @@ SHELL = dict(status="passed", sections=8, widths=[1280, 390], traversal="Tab/Shi
 
 
 class KeyboardRunnerTests(unittest.TestCase):
+    def test_optional_draft_receipt_and_argument_slots(self):
+        draft = dict(status='passed', targetId='offline-inspector-bot', traversal='Tab/Shift+Tab',
+                     activation='Enter', textInput='Input.insertText', unknownBaseline='personality',
+                     matchesLoadedGoal=True, discardCleared=True, focusRetained=True)
+        good = dict(status='passed', nativeKeyboard='passed', steps=12,
+                    escapeCancellation='passed', automaticDOM='passed', shell=SHELL, draftReview=draft)
+        self.assertTrue(runner.valid_draft_receipt(good))
+        for key in draft:
+            incomplete = dict(draft)
+            del incomplete[key]
+            self.assertFalse(runner.valid_draft_receipt(dict(draftReview=incomplete)))
+        self.assertFalse(runner.valid_draft_receipt(dict(draftReview={**draft, 'discardCleared':1})))
+        for result, expected in ((good, 0), ({**good, 'draftReview':None}, 1)):
+            with patch.object(runner.shutil, 'which', side_effect=lambda name: '/fixture/' + name), \
+                    patch.object(runner, 'run_bounded', side_effect=[(0, '', ''), (0, json.dumps(result), '')]) as run, \
+                    patch.object(runner, 'build', return_value='<html>synthetic</html>'), \
+                    redirect_stdout(io.StringIO()) as stdout, redirect_stderr(io.StringIO()):
+                self.assertEqual(runner.main(draft_review=True), expected)
+                self.assertEqual(run.call_args.args[0][-4:], ['', '', '', 'draft-review'])
+                if expected:
+                    self.assertEqual(stdout.getvalue(), '')
+                else:
+                    self.assertEqual(json.loads(stdout.getvalue())['draftReview'], draft)
+
     def test_audit_option_composes_with_capture_and_download_slots(self):
         from pathlib import Path
         audit = dict(status='passed', counts=[3, 2, 1, 0, 3], traversal='Tab/Shift+Tab',

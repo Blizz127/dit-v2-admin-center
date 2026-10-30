@@ -8,10 +8,12 @@ through `DIT_CHROMIUM` / `DIT_NODE`:
 
 ```sh
 python3 tools/run_headless_playtest.py --expected-artifact-sha256 96d4b70e3450cb17864b207e54017236b07427ccc7e4146681e7322ade93e7f1
-python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --expected-artifact-sha256 96d4b70e3450cb17864b207e54017236b07427ccc7e4146681e7322ade93e7f1
+python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 96d4b70e3450cb17864b207e54017236b07427ccc7e4146681e7322ade93e7f1
 ```
 
-These commands were **NOT RUN**. Devbox browser/isolation limitations remain as
+The DOM command was attempted for relay `9e5b114655e234f1` and exited **2**
+before browser launch: Chromium was unavailable. No localhost browser session
+or namespace operation started. The keyboard command remains **NOT RUN**. Devbox browser/isolation limitations remain as
 recorded in NATIVE-VERIFICATION-GAP.md. There is no permission here to retry a
 denied namespace operation, install a runtime, substitute a device bundle or
 contact Alienware. Existing approved `8eb2c9f` handoff and delivered previews are
@@ -37,3 +39,12 @@ matching and Unknown baselines. Component checks against these exact bytes pass,
 including same-ID refresh replacing the old baseline/provenance. The narrow
 column rule was checked in source; visual appearance remains NOT RUN. These
 checks do not certify native typing, review-column geometry or screen readers.
+
+The draft-review candidate checks the synthetic offline-inspector-bot, matching
+loaded goal text, Unknown personality baseline, focus retention and discard.
+It requires a separate complete `draftReview` receipt when selected. Simulated
+adapter tests against the actual application reject typing, focus, discard and
+fixture-baseline failures; twelve runner tests passed with fabricated process
+outputs. This runner uses the network-isolated standalone file, not a localhost
+HTTP page. Localhost mock HTTP checks are separate and do not establish browser
+rendering. No device run, runtime installation or namespace bypass was requested.

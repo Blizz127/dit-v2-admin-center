@@ -135,8 +135,17 @@ def valid_audit_receipt(result):
             and audit.get('reset') == 'Enter' and audit.get('focusRetained') is True)
 
 
+def valid_draft_receipt(result):
+    draft = result.get('draftReview') if isinstance(result, dict) else None
+    return (isinstance(draft, dict) and draft.get('status') == 'passed'
+            and draft.get('targetId') == 'offline-inspector-bot'
+            and draft.get('traversal') == 'Tab/Shift+Tab' and draft.get('activation') == 'Enter'
+            and draft.get('textInput') == 'Input.insertText' and draft.get('unknownBaseline') == 'personality'
+            and all(draft.get(key) is True for key in ('matchesLoadedGoal', 'discardCleared', 'focusRetained')))
+
+
 def main(screenshots=False, gap_export=False, expected_artifact_sha256=None, preflight_only=False,
-         routing_audit=False):
+         routing_audit=False, draft_review=False):
     if expected_artifact_sha256 is not None and (
             not isinstance(expected_artifact_sha256, str) or len(expected_artifact_sha256) != 64
             or any(c not in '0123456789abcdef' for c in expected_artifact_sha256)):
@@ -177,13 +186,15 @@ def main(screenshots=False, gap_export=False, expected_artifact_sha256=None, pre
             downloads = Path(directory) / 'downloads'
             downloads.mkdir(mode=0o700)
             command.append(str(downloads))
-        if routing_audit:
+        if routing_audit or draft_review:
             # Keep optional positional slots stable when captures/downloads are absent.
             if not screenshots and not gap_export:
                 command.append('')
             if not gap_export:
                 command.append('')
-            command.append('routing-audit')
+            command.append('routing-audit' if routing_audit else '')
+        if draft_review:
+            command.append('draft-review')
         code, stdout, _ = run_bounded(command, 30, stdout_limit=MAX_RECEIPT_BYTES)
         try:
             result = decode_receipt(stdout) if not code else None
@@ -197,6 +208,9 @@ def main(screenshots=False, gap_export=False, expected_artifact_sha256=None, pre
             return 1
         if routing_audit and not valid_audit_receipt(result):
             print('FAIL: native audit filter receipt incomplete; no audit success claimed.', file=sys.stderr)
+            return 1
+        if draft_review and not valid_draft_receipt(result):
+            print('FAIL: native draft-review receipt incomplete; no draft success claimed.', file=sys.stderr)
             return 1
         if screenshots:
             try:
@@ -213,6 +227,7 @@ def main(screenshots=False, gap_export=False, expected_artifact_sha256=None, pre
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--screenshots', action='store_true', help='Capture synthetic comparisons after native checks pass')
+    parser.add_argument('--draft-review', action='store_true', help='Check local draft typing, focus, Unknown baseline and discard with native input')
     parser.add_argument('--routing-audit', action='store_true', help='Check synthetic audit selectors and reset with native keys')
     parser.add_argument('--gap-export', action='store_true', help='Check gap table and native Enter download in a disposable directory')
     parser.add_argument('--expected-artifact-sha256', help='Refuse to start the browser if the generated preview differs from this exact hash')
@@ -221,7 +236,7 @@ if __name__ == '__main__':
         args = parser.parse_args()
         sys.exit(main(screenshots=args.screenshots, gap_export=args.gap_export,
                       expected_artifact_sha256=args.expected_artifact_sha256,
-                      preflight_only=args.preflight_only, routing_audit=args.routing_audit))
+                      preflight_only=args.preflight_only, routing_audit=args.routing_audit, draft_review=args.draft_review))
     except (OSError, RuntimeError):
         print('FAIL: bounded browser run could not complete; no success claimed.', file=sys.stderr)
         sys.exit(1)
