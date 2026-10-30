@@ -86,3 +86,16 @@ verification open cannot be supported by jsdom evidence: Node Blob/object URLs
 and the scroll no-op are still explicit shims. No service or device changed.
 The exact candidate native commands are in `NATIVE-CURRENT-COMMAND.md`; the
 previously approved device bundle remains unchanged.
+
+Follow-on refusal check:
+
+```sh
+DIT_JSDOM_MODULE="$PWD/build/dom-runtime/node_modules/jsdom" timeout 35 node tests/inspector_dom_refusals.cjs
+```
+
+All three cases passed: a positive sidebar tabindex, wrong JSON filename and
+Blob bytes differing from the copy field each caused the real DOM runner to
+exit 1 at the relevant assertion, with no success receipt. These were disposable
+in-memory artifact mutations, not source edits. The unmodified generated preview
+and its hash above remain unchanged. This check does not claim CSP enforcement
+(jsdom does not enforce the artifact's script hash).
