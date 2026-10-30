@@ -285,3 +285,14 @@ a failure is a new narrow blocker, never a reason to retry or bypass isolation.
 The original 23:20:30Z BLOCKED receipt remains historical evidence; the second
 attempt is requested, not claimed executed or passed. Admin's local archive
 hash still matches a0bc47b1530d54ebb29b300e913f00a3ab6db434fca2007f0acabbafa1192ca7.
+
+
+## Offline returned-evidence verifier
+
+The [receipt intake guide](NATIVE-RECEIPT-INTAKE.md) provides a local reviewer for
+the separately sequenced `ece1ccc9149873b9` attempt. It consumes existing returned
+files plus reviewer-prepared identity metadata, checks the exact approved pin and
+legacy fields, and distinguishes incomplete/blocked/failed/reported-pass. It makes
+no device call and does not request another execution. Internally consistent
+reports are not independently authenticated; the trusted executor handoff remains
+necessary. Synthetic tests are not an actual native result.

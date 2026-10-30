@@ -192,3 +192,14 @@ files before cleaning only this attempt's owned temporary files/profile. No
 screenshots, owner input, live/model calls, public listeners or service/browser
 restarts. Admin will apply the pinned result-reconciliation checklist above;
 newer previews remain outside the result's scope.
+
+
+## Offline returned-evidence verifier
+
+The [receipt intake guide](NATIVE-RECEIPT-INTAKE.md) provides a local reviewer for
+the separately sequenced `ece1ccc9149873b9` attempt. It consumes existing returned
+files plus reviewer-prepared identity metadata, checks the exact approved pin and
+legacy fields, and distinguishes incomplete/blocked/failed/reported-pass. It makes
+no device call and does not request another execution. Internally consistent
+reports are not independently authenticated; the trusted executor handoff remains
+necessary. Synthetic tests are not an actual native result.
