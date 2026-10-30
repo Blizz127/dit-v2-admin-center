@@ -151,3 +151,17 @@ class CardMarkupTests(unittest.TestCase):
         self.assertEqual(len(stop_buttons), 2)
         for node in stop_buttons:
             self.assertTrue(any(p.tag == 'fieldset' and 'disabled' in p.attrs for p in node.ancestors()))
+
+    def test_ashes_forever_and_repoint_keep_separate_acceptance_states(self):
+        expected = {
+            'ashes-move': ('19:30 UTC', '23:01 UTC', 'disposable staging', 'Unknown', 'not proof of gameplay'),
+            'forever-move': ('forever-70', '6:42 PM CT', '7:21 PM CT', 'October 30, 00:21 UTC', 'owner-only for now', 'Unknown'),
+            'wake-signin-repoint': ('completion unverified', 'b95f781', 'No completed repoint receipt',
+                                    'login.bansheerealm.com', '37.27.113.160:8450', '8446', 'Unknown'),
+        }
+        for identity, values in expected.items():
+            panel = self.by_id[identity]
+            self.assertIn(self.by_id['view-operations'], list(panel.ancestors()))
+            for value in values:
+                self.assertIn(value, panel.text())
+            self.assertFalse(any(n.tag in ('a', 'button', 'input', 'form') for n in panel.descendants()))
