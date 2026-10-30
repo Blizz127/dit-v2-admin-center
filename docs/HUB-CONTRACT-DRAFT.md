@@ -124,10 +124,28 @@ subprocess and database access are forbidden during review tests.
 
 The JSON Schema artifact expresses structure; unique kinds/IDs, reference
 resolution, scope equality and temporal ordering are additional semantic rules
-checked by the reference reviewer. A JSON Schema engine was **not run** (none is
-installed here); the schema/fixture vocabulary consistency check is not engine
-validation. No dependency was downloaded. This module is not a raw-JSON or
-transport parser and is not connected to an input endpoint.
+checked by the reference reviewer. At the first checkpoint only vocabulary
+consistency had been checked: the default Python lacked the checked validators.
+The follow-up located the already-installed **jsonschema 4.19.2** under
+`/usr/bin/python3` and ran its `Draft202012Validator`, including `check_schema`:
+
+```sh
+/usr/bin/python3 tools/check_learning_assessment_schema.py
+```
+
+The engine run passed for schema SHA-256
+`2fe3ae95d1e2d877657997471704a2c0bbfb0b7241a0f9e449f06442abb0bf80`.
+All three fixtures pass structure; the cross-instance fixture must additionally
+fail semantic review. Nine structural refusals and four structurally valid
+semantic refusals passed. The script reports schema/fixture hashes, engine
+version and the distinction between these checks. The distribution lacks the
+optional date-time checker, so the run explicitly registers the draft's strict
+calendar-valid UTC-second format checker; date-time validation is not silently
+skipped. Network calls are blocked during the checks. A missing engine returns
+BLOCKED/exit 2, not a skipped pass. No dependency was installed or downloaded.
+This validates a proposed synthetic contract, not source authenticity, hub
+acceptance or live observations. The reference reviewer remains an already-
+decoded-object checker, not a raw-JSON or transport parser or an input endpoint.
 
 Review requests for the owning hub/adapter lead: establish the authoritative
 scope/binding source, allowed observation and receipt provenance, freshness and
