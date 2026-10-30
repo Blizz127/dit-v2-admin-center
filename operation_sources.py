@@ -24,6 +24,12 @@ SOURCES = (
          reference='LOTRO owner-tailnet-instance-20261029.md / untracked owning-lead note',
          reported='October 29: owner-only public instance and Banshee dry-run reported; hostname advertisement updated at 14:48 UTC. Access rule is runtime-only.',
          missing='Alienware/public-instance client acceptance not recorded. Outside the twelve-game controller manifest; no 8450 binding established.'),
+    dict(id='wake-preparation', title='8450 migration preparation (source only)',
+         path='dev/dit-ffxi-bridge-integration-20261029/docs/evidence/ax41-retirement-20261029/QUIESCENCE.md',
+         sha256='26541c4d095d777ad9f58ebf7a68fae0bfa3c4e674e7a872642cef124a39fa07',
+         reference='DIT fd18286 / QUIESCENCE.md',
+         reported='Source checkpoint October 30 at 03:37:18 UTC: default-off local intake gate and blocker inspection staged; nine offline checks reported. Even a clear local review grants no writer transfer and no runtime verification.',
+         missing='Runtime registration, reconciled state/journals, snapshot durability and destination readiness are not established by this source note. No cutover, player-absence, save-safety or per-game acceptance claim.'),
 )
 
 

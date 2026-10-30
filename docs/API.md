@@ -449,8 +449,8 @@ exists. The standalone preview does not read the local receipt file.
 
 ## Reviewed operations-source metadata in GET /api/overview
 
-`operationSources` has schema `dit-admin-operation-sources-v1` and three rows,
-with fixed IDs `wake-8450`, `ashes`, and `lotro`. Each row contains:
+`operationSources` has schema `dit-admin-operation-sources-v1` and four rows,
+with fixed IDs `wake-8450`, `ashes`, `lotro`, and `wake-preparation`. Each row contains:
 
 | Field | Meaning |
 | --- | --- |
@@ -490,3 +490,10 @@ produce their existing unavailable/unverified defaults in the 200 overview;
 there is no wait for a FIFO writer and no cached positive fallback. Parent-path
 symlink resolution is not prohibited by this check. Existing regular-file byte
 limits and oversize semantics remain unchanged.
+
+
+`wake-preparation` is a separate source-only staging row for DIT `fd18286`'s
+intake gate and local blocker review. It is not the `wake-8450` transport receipt
+and cannot supersede that dated runtime observation. Even a clear staged local
+review grants neither writer transfer nor runtime verification. No gate status,
+journal contents, player count or save acknowledgement is collected by Admin.

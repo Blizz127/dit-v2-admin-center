@@ -62,7 +62,7 @@ function renderOperationSources(data) {
   const panel = document.getElementById('operation-sources');
   panel.replaceChildren();
   const rows = data?.schema === 'dit-admin-operation-sources-v1' && Array.isArray(data.rows) ? data.rows : [];
-  for (const id of ['wake-8450', 'ashes', 'lotro']) {
+  for (const id of ['wake-8450', 'ashes', 'lotro', 'wake-preparation']) {
     const matches = rows.filter(row => row && row.id === id);
     const row = matches.length === 1 ? matches[0] : null;
     const fields = ['title', 'state', 'reported', 'missing', 'reference', 'sha256'];

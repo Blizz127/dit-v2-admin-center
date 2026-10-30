@@ -11,8 +11,15 @@ const {get, refresh, snapshot, context} = require('./overview_snapshot_harness.c
   data.rows[2].state = 'Source unavailable';
   await refresh({operationSources: data});
   for (const row of data.rows) assert.ok(get('operation-sources').textContent.includes(row.state));
+  const preparation = data.rows.find(row => row.id === 'wake-preparation');
+  preparation.state = 'Reviewed bytes match';
+  await refresh({operationSources: data});
+  assert.match(get('operation-sources').textContent, /8450 migration preparation \(source only\)/);
+  assert.match(get('operation-sources').textContent, /no writer transfer and no runtime verification/);
+  assert.match(get('wake-cutover-status').textContent, /receipt unavailable/);
   assert.equal(get('wake-acceptance-enb').textContent, 'Unverified');
   assert.match(get('wake-acceptance-war').textContent, /^Held/);
+  preparation.state = 'Source changed — review required';
   data.rows.push(data.rows[0]);
   await refresh({operationSources: data});
   assert.ok(!get('operation-sources').textContent.includes('Reviewed bytes match'));

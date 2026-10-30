@@ -165,3 +165,25 @@ descriptor closure, regular-file recovery and a real in-memory overview request
 with two synthetic FIFOs. Handler file-descriptor reads are also confined to the
 temporary synthetic home and must be read-only. No live service/device action or
 production evidence read was needed to reproduce or fix this issue.
+
+
+## Newer source preparation, separate from cutover — October 30
+
+A local Git review found DIT `fd18286` (03:37:18 UTC),
+`docs/evidence/ax41-retirement-20261029/QUIESCENCE.md`. Its current local bytes in
+the bridge-integration checkout matched SHA-256
+`26541c4d095d777ad9f58ebf7a68fae0bfa3c4e674e7a872642cef124a39fa07`.
+This is a source checkpoint, not a deployment/readback observation. The optional
+intake gate remains default-off with no runtime/config/CLI enabling it. Its
+local blocker review can report clear while both writer-transfer permission and
+runtime verification remain false. The note reports nine offline checks; Admin
+did not rerun the owning project's tests or invoke its journal/state readers.
+
+The operations view now includes a fourth reviewed source, `wake-preparation`,
+with that provenance and explicit missing runtime/state/snapshot evidence. It
+uses the same bounded local-byte check and standalone unchecked label. The
+`wake-8450` source remains the separate fa843e8 00:55–00:56 UTC readback; no newer
+completed cutover receipt was established by this review. No per-game status or
+hold is lifted. Two source-reader checks and the actual UI synthetic check passed,
+including a matched preparation note leaving cutover unavailable and games
+Unverified/Held. No live service, game state or device was accessed.

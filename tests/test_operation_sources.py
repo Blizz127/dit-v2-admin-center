@@ -31,7 +31,11 @@ class OperationSourcesTests(unittest.TestCase):
         with patch.object(Path, 'open', side_effect=AssertionError('External read')), \
                 patch('local_evidence.os.open', side_effect=AssertionError('External FD read')):
             rows = sources.read()['rows']
-        self.assertEqual([r['id'] for r in rows], ['wake-8450', 'ashes', 'lotro'])
+        self.assertEqual([r['id'] for r in rows], ['wake-8450', 'ashes', 'lotro', 'wake-preparation'])
         self.assertTrue(all(r['state'] == 'Not checked in standalone preview' for r in rows))
-        self.assertTrue(all('no 8450 binding' in r['missing'] for r in rows[1:]))
+        self.assertTrue(all('no 8450 binding' in r['missing'] for r in rows if r['id'] in ('ashes', 'lotro')))
         self.assertNotIn('authenticated', rows[0])
+        preparation = rows[-1]
+        self.assertIn('no writer transfer and no runtime verification', preparation['reported'])
+        self.assertIn('No cutover', preparation['missing'])
+        self.assertIn('fd18286', preparation['reference'])
