@@ -24,6 +24,16 @@ async function load(botDetails=[detail],bots=[bot]) {
  assert.equal(goalReview().children[2].children.length,2);
  assert.equal(requestCount(),before);
  assert.equal(vm.runInContext('JSON.stringify(currentSnapshot)',context),original);
+ await refresh({bots:[{...bot,personalitySummary:'Updated personality',observedAt:'new-roster-time'}],
+   botDetails:[{...detail,goals:[{text:'Updated goal'}],observedAt:'new-goal-time'}]});
+ assert.equal(get('bot-draft-result').textContent,'','Refresh removes the previous comparison');
+ assert.equal(get('bot-draft-goals').value,'');
+ get('bot-draft-goals').value='Observe\nReport evidence';get('bot-draft-personality').value='Patient';submit();
+ assert.match(goalReview().textContent,/Proposed text differs.*Current loaded text.*Updated goal/s);
+ assert.match(goalReview().textContent,/new-goal-time/);
+ assert.match(personalityReview().textContent,/Proposed text differs.*Current loaded text.*Updated personality/);
+ assert.match(personalityReview().textContent,/new-roster-time/);
+ assert.doesNotMatch(get('bot-draft-result').textContent,/fixture-goal-time|fixture-roster-time|Matches loaded text/);
  get('bot-draft-goals').value='';submit();
  assert.match(goalReview().textContent,/No change proposed/);
  assert.match(goalReview().textContent,/current value is not cleared/);

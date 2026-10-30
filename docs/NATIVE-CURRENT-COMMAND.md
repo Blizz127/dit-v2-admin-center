@@ -1,14 +1,14 @@
 # Current local preview verification command
 
-Source checkpoint: `2c7bec4` (adds panel 2 local goal/personality draft previews). Local artifact: `build/inspector-playtest.html`, **216385 bytes**.
-SHA-256: `3739d331bd9a8c0caec799f08792bf4a07803128108b652865d7d4262f2405f8`.
+Source checkpoint: `b3ab8f0` (adds scoped current/proposed draft review). Local artifact: `build/inspector-playtest.html`, **220324 bytes**.
+SHA-256: `96d4b70e3450cb17864b207e54017236b07427ccc7e4146681e7322ade93e7f1`.
 
 From this checkout, on an authorized host with installed executables selected
 through `DIT_CHROMIUM` / `DIT_NODE`:
 
 ```sh
-python3 tools/run_headless_playtest.py --expected-artifact-sha256 3739d331bd9a8c0caec799f08792bf4a07803128108b652865d7d4262f2405f8
-python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --expected-artifact-sha256 3739d331bd9a8c0caec799f08792bf4a07803128108b652865d7d4262f2405f8
+python3 tools/run_headless_playtest.py --expected-artifact-sha256 96d4b70e3450cb17864b207e54017236b07427ccc7e4146681e7322ade93e7f1
+python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --expected-artifact-sha256 96d4b70e3450cb17864b207e54017236b07427ccc7e4146681e7322ade93e7f1
 ```
 
 These commands were **NOT RUN**. Devbox browser/isolation limitations remain as
@@ -31,3 +31,9 @@ the new form is served and a draft-like POST is still refused with 405. The
 standalone script includes automatic draft preview/validation/discard assertions.
 The native-key runner currently covers sidebar, assignment and optional audit
 keys; it does not yet certify typing/focus behavior in the draft form.
+
+The current artifact also contains automatic draft-review assertions for changed,
+matching and Unknown baselines. Component checks against these exact bytes pass,
+including same-ID refresh replacing the old baseline/provenance. The narrow
+column rule was checked in source; visual appearance remains NOT RUN. These
+checks do not certify native typing, review-column geometry or screen readers.
