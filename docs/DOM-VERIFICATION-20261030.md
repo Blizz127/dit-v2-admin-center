@@ -99,3 +99,26 @@ exit 1 at the relevant assertion, with no success receipt. These were disposable
 in-memory artifact mutations, not source edits. The unmodified generated preview
 and its hash above remain unchanged. This check does not claim CSP enforcement
 (jsdom does not enforce the artifact's script hash).
+
+## Prepared native draft-default assertions
+
+Coordinator follow-up `0a25b1a50738e384`; candidate checkpoint `2f5b971`.
+Added a native-input sequence for empty-preview Enter focusing Goals, followed
+by Space activation of Discard. Both outcomes are mandatory in candidate
+receipt validation. The helper does not simulate default activation with DOM
+clicks; it requests input through the existing CDP press function.
+
+Executed offline checks:
+
+```sh
+node tests/draft_review_keyboard.test.cjs
+python3 -m unittest tests.test_keyboard_runner
+```
+
+The actual-app fabricated adapter passed success plus typing/focus/discard,
+Space, validation-focus and wrong-baseline refusal cases. All 13 Python runner
+checks passed, including missing-field receipt rejection and option composition.
+These fabricated input/receipt tests are not native browser evidence. Local
+preflight exited 2 (Chromium missing; Node/unshare/true found); native execution
+and isolation were not attempted. Exact candidate commands are in
+`NATIVE-CURRENT-COMMAND.md`. The prior device bundle remains untouched.

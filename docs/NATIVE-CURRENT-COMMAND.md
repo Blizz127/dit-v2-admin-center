@@ -33,6 +33,17 @@ POST requests remain refused with 405. No service/device/game/provider was used.
 
 ## Prepared native browser commands — NOT RUN for this artifact
 
+Candidate runner checkpoint: `2f5b971`. The draft helper now uses Enter on an
+empty proposal and requires focus to move to Goals with no preview. It then
+uses browser typing/Tab/Enter to review a proposal and Space to discard it.
+A current candidate receipt must include `emptySubmissionFocus: "goals"` and
+`discardActivation: "Space"`; older receipts cannot satisfy this new coverage.
+This changes the candidate helper, not the approved `8eb2c9f` device bundle.
+
+Latest local `python3 tools/run_keyboard_playtest.py --preflight-only` exited 2:
+Chromium missing; Node, unshare and true found. Native run NOT RUN; isolation
+NOT CHECKED. No browser launch, device action, install or bypass occurred.
+
 On an authorized host with existing Chromium/Node selected through
 `DIT_CHROMIUM` / `DIT_NODE`:
 
