@@ -122,3 +122,15 @@ These fabricated input/receipt tests are not native browser evidence. Local
 preflight exited 2 (Chromium missing; Node/unshare/true found); native execution
 and isolation were not attempted. Exact candidate commands are in
 `NATIVE-CURRENT-COMMAND.md`. The prior device bundle remains untouched.
+
+## Finite latency mean follow-on
+
+Coordinator `639067aa0d84a99e`; source `538ae44`. `node
+tests/model_comparison.test.cjs` passed the new maximum-value and mixed-zero
+regressions. The normal jsdom command passed all **143 checks**, zero transport
+attempts, on preview **225233 bytes**, SHA-256
+`feb22d78b00929fbfb0452baa8b2b91c19ac100fd28331017b688db8f50c65f2`.
+Native status remains `not-run`. No browser installation or namespace retry
+was performed: the documented Devbox isolation denial remains independently
+unresolved. The current command document pins this new preview; prior receipts
+remain tied to their earlier hashes.

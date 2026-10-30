@@ -53,3 +53,11 @@ baseline or a verified change; duplicate bot-detail records withhold goal text.
 Read-only review retains the existing draft lifecycle and has no apply button.
 The review columns have a source-level narrow-width stacking check; native
 rendering and keyboard behavior remain unverified.
+
+Panel 4 numeric correction (`538ae44`): three finite `Number.MAX_VALUE` latency
+samples previously rounded the sum of divided values to infinity and displayed
+Unknown. A running mean now keeps finite nonnegative samples bounded. Focused
+actual-app checks cover 3/9/11 equal maxima plus maximum/zero; existing missing
+values, zero and scope grouping cases still pass. The rebuilt artifact passes
+143 jsdom checks with zero transport attempts. This is a numeric display fix,
+not a benchmark, live usage measurement or browser-verification claim.

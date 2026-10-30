@@ -1,8 +1,8 @@
 # Current local preview verification commands
 
-UI checkpoint: `fde7d05` (sidebar/draft focus order and Blob export assertions).
-Local artifact: `build/inspector-playtest.html`, **225123 bytes**.
-SHA-256: `ad55e2ea0f8ce53f2ab26d7c70f4c66fd3773b50d61954f4f7f9e956b6e19e3d`.
+UI checkpoint: `538ae44` (finite latency means; sidebar/draft/export assertions retained).
+Local artifact: `build/inspector-playtest.html`, **225233 bytes**.
+SHA-256: `feb22d78b00929fbfb0452baa8b2b91c19ac100fd28331017b688db8f50c65f2`.
 
 ## Executed DOM fallback
 
@@ -43,13 +43,18 @@ This changes the candidate helper, not the approved `8eb2c9f` device bundle.
 Latest local `python3 tools/run_keyboard_playtest.py --preflight-only` exited 2:
 Chromium missing; Node, unshare and true found. Native run NOT RUN; isolation
 NOT CHECKED. No browser launch, device action, install or bypass occurred.
+Coordinator follow-up `639067aa0d84a99e` allowed a local browser install as an
+option. The separately recorded Devbox namespace denial remains unresolved:
+`unshare: write failed /proc/self/uid_map: Operation not permitted` (historical
+observation, not retried). Installing Chromium alone would not clear it, so the
+lead selected the authorized offline-backlog alternative. No install occurred.
 
 On an authorized host with existing Chromium/Node selected through
 `DIT_CHROMIUM` / `DIT_NODE`:
 
 ```sh
-python3 tools/run_headless_playtest.py --expected-artifact-sha256 ad55e2ea0f8ce53f2ab26d7c70f4c66fd3773b50d61954f4f7f9e956b6e19e3d
-python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 ad55e2ea0f8ce53f2ab26d7c70f4c66fd3773b50d61954f4f7f9e956b6e19e3d
+python3 tools/run_headless_playtest.py --expected-artifact-sha256 feb22d78b00929fbfb0452baa8b2b91c19ac100fd28331017b688db8f50c65f2
+python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 feb22d78b00929fbfb0452baa8b2b91c19ac100fd28331017b688db8f50c65f2
 ```
 
 The previous Chromium attempt against artifact `96d4b70e` exited 2 before browser
