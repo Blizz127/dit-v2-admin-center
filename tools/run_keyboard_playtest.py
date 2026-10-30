@@ -21,6 +21,24 @@ from tools.run_headless_playtest import run_bounded
 MAX_RECEIPT_BYTES = 64 * 1024
 
 
+def runtime_preflight():
+    """Resolve installed executables only; do not execute, search caches or alter PATH."""
+    def selected(variable, aliases):
+        # An explicit but invalid/empty override must not silently pick another runtime.
+        if variable in os.environ:
+            requested = os.environ[variable]
+            return shutil.which(requested) if requested else None
+        return next((path for name in aliases if (path := shutil.which(name))), None)
+
+    paths = {
+        'Chromium': selected('DIT_CHROMIUM', ('chromium', 'chromium-browser', 'google-chrome', 'chrome-headless-shell')),
+        'Node': selected('DIT_NODE', ('node',)),
+        'unshare': shutil.which('unshare'),
+        'true': shutil.which('true'),
+    }
+    return paths, [name for name, path in paths.items() if path is None]
+
+
 def decode_receipt(source):
     """One bounded JSON receipt; duplicate claims are ambiguous even if identical."""
     if not isinstance(source, str) or len(source) > MAX_RECEIPT_BYTES or len(source.encode('utf-8')) > MAX_RECEIPT_BYTES:
@@ -107,20 +125,24 @@ def valid_export_receipt(result):
             and type(table.get('width')) in (int, float) and 0 < table['width'] <= 1280)
 
 
-def main(screenshots=False, gap_export=False, expected_artifact_sha256=None):
+def main(screenshots=False, gap_export=False, expected_artifact_sha256=None, preflight_only=False):
     if expected_artifact_sha256 is not None and (
             not isinstance(expected_artifact_sha256, str) or len(expected_artifact_sha256) != 64
             or any(c not in '0123456789abcdef' for c in expected_artifact_sha256)):
         print('FAIL: expected artifact SHA-256 must be 64 lowercase hex characters.', file=sys.stderr)
         return 1
-    requested = os.environ.get('DIT_CHROMIUM')
-    browser = shutil.which(requested) if requested else next(
-        (path for name in ('chromium', 'chromium-browser', 'google-chrome', 'chrome-headless-shell')
-         if (path := shutil.which(name))), None)
-    node, unshare, true = (shutil.which(name) for name in ('node', 'unshare', 'true'))
-    if not all((browser, node, unshare, true)):
-        print('BLOCKED: installed Chromium, Node and namespace tooling are required. No download attempted.', file=sys.stderr)
+    paths, missing = runtime_preflight()
+    if preflight_only:
+        print(json.dumps({'preflight': 'blocked' if missing else 'executables-found',
+                          'executables': {name: 'found' if path else 'missing' for name, path in paths.items()},
+                          'nativeRun': 'NOT RUN', 'isolation': 'NOT CHECKED'}))
+        return 2 if missing else 0
+    if missing:
+        print('BLOCKED: missing executable(s): ' + ', '.join(missing) +
+              '. Checked PATH or explicit DIT_CHROMIUM/DIT_NODE selection. '
+              'No browser started, PATH changed or download attempted.', file=sys.stderr)
         return 2
+    browser, node, unshare, true = (paths[name] for name in ('Chromium', 'Node', 'unshare', 'true'))
     isolation = [unshare, '--user', '--map-current-user', '--net', '--']
     if run_bounded(isolation + [true], 3)[0]:
         print('BLOCKED: network isolation denied; no browser started or bypass attempted.', file=sys.stderr)
@@ -172,10 +194,12 @@ if __name__ == '__main__':
     parser.add_argument('--screenshots', action='store_true', help='Capture synthetic comparisons after native checks pass')
     parser.add_argument('--gap-export', action='store_true', help='Check gap table and native Enter download in a disposable directory')
     parser.add_argument('--expected-artifact-sha256', help='Refuse to start the browser if the generated preview differs from this exact hash')
+    parser.add_argument('--preflight-only', action='store_true', help='Resolve executable availability only; no process, namespace or browser launch')
     try:
         args = parser.parse_args()
         sys.exit(main(screenshots=args.screenshots, gap_export=args.gap_export,
-                      expected_artifact_sha256=args.expected_artifact_sha256))
+                      expected_artifact_sha256=args.expected_artifact_sha256,
+                      preflight_only=args.preflight_only))
     except (OSError, RuntimeError):
         print('FAIL: bounded browser run could not complete; no success claimed.', file=sys.stderr)
         sys.exit(1)

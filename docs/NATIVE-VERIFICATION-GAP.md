@@ -181,3 +181,39 @@ must still be attributed only to its pinned artifact, not this newer preview.
 Three focused mocked runner checks passed, including mismatch/cleanup, matching
 hash with incomplete receipt refusal and existing artifact attribution. Neither
 a native run nor device delivery occurred.
+
+
+## Source-only PATH preflight follow-up
+
+The existing device result stays BLOCKED. Missing aliases in the recorded PATH
+are not proof that a PATH edit can fix the run, nor evidence that compatible
+executables exist elsewhere. No device discovery or retry was performed.
+
+The **current source candidate**, separate from the immutable approved 8eb2c9f
+bundle, now supports:
+
+```
+python3 tools/run_keyboard_playtest.py --preflight-only
+```
+
+This resolves Chromium, Node, unshare and true only. It launches no subprocess,
+namespace or browser, writes no artifact/profile, and reports `nativeRun: NOT RUN`
+and `isolation: NOT CHECKED`. Exit 0 means executables found; exit 2 means one or
+more are missing. It does not check versions or promise compatibility.
+
+`DIT_CHROMIUM` and new `DIT_NODE` can select already-installed executable paths,
+including paths containing spaces. Defaults use the recorded PATH; there is no
+shell startup, PATH mutation, cache scan, package lookup, installation or runtime
+substitution. An explicit invalid, empty or non-executable selection is blocked
+without falling back to another binary. Diagnostics name missing dependencies
+without echoing the override values. A normal run still requires network
+isolation and all existing receipt checks; no denial bypass is added.
+
+Fourteen focused preflight/runner tests passed with fake executable files and
+mocked launch boundaries. They cover the recorded missing Chromium/Node case,
+explicit paths outside PATH, non-executable paths, invalid-override refusal,
+preflight-only nonexecution, exact Node argument selection, namespace refusal,
+and existing hash/receipt checks. No native browser was run. This code is not in
+the approved bundle; do not silently replace its files or claim a rerun is ready
+on Alienware until a scoped handoff identifies actual available runtimes and the
+exact intended runner/artifact. The old run is completed and blocked, not queued.

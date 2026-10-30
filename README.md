@@ -168,7 +168,10 @@ namespace with a disposable profile and hard time limits:
 
 ```sh
 timeout -k 3 40 python3 tools/run_keyboard_playtest.py
-# If needed, set DIT_CHROMIUM to an existing executable path.
+# Current source only: inspect executable availability without launching a process.
+python3 tools/run_keyboard_playtest.py --preflight-only
+# DIT_CHROMIUM and DIT_NODE may select already-installed executable paths.
+# This does not change or replace the separately approved 8eb2c9f device bundle.
 ```
 
 Exit 2 means missing runtime/tooling or denied namespace isolation; exit 1 means
