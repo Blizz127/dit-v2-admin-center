@@ -101,6 +101,21 @@ class MockRoutingAPITests(unittest.TestCase):
         self.assertEqual(self.post({**self.data, 'requestId':'fixture-0'})[0], 200)
         self.assertEqual(self.snapshot(), before)
 
+    def test_distinct_writers_at_same_version_have_one_winner(self):
+        barrier = Barrier(2)
+        def submit(request_id):
+            barrier.wait(timeout=2)
+            return request_id, self.post({**self.data, 'requestId':request_id})
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            futures = [pool.submit(submit, request_id) for request_id in ('writer-a', 'writer-b')]
+            results = [future.result(timeout=3) for future in futures]
+        self.assertEqual(sorted(result[0] for _, result in results), [200, 409])
+        self.assertEqual(self.snapshot()['version'], 1)
+        self.assertEqual(len(self.snapshot()['audit']), 1)
+        loser = next(request_id for request_id, result in results if result[0] == 409)
+        self.assertEqual(self.post({**self.data, 'requestId':loser, 'expectedVersion':1})[0], 200)
+        self.assertEqual(len(self.snapshot()['audit']), 2)
+
     def test_real_http_handler_still_refuses_mock_write_path(self):
         import server
         from tests.test_offline_inspector_handler import MemoryConnection
