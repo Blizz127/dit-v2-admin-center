@@ -45,7 +45,7 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn(b'hub is not configured', body)
         self.assertIn(b'Model changes remain disabled', body)
-        self.assertEqual(self.request("POST", "/playtest")[0], 501)
+        self.assertEqual(self.request("POST", "/playtest")[0], 405)
 
     def test_workspace_changelog_is_visible_and_labeled(self):
         page = self.request("GET", "/")[2].decode()
@@ -70,7 +70,7 @@ class ServerTests(unittest.TestCase):
                 if tag == 'fieldset': self.disabled = False
         parser = Controls(); parser.feed(self.request('GET', '/')[2].decode())
         self.assertEqual(parser.buttons, [True, True])
-        self.assertEqual(self.request('POST', '/api/stop', 'test-private-token')[0], 501)
+        self.assertEqual(self.request('POST', '/api/stop', 'test-private-token')[0], 405)
 
     def test_global_controls_are_disabled(self):
         from html.parser import HTMLParser
@@ -101,7 +101,7 @@ class ServerTests(unittest.TestCase):
         from unittest.mock import patch
         import os
         self.assertEqual(self.request('GET', '/api/interaction')[0], 401)
-        self.assertEqual(self.request('POST', '/api/interaction', 'test-private-token')[0], 501)
+        self.assertEqual(self.request('POST', '/api/interaction', 'test-private-token')[0], 405)
         self.assertEqual(self.request('GET', '/api/interaction?limit=999', 'test-private-token')[0], 400)
         with patch.dict(os.environ, {'HUB_READONLY_URL': '', 'HUB_TOKEN_FILE': ''}):
             self.assertEqual(self.request('GET', '/api/interaction', 'test-private-token')[0], 503)
@@ -180,7 +180,7 @@ class ServerTests(unittest.TestCase):
         data = json.loads(body)
         self.assertEqual(data["mode"], "mock")
         self.assertEqual(data["ledger"][0]["verification"], "Pending")
-        self.assertEqual(self.request("POST", "/api/overview", "test-private-token")[0], 501)
+        self.assertEqual(self.request("POST", "/api/overview", "test-private-token")[0], 405)
         self.assertEqual(self.request("GET", "/api/missing", "test-private-token")[0], 404)
 
 

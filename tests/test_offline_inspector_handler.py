@@ -149,7 +149,71 @@ class OfflineInspectorHandlerTests(unittest.TestCase):
 
     def test_mutation_method_is_rejected_before_collection(self):
         status, _, _ = self.request(method='POST')
-        self.assertEqual(status, 501)
+        self.assertEqual(status, 405)
+        self.overview.assert_not_called()
+
+    def test_post_put_payloads_are_rejected_without_reading_or_parsing_body(self):
+        class HeadersOnly(io.BytesIO):
+            def readline(stream, *args):
+                if stream.tell() >= stream.boundary:
+                    raise AssertionError('Body consumed as request/header')
+                line = super().readline(*args)
+                if stream.tell() > stream.boundary:
+                    raise AssertionError('Read crossed into body')
+                return line
+
+            def read(stream, *args):
+                raise AssertionError('Request body read')
+
+            def readinto(stream, *args):
+                raise AssertionError('Request body readinto')
+
+            def close(stream):
+                stream.closed_at = stream.tell()
+                super().close()
+
+        payloads = [b'OMIT_PRIVATE_NOT_JSON', b'\xffOMIT_PRIVATE_UTF8', b'null', b'[]',
+                    b'"OMIT_PRIVATE_STRING"', b'42', b'{}', b'x' * (1024 * 1024 + 1)]
+        routes = ('/api/overview', '/api/bridge-status', '/api/hub-health', '/api/interaction', '/api/trace')
+        for method in ('POST', 'PUT'):
+            for route in routes:
+                for payload in payloads:
+                    with self.subTest(method=method, route=route, payload_bytes=len(payload)):
+                        head = (f'{method} {route} HTTP/1.1\r\nHost: offline.invalid\r\n'
+                                'Authorization: Bearer fixture-token\r\nContent-Type: application/json\r\n'
+                                f'Content-Length: {len(payload)}\r\nConnection: keep-alive\r\n\r\n').encode()
+                        connection = MemoryConnection(b'')
+                        stream = HeadersOnly(head + payload + b'GET /api/overview HTTP/1.1\r\n\r\n')
+                        stream.boundary = len(head)
+                        connection.incoming = stream
+                        with patch('server.json.loads', side_effect=AssertionError('Body JSON parsed')):
+                            handler = server.Handler(connection, ('127.0.0.1', 0), SimpleNamespace(admin_token='fixture-token'))
+                        status_line, rest = bytes(connection.outgoing).split(b'\r\n', 1)
+                        header_bytes, body = rest.split(b'\r\n\r\n', 1)
+                        headers = BytesParser().parsebytes(header_bytes)
+                        self.assertEqual(int(status_line.split()[1]), 405)
+                        self.assert_error_envelope(headers, body)
+                        self.assertEqual(json.loads(body), {'error': 'method not allowed'})
+                        self.assertEqual(headers['Allow'], 'GET')
+                        self.assertEqual(headers['Connection'], 'close')
+                        self.assertTrue(handler.close_connection)
+                        self.assertEqual(stream.closed_at, len(head))
+        self.overview.assert_not_called()
+
+    def test_declared_or_chunked_bodies_do_not_delay_write_rejection(self):
+        # Headers only: the body never arrives. A read/drain would fail this test.
+        for framing in ('Content-Length: 999999999999999999999',
+                        'Content-Length: invalid', 'Transfer-Encoding: chunked',
+                        'Content-Length: 1\r\nTransfer-Encoding: chunked'):
+            wire = ('PUT /api/bridge-status HTTP/1.1\r\nHost: offline.invalid\r\n'
+                    + framing + '\r\nExpect: 100-continue\r\n\r\n').encode()
+            connection = MemoryConnection(wire)
+            connection.incoming.read = Mock(side_effect=AssertionError('Waited for body'))
+            server.Handler(connection, ('127.0.0.1', 0), SimpleNamespace(admin_token='fixture-token'))
+            response = bytes(connection.outgoing)
+            self.assertTrue(response.startswith(b'HTTP/1.0 405 '))
+            self.assertNotIn(b'100 Continue', response)
+            self.assertEqual(json.loads(response.split(b'\r\n\r\n', 1)[1]), {'error': 'method not allowed'})
         self.overview.assert_not_called()
 
     def test_unknown_control_paths_and_write_methods_cannot_reach_dependencies(self):
@@ -163,9 +227,9 @@ class OfflineInspectorHandlerTests(unittest.TestCase):
             for method in ('POST', 'PUT', 'PATCH', 'DELETE'):
                 with self.subTest(path=path, method=method):
                     status, headers, body = self.request(path, method=method)
-                    self.assertEqual(status, 501)
+                    self.assertEqual(status, 405)
                     self.assert_error_envelope(headers, body)
-                    self.assertEqual(json.loads(body), {'error': 'method not supported'})
+                    self.assertEqual(json.loads(body), {'error': 'method not allowed'})
         self.overview.assert_not_called()
 
     def assert_error_envelope(self, headers, body):
@@ -292,7 +356,7 @@ class OfflineInspectorHandlerTests(unittest.TestCase):
                     self.assertEqual(status, 401)
                     self.assertEqual(headers['Cache-Control'], 'no-store')
                     self.assertEqual(json.loads(body), {'error': 'unauthorized'})
-            self.assertEqual(self.request('/api/bridge-status', method='POST')[0], 501)
+            self.assertEqual(self.request('/api/bridge-status', method='POST')[0], 405)
         runner.assert_not_called()
 
     def test_bridge_permission_denial_and_timeout_return_unknown_without_details(self):

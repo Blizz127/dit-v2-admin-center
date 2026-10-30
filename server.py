@@ -277,13 +277,16 @@ def overview(source='mock'):
 
 
 class Handler(BaseHTTPRequestHandler):
-    def send_content(self, status, content_type, body):
+    def send_content(self, status, content_type, body, *, allow=None):
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Content-Security-Policy", "default-src 'self'; frame-ancestors 'none'; base-uri 'none'")
         self.send_header("Content-Length", str(len(body)))
+        if allow is not None:
+            self.send_header('Allow', allow)
+            self.send_header('Connection', 'close')
         self.end_headers()
         if self.command != 'HEAD':
             self.wfile.write(body)
@@ -297,6 +300,17 @@ class Handler(BaseHTTPRequestHandler):
             self.send_content(code, 'application/json', json.dumps({'error': error}).encode())
             return
         super().send_error(code, message, explain)
+
+    def reject_write(self):
+        # No write routes exist. Do not read, decode or drain any request body,
+        # including unbounded/chunked input; close so it cannot become a request.
+        self.close_connection = True
+        self.send_content(405, 'application/json', b'{"error":"method not allowed"}', allow='GET')
+
+    do_POST = reject_write
+    do_PUT = reject_write
+    do_PATCH = reject_write
+    do_DELETE = reject_write
 
     def do_GET(self):
         try:

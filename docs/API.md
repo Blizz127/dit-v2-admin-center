@@ -78,7 +78,8 @@ This describes recognized error paths, not a blanket catch of programming errors
 | `/api/interaction` | 200 projected switches, freshness, truncation, scoped bots, fetch time and coverage | 401 auth; 400 query; 503 missing configuration/read failure; 502 invalid response/configuration. |
 | `/api/bridge-status` | 200 observation object, including Unknown fields when observation fails | 401 auth; 400 query. Observer failure is represented as Unknown with null observation time, not fabricated 502/503. |
 
-Unknown authenticated API GET paths return 404; unsupported methods return 501.
+Unknown authenticated API GET paths return 404. POST/PUT/PATCH/DELETE return
+405 with Allow: GET; other unimplemented methods retain 501.
 The method rejection occurs before route authentication or dependencies, as in
 the existing standard-library dispatch. GET authentication remains first.
 Trace's existing configuration-validation status differs from the two cached
@@ -143,7 +144,7 @@ An absent overview query still selects mock data. Authentication precedes
 query validation, including malformed requests.
 
 Unknown `/api/` GET paths require owner authentication and then return 404.
-POST/PUT/PATCH/DELETE are not implemented and return 501 before dependencies
+POST/PUT/PATCH/DELETE have no write routes and return 405 before dependencies
 are reached. They do not enable control actions or parse a write payload.
 Focused in-memory checks cover this behavior across all five read APIs; no
 running service was contacted or restarted for this source change.
@@ -160,7 +161,7 @@ Requires the owner token. Returns a bounded read-only observation of the FFXI br
 ### Bridge observation failures
 
 The owner token is checked before the observer runs: missing or wrong tokens
-return 401, and unsupported POST requests return 501 without invoking it.
+return 401, and unsupported POST requests return 405 without invoking it.
 An authenticated bridge observation that encounters a local permission error,
 SSH failure or timeout returns HTTP 200 with all observation fields Unknown
 and `observedAt: null`. HTTP success here does not mean service health or
@@ -525,3 +526,30 @@ valid-request recovery, unauthorized refusal, malformed query refusal, valid
 encoded/default queries and existing redacted error envelopes. Sockets, real
 collectors, databases and subprocesses were forbidden. No listener, token read,
 service restart or device action occurred; the standalone artifact is unchanged.
+
+
+## POST/PUT body refusal on read-only surfaces
+
+The server has no mutation endpoints or accepted write-payload schema.
+POST/PUT/PATCH/DELETE now return **405 Method Not Allowed** with the fixed JSON
+body `{"error":"method not allowed"}`, `Allow: GET`, `Connection: close`,
+no-store/nosniff and the correct response length. This includes the admin and
+bridge APIs, unknown targets and static resources. The rejection precedes
+route authentication and dependencies, as did the previous generic 501 refusal;
+GET authentication and access rules are unchanged. Other unimplemented methods,
+including the existing HEAD behavior, retain their documented 501 response.
+
+The handler does not read, decode or drain the body. Oversized actual payloads,
+huge declared lengths, missing bodies, non-JSON bytes, invalid UTF-8, arrays,
+nulls, strings, numbers and object payloads all receive the same method-level
+4xx. The body cannot become a follow-up request because the connection closes.
+Chunked/contradictory framing does not cause a body wait or JSON parse. This is
+not a new accepted POST route or a payload-validation contract for future writes.
+
+Six focused in-memory handler checks passed, covering POST/PUT payload refusal
+across all five read API endpoints, declared/chunked/absent bodies, explicit
+connection closure and unchanged unknown-method/HEAD behavior. Body read/JSON
+parse attempts and live dependencies were forbidden in the new payload check;
+no listener, credential read, service restart or device action was used.
+Existing socket-suite status expectations were aligned to 405, but that broader
+suite was not run for this focused change. Standalone preview bytes are unchanged.
