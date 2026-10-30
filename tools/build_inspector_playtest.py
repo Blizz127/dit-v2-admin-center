@@ -117,7 +117,8 @@ def build():
         progress = ('<details class="preview-report"><summary id="preview-progress-label-' + location + '">Local preview checks: NOT RUN</summary>'
                     '<p>5-second no-progress limit; 10-second total limit. This observes preview checks, not bots or services. '
                     'Reload this file to start a new check run.</p>'
-                    '<p id="preview-progress-' + location + '" data-state="not-run">NOT RUN</p></details>')
+                    '<p id="preview-progress-' + location + '" data-state="not-run">NOT RUN</p>'
+                    '<button type="button" id="preview-progress-log-' + location + '">Open check log</button></details>')
         html = html.replace(marker, progress + marker, 1)
     fingerprints = html_escape.escape(json.dumps(source_fingerprints(), indent=2))
     provenance = '<details id="harness-provenance"><summary>Artifact source fingerprints</summary><p>SHA256 of local inputs at generation; not a deployment revision or browser result.</p><pre>' + fingerprints + '</pre></details>'

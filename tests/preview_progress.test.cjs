@@ -3,12 +3,12 @@ const assert = require('node:assert/strict');
 const {JSDOM} = require(process.env.DIT_JSDOM_MODULE || 'jsdom');
 const {installPreviewProgress} = require('../tools/preview_progress.js');
 function fixture() {
-  const dom = new JSDOM(['overview','assignment'].map(location => `<details><summary id="preview-progress-label-${location}"></summary><p id="preview-progress-${location}"></p></details>`).join(''));
+  const dom = new JSDOM(['overview','assignment'].map(location => `<details><summary id="preview-progress-label-${location}"></summary><p id="preview-progress-${location}"></p><button id="preview-progress-log-${location}">Open check log</button></details>`).join('') + '<details id="harness-results"><p id="harness-status">RUNNING</p></details>');
   let time = 0, tick, cancelled = 0;
   const progress = installPreviewProgress({document:dom.window.document, now:()=>time,
     schedule:callback=>{tick=callback;return 1;}, cancel:id=>{assert.equal(id,1);cancelled++;}});
-  const panels = [...dom.window.document.querySelectorAll('p')];
-  return {progress, panels, labels:[...dom.window.document.querySelectorAll('summary')], at(value){time=value; tick();}, cancelled:()=>cancelled, close:()=>dom.window.close()};
+  const panels = [...dom.window.document.querySelectorAll('p[id^="preview-progress-"]')];
+  return {progress, panels, document:dom.window.document, labels:[...dom.window.document.querySelectorAll('summary')], at(value){time=value; tick();}, cancelled:()=>cancelled, close:()=>dom.window.close()};
 }
 const stalled = fixture();
 try {
@@ -18,6 +18,12 @@ try {
   assert.ok(stalled.panels.every(p=>p.dataset.state==='progress-timeout' && p.textContent.includes('no assertion progress') && p.textContent.includes('1 completed checks')));
   assert.equal(stalled.panels[0].textContent, stalled.panels[1].textContent);
   assert.ok(stalled.labels.every(label=>label.textContent.includes('Stalled')));
+  for (const location of ['overview','assignment']) {
+    stalled.document.getElementById('preview-progress-log-' + location).click();
+    assert.ok(stalled.document.getElementById('harness-results').open);
+    assert.equal(stalled.document.activeElement.id,'harness-status');
+    assert.match(stalled.document.activeElement.textContent,/INCOMPLETE.*Stalled/);
+  }
   assert.equal(stalled.panels[0].querySelector('img'), null);
   stalled.progress.record('late success');assert.equal(stalled.progress.finish(),false);
   assert.equal(stalled.progress.snapshot().checks,1);assert.equal(stalled.cancelled(),1);
@@ -28,6 +34,7 @@ try {
   total.at(10000);
   assert.ok(total.panels.every(p=>p.dataset.state==='total-timeout' && p.textContent.includes('10-second total')));
   assert.ok(total.labels.every(label=>label.textContent.includes('10-second total')));
+  assert.match(total.document.getElementById('harness-status').textContent,/INCOMPLETE.*10-second total/);
   assert.equal(total.progress.finish(),false);assert.equal(total.cancelled(),1);
 } finally {total.close();}
 const good = fixture();

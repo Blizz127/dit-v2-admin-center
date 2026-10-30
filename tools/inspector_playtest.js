@@ -2,6 +2,7 @@
 const requests = [];
 const unexpected = [];
 const previewProgress = installPreviewProgress({document});
+document.getElementById('harness-status').textContent = 'RUNNING — local synthetic checks. Native verification has NOT RUN.';
 // Observe real object-URL/Blob creation without fetching through the network.
 const gapBlobs = new Map();
 const URL = {
@@ -433,6 +434,13 @@ try {
       check(!event.isTrusted && document.documentElement.dataset.keyboardPlaytest === 'not-run',
         `Untrusted ${type} ${key === ' ' ? 'Space' : key} cannot produce native keyboard evidence`);
     }
+  }
+  const beforeProgressLinks = requests.length;
+  for (const location of ['overview', 'assignment']) {
+    document.getElementById('preview-progress-log-' + location).click();
+    check(document.getElementById('harness-results').open && document.activeElement.id === 'harness-status'
+      && requests.length === beforeProgressLinks, `Preview ${location} diagnostics open and focus the check log without a request`);
+    document.getElementById('harness-results').open = false;
   }
   // Scripted inspection navigates through several panels. Start the owner's review
   // with matching focus, section cue and fragment, without adding a history entry.

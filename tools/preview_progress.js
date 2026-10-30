@@ -6,6 +6,13 @@ function installPreviewProgress({document, now = () => performance.now(),
   const labels = {running:'Running', passed:'Completed', failed:'Check failed',
     'progress-timeout':'Stalled: no assertion progress for 5 seconds',
     'total-timeout':'10-second total check limit reached'};
+  for (const location of ['overview', 'assignment']) {
+    document.getElementById('preview-progress-log-' + location)?.addEventListener('click', () => {
+      const report = document.getElementById('harness-results'), status = document.getElementById('harness-status');
+      report.open = true; status.setAttribute('tabindex', '-1'); status.focus();
+      status.scrollIntoView?.({block:'nearest'});
+    });
+  }
   function snapshot() { return {state, checks, lastCheck, elapsedMs:Math.max(0, Math.round((endedAt ?? now()) - start))}; }
   function render() {
     const data = snapshot();
@@ -18,7 +25,13 @@ function installPreviewProgress({document, now = () => performance.now(),
       if (label) label.textContent = `Local preview checks: ${labels[state]}`;
     }
   }
-  function stop(next) { state = next; endedAt = now(); if (timer !== undefined) cancel(timer); render(); }
+  function stop(next) {
+    state = next; endedAt = now(); if (timer !== undefined) cancel(timer); render();
+    if (next === 'progress-timeout' || next === 'total-timeout') {
+      const status = document.getElementById('harness-status');
+      if (status) status.textContent = `INCOMPLETE — ${labels[next]}. Local synthetic checks only; native checks remain unverified.`;
+    }
+  }
   function sample() {
     if (state === 'running') {
       if (now() - start >= 10000) stop('total-timeout');
