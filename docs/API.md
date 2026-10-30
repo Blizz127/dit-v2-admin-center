@@ -408,3 +408,15 @@ normalized included fields only; excluded or malformed fields are not compared.
 A missing ID yields one candidate, never a display-name join. Row positions and
 reported time are not persistent identity or authenticated provenance. A saved
 report remains a copy of its original snapshot after the workspace refreshes.
+# Local wake verification metadata
+
+Overview responses now include `wakeVerification`, projected from
+`data/local/wake-verification.json` on each refresh. This is an owning-lead
+supplied local receipt, not an8450 call, credential file or mutation route.
+See [receipt format and trust boundary](WAKE-VERIFICATION-RECEIPT.md).
+The projection has schema, coverage and exactly twelve rows with game, status,
+observedAt and receipt. Status is Unverified, Held or Verified readback (reported).
+Per-game authenticated ready evidence must match a completed Banshee8450
+cutover; the global cutover flag alone never verifies every game. Held rows
+cannot be cleared through this metadata. No actual receipt or live acceptance
+was installed as part of the source change.

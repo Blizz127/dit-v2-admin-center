@@ -17,11 +17,11 @@ bypass is authorized. Approval is not an execution pass. See the exact pinned
 | Alienware `236cd862` | Original preview, owner viewed and supplied design feedback; retained unchanged |
 | Alienware `691f6c5d` | Redesigned layout, delivery hash verified; native checks not run by Admin |
 | Handoff `ef740241` | Exact approved runner/UI pin `8eb2c9f`; packaged for device lead, not yet executed; older than latest local preview |
-| Local `a9d519da` | Latest offline preview adds twelve mapped wake-route rows and dated 8450 readback; native pin and delivered previews unchanged |
+| Local `c08ec7e0` | Latest offline preview includes per-game receipt rendering and E&B fix-image note; native pin and delivered previews unchanged |
 
-Latest local file: `build/inspector-playtest.html`, 190655 bytes, generated at
-source checkpoint `609851f`, adding the scoped wake-route evidence matrix.
-SHA-256: `a9d519dad5d14cd0bcd5fd9fc58801fec99b9722bd693793d635fb6f9a5d814b`.
+Latest local file: `build/inspector-playtest.html`, 192567 bytes, generated at
+source checkpoint `6fe69a9`, adding per-game receipt-based verification rendering.
+SHA-256: `c08ec7e02ddf929a085c01046c06bae21544cf4789a7c17e70f8cf5feabc0143`.
 Do not apply a result from an older file to this version. The native runner now
 includes `artifactSha256` in its successful result, computed from the exact
 temporary HTML it generated before launch.
