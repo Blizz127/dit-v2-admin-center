@@ -913,16 +913,21 @@ function renderAssignments() {
   assignmentNavigation('Assignment example count unknown.');
   if (!selectedBotId) { assignmentPage = 0; assignmentNavigation('Select a bot to view loaded assignment examples.'); item(panel, 'No bot selected', 'Select a bot to view synthetic assignment examples.', 'Real assignment history is unavailable.'); return; }
   const bot = uniqueRecord(currentSnapshot.bots, selectedBotId);
-  if (!Array.isArray(currentSnapshot.assignmentHistory) || currentSnapshot.assignmentHistory.some(a => !a || typeof a !== 'object' || Array.isArray(a))) {
+  if (!Array.isArray(currentSnapshot.assignmentHistory)) {
     assignmentPage = 0; assignmentNavigation('Assignment example count unknown.');
     item(panel, 'Assignment example coverage unknown', 'No usable assignment example list was supplied.', 'Real assignment history is unavailable; no model changes are applied.'); return;
   }
-  const rows = currentSnapshot.assignmentHistory.filter(a => a.botId === selectedBotId);
-  if (!bot || !rows.length) { assignmentPage = 0; assignmentNavigation(bot ? '0 loaded assignment examples for this bot.' : 'Selected bot is no longer in the loaded roster.'); item(panel, 'No matching examples', 'No synthetic assignment history is available for this bot.', 'This does not prove no real assignment exists.'); return; }
+  const supplied = currentSnapshot.assignmentHistory;
+  const usable = supplied.filter(a => a && typeof a === 'object' && !Array.isArray(a) && typeof a.botId === 'string' && a.botId.trim());
+  const partial = usable.length !== supplied.length;
+  if (partial) item(panel, 'Assignment example coverage unknown', 'Malformed or unscoped rows were omitted; usable scoped examples remain visible.', 'Loaded total Unknown; real assignment history is unavailable and no model changes are applied.');
+  const rows = usable.filter(a => a.botId === selectedBotId);
+  const coverage = partial ? ' Usable scoped rows only; loaded total Unknown.' : '';
+  if (!bot || !rows.length) { assignmentPage = 0; assignmentNavigation(bot ? `0 ${partial ? 'usable' : 'loaded'} assignment examples for this bot.${coverage}` : recordsForId(currentSnapshot.bots, selectedBotId).length > 1 ? 'Selected bot identity is ambiguous in the loaded roster.' : 'Selected bot is no longer in the loaded roster.'); item(panel, 'No matching examples', 'No synthetic assignment history is available for this bot.', 'This does not prove no real assignment exists.'); return; }
   assignmentPages = Math.ceil(rows.length / assignmentPageSize);
   assignmentPage = Math.min(assignmentPage, assignmentPages - 1);
   const start = assignmentPage * assignmentPageSize;
-  assignmentNavigation(`Page ${assignmentPage + 1} of ${assignmentPages} · Showing ${start + 1}–${Math.min(start + assignmentPageSize, rows.length)} of ${rows.length} loaded examples. Not a complete live history.`);
+  assignmentNavigation(`Page ${assignmentPage + 1} of ${assignmentPages} · Showing ${start + 1}–${Math.min(start + assignmentPageSize, rows.length)} of ${rows.length} loaded examples.${coverage} Not a complete live history.`);
   rows.slice(start, start + assignmentPageSize).forEach(a => item(panel, `${routingText(bot.name)} · ${routingText(a.purpose)}`, `Requested: ${routingText(a.requested)} · Effective: ${routingText(a.effective)}`, `Version: ${routingText(a.version)} · Recorded: ${routingText(a.at, 'unknown')} · ${routingText(a.source)}`));
 }
 function rosterDetails(bot) {

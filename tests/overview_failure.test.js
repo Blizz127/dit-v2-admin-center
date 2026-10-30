@@ -365,7 +365,7 @@ function select() {
     assert.match(get('reply-source').textContent, /Reply evidence coverage unknown/);
     assert.match(get('assignment-history').textContent, /Assignment example coverage unknown/);
     for (const [panel, retained] of [['reply-source', /CURRENT_REPLY/], ['assignment-history', /CURRENT_ASSIGNMENT/]]) {
-      if (mode === 'invalid-row' && panel === 'reply-source') assert.match(get(panel).textContent, retained);
+      if (mode === 'invalid-row') assert.match(get(panel).textContent, retained);
       else assert.doesNotMatch(get(panel).textContent, /CURRENT_REPLY|CURRENT_ASSIGNMENT/);
       assert.doesNotMatch(get(panel).textContent, /OMIT_BAD/);
     }
