@@ -9,6 +9,7 @@ const report={schema:'dit-admin-roster-gap-report-v1',selectedSnapshotRow:2,reas
  candidates:[{snapshotRow:2},{snapshotRow:3}],differingFields:['name','game']};
 const expected=JSON.stringify(report,null,2);
 (async()=>{
+ let completion;
  try {
   assert.throws(()=>verifySavedReport(directory,expected));
   fs.writeFileSync(filename,expected);
@@ -37,18 +38,31 @@ const expected=JSON.stringify(report,null,2);
   fs.symlinkSync(path.join(root,'outside.json'),filename);
   assert.throws(()=>verifySavedReport(directory,expected));fs.unlinkSync(filename);
   const sent=[],expressions=[],keys=[];
-  const receipt=await verifyGapExport({
+  const attempt=verifyGapExport({
     send:async(method,params)=>sent.push({method,params}),
     evaluate:async expression=>{expressions.push(expression);return expression.includes('const region')
       ? {rows:9,columns:3,width:390,scrollWidth:500,differences:['name (differs)','game (differs)'],copy:expected,href:'blob:synthetic-protocol-fixture'}:true;},
     waitFor:async expression=>assert.match(expression,/textarea/),
-    press:async key=>{keys.push(key);if(keys.length===2)fs.writeFileSync(filename,expected);}
+    press:async key=>{
+      keys.push(key);
+      if(keys.length===2){
+        fs.writeFileSync(filename,expected.slice(0,15));
+        completion=setTimeout(()=>fs.writeFileSync(filename,expected),60);
+      }
+    }
   },directory);
+  let settled=false;
+  attempt.then(()=>{settled=true;},()=>{settled=true;});
+  await new Promise(resolve=>setTimeout(resolve,20));
+  assert.equal(keys.length,2,'Native helper must have reached its simulated download activation');
+  assert.equal(settled,false,'A partial destination file must not complete or fail the native helper');
+  let receipt;
+  try {receipt=await attempt;} finally {clearTimeout(completion);}
   assert.deepEqual(keys,['Enter','Enter']);assert.equal(sent.length,1);
   assert.deepEqual(sent[0],{method:'Browser.setDownloadBehavior',params:{behavior:'allow',downloadPath:directory}});
   assert.ok(expressions.every(expression=>!expression.includes('.click(')));
   assert.equal(receipt.table.rows,9);assert.match(receipt.sha256,/^[a-f0-9]{64}$/);
   assert.equal(receipt.nativeActivation,'Enter');
   console.log('PASS: fabricated gap-download protocol, file integrity and refusal contracts. Native browser NOT RUN.');
- } finally {fs.rmSync(root,{recursive:true,force:true});}
+ } finally {clearTimeout(completion);fs.rmSync(root,{recursive:true,force:true});}
 })().catch(error=>{console.error(error);process.exitCode=1;});

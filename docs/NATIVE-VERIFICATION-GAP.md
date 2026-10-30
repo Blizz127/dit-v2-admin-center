@@ -362,3 +362,9 @@ growth after stat. The existing fake-protocol export check and eleven focused
 runner checks pass. These do not establish Chromium download behavior. Native
 execution is still NOT RUN; the approved device bundle is unchanged. No HTML
 source changed in this slice, so the local preview remains `d2765fd1`.
+
+The fake-protocol `verifyGapExport` path also now creates a partial destination
+on its second simulated Enter, asserts the helper is still pending, then writes
+the exact report and verifies the resulting receipt. Thus the completion wait
+is tested through the same helper the headless runner calls, not just its file
+validator. This remains fabricated protocol/file evidence, not native input.
