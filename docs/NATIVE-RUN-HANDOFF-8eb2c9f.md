@@ -15,7 +15,8 @@ runner/results and supplied this package through the coordinator.
 
 All 21 manifest entries verified locally. The exact pinned generator ran once
 to produce the handoff artifact. No existing feature test suite was repeated;
-no native browser or device was accessed. Device transfer/execution remain pending.
+no native browser or device was accessed during packaging. The later device run
+executed once and was blocked before browser launch; see the reconciled receipt below.
 
 `HANDOFF.md` in the bundle contains the exact bounds, pre/post file verification,
 installed-runtime prerequisites and a 45-second outer deadline for
@@ -41,8 +42,9 @@ pass, visual review, screen-reader check or live game acceptance.
 
 ## Returned-result reconciliation (Admin, no device action)
 
-Follow-up sent through coordinator message `6a76f324acc86bc9`; this is not an
-execution receipt. Do not rerun a device test because the returned package is
+Follow-up sent through coordinator message `6a76f324acc86bc9` was based on a
+missing local reconciliation, not missing execution. It is superseded by the
+existing executor receipt below; no second run is requested. Do not rerun a device test because the returned package is
 older than current source. The package and executor assignment above are fixed.
 
 When the device lead returns evidence:
@@ -73,6 +75,41 @@ When the device lead returns evidence:
 
 Do not paste raw browser errors, user paths or unrelated device information into
 product cards. Keep the returned receipt with its identity evidence; summarize
-only the relevant failure or measured checks. No result has arrived in this
-Admin turn, so native execution remains NOT RUN/unknown here. This checklist
-changes no packaged bytes, device instructions, runtime or approval scope.
+only the relevant failure or measured checks. The existing result is BLOCKED,
+not pending execution. Browser checks remain NOT RUN. This checklist changes no
+packaged bytes, device instructions, runtime or approval scope.
+
+
+## Reconciled existing executor receipt — blocked, not awaiting execution
+
+This corrects `a86636a` and its pending-execution report. Task `a67509c69867`
+already had one run of the original approved pin at **2026-10-29T23:20:30Z**.
+Admin read the saved evidence, without another device connection or run:
+`/home/blizz/scratch/admin-native-8eb2c9f-20261029T232006Z`.
+
+- `remote-run.txt`: `run_rc=2`, same start/end timestamp, stdout empty; Python
+  3.14.8 and unshare (util-linux) 2.41.5. SHA-256
+  `95c4458a522ceeb7aed600c6284f6c6910b1ed1f0cff56852efb544d79c10d2e`.
+- `remote-pre.txt`: chromium, chromium-browser, google-chrome,
+  chrome-headless-shell and node all MISSING from PATH; unshare and Python found.
+  This establishes the checked PATH state, not absence of every possible binary.
+- `native-stderr.txt` (93 bytes):
+  `BLOCKED: installed Chromium, Node and namespace tooling are required. No download attempted.`
+  SHA-256 `c08879aee63a4f5971b4d89bfe51adc7ca2a7dd9b6296d101ea8544851cb67b6`.
+- `native-result.json` is zero bytes, not a successful JSON receipt.
+- `pre-sums.txt`, `build-sums.txt`, `post-sums.txt` each contain 21 OK entries,
+  no other lines; all three SHA-256 values are
+  `69e3a47b791d61549c896b3ce0c0d78cafe69de5104e1bcbe97f7ec18dee3b07`.
+  The saved extracted copy was independently checked against all 21 manifest
+  entries during reconciliation: no mismatch. Its artifact reproduces
+  `ef740241746a1d9609b0c1fe41855d46931f2d01e99ceb493d335eb0678e77c2`.
+  `remote-run.txt` also records bundle hash verification OK.
+
+The prerequisite check stopped before namespace execution/browser launch; it is
+not a namespace denial on Alienware. Native keyboard, rendering and saved-file
+checks did not run. The coordinator's executor handoff reports owned temporary
+cleanup, no install/substitution/retry and the owner session untouched; Admin
+has not independently rechecked the device. No pass applies to this pin or a
+newer preview. The completed attempt remains BLOCKED on missing installed PATH
+runtimes. This evidence grants no installation, retry, substitution or expanded
+device scope, and the stale follow-up must not trigger a duplicate run.

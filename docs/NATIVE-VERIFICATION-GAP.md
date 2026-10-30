@@ -1,7 +1,9 @@
 # Native Admin Center verification handoff
 
 Status at 2026-10-29: all five initial source/setup tasks are complete. The open
-dependency is native execution, not another implementation of those tasks.
+dependency is an available authorized native runtime, not another implementation
+of those tasks. The approved device attempt already ran once and returned
+BLOCKED (exit 2) at 2026-10-29T23:20:30Z, before browser launch.
 Owner decision `654f7a27-9461-4342-b15b-3ac086e79af6`, reference `a67509c69867`,
 was explicitly ALLOWED at 18:08:28 CDT on October 29. Execution belongs only to
 existing launcher/device lead `852bb105-8f9d-4a3f-a986-89a7981756dc`, with an
@@ -16,7 +18,7 @@ bypass is authorized. Approval is not an execution pass. See the exact pinned
 | --- | --- |
 | Alienware `236cd862` | Original preview, owner viewed and supplied design feedback; retained unchanged |
 | Alienware `691f6c5d` | Redesigned layout, delivery hash verified; native checks not run by Admin |
-| Handoff `ef740241` | Exact approved runner/UI pin `8eb2c9f`; packaged for device lead, not yet executed; older than latest local preview |
+| Handoff `ef740241` | Exact approved runner/UI pin `8eb2c9f`; executed once at 23:20:30Z, BLOCKED rc2: Chromium aliases and Node missing from PATH; browser not launched |
 | Local `0a4d7168` | Latest offline preview separates dated 8450 cutover completion from game readiness; local sources remain unchecked in standalone; native pin and delivered previews unchanged |
 
 Latest local file: `build/inspector-playtest.html`, 196623 bytes, with UI source
@@ -76,7 +78,8 @@ using a fabricated browser result; that does not upgrade native status.
 
 ## Still unverified
 
-1. The full native command's real result and saved download.
+1. Native browser checks and saved download. The command result is known:
+   exit 2 before browser launch, not pending execution.
 2. Actual wrapping/clipping, visible focus outlines, table scrolling and mobile
    layout at owner window sizes, including zoom.
 3. Screen-reader announcements and browser/device-specific interactions.
@@ -84,7 +87,12 @@ using a fabricated browser result; that does not upgrade native status.
 Devbox Chromium was missing; its previous user-namespace setup was denied.
 Neither prerequisite was bypassed or repeatedly probed. REA requires an existing
 executable/CDP endpoint and supplied no alternate browser runtime. The Alienware
-session remains untouched by Admin. Once a valid host/run is available, retain
+session remains untouched by Admin. The saved Alienware receipt confirms missing
+Chromium aliases and Node in PATH, with Python 3.14.8 and unshare 2.41.5 present.
+Pre/rebuild/post manifests each matched 21/21; the original artifact reproduced.
+See [the reconciled executor receipt](NATIVE-RUN-HANDOFF-8eb2c9f.md). No new run,
+installation or substitution follows from this blocker. For any separately
+authorized future host/run, retain
 the complete receipt with artifact hash and distinguish automated results from
 the owner's visual review. No game, live hub, model or security change is needed.
 
