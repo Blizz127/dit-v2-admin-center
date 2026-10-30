@@ -1,5 +1,6 @@
 """Check reviewed local note bytes, not remote service state or acceptance."""
 from hashlib import sha256
+from local_evidence import read_bytes
 
 LIMIT = 65536
 SCHEMA = 'dit-admin-operation-sources-v1'
@@ -33,8 +34,7 @@ def read(home=None):
         state = 'Not checked in standalone preview'
         if home is not None:
             try:
-                with (home / source['path']).open('rb') as stream:
-                    raw = stream.read(LIMIT + 1)
+                raw = read_bytes(home / source['path'], LIMIT)
                 state = ('Reviewed bytes match' if len(raw) <= LIMIT and
                          sha256(raw).hexdigest() == source['sha256'] else
                          'Source changed — review required')

@@ -6,6 +6,7 @@ from contextlib import ExitStack, closing
 from email.parser import BytesParser
 import hashlib
 import json
+import os
 from pathlib import Path
 import sqlite3
 import tempfile
@@ -29,6 +30,7 @@ class OfflineOverviewCollectionTests(unittest.TestCase):
         self.local = self.home / 'local'
         self.connect = sqlite3.connect
         self.path_open = Path.open
+        self.os_open = os.open
         self.reads = []
         self.routing_fixture = self.home / 'routing-audit-fixture.json'
         self.routing_fixture.write_bytes(routing_audit.FIXTURE.read_bytes())
@@ -80,6 +82,11 @@ class OfflineOverviewCollectionTests(unittest.TestCase):
             self.assertTrue(path.resolve().is_relative_to(self.home), 'Read escaped the synthetic home')
             return self.path_open(path, *args, **kwargs)
 
+        def fd_open(path, flags, *args, **kwargs):
+            self.assertTrue(Path(path).resolve().is_relative_to(self.home), 'FD read escaped the synthetic home')
+            self.assertFalse(flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC), 'Evidence read must not write')
+            return self.os_open(path, flags, *args, **kwargs)
+
         with ExitStack() as stack:
             stack.enter_context(patch('routing_audit.FIXTURE', self.routing_fixture))
             for target in ('socket.socket', 'socket.create_connection', 'subprocess.Popen',
@@ -90,6 +97,7 @@ class OfflineOverviewCollectionTests(unittest.TestCase):
             stack.enter_context(patch('subprocess.run', side_effect=OSError('Synthetic command unavailable')))
             stack.enter_context(patch.object(Path, 'home', return_value=self.home))
             stack.enter_context(patch.object(Path, 'open', path_open))
+            stack.enter_context(patch('os.open', fd_open))
             stack.enter_context(patch('server.PROJECT', self.home / 'dev/admin'))
             stack.enter_context(patch('server.LOCAL_DATA', self.local))
             stack.enter_context(patch('sqlite3.connect', side_effect=connect))
@@ -106,6 +114,19 @@ class OfflineOverviewCollectionTests(unittest.TestCase):
         self.assertEqual(BytesParser().parsebytes(headers)['Cache-Control'], 'no-store')
         self.assertNotIn(b'OMIT_PRIVATE', body)
         return int(status.split()[1]), json.loads(body)
+
+    def test_fifo_evidence_does_not_block_overview_or_promote_acceptance(self):
+        import operation_sources
+        self.seed()
+        os.mkfifo(self.local / 'wake-verification.json')
+        os.mkfifo(self.home / 'note.md')
+        spec = dict(operation_sources.SOURCES[0], path='note.md')
+        with patch.object(operation_sources, 'SOURCES', (spec,)):
+            status, data = self.request()
+        self.assertEqual(status, 200)
+        self.assertIsNone(data['wakeVerification']['cutover'])
+        self.assertTrue(all(r['status'] in ('Unverified', 'Held') for r in data['wakeVerification']['rows']))
+        self.assertEqual(data['operationSources']['rows'][0]['state'], 'Source unavailable')
 
     def test_operation_notes_refresh_without_promoting_game_acceptance(self):
         import operation_sources

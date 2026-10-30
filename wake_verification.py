@@ -2,6 +2,7 @@
 from datetime import datetime, timezone
 import json
 import re
+from local_evidence import read_bytes
 
 GAMES = ('wow-vanilla', 'wow-forever', 'firefall', 'eden', 'blacklight',
          'tabula-rasa', 'ffxi', 'war', 'enb', 'planetside', 'marvel-heroes', 'rose')
@@ -74,8 +75,7 @@ def read(path):
         raise ValueError('Invalid JSON number')
 
     try:
-        with path.open('rb') as source:
-            raw = source.read(LIMIT + 1)
+        raw = read_bytes(path, LIMIT)
         if len(raw) > LIMIT:
             raise ValueError('Receipt too large')
         data = json.loads(raw.decode('utf-8'), object_pairs_hook=unique, parse_constant=reject)

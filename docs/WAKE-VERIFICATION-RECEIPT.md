@@ -143,3 +143,25 @@ summary unavailable. The UI also withholds per-game claims without a valid
 cutover projection, and clears both on session reset or failed refresh. Six
 projection/file tests and the actual UI synthetic refresh check passed. No
 completed production cutover receipt was supplied or installed.
+
+## Nonregular local evidence refusal
+
+A disposable FIFO reproduced a blocked open in both the wake-receipt and
+operations-note readers, before their byte limits could apply. They now share
+`local_evidence.read_bytes`: open read-only/nonblocking, refuse a symlink at the
+final filename, check the opened descriptor is a regular file, and read at most
+64 KiB plus the existing oversize sentinel. The descriptor is closed on refusal.
+This targets local special-file blocking; it is not a deadline for arbitrary
+filesystem I/O or a claim to reject symlinks in parent directories.
+
+FIFOs, directories and final-component symlinks yield the existing defaults:
+null cutover and Unverified/Held game rows, or Source unavailable for notes. An
+oversized regular note still reports Source changed — review required; an
+oversized wake receipt remains invalid. A later regular file recovers normally,
+without cached positive claims. No external source is opened by standalone mode.
+
+Thirteen focused reader/handler checks passed, including special-file refusal,
+descriptor closure, regular-file recovery and a real in-memory overview request
+with two synthetic FIFOs. Handler file-descriptor reads are also confined to the
+temporary synthetic home and must be read-only. No live service/device action or
+production evidence read was needed to reproduce or fix this issue.

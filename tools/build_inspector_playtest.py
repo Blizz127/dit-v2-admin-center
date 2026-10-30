@@ -37,7 +37,7 @@ def snapshot():
 
 
 def source_fingerprints():
-    paths = ('static/index.html', 'static/style.css', 'static/app.js', 'routing_audit.py', 'operation_sources.py',
+    paths = ('static/index.html', 'static/style.css', 'static/app.js', 'routing_audit.py', 'operation_sources.py', 'local_evidence.py',
              'data/fixtures/routing-audit.json',
              'r10_projection.py', 'tests/fixtures/learning-evidence-e8c81be.json',
              'tests/fixtures/assignment-pages.json',

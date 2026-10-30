@@ -483,3 +483,10 @@ Ashes and LOTRO are outside the twelve-game wake-controller manifest; these
 rows describe their owning-lead evidence separately. Neither a deployment note
 nor a successful local hash check creates an 8450 binding or verifies a game.
 The field is local Admin presentation metadata, not a new upstream hub contract.
+
+Both local evidence readers open nonblocking and require a regular file on the
+opened descriptor. FIFO/directory inputs and a symlink at the final filename
+produce their existing unavailable/unverified defaults in the 200 overview;
+there is no wait for a FIFO writer and no cached positive fallback. Parent-path
+symlink resolution is not prohibited by this check. Existing regular-file byte
+limits and oversize semantics remain unchanged.

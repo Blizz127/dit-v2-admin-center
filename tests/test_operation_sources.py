@@ -28,7 +28,8 @@ class OperationSourcesTests(unittest.TestCase):
                 self.assertEqual(sources.read(home)['rows'][0]['state'], 'Source unavailable')
 
     def test_standalone_never_reads_external_files_or_claims_acceptance(self):
-        with patch.object(Path, 'open', side_effect=AssertionError('External read')):
+        with patch.object(Path, 'open', side_effect=AssertionError('External read')), \
+                patch('local_evidence.os.open', side_effect=AssertionError('External FD read')):
             rows = sources.read()['rows']
         self.assertEqual([r['id'] for r in rows], ['wake-8450', 'ashes', 'lotro'])
         self.assertTrue(all(r['state'] == 'Not checked in standalone preview' for r in rows))
