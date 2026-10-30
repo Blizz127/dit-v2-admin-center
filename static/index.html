@@ -95,11 +95,31 @@
 <p>Current realm/accounts status: <strong>Unknown</strong>. Always-on Banshee lifecycle guidance remains separate from launcher grant access. No grant, account or realm control is available here.</p>
 </section>
 <section class="panel" id="wake-signin-repoint" aria-labelledby="wake-signin-repoint-heading">
-<h3 id="wake-signin-repoint-heading">8450 sign-in address repoint · completion unverified</h3>
-<p class="muted">DIT edge contract <code>b95f781</code>, EDGE-HANDOFF.md, October 29, 2026; coordinator requested repoint status at 7:25 PM CT. No completed repoint receipt was supplied.</p>
+<h3 id="wake-signin-repoint-heading">8450 sign-in address repoint · not cut over at last readback</h3>
+<p class="muted">DIT readback <code>fa843e8</code>, October 30, 2026 at 00:55–00:56 UTC, supersedes the earlier source-only checkpoint. No completed repoint receipt is reported.</p>
 <p>The staged contract preserves TLS name <code>login.bansheerealm.com</code> and plans Banshee <code>37.27.113.160:8450</code> after backend readiness, state handoff and consumer checks. The separate <code>8446</code> forward remains outside that cutover.</p>
 <p>Applied address/configuration and authenticated launcher readback: <strong>Unknown</strong>. A configured address or unauthenticated 401 is not proof of sign-in or completed repoint. Existing DIT and launcher owners retain execution; this card makes no request.</p>
-<p>Latest checked owning-source review <code>5ce7919</code> still states shared controller verbs are unconfigured and makes no 8450 cutover claim. A completion receipt and authenticated consumer readback have been requested through the coordinator; pending evidence is not a failed live check.</p>
+<p>At that readback, AX41 stackd PID 1953169 and its TLS container were running; Banshee stackd/TLS units were not installed. The unchanged edge source/defaults and absent overrides support the retained AX41 route. Public 8450 returned 401 with successful TLS verification at 00:56:19 UTC, without credentials. This is availability/auth-required evidence, not authenticated acceptance. No Admin live check was made.</p>
+</section>
+<section class="panel wide" id="wake-game-matrix" aria-labelledby="wake-game-matrix-heading">
+<h3 id="wake-game-matrix-heading">Per-game wake-route handoff matrix</h3>
+<p class="muted">Twelve mapped controller IDs from DIT pending manifest <code>1bad634</code>, with retirement index/readback <code>fa843e8</code>. Latest available source handoffs, not a current per-game poll or an exhaustive launcher catalog. Games outside this manifest, including Ashes and LOTRO, have no wake binding established by this table.</p>
+<p>Authenticated acceptance through the replacement Banshee 8450 service is unverified for every row. Native game availability does not imply managed wake/sleep readiness. “Held” is a retained owner restriction, not a service outage.</p>
+<div class="gap-comparison" role="region" aria-label="Per-game wake-route evidence table" tabindex="0" style="--gap-columns:4">
+<table><caption>Pending Banshee controller bindings · source snapshot, no control actions</caption><thead><tr><th scope="col">Game / controller ID</th><th scope="col">Binding disposition</th><th scope="col">Latest available handoff and remaining gap</th><th scope="col">Replacement 8450 acceptance</th></tr></thead><tbody>
+<tr data-game="wow-vanilla"><th scope="row">WoW Classic · wow-vanilla</th><td>Pending native binding</td><td>Offline stop/diagnostic contract implemented; native transport, current identity and positive save acknowledgement unavailable. Backup/provenance holds remain.</td><td>Unverified</td></tr>
+<tr data-game="wow-forever"><th scope="row">WoW Forever · wow-forever</th><td>Always-on; readiness binding pending</td><td>No supported sleep/wake. Readiness-only facade staged, not activated; exact native readiness source binding pending.</td><td>Unverified</td></tr>
+<tr data-game="firefall"><th scope="row">Firefall · firefall</th><td>Pending</td><td>Native scripts reported present; current readiness, human-count and data/lifecycle binding not verified.</td><td>Unverified</td></tr>
+<tr data-game="eden"><th scope="row">Eden Eternal · eden</th><td>Pending</td><td>Native script paths reported present; current state, readiness and human-count binding not verified.</td><td>Unverified</td></tr>
+<tr data-game="blacklight"><th scope="row">Blacklight · blacklight</th><td>Pending</td><td>Login service reported running; no game container in that observation. Login readiness is not game readiness.</td><td>Unverified</td></tr>
+<tr data-game="tabula-rasa"><th scope="row">Tabula Rasa · tabula-rasa</th><td>Pending; companions held</td><td>Game/auth and native compose chain reported; lifecycle/human binding incomplete. Do not substitute the old companion overlay.</td><td>Unverified</td></tr>
+<tr data-game="ffxi"><th scope="row">Final Fantasy XI · ffxi</th><td>Always-on game; migration binding pending</td><td>Already on Banshee; old AX41 catcher retired. Outside this wake rollout; native ownership and human-online protection remain.</td><td>Unverified</td></tr>
+<tr data-game="war"><th scope="row">Warhammer Online · war</th><td>Held</td><td>Native source tree present; retained owner hold. Migration does not permit wake or restart.</td><td>Unverified</td></tr>
+<tr data-game="enb"><th scope="row">Earth &amp; Beyond · enb</th><td>Pending lifecycle binding</td><td>Healthy native stack reported in handoff; save-safe shutdown/session evidence required before managed sleep. Character select is a separate client milestone.</td><td>Unverified</td></tr>
+<tr data-game="planetside"><th scope="row">PlanetSide · planetside</th><td>Pending lifecycle binding</td><td>Corrected stop script installed per native handoff, not production-exercised; process ownership, zero-human window and supervision transfer unverified. No duplicate start over unmanaged processes.</td><td>Unverified</td></tr>
+<tr data-game="marvel-heroes"><th scope="row">Marvel Heroes · marvel-heroes</th><td>Held</td><td>Native tree exists; no running game in that observation. Owner-deferred activation is not resumed.</td><td>Unverified</td></tr>
+<tr data-game="rose"><th scope="row">ROSE · rose</th><td>Pending; destination unresolved</td><td>Expected Banshee runtime path absent in handoff; native owner mapping unresolved. No fallback to the old AX41 world.</td><td>Unverified</td></tr>
+</tbody></table></div>
 </section>
 <section class="panel" id="lotro-move" aria-labelledby="lotro-move-heading">
 <h3 id="lotro-move-heading">LOTRO owner-only Banshee instance</h3>

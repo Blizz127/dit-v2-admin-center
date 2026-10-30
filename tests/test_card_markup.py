@@ -166,9 +166,9 @@ class CardMarkupTests(unittest.TestCase):
         expected = {
             'ashes-move': ('19:30 UTC', '23:01 UTC', 'disposable staging', 'Unknown', 'not proof of gameplay'),
             'forever-move': ('forever-70', '6:42 PM CT', '7:21 PM CT', 'October 30, 00:21 UTC', 'owner-only for now', 'Unknown'),
-            'wake-signin-repoint': ('completion unverified', 'b95f781', 'No completed repoint receipt',
+            'wake-signin-repoint': ('not cut over at last readback', 'fa843e8', 'No completed repoint receipt',
                                     'login.bansheerealm.com', '37.27.113.160:8450', '8446', 'Unknown',
-                                    '5ce7919', 'no 8450 cutover claim'),
+                                    '00:56:19 UTC', 'without credentials'),
         }
         for identity, values in expected.items():
             panel = self.by_id[identity]
@@ -176,3 +176,20 @@ class CardMarkupTests(unittest.TestCase):
             for value in values:
                 self.assertIn(value, panel.text())
             self.assertFalse(any(n.tag in ('a', 'button', 'input', 'form') for n in panel.descendants()))
+
+    def test_wake_matrix_covers_exact_controller_scope_without_promoting_readiness(self):
+        panel = self.by_id['wake-game-matrix']
+        rows = {n.attrs['data-game']: n for n in panel.descendants() if 'data-game' in n.attrs}
+        self.assertEqual(set(rows), {'wow-vanilla', 'wow-forever', 'firefall', 'eden', 'blacklight',
+                                    'tabula-rasa', 'ffxi', 'war', 'enb', 'planetside', 'marvel-heroes', 'rose'})
+        for row in rows.values():
+            self.assertEqual(row.children[0].attrs.get('scope'), 'row')
+            self.assertEqual(row.children[-1].text(), 'Unverified')
+        for game in ('war', 'marvel-heroes'):
+            self.assertEqual(rows[game].children[1].text(), 'Held')
+        self.assertIn('No supported sleep/wake', rows['wow-forever'].text())
+        self.assertIn('positive save acknowledgement unavailable', rows['wow-vanilla'].text())
+        self.assertIn('not a current per-game poll or an exhaustive launcher catalog', panel.text())
+        self.assertFalse(any(n.tag in ('a', 'button', 'input', 'form') for n in panel.descendants()))
+        region = next(n for n in panel.descendants() if n.attrs.get('role') == 'region')
+        self.assertEqual(region.attrs.get('tabindex'), '0')
