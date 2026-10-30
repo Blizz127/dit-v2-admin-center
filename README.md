@@ -401,6 +401,21 @@ execution, visual appearance and deployed-service behavior remain unverified.
 
 ## Browser-free inspector integration
 
+The inspector and coverage integration checks can use a built preview's parsed
+markup while requiring it to embed the current application source:
+
+```sh
+DIT_TEST_ARTIFACT=build/inspector-playtest.html node tests/inspector_integration.test.js
+DIT_TEST_ARTIFACT=build/inspector-playtest.html node tests/coverage_integration.test.cjs
+```
+
+Both passed against local preview `1759671c` on October 30. A focused Python
+check verifies that stale inspector artifacts fail before the template/handler
+fixture subprocess runs. This binds the simulated-DOM check to markup/current
+app source; it does not execute the standalone driver, CSS layout, native
+keyboard defaults or browser download behavior. No preview is rebuilt or
+delivered by these commands.
+
 Overview failure and inspector reset checks:
 
 ```sh

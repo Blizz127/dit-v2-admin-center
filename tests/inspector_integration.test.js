@@ -5,7 +5,11 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const {execFileSync} = require('node:child_process');
 const python = (...args) => execFileSync('python3', ['tests/inspector_runtime_fixture.py', ...args], {encoding: 'utf8', timeout: 5000});
-const template = JSON.parse(python('--template'));
+const application = fs.readFileSync('static/app.js', 'utf8');
+const artifactPath = process.env.DIT_TEST_ARTIFACT;
+if (artifactPath) assert.ok(fs.readFileSync(artifactPath, 'utf8').includes(application),
+  'Artifact does not embed the current application source');
+const template = JSON.parse(python('--template', ...(artifactPath ? [artifactPath] : [])));
 class Element {
   constructor(tag, attrs = {}, value = '') { this.tag = tag; this.attributes = attrs; this.value = value; this.hidden = Object.hasOwn(attrs, 'hidden'); this.children = []; this.listeners = {}; this.text = ''; }
   append(...children) { this.children.push(...children); }
@@ -47,7 +51,7 @@ const context = {
     return {ok: result.status === 200, status: result.status, json: async () => JSON.parse(result.body)};
   },
 };
-vm.runInNewContext(fs.readFileSync('static/app.js', 'utf8'), context);
+vm.runInNewContext(application, context);
 const flush = () => new Promise(resolve => setImmediate(resolve));
 (async () => {
   assert.equal(get('workspace').hidden, true, 'Honor actual template initial visibility');

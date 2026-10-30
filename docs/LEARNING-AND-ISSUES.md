@@ -311,6 +311,14 @@ These use a limited simulated DOM, not a browser or the standalone driver;
 native appearance/keyboard/download behavior remains unverified. No artifact
 was rebuilt or delivered, and no live/device action occurred.
 
+The follow-up adds the same optional artifact binding to inspector integration.
+Its real-handler synthetic inspector/trace/interaction/health/bridge path passed
+against that unchanged `1759671c` preview. A new focused refusal test supplies
+stale HTML with no Python on its subprocess PATH and confirms source mismatch is
+rejected before fixture execution; it does not count a refused artifact as a
+runtime pass. Both connected checks now have explicit preview association while
+the native-rendering boundary remains unchanged.
+
 A read-only overview summarizes the current roster, learning and metric collections
 before local filters. It distinguishes unavailable, empty, partial and loaded list
 shapes. It counts rows without usable IDs and rows with repeated IDs separately;
