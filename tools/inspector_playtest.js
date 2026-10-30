@@ -125,6 +125,25 @@ try {
   check(textOf('routing-audit-count').includes('Showing 0 of 3') && textOf('routing-audit').includes('No matching model-switch examples'), 'Audit empty intersection is explicit');
   document.getElementById('routing-audit-reset').click();
   check(auditScope.value === '' && auditOutcome.value === '' && textOf('routing-audit-count').includes('Showing 3 of 3') && textOf('routing-audit').includes('Effective model: Unknown') && requests.length === auditRequests, 'Audit reset restores examples locally; effective models remain Unknown');
+  const originalAudit = structuredClone(fixture.audit);
+  fixture.audit = [{actor:'Synthetic operator', action:'Fixture retained action', scope:'Example only', result:'Not applied'}, null, 'WITHHELD_MALFORMED_AUDIT'];
+  await load();
+  check(textOf('audit').includes('Fixture retained action') && textOf('audit').includes('Malformed rows were omitted') && textOf('audit-count').includes('Showing 1 of Unknown total') && !textOf('audit').includes('WITHHELD_MALFORMED_AUDIT'), 'Partial audit retains usable examples with Unknown total and omits malformed payloads');
+  const partialAuditRequests = requests.length;
+  document.getElementById('audit-search').value = 'not in fixture';
+  document.getElementById('audit-search').dispatchEvent(new Event('input', {bubbles:true}));
+  check(textOf('audit-count').includes('Showing 0 of Unknown total') && textOf('audit').includes('No matching audit examples') && textOf('audit').includes('coverage unknown'), 'Audit search keeps partial coverage visible even with no matches');
+  document.getElementById('audit-reset').click();
+  check(textOf('audit').includes('Fixture retained action') && requests.length === partialAuditRequests, 'Audit reset restores usable partial rows without a request');
+  fixture.audit = [null, []];
+  await load();
+  check(textOf('audit').includes('No usable audit examples') && textOf('audit-count').includes('Showing 0 of Unknown total') && !textOf('audit').includes('Fixture retained action'), 'All-malformed audit is Unknown, not a known empty log');
+  fixture.audit = null;
+  await load();
+  check(textOf('audit-count').includes('count unknown') && !textOf('audit').includes('Fixture retained action'), 'Unavailable audit refresh clears retained examples');
+  fixture.audit = originalAudit;
+  await load();
+  check(!textOf('audit').includes('Malformed rows were omitted') && !textOf('audit-count').includes('Unknown total'), 'Complete audit recovery removes the partial warning');
   check(textOf('learning-evidence').includes('No learning record selected'), 'Initial render explains the empty selection');
   const answers = ['Yes', 'No', 'Yes', 'Unknown'];
   fixture.learning.forEach((need, index) => {

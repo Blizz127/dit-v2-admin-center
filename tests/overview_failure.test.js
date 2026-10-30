@@ -34,7 +34,8 @@ const ctx = {document: {querySelector: s => get(s.slice(1)), getElementById: get
     if (outcome === '401' || outcome === '503') return {ok: false, status: Number(outcome)};
     return {ok: true, json: async () => {
       if (outcome === 'json') throw new Error('OMIT_PRIVATE_JSON');
-      if (outcome === 'malformed') return {ownerAttention: {coverage: 'Partial', items: []}};
+      // Partial object snapshots now stay usable; null cannot supply a snapshot.
+      if (outcome === 'malformed') return null;
       const data = JSON.parse(JSON.stringify(fixture));
       if (outcome === 'empty') { data.bots = []; data.learning = []; }
       if (outcome === 'changed') {
@@ -308,7 +309,7 @@ function select() {
   assert.match(get('owner-attention').textContent, /No records listed.*Not a complete decision inventory/);
   assert.doesNotMatch(get('owner-attention').textContent, /No usable decision list/);
   await login('audit');
-  for (const failure of ['audit-missing', 'audit-null', 'audit-malformed', 'audit-invalid-row']) {
+  for (const failure of ['audit-missing', 'audit-null', 'audit-malformed']) {
     outcome = failure; await get('refresh').listeners.click();
     assert.equal(get('workspace').hidden, false);
     assert.match(get('audit-count').textContent, /count unknown/);
@@ -321,6 +322,10 @@ function select() {
     assert.equal(fetchCount, beforeFilter);
     assert.match(get('audit-count').textContent, /count unknown/);
   }
+  outcome = 'audit-invalid-row'; await get('refresh').listeners.click();
+  assert.match(get('audit-count').textContent, /Showing 1 of Unknown total/);
+  assert.match(get('audit').textContent, /Audit example coverage unknown.*Malformed rows were omitted.*OMIT_PARTIAL_PREFIX/);
+  assert.doesNotMatch(get('audit').textContent, /AUDIT_EXAMPLE|No audit examples loaded/);
   outcome = 'audit-partial'; await get('refresh').listeners.click();
   assert.match(get('audit').textContent, /Partial example · Scope unknown.*Unknown.*Actor unknown.*unknown time.*Source unknown/);
   assert.doesNotMatch(get('audit').textContent, /undefined|null|\[object Object\]/);
@@ -359,7 +364,11 @@ function select() {
     assert.equal(get('workspace').hidden, false);
     assert.match(get('reply-source').textContent, /Reply evidence coverage unknown/);
     assert.match(get('assignment-history').textContent, /Assignment example coverage unknown/);
-    for (const panel of ['reply-source', 'assignment-history']) assert.doesNotMatch(get(panel).textContent, /CURRENT_REPLY|CURRENT_ASSIGNMENT|OMIT_BAD/);
+    for (const [panel, retained] of [['reply-source', /CURRENT_REPLY/], ['assignment-history', /CURRENT_ASSIGNMENT/]]) {
+      if (mode === 'invalid-row' && panel === 'reply-source') assert.match(get(panel).textContent, retained);
+      else assert.doesNotMatch(get(panel).textContent, /CURRENT_REPLY|CURRENT_ASSIGNMENT/);
+      assert.doesNotMatch(get(panel).textContent, /OMIT_BAD/);
+    }
     const before = fetchCount; ctx.inspectBot('fixture-bot'); assert.equal(fetchCount, before);
   }
   outcome = 'history-partial'; await get('refresh').listeners.click();
