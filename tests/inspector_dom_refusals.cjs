@@ -15,6 +15,9 @@ const cases = [
     '`wrong-row.json`', 'Gap download filename'],
   ['different Blob bytes', 'new Blob([json],', 'new Blob([json + " "],',
     'Gap Blob bytes equal'],
+  ['stalled driver', 'const readinessFilter =', 'await new Promise(() => {}); const readinessFilter =',
+    'Harness did not finish within five seconds'],
+  ['script parse error', 'const requests = [];', 'const requests = ;', 'DOM runtime errors:'],
 ];
 const child = `
   const html = require('node:fs').readFileSync(0, 'utf8');
@@ -33,5 +36,20 @@ for (const [name, before, after, failure] of cases) {
   assert.equal(result.status, 1, name + ': must fail, not pass or block');
   assert.ok(result.stderr.includes('FAIL:') && result.stderr.includes(failure), result.stderr);
   assert.equal(result.stdout, '', name + ': must not emit a successful receipt');
+  const diagnostic = JSON.parse(result.stderr.split('\n').find(line => line.startsWith('DIAGNOSTIC: ')).slice(12));
+  assert.equal(diagnostic.status, 'failed');
+  assert.equal(diagnostic.artifactSha256, require('node:crypto').createHash('sha256').update(html.replace(before, after)).digest('hex'));
+  assert.ok(diagnostic.lastCheck.length <= 240);
+  if (name === 'stalled driver') {
+    assert.equal(diagnostic.reason, 'completion-timeout');
+    assert.ok(diagnostic.completedChecks > 0);
+    assert.match(diagnostic.lastCheck, /Sidebar DOM navigation/);
+    assert.ok(diagnostic.completionWaitMs >= 5000 && diagnostic.completionWaitMs < 8000);
+  }
+  if (name === 'script parse error') {
+    assert.equal(diagnostic.reason, 'runtime-or-assertion');
+    assert.equal(diagnostic.completedChecks, 0);
+    assert.ok(diagnostic.runtimeErrors > 0);
+  }
   console.log('PASS — refuses ' + name);
 }
