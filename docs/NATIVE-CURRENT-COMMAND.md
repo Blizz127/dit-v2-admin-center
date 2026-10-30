@@ -1,8 +1,8 @@
 # Current local preview verification commands
 
-UI checkpoint: `acaa673` (grouped sample review and distinct empty/unknown states).
-Local artifact: `build/inspector-playtest.html`, **230411 bytes**.
-SHA-256: `f19a14394d581e7d0b8dbc6235973484ee039791dc9334a66592c6d7753fde05`.
+UI checkpoint: `7b39c48` (partial audit coverage; prior sample-review checks retained).
+Local artifact: `build/inspector-playtest.html`, **232717 bytes**.
+SHA-256: `d0b79d4d232fd9cc38c743a6c2b5958fa36811581e1de24e6cad450ed0d6225c`.
 
 ## Executed DOM fallback
 
@@ -12,7 +12,7 @@ From this checkout with the pinned local tool dependency:
 DIT_JSDOM_MODULE="$PWD/build/dom-runtime/node_modules/jsdom" timeout 15 node tools/run_inspector_playtest.cjs
 ```
 
-Actual result: **152 checks passed**, jsdom 26.1.0, zero transport attempts,
+Actual result: **158 checks passed**, jsdom 26.1.0, zero transport attempts,
 artifact hash as above, `nativeKeyboard: not-run`. The runner uses Node
 Blob/object URLs and a no-op scroll shim. Checks include draft input labels,
 successful-preview focus retention, invalid goals/personality focus, empty-form
@@ -56,8 +56,8 @@ On an authorized host with existing Chromium/Node selected through
 `DIT_CHROMIUM` / `DIT_NODE`:
 
 ```sh
-python3 tools/run_headless_playtest.py --expected-artifact-sha256 f19a14394d581e7d0b8dbc6235973484ee039791dc9334a66592c6d7753fde05
-python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 f19a14394d581e7d0b8dbc6235973484ee039791dc9334a66592c6d7753fde05
+python3 tools/run_headless_playtest.py --expected-artifact-sha256 d0b79d4d232fd9cc38c743a6c2b5958fa36811581e1de24e6cad450ed0d6225c
+python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 d0b79d4d232fd9cc38c743a6c2b5958fa36811581e1de24e6cad450ed0d6225c
 ```
 
 The previous Chromium attempt against artifact `96d4b70e` exited 2 before browser

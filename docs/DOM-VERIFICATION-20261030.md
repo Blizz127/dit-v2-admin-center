@@ -160,3 +160,26 @@ bytes, SHA-256
 `f19a14394d581e7d0b8dbc6235973484ee039791dc9334a66592c6d7753fde05`.
 The earlier sample-review hash is retained above as historical evidence only.
 Native verification remains NOT RUN.
+
+## Partial audit examples
+
+Coordinator `13ff2cbb04ecc118`; source `7b39c48`.
+
+```sh
+node tests/overview_failure.test.js
+DIT_JSDOM_MODULE="$PWD/build/dom-runtime/node_modules/jsdom" timeout 15 node tools/run_inspector_playtest.cjs
+```
+
+Both passed. The complete generated artifact passed **158 jsdom checks**,
+**zero transport attempts**, SHA-256
+`d0b79d4d232fd9cc38c743a6c2b5958fa36811581e1de24e6cad450ed0d6225c`,
+**232717 bytes**. New assertions cover usable mixed audit rows, Unknown totals,
+filter/reset without requests, all-malformed versus empty collections, stale-row
+removal and recovery.
+
+The older refresh suite initially failed before the audit assertions because
+it expected a partial object snapshot to close the workspace. Its malformed
+fixture now uses null. A later stale expectation that mixed reply data discards
+usable scoped rows was corrected; assignment/safety refusal expectations stay
+unchanged. The final suite passed. No browser/native-key/file-save verification
+is claimed; no live service or device action occurred.

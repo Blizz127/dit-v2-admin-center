@@ -72,3 +72,10 @@ avoid verified freshness. Supplied strings are rendered as text. Tables have
 scoped headers and a focusable horizontal scroll region for narrow viewports;
 actual visual layout and native disclosure keyboard behavior are unverified.
 No provider request, model selection, write control or export was added.
+
+Panel 7 audit coverage (`7b39c48`): mixed lists retain usable object rows and
+show an Unknown total. Malformed rows are omitted; missing fields within usable
+rows still render Unknown. Search/reset are local and retain partial-coverage
+warnings, including zero matches. An all-malformed list is not described as a
+known empty log. Missing collections clear old rows; complete snapshots remove
+the warning. These are loaded examples, not recorded admin actions.
