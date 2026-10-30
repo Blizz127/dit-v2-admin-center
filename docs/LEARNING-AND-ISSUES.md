@@ -156,6 +156,23 @@ file. See the current
 remaining runtime dependencies. This reconciliation changes no delivered bytes
 and does not touch Alienware.
 
+## Request hardening reconciliation — 2026-10-30
+
+Request bodies and request acquisition sizes are no longer open implementation
+items. The [request-limits table](API.md#request-limits-at-a-glance) records the
+existing zero-body-consumption policy, combined 131,072-byte line/header bound,
+five-second idle / ten-second total acquisition deadlines, and 16-handler
+admission cap, along with their distinct refusal semantics and evidence.
+The combined-size boundary and one-byte refusals now have focused coverage;
+no additional body parser, drain phase or competing size budget is needed.
+
+The five initial tasks remain complete. The current named external dependencies
+are still scoped evidence/contracts and the separately sequenced native-device
+receipt described above; neither is resolved by repeating HTTP-hardening work.
+Future work on collector runtime, response size or load must be a concrete
+requirement or observed gap, not an inference that these acquisition checks
+claim to bound all server work. No live access or device action follows here.
+
 ## Offline inspector runtime coverage
 
 ### Native export verification runner — 2026-10-29

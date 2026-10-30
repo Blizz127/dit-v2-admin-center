@@ -359,6 +359,34 @@ class OfflineInspectorHandlerTests(unittest.TestCase):
         server.Handler(connection, ('127.0.0.1', 0), SimpleNamespace(admin_token='fixture-token'))
         self.assertEqual(bytes(connection.outgoing), b'')
 
+    def test_combined_request_acquisition_bound_leaves_body_unread(self):
+        class Counted(io.BytesIO):
+            def close(stream):
+                stream.closed_at = stream.tell()
+                super().close()
+
+        start, ending = b'GET /api/unknown?OMIT_PRIVATE_', b' HTTP/1.1\r\n'
+        header_start = b'Authorization: Bearer fixture-token\r\nX-Padding: '
+        header_end = b'\r\n\r\n'
+        for line_extra, header_extra, expected, consumed in (
+                (0, 0, 404, 131072),
+                (1, 0, 414, 65537),
+                (0, 1, 431, 131073)):
+            with self.subTest(line_extra=line_extra, header_extra=header_extra):
+                request = start + b'x' * (65536 + line_extra - len(start + ending)) + ending
+                headers = header_start + b'y' * (65536 + header_extra - len(header_start + header_end)) + header_end
+                stream = Counted(request + headers + b'OMIT_PRIVATE_TRAILING_BODY')
+                connection = MemoryConnection(b'')
+                connection.incoming = stream
+                handler = server.Handler(connection, ('127.0.0.1', 0), SimpleNamespace(admin_token='fixture-token'))
+                head, body = bytes(connection.outgoing).split(b'\r\n\r\n', 1)
+                status, header_bytes = head.split(b'\r\n', 1)
+                self.assertEqual(int(status.split()[1]), expected)
+                self.assert_error_envelope(BytesParser().parsebytes(header_bytes), body)
+                self.assertEqual(stream.closed_at, consumed)
+                self.assertTrue(handler.close_connection)
+        self.overview.assert_not_called()
+
     def test_output_timeout_does_not_append_another_response(self):
         connection = MemoryConnection(b'GET /api/overview HTTP/1.1\r\n\r\n')
         calls = []

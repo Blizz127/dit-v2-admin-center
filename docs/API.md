@@ -4,6 +4,34 @@ Status: local presentation contract, draft pending coordination with the DIT v2 
 
 All responses are JSON and `Cache-Control: no-store`. Requests to `/api/*` require `Authorization: Bearer <owner token>`; absent or incorrect tokens receive 401. The token must be provided to the process as `ADMIN_TOKEN` and is never included in responses. No mutation endpoints exist. Optional upstream reads are restricted to `/v1/control/bots`, `/v1/control/learning` with `light=true` and `tasksOnly=true`, `/v1/control/server-status`, and explicit `/v1/control/trace`, `/v1/control/health`, and candidate-only `/v1/control/interaction?limit=50` queries; each game/view has independently labeled synthetic fallback. Read-only overview requests share an in-memory snapshot for up to 15 seconds, retaining original fetch times; token-file metadata changes invalidate it. Unknown API paths return 404. No CORS access is provided.
 
+## Request limits at a glance
+
+These are implemented local-source limits, not pending write-endpoint features
+or claims about the currently running service.
+
+| Resource | Limit/policy | Outcome |
+| --- | --- | --- |
+| Request line | 65,536 bytes including line ending | Redacted 414 beyond limit |
+| Entire header block | 65,536 bytes including final blank line; stdlib line/count checks also apply | Redacted 431 beyond limit |
+| Combined line and headers | At most 131,072 accepted bytes; at most one excess detection byte | 414 or 431 according to the section exceeding its limit |
+| Application body consumption | Zero; GET body framing rejected, write methods unsupported | GET 400 / write 405; no body parser or drain |
+| Idle socket I/O | Five seconds | Attempt 408 while acquiring request; otherwise close |
+| Total line/header acquisition | Ten seconds, monotonic and never reset by progress | Attempt redacted 408, close |
+| Active handlers | 16, no application waiting queue | Excess accepted connection closes before parsing; no HTTP response |
+
+Size, timeout and method failures close the connection. Socket buffering/kernel
+reception is separate from application consumption. Collector runtime, response
+size and requests per second are not bounded by the acquisition-size/deadline
+policy; do not describe it as a universal process-memory or execution-time cap.
+
+The combined-boundary check passed alongside the existing oversized-body refusal
+check: exactly 65,536 + 65,536 bytes reached ordinary authenticated unknown-route
+handling (404); one extra request-line byte returned 414 after 65,537 consumed
+bytes, and one extra header byte returned 431 after 131,073 consumed bytes.
+Trailing body bytes remained unread in every case and no collector ran. These
+two focused checks were in-memory, not new socket timing or browser evidence.
+Detailed measured socket/refusal/admission evidence appears later in this document.
+
 ## Synthetic routing audit field in GET /api/overview
 
 `routingAudit` contains committed examples from `data/fixtures/routing-audit.json`.
