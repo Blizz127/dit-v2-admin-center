@@ -1,0 +1,22 @@
+{
+  "schema": "dit-learning-assessment-draft-v1",
+  "contractStatus": "draft",
+  "environment": "synthetic",
+  "generatedAt": "2026-01-01T00:01:00Z",
+  "scope": {
+    "gameId": "ffxi",
+    "realmId": "fixture-realm",
+    "callerId": "fixture-adapter",
+    "serverInstanceId": "fixture-instance",
+    "nativeBotId": "fixture-bot",
+    "taskId": "fixture-task"
+  },
+  "assessments": [
+    {
+      "kind": "partyAndSocial",
+      "claim": "unknown",
+      "evidenceIds": []
+    }
+  ],
+  "evidence": []
+}

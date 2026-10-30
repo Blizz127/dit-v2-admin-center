@@ -1,0 +1,91 @@
+{
+  "schema": "dit-learning-assessment-draft-v1",
+  "contractStatus": "draft",
+  "environment": "synthetic",
+  "generatedAt": "2026-01-01T00:01:00Z",
+  "scope": {
+    "gameId": "ffxi",
+    "realmId": "fixture-realm",
+    "callerId": "fixture-adapter",
+    "serverInstanceId": "fixture-instance",
+    "nativeBotId": "fixture-bot",
+    "taskId": "fixture-task"
+  },
+  "assessments": [
+    {
+      "kind": "nativeIdentity",
+      "claim": "supported",
+      "evidenceIds": [
+        "fixture-evidence-0"
+      ]
+    },
+    {
+      "kind": "navigationAndMissions",
+      "claim": "contradicted",
+      "evidenceIds": [
+        "fixture-evidence-1"
+      ]
+    },
+    {
+      "kind": "partyAndSocial",
+      "claim": "unknown",
+      "evidenceIds": []
+    },
+    {
+      "kind": "groundedMemory",
+      "claim": "supported",
+      "evidenceIds": [
+        "fixture-evidence-3"
+      ]
+    },
+    {
+      "kind": "measuredPolicyBenefit",
+      "claim": "unknown",
+      "evidenceIds": []
+    }
+  ],
+  "evidence": [
+    {
+      "id": "fixture-evidence-0",
+      "scope": {
+        "gameId": "ffxi",
+        "realmId": "fixture-realm",
+        "callerId": "fixture-adapter",
+        "serverInstanceId": "fixture-instance",
+        "nativeBotId": "fixture-bot",
+        "taskId": "fixture-task"
+      },
+      "sourceId": "fixture-observer",
+      "receiptId": "fixture-receipt-0",
+      "observedAt": "2026-01-01T00:00:30Z"
+    },
+    {
+      "id": "fixture-evidence-1",
+      "scope": {
+        "gameId": "ffxi",
+        "realmId": "fixture-realm",
+        "callerId": "fixture-adapter",
+        "serverInstanceId": "fixture-instance",
+        "nativeBotId": "fixture-bot",
+        "taskId": "fixture-task"
+      },
+      "sourceId": "fixture-observer",
+      "receiptId": "fixture-receipt-1",
+      "observedAt": "2026-01-01T00:00:30Z"
+    },
+    {
+      "id": "fixture-evidence-3",
+      "scope": {
+        "gameId": "ffxi",
+        "realmId": "fixture-realm",
+        "callerId": "fixture-adapter",
+        "serverInstanceId": "fixture-instance",
+        "nativeBotId": "fixture-bot",
+        "taskId": "fixture-task"
+      },
+      "sourceId": "fixture-observer",
+      "receiptId": "fixture-receipt-3",
+      "observedAt": "2026-01-01T00:00:30Z"
+    }
+  ]
+}

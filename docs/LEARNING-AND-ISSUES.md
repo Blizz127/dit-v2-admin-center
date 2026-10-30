@@ -47,6 +47,17 @@ Do not create observations, run gameplay, ingest player records or activate a
 policy to fill this table under the current offline scope. Review an authorized
 evidence handoff when one arrives; record missing fields rather than infer them.
 
+Coordinator follow-up `89768b9be8747984` explicitly requested a draft schema and
+fixtures when no prior offline item remained. The first learning-assessment
+slice is now proposed in
+[the contract draft](HUB-CONTRACT-DRAFT.md#proposed-learning-assessment-envelope--offline-draft-v1):
+a synthetic-only schema, three fictional fixtures and an isolated reference
+reviewer, with six focused checks. It preserves exact scope and per-observation
+freshness without claiming authenticity, adoption or verified game outcomes.
+It is not a reviewed hub contract and is not wired into the UI/server. The next
+dependency for this slice is the owning lead's review of identity/provenance,
+freshness and partial-data semantics, not replacement of Unknown by mock support.
+
 ### Fishing artifact review (2026-10-29)
 
 Reviewed, not imported: `ffxi/handoffs/2026-10-29-fishing-offline-bundle-r1/`

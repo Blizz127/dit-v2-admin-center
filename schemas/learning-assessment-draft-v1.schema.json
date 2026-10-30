@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Proposed synthetic learning assessment; not an authoritative hub contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "contractStatus",
+    "environment",
+    "generatedAt",
+    "scope",
+    "assessments",
+    "evidence"
+  ],
+  "properties": {
+    "schema": {
+      "const": "dit-learning-assessment-draft-v1"
+    },
+    "contractStatus": {
+      "const": "draft"
+    },
+    "environment": {
+      "const": "synthetic"
+    },
+    "generatedAt": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "scope": {
+      "$ref": "#/$defs/scope"
+    },
+    "assessments": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "$ref": "#/$defs/assessment"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "$ref": "#/$defs/evidence"
+      }
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 96,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,95}(?![\\s\\S])"
+    },
+    "timestamp": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 20,
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+      "format": "date-time"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gameId",
+        "realmId",
+        "callerId",
+        "serverInstanceId",
+        "nativeBotId",
+        "taskId"
+      ],
+      "properties": {
+        "gameId": {
+          "enum": [
+            "ffxi",
+            "swtor"
+          ]
+        },
+        "realmId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "callerId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "serverInstanceId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "nativeBotId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "taskId": {
+          "$ref": "#/$defs/identifier"
+        }
+      }
+    },
+    "assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "claim",
+        "evidenceIds"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "nativeIdentity",
+            "navigationAndMissions",
+            "partyAndSocial",
+            "groundedMemory",
+            "measuredPolicyBenefit"
+          ]
+        },
+        "claim": {
+          "enum": [
+            "unknown",
+            "supported",
+            "contradicted"
+          ]
+        },
+        "evidenceIds": {
+          "type": "array",
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/identifier"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "claim": {
+                "const": "unknown"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "evidenceIds": {
+                "maxItems": 0
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "evidenceIds": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "scope",
+        "sourceId",
+        "receiptId",
+        "observedAt"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "sourceId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "receiptId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "observedAt": {
+          "$ref": "#/$defs/timestamp"
+        }
+      }
+    }
+  }
+}

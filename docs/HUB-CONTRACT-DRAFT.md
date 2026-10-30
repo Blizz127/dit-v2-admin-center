@@ -73,6 +73,70 @@ This extends local consumer coverage without repeating the upstream generator
 or its in-process route authorization checks. No production code changes were
 needed. The earlier no-rerun statement describes the initial reconciliation.
 
+## Proposed learning-assessment envelope — offline draft v1
+
+This first source slice addresses the five learning-evidence questions in
+[Learning and issues](LEARNING-AND-ISSUES.md#evidence-needed-to-assess-ffxi-learning).
+It is a new proposal for review, **not part of the previously owner-approved
+routing draft, an implemented hub endpoint or an authoritative assessment**.
+The JSON Schema proposal is
+[`learning-assessment-draft-v1.schema.json`](../schemas/learning-assessment-draft-v1.schema.json).
+The isolated Python reference reviewer is
+[`learning_assessment_draft.py`](../learning_assessment_draft.py). Neither server
+nor UI imports it; no runtime, preview or model-control behavior changes.
+
+| Field | Draft rule |
+| --- | --- |
+| `schema`, `contractStatus`, `environment` | Exact draft-v1 identifier, `draft`, `synthetic`; production/approved envelopes are refused |
+| `scope` | Exact `gameId`, `realmId`, `callerId`, `serverInstanceId`, `nativeBotId`, `taskId`; no display-name join or cross-instance merge |
+| `generatedAt` | UTC second-resolution timestamp; calendar-valid and not future-dated |
+| `assessments` | At most one each: native identity, navigation/missions, party/social behavior, grounded memory, measured policy benefit; missing rows remain Unknown |
+| `claim` | `unknown`, `supported` or `contradicted`; support/contradiction requires evidence IDs, Unknown requires none |
+| `evidence` | At most 32 unique opaque IDs, each with identical scope, opaque source/receipt IDs and its own observation time |
+
+Identifiers are bounded ASCII tokens (96 characters); they are never interpreted
+as paths, URLs or executable instructions. Unknown fields, raw bodies/prompts,
+duplicate kinds/IDs, duplicate/dangling references and cross-scope records refuse
+the whole envelope. A current report cannot freshen an old observation: each
+observation must predate its report and both must satisfy the explicit reviewer
+freshness policy. This first prototype accepts a caller-supplied maximum age
+between zero and one day (exclusive of zero); **no default or authoritative hub
+TTL is proposed**. Hub review must settle that policy and clock skew tolerance.
+
+The reviewer takes an already-decoded object, an exact expected scope, aware
+`now`, and `max_age_seconds`. It returns a fixed five-row result. Successful
+consistency checking is labeled `reviewed-synthetic`; supported/contradicted
+claims remain **Reported ... (synthetic)**. Source authenticity stays unverified
+and policy adoption stays Unknown, even if every assessment reports support.
+Exact scope matching is necessary isolation, not adapter identity proof.
+Validation, delivery, adoption, deployment and measured benefit must remain
+separate; this envelope does not implement the policy lifecycle or an identity
+attestation system. It does not authenticate an arbitrary supplied receipt ID.
+
+Committed fictional examples under `tests/fixtures/learning-assessment-draft/`:
+`mixed.json` separates support, contradiction and Unknown; `partial.json` leaves
+all outcomes Unknown; `cross-instance-refusal.json` deliberately mixes one
+evidence instance and must be withheld. They contain no real observation or
+player record. Six focused checks pass, including mismatches in every scope
+dimension, duplicate/dangling records, stale/future/invalid timestamps, wrong
+types, private extra fields and no promotion of policy adoption. Network,
+subprocess and database access are forbidden during review tests.
+
+The JSON Schema artifact expresses structure; unique kinds/IDs, reference
+resolution, scope equality and temporal ordering are additional semantic rules
+checked by the reference reviewer. A JSON Schema engine was **not run** (none is
+installed here); the schema/fixture vocabulary consistency check is not engine
+validation. No dependency was downloaded. This module is not a raw-JSON or
+transport parser and is not connected to an input endpoint.
+
+Review requests for the owning hub/adapter lead: establish the authoritative
+scope/binding source, allowed observation and receipt provenance, freshness and
+clock-skew policy, partial-envelope refusal policy, and assessment ownership.
+Only after that review should a separately versioned live contract or consumer
+integration be considered. The existing native-device intake checklist and
+verifier remain [NATIVE-RECEIPT-INTAKE.md](NATIVE-RECEIPT-INTAKE.md); this learning
+proposal cannot fill, replace or validate a device execution receipt.
+
 ## Proposed routing read model
 
 A route is scoped by adapter-verified `(gameId, realmId, nativeBotId, purpose)`. Identity must not be inferred from a display name; a group turn requires a verified selected speaker. A read-only result should distinguish requested and effective provider/model, policy version, source, observed timestamp, readiness and unavailable/stale reason. An unknown rate, allowance, budget, identity, credentials or provider state is not healthy or zero. Treat the following as an illustrative field sketch, not an existing endpoint or agreed wire schema:
