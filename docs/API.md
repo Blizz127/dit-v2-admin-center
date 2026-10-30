@@ -790,3 +790,14 @@ cost/quality field coverage. Missing values stay Unknown; no quality score or
 cost ranking is inferred. Groups with different provenance are never merged.
 This performs no request, provider call, routing write or benchmark execution.
 The default mock includes three fictional samples for two fictional models.
+
+### Page-local bot drafts
+
+The bot inspector can preview proposed goals/personality for a unique mock-roster
+ID. This is client memory only, not an API or saved configuration. The UI refuses
+hub-source, absent and ambiguous identities; validation bounds goals to 1000 and
+personality to 500 characters and rejects control characters. At least one field
+must be nonblank; blank means no change proposed. Editing clears the previous
+preview; selection, refresh, discard and session reset clear the draft. All
+existing command/model controls remain disabled. POST remains 405, including
+paths resembling a bot-draft save route. No simulated success is called a save.

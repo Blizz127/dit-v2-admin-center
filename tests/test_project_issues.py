@@ -80,6 +80,24 @@ class ProjectIssuesTests(unittest.TestCase):
                     finally:
                         conn.close()
                 overview.assert_called_once_with('mock')
+                # The new editor is page-local; adding it must not create a write API.
+                conn = http.client.HTTPConnection('127.0.0.1', httpd.server_port, timeout=2)
+                try:
+                    conn.request('GET', '/')
+                    response = conn.getresponse()
+                    markup = response.read().decode()
+                    self.assertEqual(response.status, 200)
+                    self.assertIn('id="bot-draft-fields" disabled', markup)
+                    self.assertIn('Nothing is saved, applied or sent.', markup)
+                    conn.request('POST', '/api/bots/one/draft', body=b'{"goal":"synthetic"}',
+                                 headers={'Authorization':'Bearer synthetic-localhost-token'})
+                    response = conn.getresponse()
+                    self.assertEqual(response.status, 405)
+                    self.assertEqual(response.getheader('Allow'), 'GET')
+                    self.assertEqual(json.loads(response.read()), {'error':'method not allowed'})
+                    overview.assert_called_once_with('mock')
+                finally:
+                    conn.close()
             finally:
                 httpd.shutdown()
                 httpd.server_close()

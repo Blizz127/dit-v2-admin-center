@@ -7,7 +7,7 @@ intentional; a synthetic UI must not silently activate them.
 | # | Panel | Existing offline surface | Remaining gap / next action |
 | --- | --- | --- | --- |
 | 1 | Bots, games, status | Roster filters, coverage, exact-ID inspector and ambiguity report | Live presence remains Unknown without authoritative evidence. |
-| 2 | Per-bot controls | Goals, memory and personality inspection; disabled command controls | Writes require upstream contract; no start/stop/pause is implemented here. |
+| 2 | Per-bot controls | Goals, memory and personality inspection; bounded local goal/personality draft preview; disabled command controls | Writes require upstream contract; no start/stop/pause is implemented here. |
 | 3 | LLM choice | Per-bot/global disabled selectors; requested/effective distinctions | Model switching stays disabled; mock audit examples do not apply changes. |
 | 4 | Call logging / bake-off | Loaded model-call examples, numeric coverage and filters | Local comparison groups loaded samples by exact model/purpose/source, preserves numeric coverage and shares the availability filter. No measured benchmark or provider calls. |
 | 5 | Action/evidence ledger | Exact scope/correlation filtering, request/result/verification, Unknown outcomes | Live action verification needs source evidence. |
@@ -34,3 +34,10 @@ the local mock API and standalone preview. Mean supplied latency is descriptive
 only; missing cost and quality are counted, not converted to zero or treated as
 comparable evaluation scores. Missing identities are excluded from grouping.
 A real bake-off remains dependent on agreed tasks, metrics and provider scope.
+
+Panel 2 local drafts are mock-only, page-local and scoped to one unique roster
+ID. Both fields are optional but at least one is required; blank is no proposed
+change. Goals are bounded to 1000 characters and personality to 500. Control
+characters and over-limit input invalidate and remove prior previews. Drafts
+are cleared on inspect/selection change, refresh, discard and session reset.
+No storage, request, save route, model change or bot command is connected.

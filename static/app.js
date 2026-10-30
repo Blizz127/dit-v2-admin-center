@@ -124,6 +124,7 @@ function resetPanelSession() {
   markWorkspaceSection(null);
   sessionVersion++;
   currentSnapshot = null; loadedSource = null;
+  resetBotDraft();
   selectedBotId = null; selectedLearningId = null;
   replyBotId = null;
   document.querySelector('#reply-correlation').value = '';
@@ -922,8 +923,50 @@ function renderAssignments() {
 function rosterDetails(bot) {
   return `Status: ${routingText(bot.status)} · Character: ${routingText(bot.character)} · Level: ${routingText(bot.level)} · Body kind: ${routingText(bot.bodyKind)}`;
 }
+function draftBot() {
+  return currentSnapshot && !sourceLoading && loadedSource === 'mock'
+    ? uniqueRecord(currentSnapshot.bots, selectedBotId) : null;
+}
+function resetBotDraft() {
+  for (const id of ['bot-draft-goals', 'bot-draft-personality']) {
+    document.getElementById(id).value = '';
+    document.getElementById(id).setAttribute('aria-invalid', 'false');
+  }
+  document.getElementById('bot-draft-result').replaceChildren();
+  const bot = draftBot();
+  document.getElementById('bot-draft-fields').disabled = !bot;
+  document.getElementById('bot-draft-status').textContent = bot
+    ? `Local draft for ${bot.id} · ${routingText(bot.game)}. Nothing is saved or applied.`
+    : 'Select a unique mock bot to prepare a local draft. Hub data and ambiguous identities are unavailable for drafting.';
+}
+function previewBotDraft(event) {
+  event.preventDefault();
+  const panel = document.getElementById('bot-draft-result');
+  panel.replaceChildren();
+  const bot = draftBot();
+  if (!bot) { resetBotDraft(); return; }
+  const fields = [['bot-draft-goals', 'Proposed goals', 1000], ['bot-draft-personality', 'Proposed personality', 500]];
+  let invalid = false;
+  for (const [id, , limit] of fields) {
+    const value = document.getElementById(id).value;
+    const bad = value.length > limit || /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(value);
+    document.getElementById(id).setAttribute('aria-invalid', String(bad));
+    invalid = invalid || bad;
+  }
+  const status = document.getElementById('bot-draft-status');
+  if (invalid) { status.textContent = 'Draft not previewed: remove control characters and stay within each field limit.'; return; }
+  if (!fields.some(([id]) => document.getElementById(id).value.trim())) {
+    status.textContent = 'Enter at least one proposed goal or personality change. Blank fields do not clear existing data.';
+    return;
+  }
+  item(panel, `Local draft · ${bot.id} · ${routingText(bot.game)}`, `Selected record: ${routingText(bot.name)}`,
+    `${routingText(bot.source, 'Source unknown')} · Snapshot: ${routingText(currentSnapshot.generatedAt)} · Native identity remains unverified.`);
+  for (const [id, label] of fields) item(panel, label, document.getElementById(id).value.trim() || 'No change proposed', 'Draft only; existing bot data is unchanged.');
+  status.textContent = 'Preview ready. Not saved, applied, verified or sent; no bot or model command was issued.';
+}
 function inspectBot(id) {
   selectedBotId = id;
+  resetBotDraft();
   updateBotCount(filteredBots());
   renderSafety();
   if (document.querySelector('#issue-selected-bot').checked) renderIssues();
@@ -1133,6 +1176,7 @@ async function load() {
   const requestToken = token, session = sessionVersion, wasVisible = !workspace.hidden;
   const current = () => requestId === requestVersion && token === requestToken && session === sessionVersion && (!wasVisible || !workspace.hidden);
   sourceLoading = true;
+  resetBotDraft();
   error.textContent = '';
   document.querySelector('#hub-banner').textContent = currentSnapshot && loadedSource
     ? `Loading selected data source… Showing previous ${loadedSource} request snapshot from ${currentSnapshot.generatedAt || 'unknown time'} until loading finishes.`
@@ -1209,6 +1253,7 @@ async function load() {
     renderRosterGaps();
     document.querySelector('#updated').textContent = `Snapshot generated ${data.generatedAt} · Sources are labeled per view; lead task state comes from the coordinator board.`;
     loadedSource = source; sourceLoading = false;
+    resetBotDraft();
     sessionStorage.setItem('dit-admin-token', token); workspace.hidden = false; form.hidden = true; loadBridge();
     if (selectedWorkspaceSection === null) {
       const id = globalThis.location?.hash?.slice(1);
@@ -1264,8 +1309,19 @@ document.querySelector('#show-routing').addEventListener('click', () => {
 document.querySelector('#hide-routing').addEventListener('click', () => {
   document.querySelector('#bots').querySelectorAll('details').forEach(panel => { panel.open = false; });
 });
+document.getElementById('bot-draft-form').addEventListener('submit', previewBotDraft);
+document.getElementById('bot-draft-cancel').addEventListener('click', resetBotDraft);
+for (const id of ['bot-draft-goals', 'bot-draft-personality']) {
+  document.getElementById(id).addEventListener('input', () => {
+    if (!draftBot()) { resetBotDraft(); return; }
+    document.getElementById('bot-draft-result').replaceChildren();
+    document.getElementById(id).setAttribute('aria-invalid', 'false');
+    document.getElementById('bot-draft-status').textContent = 'Draft changed. Preview again to review; nothing is saved or applied.';
+  });
+}
 document.querySelector('#clear-bot').addEventListener('click', () => {
   selectedBotId = null;
+  resetBotDraft();
   if (currentSnapshot) updateBotCount(filteredBots());
   const panel = document.querySelector('#bot-inspector');
   panel.replaceChildren(); panel.textContent = 'No bot selected.';
