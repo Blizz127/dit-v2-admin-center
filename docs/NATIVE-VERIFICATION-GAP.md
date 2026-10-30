@@ -17,11 +17,11 @@ bypass is authorized. Approval is not an execution pass. See the exact pinned
 | Alienware `236cd862` | Original preview, owner viewed and supplied design feedback; retained unchanged |
 | Alienware `691f6c5d` | Redesigned layout, delivery hash verified; native checks not run by Admin |
 | Handoff `ef740241` | Exact approved runner/UI pin `8eb2c9f`; packaged for device lead, not yet executed; older than latest local preview |
-| Local `674ef589` | Latest offline preview updates E&B and adds PlanetSide owner-channel publication; native pin and delivered previews unchanged |
+| Local `5d2d47cc` | Latest offline preview adds reported E&B character select and latest 8450 source checkpoint; native pin and delivered previews unchanged |
 
-Latest local file: `build/inspector-playtest.html`, 185558 bytes, generated at
-source checkpoint `210d891`, updating E&B and PlanetSide publication observations.
-SHA-256: `674ef589d017a2176b342ddbaceb3bde11783e7182eccfdcfeb6d785eeac8c8c`.
+Latest local file: `build/inspector-playtest.html`, 186211 bytes, generated at
+source checkpoint `7aac0f9`, adding the reported E&B character-select milestone.
+SHA-256: `5d2d47cc31811ce852d60c341d0c94ad054274fd84ded9ac666d6dc0a0f39193`.
 Do not apply a result from an older file to this version. The native runner now
 includes `artifactSha256` in its successful result, computed from the exact
 temporary HTML it generated before launch.
