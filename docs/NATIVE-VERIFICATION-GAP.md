@@ -21,11 +21,11 @@ bypass is authorized. Approval is not an execution pass. See the exact pinned
 | Alienware `236cd862` | Original preview, owner viewed and supplied design feedback; retained unchanged |
 | Alienware `691f6c5d` | Redesigned layout, delivery hash verified; native checks not run by Admin |
 | Handoff `ef740241` | Exact approved runner/UI pin `8eb2c9f`; executed once at 23:20:30Z, BLOCKED rc2: Chromium aliases and Node missing from PATH; browser not launched. Separate attempt requested after coordinator runtime inventory/repair; result pending |
-| Local `dc7599c6` | Adds local readiness filtering and counts with stale-evidence clearing; native pin and delivered previews unchanged |
+| Local `1759671c` | Includes readiness DOM assertions; six artifact-bound semantic snapshots passed, native rendering still NOT RUN; device pin and delivered previews unchanged |
 
-Latest local file: `build/inspector-playtest.html`, 199486 bytes, generated at source
-checkpoint `1a3461e`, adding local readiness filtering without reviving cleared readbacks.
-SHA-256: `dc7599c690127e17ecda51c288cbc6c926ab9d44ba5b3f94c3336b93f480a114`.
+Latest local file: `build/inspector-playtest.html`, 200854 bytes, generated from the source
+committed in `8a442a9`, including readiness assertions in the standalone driver.
+SHA-256: `1759671cd8a6faaf3b6ff672c2fd0e1f993cda4cc497dd2322dadadc39fc1daa`.
 Do not apply a result from an older file to this version. The native runner now
 includes `artifactSha256` in its successful result, computed from the exact
 temporary HTML it generated before launch.
@@ -296,3 +296,21 @@ legacy fields, and distinguishes incomplete/blocked/failed/reported-pass. It mak
 no device call and does not request another execution. Internally consistent
 reports are not independently authenticated; the trusted executor handoff remains
 necessary. Synthetic tests are not an actual native result.
+
+
+## Artifact-bound readiness semantic substitute
+
+`cc12d05` adds `tools/readiness_snapshot.cjs`: six checked synthetic scenarios
+using the actual artifact's parsed elements and matching app source in a minimal
+DOM. `8a442a9` adds five readiness assertions to the newer standalone driver's
+future real-DOM path. The latter were compiled, not browser-executed. Temporary
+stale-app and missing-row artifacts were refused. No renderer, device or denied
+isolation path was invoked; CSS layout, native selection and full artifact-driver
+execution remain unverified.
+
+For HTML `1759671c`, the local generated report is
+`build/readiness-semantic-snapshot.json`, SHA-256
+`fbdf12443653cda8c5fa66fb5cf1fffc8fc9aad4760581f6e4c05e9bc34fec97`.
+It explicitly says semantic-checks-passed and nativeRendering/nativeKeyboard
+NOT RUN. This is not a receipt for the older approved `8eb2c9f` artifact and must
+not be fed to the device receipt verifier as if it were one.
