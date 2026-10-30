@@ -162,7 +162,12 @@ try {
   draftPersonality.value = 'Example personality: patient';
   draftForm.dispatchEvent(new Event('submit', {bubbles:true, cancelable:true}));
   check(textOf('bot-draft-result').includes('offline-inspector-bot') && textOf('bot-draft-result').includes('Example goal:'), 'Local draft preview stays scoped to the selected synthetic bot');
+  check(textOf('bot-draft-result').includes('Current loaded text') && textOf('bot-draft-result').includes('Fixture goal') && textOf('bot-draft-result').includes('Proposed text differs'), 'Draft review shows reported goals beside proposed local text');
+  check(textOf('bot-draft-result').includes('Comparison unavailable: current value Unknown'), 'Missing personality baseline stays Unknown in draft review');
   check(textOf('bot-draft-status').includes('Not saved, applied, verified or sent') && requests.length === beforeBotSelection, 'Draft preview performs no request or command');
+  draftGoals.value = 'Fixture goal'; draftPersonality.value = '';
+  draftForm.dispatchEvent(new Event('submit', {bubbles:true, cancelable:true}));
+  check(textOf('bot-draft-result').includes('Matches loaded text') && textOf('bot-draft-result').includes('No change proposed'), 'Unchanged text and blank proposal have distinct review states');
   draftGoals.value = 'x'.repeat(1001);
   draftForm.dispatchEvent(new Event('submit', {bubbles:true, cancelable:true}));
   check(textOf('bot-draft-result') === '' && draftGoals.getAttribute('aria-invalid') === 'true', 'Invalid draft removes the previous preview');

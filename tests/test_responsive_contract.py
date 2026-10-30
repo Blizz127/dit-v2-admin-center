@@ -48,6 +48,14 @@ def declarations(selector, width, source=None):
 
 
 class ResponsiveContractTests(unittest.TestCase):
+    def test_draft_review_columns_stack_at_narrow_breakpoint(self):
+        for width in (320, 390, 760):
+            self.assertEqual(declarations('.draft-review-columns', width)['grid-template-columns'], '1fr')
+        for width in (761, 1280):
+            self.assertEqual(declarations('.draft-review-columns', width)['grid-template-columns'], 'repeat(2,minmax(0,1fr))')
+        self.assertEqual(declarations('.draft-review-text', 390)['overflow-wrap'], 'anywhere')
+        self.assertEqual(declarations('.draft-review-text', 1280)['white-space'], 'pre-wrap')
+
     def test_coverage_and_grid_switch_at_tablet_boundary(self):
         for width in (320, 390, 760, 761, 1100):
             with self.subTest(width=width):

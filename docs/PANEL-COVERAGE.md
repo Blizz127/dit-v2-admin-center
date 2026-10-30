@@ -46,3 +46,10 @@ A deferred failed-refresh test confirms draft text and preview clear when the
 request starts, cannot be previewed during loading, stay cleared on failure,
 and allow a fresh draft after a successful mock refresh. This is simulated DOM
 evidence, not a native browser typing/focus check.
+
+Panel 2 draft review now adds current/proposed columns with explicit text-change
+states and field-level provenance. Unknown current data cannot become an empty
+baseline or a verified change; duplicate bot-detail records withhold goal text.
+Read-only review retains the existing draft lifecycle and has no apply button.
+The review columns have a source-level narrow-width stacking check; native
+rendering and keyboard behavior remain unverified.

@@ -801,3 +801,15 @@ must be nonblank; blank means no change proposed. Editing clears the previous
 preview; selection, refresh, discard and session reset clear the draft. All
 existing command/model controls remain disabled. POST remains 405, including
 paths resembling a bot-draft save route. No simulated success is called a save.
+
+Local draft review now displays current loaded and proposed text side by side.
+It marks `Matches loaded text`, `Proposed text differs`, `No change proposed`,
+or `Comparison unavailable: current value Unknown`. Goal text comes only from
+one matching detail record for the selected roster ID; duplicate, missing,
+partial or oversized lists yield Unknown. An explicitly empty supplied list is
+distinct from an unavailable one. Current review bounds are 20 goals and 4000
+characters of combined text, or 4000 characters of personality summary. Goal
+strings are trimmed and joined in supplied order with newlines for text comparison
+only; this does not infer goal identity, execution, or a write contract. Each
+field retains its own loaded source and observation time. All text is rendered
+as text, with no markup parsing; blank proposals never clear current values.

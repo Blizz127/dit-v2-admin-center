@@ -939,6 +939,44 @@ function resetBotDraft() {
     ? `Local draft for ${bot.id} · ${routingText(bot.game)}. Nothing is saved or applied.`
     : 'Select a unique mock bot to prepare a local draft. Hub data and ambiguous identities are unavailable for drafting.';
 }
+function draftBaseline(bot) {
+  const text = value => typeof value === 'string' && value.trim() && value.length <= 4000;
+  const matches = Array.isArray(currentSnapshot.botDetails) ? currentSnapshot.botDetails.filter(
+    row => row && typeof row === 'object' && !Array.isArray(row) && row.botId === bot.id) : [];
+  const details = matches.length === 1 ? matches[0] : null;
+  const goals = details?.goals;
+  const goalsKnown = Array.isArray(goals) && goals.length <= 20 && goals.every(
+    goal => goal && typeof goal === 'object' && !Array.isArray(goal) && text(goal.text))
+    && goals.map(goal => goal.text.trim()).join('\n').length <= 4000;
+  return {
+    'bot-draft-goals': {known: goalsKnown, value: goalsKnown ? goals.map(goal => goal.text.trim()).join('\n') : '',
+      source: details?.source, observedAt: details?.observedAt,
+      reason: matches.length > 1 ? 'Multiple detail records match this bot ID.' : 'Goal list missing, partial or beyond review bounds.'},
+    'bot-draft-personality': {known: Boolean(text(bot.personalitySummary)), value: text(bot.personalitySummary) ? bot.personalitySummary.trim() : '',
+      source: bot.source, observedAt: bot.observedAt, reason: 'Reported personality summary missing or beyond review bounds.'},
+  };
+}
+function renderDraftReview(panel, label, baseline, proposed) {
+  const row = document.createElement('section'); row.className = 'draft-review';
+  row.setAttribute('aria-label', label + ' review');
+  const title = document.createElement('h4'); title.textContent = label;
+  const state = document.createElement('p');
+  state.textContent = !proposed ? 'No change proposed' : !baseline.known ? 'Comparison unavailable: current value Unknown'
+    : proposed === baseline.value ? 'Matches loaded text' : 'Proposed text differs';
+  const columns = document.createElement('div'); columns.className = 'draft-review-columns';
+  for (const [heading, value] of [
+    ['Current loaded text', baseline.known ? baseline.value || 'Empty supplied goal list' : 'Unknown · ' + baseline.reason],
+    ['Proposed local text', proposed || 'No change proposed; current value is not cleared'],
+  ]) {
+    const column = document.createElement('div');
+    const h = document.createElement('h5'); h.textContent = heading;
+    const content = document.createElement('p'); content.className = 'draft-review-text'; content.textContent = value;
+    column.append(h, content); columns.append(column);
+  }
+  const provenance = document.createElement('small');
+  provenance.textContent = `${routingText(baseline.source, 'Source unknown')} · Observed: ${routingText(baseline.observedAt)} · Text comparison only; no verified behavior or saved change.`;
+  row.append(title, state, columns, provenance); panel.append(row);
+}
 function previewBotDraft(event) {
   event.preventDefault();
   const panel = document.getElementById('bot-draft-result');
@@ -961,7 +999,8 @@ function previewBotDraft(event) {
   }
   item(panel, `Local draft · ${bot.id} · ${routingText(bot.game)}`, `Selected record: ${routingText(bot.name)}`,
     `${routingText(bot.source, 'Source unknown')} · Snapshot: ${routingText(currentSnapshot.generatedAt)} · Native identity remains unverified.`);
-  for (const [id, label] of fields) item(panel, label, document.getElementById(id).value.trim() || 'No change proposed', 'Draft only; existing bot data is unchanged.');
+  const baseline = draftBaseline(bot);
+  for (const [id, label] of fields) renderDraftReview(panel, label, baseline[id], document.getElementById(id).value.trim());
   status.textContent = 'Preview ready. Not saved, applied, verified or sent; no bot or model command was issued.';
 }
 function inspectBot(id) {
