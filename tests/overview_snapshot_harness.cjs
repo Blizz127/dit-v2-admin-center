@@ -4,7 +4,10 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const {execFileSync} = require('node:child_process');
 const python = (...args) => execFileSync('python3', args, {encoding:'utf8',timeout:5000});
-const template = JSON.parse(python('tests/inspector_runtime_fixture.py','--template'));
+const artifactPath = process.env.DIT_TEST_ARTIFACT;
+const application = fs.readFileSync('static/app.js','utf8');
+if (artifactPath) assert.ok(fs.readFileSync(artifactPath, 'utf8').includes(application), 'Artifact does not embed the current application source');
+const template = JSON.parse(python('tests/inspector_runtime_fixture.py','--template', ...(artifactPath ? [artifactPath] : [])));
 const snapshot = JSON.parse(python('-c','import json; from tools.build_inspector_playtest import snapshot; print(json.dumps(snapshot()))'));
 class Element {
   constructor(spec={}) { this.attributes={...spec.attrs}; this.children=[];this.listeners={};this.text='';this.value=spec.value||'';this.hidden=Object.hasOwn(spec.attrs||{},'hidden'); }
@@ -35,7 +38,7 @@ const context={Blob,URL,location:{hash:''},addEventListener:(type,fn)=>{globalEv
     if(path==='/api/bridge-status')return {ok:true,json:async()=>({unit:'Unknown',source:'Synthetic'})};
     assert.equal(path,'/api/overview?source=mock');return {ok:true,json:async()=>data};
   }};
-vm.createContext(context);vm.runInContext(fs.readFileSync('static/app.js','utf8'),context);
+vm.createContext(context);vm.runInContext(application,context);
 async function refresh(changes){
   data={...snapshot,...changes};
   vm.runInContext("token = 'synthetic-test-token'",context);

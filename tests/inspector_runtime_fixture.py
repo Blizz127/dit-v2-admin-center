@@ -188,9 +188,9 @@ def exchange(request):
 
 
 if __name__ == '__main__':
-    if sys.argv[1:] == ['--template']:
+    if len(sys.argv) in (2, 3) and sys.argv[1] == '--template':
         parser = Template()
-        parser.feed((ROOT / 'static/index.html').read_text())
+        parser.feed((Path(sys.argv[2]) if len(sys.argv) == 3 else ROOT / 'static/index.html').read_text())
         print(json.dumps(parser.elements))
     else:
         raw = sys.stdin.read(4097)
