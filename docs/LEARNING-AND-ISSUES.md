@@ -78,6 +78,14 @@ invalid explicit runtime override. The command is in
 integration remains pending for this draft; producer contract agreement and
 native execution evidence remain separate from these offline checks.
 
+Follow-up `a00f66e2c1ad908f` adds the next existing module's formal coverage:
+the local wake-verification receipt producer profile, five synthetic fixtures
+and automatic real-engine/projection checks. Six focused discovery checks pass
+across both registered contracts. Cutover completion, per-game reported
+readbacks, ambiguity and retained owner holds remain distinct; runtime receipt
+handling and live state are unchanged. See
+[wake schema coverage](WAKE-VERIFICATION-RECEIPT.md#offline-schema-and-fixture-coverage).
+
 ### Fishing artifact review (2026-10-29)
 
 Reviewed, not imported: `ffxi/handoffs/2026-10-29-fishing-offline-bundle-r1/`

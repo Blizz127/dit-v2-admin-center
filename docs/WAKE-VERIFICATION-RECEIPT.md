@@ -52,6 +52,40 @@ WAR and Marvel remain Held even if a positive row is supplied. This readback
 format cannot lift owner restrictions. Readiness of always-on games is not
 permission to start/stop them; all lifecycle controls remain absent.
 
+## Offline schema and fixture coverage
+
+The formal producer profile is
+[`wake-verification-v1.schema.json`](../schemas/wake-verification-v1.schema.json),
+registered in `tools/check_offline_contracts.py` and therefore included in normal
+Python test discovery. `tools/check_wake_verification_schema.py` runs the actual
+Draft 2020-12 engine and the existing `wake_verification.project` function over
+the exact inventory declared by `schemas/wake-verification-v1.cases.json`.
+
+Five fictional fixtures cover reported readbacks (with WAR and Marvel still
+Held), completed cutover without game readbacks, incomplete cutover, ambiguous/
+mismatched per-game claims, and a malformed authenticated field. The last fixture
+deliberately fails the producer schema while the runtime projector retains an
+independent valid game row; this tests existing partial-data behavior rather than
+changing it. Duplicate game rows can be structurally valid but still withhold
+their game. A structurally valid incomplete cutover does not become completed.
+
+The schema bounds observations at 24 and IDs at 96 ASCII characters, describes
+canonical game IDs and boolean flags, and uses a registered custom timestamp
+format backed by the existing explicit-timezone parser. Its authoring profile
+requires complete typed row fields and limits result strings to 64 characters;
+the runtime remains tolerant of malformed/partial rows and unfamiliar game IDs
+by leaving them Unverified. Additional metadata stays allowed for compatibility
+but is not projected. The reader's 64 KiB file limit, strict JSON decoding and
+regular-file checks remain separate from structural schema validation.
+
+Six focused discovery tests passed with the installed jsonschema 4.19.2 engine,
+covering both registered contracts and all eight fixtures, plus registry,
+inventory, semantic-expectation and dependency refusals. Wake-specific mutation
+checks ensure an unregistered fixture or an expectation that ambiguous E&B
+claims are verified fails. No live receipt was read or installed, no gate was
+lifted and no service, device or preview was changed. This is an offline check
+profile, not a new runtime admission gate or independently authenticated cutover.
+
 ## Meaning and UI behavior
 
 The UI says **Verified readback (reported)**, with observation time and receipt

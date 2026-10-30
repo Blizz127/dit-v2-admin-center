@@ -33,7 +33,7 @@ class OfflineContractChecks(unittest.TestCase):
         self.addCleanup(temporary.cleanup)
         root = Path(temporary.name)
         shutil.copytree(ROOT / 'schemas', root / 'schemas')
-        shutil.copytree(ROOT / 'tests/fixtures/learning-assessment-draft', root / 'tests/fixtures/learning-assessment-draft')
+        shutil.copytree(ROOT / 'tests/fixtures', root / 'tests/fixtures')
         return root
 
     def test_all_registered_contracts_and_fixtures_with_real_engine(self):
@@ -41,8 +41,23 @@ class OfflineContractChecks(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         report = json.loads(result.stdout)
         self.assertEqual(report['status'], 'passed')
-        self.assertEqual(report['engine'], 'jsonschema')
-        self.assertGreater(report['fixtures'], 0)
+        self.assertEqual(set(report['contracts']),
+                         {'learning-assessment-draft-v1.schema.json', 'wake-verification-v1.schema.json'})
+        for contract in report['contracts'].values():
+            self.assertEqual(contract['engine'], 'jsonschema')
+            self.assertGreater(contract['fixtures'], 0)
+
+    def test_wake_fixture_inventory_and_readback_expectations_are_checked(self):
+        root = self.copy_inputs()
+        fixture = root / 'tests/fixtures/wake-verification/unregistered.json'
+        fixture.write_text('{}')
+        self.assertEqual(self.run_check(root).returncode, 1)
+        fixture.unlink()
+        manifest = root / 'schemas/wake-verification-v1.cases.json'
+        cases = json.loads(manifest.read_text())
+        cases['ambiguous-readbacks.json']['verifiedGames'] = ['enb']
+        manifest.write_text(json.dumps(cases))
+        self.assertEqual(self.run_check(root).returncode, 1)
 
     def test_new_or_missing_fixture_cannot_escape_inventory(self):
         root = self.copy_inputs()

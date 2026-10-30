@@ -1,0 +1,32 @@
+{
+  "reported.json": {
+    "schemaValid": true,
+    "cutover": true,
+    "verifiedGames": [
+      "enb",
+      "wow-forever"
+    ]
+  },
+  "cutover-only.json": {
+    "schemaValid": true,
+    "cutover": true,
+    "verifiedGames": []
+  },
+  "incomplete-cutover.json": {
+    "schemaValid": true,
+    "cutover": false,
+    "verifiedGames": []
+  },
+  "ambiguous-readbacks.json": {
+    "schemaValid": true,
+    "cutover": true,
+    "verifiedGames": []
+  },
+  "malformed-row.json": {
+    "schemaValid": false,
+    "cutover": true,
+    "verifiedGames": [
+      "wow-forever"
+    ]
+  }
+}

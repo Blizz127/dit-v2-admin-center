@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 """Validate every registered formal offline schema and its declared fixtures."""
 import json
+import io
 import sys
+from contextlib import redirect_stdout
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from tools.check_learning_assessment_schema import main as check_learning
+from tools.check_wake_verification_schema import main as check_wake
 
-CHECKERS = {'learning-assessment-draft-v1.schema.json': check_learning}
+CHECKERS = {'learning-assessment-draft-v1.schema.json': check_learning,
+            'wake-verification-v1.schema.json': check_wake}
 
 
 def main(root=ROOT):
@@ -17,10 +21,16 @@ def main(root=ROOT):
     if discovered != set(CHECKERS):
         print(json.dumps({'status': 'failed', 'reason': 'Offline schema/checker inventory mismatch'}))
         return 1
+    reports = {}
     for name in sorted(CHECKERS):
-        result = CHECKERS[name](root)
+        output = io.StringIO()
+        with redirect_stdout(output):
+            result = CHECKERS[name](root)
         if result:
+            print(output.getvalue(), end='')
             return result
+        reports[name] = json.loads(output.getvalue())
+    print(json.dumps({'status': 'passed', 'contracts': reports}, indent=2))
     return 0
 
 

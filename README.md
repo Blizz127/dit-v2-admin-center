@@ -120,6 +120,12 @@ draft, `schemas/learning-assessment-draft-v1.cases.json` declares structural and
 semantic expectations and must exactly match all JSON files in its fixture tree.
 New/unregistered schemas or fixtures, missing fixtures and expectation mismatches
 fail. Structural validity alone cannot pass cross-scope or stale evidence.
+The wake-readback profile is also registered, with
+`schemas/wake-verification-v1.cases.json` and five synthetic fixtures. Its checker
+compares the real projection's cutover, per-game readbacks and retained holds,
+including a deliberately malformed row. The direct check command emits one JSON
+report containing results for both contracts; it does not mix separate JSON
+documents or report overall success if either checker fails.
 Historical JSON fixtures without a declared schema keep their existing specialized
 checks; this does not claim a schema for every JSON document in the repository.
 The checks are synthetic and never wire a draft into a live API or UI.

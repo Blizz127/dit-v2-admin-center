@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Local wake-readback producer profile; no live readiness assertion",
+  "type": "object",
+  "required": [
+    "schema",
+    "cutover",
+    "games"
+  ],
+  "properties": {
+    "schema": {
+      "const": "dit-admin-wake-readback-v1"
+    },
+    "cutover": {
+      "$ref": "#/$defs/cutover"
+    },
+    "games": {
+      "type": "array",
+      "maxItems": 24,
+      "items": {
+        "$ref": "#/$defs/game"
+      }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 96,
+      "pattern": "^[A-Za-z0-9._-]{1,96}(?![\\s\\S])"
+    },
+    "time": {
+      "type": "string",
+      "maxLength": 40,
+      "format": "dit-wake-timestamp"
+    },
+    "cutover": {
+      "type": "object",
+      "required": [
+        "id",
+        "completed",
+        "destination",
+        "completedAt",
+        "receipt"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "completed": {
+          "type": "boolean"
+        },
+        "destination": {
+          "const": "banshee:8450"
+        },
+        "completedAt": {
+          "$ref": "#/$defs/time"
+        },
+        "receipt": {
+          "$ref": "#/$defs/identifier"
+        }
+      },
+      "additionalProperties": true
+    },
+    "game": {
+      "type": "object",
+      "required": [
+        "game",
+        "cutoverId",
+        "authenticated",
+        "result",
+        "observedAt",
+        "receipt"
+      ],
+      "properties": {
+        "game": {
+          "enum": [
+            "wow-vanilla",
+            "wow-forever",
+            "firefall",
+            "eden",
+            "blacklight",
+            "tabula-rasa",
+            "ffxi",
+            "war",
+            "enb",
+            "planetside",
+            "marvel-heroes",
+            "rose"
+          ]
+        },
+        "cutoverId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "authenticated": {
+          "type": "boolean"
+        },
+        "result": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "observedAt": {
+          "$ref": "#/$defs/time"
+        },
+        "receipt": {
+          "$ref": "#/$defs/identifier"
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}
