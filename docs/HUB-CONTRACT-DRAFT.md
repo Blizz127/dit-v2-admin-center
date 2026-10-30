@@ -147,6 +147,17 @@ This validates a proposed synthetic contract, not source authenticity, hub
 acceptance or live observations. The reference reviewer remains an already-
 decoded-object checker, not a raw-JSON or transport parser or an input endpoint.
 
+The engine is now part of the normal unittest discovery path through
+`tests/test_offline_contracts.py`, with a focused command in
+[README](../README.md#automatic-offline-schema-checks). The checker registry must
+match every formal schema file, and the learning draft's case manifest must
+match every JSON fixture in its directory tree. Each case declares both expected
+structural validity and semantic review status; new or missing files cannot be
+silently omitted. Four discovery/inventory checks passed using the installed
+engine, including mutation cases for unknown schema/fixture files, invalid fixture
+structure and an incorrect cross-instance semantic expectation. No full test
+suite or native/browser check was run for this integration.
+
 Review requests for the owning hub/adapter lead: establish the authoritative
 scope/binding source, allowed observation and receipt provenance, freshness and
 clock-skew policy, partial-envelope refusal policy, and assessment ownership.

@@ -1,0 +1,5 @@
+{
+  "mixed.json": {"schemaValid": true, "reviewStatus": "reviewed-synthetic"},
+  "partial.json": {"schemaValid": true, "reviewStatus": "reviewed-synthetic"},
+  "cross-instance-refusal.json": {"schemaValid": true, "reviewStatus": "unavailable"}
+}

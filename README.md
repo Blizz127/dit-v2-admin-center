@@ -99,6 +99,31 @@ ssh -N -L 7391:127.0.0.1:7391 <ssh-user>@devbox.tail646ff8.ts.net
 
 Keep the tunnel open and browse to `http://127.0.0.1:7391` on the laptop. This requires existing SSH access; the app does not configure SSH, tailnet serving or credentials. The app's owner token is still required.
 
+## Automatic offline schema checks
+
+The normal Python test discovery now includes `tests/test_offline_contracts.py`.
+To run only this focused contract gate:
+
+```sh
+python3 -m unittest discover -s tests -p test_offline_contracts.py -v
+```
+
+It runs the real JSON Schema engine in the current Python when available, or the
+already-installed `/usr/bin/python3` on this devbox. Set `DIT_SCHEMA_PYTHON` to an
+explicit installed validator Python to override that choice; an unusable override
+does not fall back. No installation or dependency download occurs. Missing engine
+or runtime is a failed check with an explicit blocker, never a silent skip.
+The direct command is `/usr/bin/python3 tools/check_offline_contracts.py`.
+
+Every `schemas/**/*.schema.json` must have a registered checker. For the learning
+draft, `schemas/learning-assessment-draft-v1.cases.json` declares structural and
+semantic expectations and must exactly match all JSON files in its fixture tree.
+New/unregistered schemas or fixtures, missing fixtures and expectation mismatches
+fail. Structural validity alone cannot pass cross-scope or stale evidence.
+Historical JSON fixtures without a declared schema keep their existing specialized
+checks; this does not claim a schema for every JSON document in the repository.
+The checks are synthetic and never wire a draft into a live API or UI.
+
 ## Offline interaction contract check
 
 Run the focused reader check without any network access:

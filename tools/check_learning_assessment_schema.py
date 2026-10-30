@@ -18,7 +18,7 @@ sys.path.insert(0, str(ROOT))
 from learning_assessment_draft import _timestamp, review
 
 
-def main():
+def main(root=ROOT):
     try:
         from jsonschema import Draft202012Validator, FormatChecker
         from jsonschema.exceptions import SchemaError
@@ -26,11 +26,23 @@ def main():
         print(json.dumps({'status': 'blocked', 'reason': 'JSON Schema engine unavailable'}))
         return 2
 
-    schema_path = ROOT / 'schemas/learning-assessment-draft-v1.schema.json'
-    fixture_root = ROOT / 'tests/fixtures/learning-assessment-draft'
-    schema = json.loads(schema_path.read_text())
-    fixtures = {name: json.loads((fixture_root / name).read_text())
-                for name in ('mixed.json', 'partial.json', 'cross-instance-refusal.json')}
+    schema_path = root / 'schemas/learning-assessment-draft-v1.schema.json'
+    fixture_root = root / 'tests/fixtures/learning-assessment-draft'
+    try:
+        schema = json.loads(schema_path.read_text())
+        cases = json.loads((root / 'schemas/learning-assessment-draft-v1.cases.json').read_text())
+        discovered = {p.relative_to(fixture_root).as_posix() for p in fixture_root.rglob('*.json')}
+        if not isinstance(cases, dict) or not cases or set(cases) != discovered or 'mixed.json' not in cases:
+            raise ValueError('Fixture inventory mismatch')
+        for expected in cases.values():
+            if (not isinstance(expected, dict) or set(expected) != {'schemaValid', 'reviewStatus'} or
+                    type(expected['schemaValid']) is not bool or
+                    expected['reviewStatus'] not in ('reviewed-synthetic', 'unavailable')):
+                raise ValueError('Invalid case expectations')
+        fixtures = {name: json.loads((fixture_root / name).read_text()) for name in sorted(cases)}
+    except (OSError, ValueError):
+        print(json.dumps({'status': 'failed', 'reason': 'Draft schema/fixture inventory is incomplete or invalid'}))
+        return 1
     mixed = fixtures['mixed.json']
     scope = copy.deepcopy(mixed['scope'])
     now = datetime(2026, 1, 1, 0, 2, tzinfo=timezone.utc)
@@ -53,9 +65,8 @@ def main():
             Draft202012Validator.check_schema(schema)
             validator = Draft202012Validator(schema, format_checker=formats)
             for name, payload in fixtures.items():
-                require(validator.is_valid(payload), 'fixture structure: ' + name)
-                expected = 'unavailable' if name == 'cross-instance-refusal.json' else 'reviewed-synthetic'
-                require(review(payload, scope, now=now, max_age_seconds=300)['status'] == expected,
+                require(validator.is_valid(payload) == cases[name]['schemaValid'], 'fixture structure: ' + name)
+                require(review(payload, scope, now=now, max_age_seconds=300)['status'] == cases[name]['reviewStatus'],
                         'fixture semantics: ' + name)
 
             structural = []
