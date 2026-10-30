@@ -1,57 +1,49 @@
-# Current local preview verification command
+# Current local preview verification commands
 
-Source checkpoint: `b3ab8f0` (adds scoped current/proposed draft review). Local artifact: `build/inspector-playtest.html`, **220324 bytes**.
-SHA-256: `96d4b70e3450cb17864b207e54017236b07427ccc7e4146681e7322ade93e7f1`.
+UI checkpoint: `8c9ce8e` (draft validation focus and DOM assertions).
+Local artifact: `build/inspector-playtest.html`, **221537 bytes**.
+SHA-256: `524ed94c8f7d1807baf9e80a8d60619b28763fa23c5493a9feaa9c6bf2be6260`.
 
-From this checkout, on an authorized host with installed executables selected
-through `DIT_CHROMIUM` / `DIT_NODE`:
+## Executed DOM fallback
+
+From this checkout with the pinned local tool dependency:
 
 ```sh
-python3 tools/run_headless_playtest.py --expected-artifact-sha256 96d4b70e3450cb17864b207e54017236b07427ccc7e4146681e7322ade93e7f1
-python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 96d4b70e3450cb17864b207e54017236b07427ccc7e4146681e7322ade93e7f1
+DIT_JSDOM_MODULE="$PWD/build/dom-runtime/node_modules/jsdom" timeout 15 node tools/run_inspector_playtest.cjs
 ```
 
-The DOM command was attempted for relay `9e5b114655e234f1` and exited **2**
-before browser launch: Chromium was unavailable. No localhost browser session
-or namespace operation started. The keyboard command remains **NOT RUN**. Devbox browser/isolation limitations remain as
-recorded in NATIVE-VERIFICATION-GAP.md. There is no permission here to retry a
-denied namespace operation, install a runtime, substitute a device bundle or
-contact Alienware. Existing approved `8eb2c9f` handoff and delivered previews are
-unchanged. Automatic DOM execution, native keys/downloads and human visual
-review are separate evidence; component tests do not establish any of them.
+Actual result: **105 checks passed**, jsdom 26.1.0, zero transport attempts,
+artifact hash as above, `nativeKeyboard: not-run`. The runner uses Node
+Blob/object URLs and a no-op scroll shim. Checks include draft input labels,
+successful-preview focus retention, invalid goals/personality focus, empty-form
+focus, changed/matching/Unknown baselines, discard and refresh behavior.
+See [DOM verification evidence](DOM-VERIFICATION-20261030.md) for installation,
+first failure and first successful run history.
 
-Observed checks: authenticated temporary localhost mock requests with live
-collectors forbidden; document inventory validation/fallback tests; actual-app
-simulated-DOM issue filters and model comparison checks, also against this
-artifact; generated markup/CSP and JavaScript compilation checks. All passed.
-No live service, provider, account, game or device was accessed. The loopback
-mock test server was shut down after its requests.
+This is real DOM-engine execution with programmatic focus/events. It is **not**
+native keyboard activation, browser visual layout, scrolling, file download,
+CSP enforcement, HTTP transport or deployed-service verification. Component
+checks and the separate temporary localhost mock checks also pass; draft-like
+POST requests remain refused with 405. No service/device/game/provider was used.
 
-Draft validation, ID isolation and pending/failed-refresh clearing passed in the
-actual-app simulated DOM against this artifact. Localhost mock checks confirm
-the new form is served and a draft-like POST is still refused with 405. The
-standalone script includes automatic draft preview/validation/discard assertions.
-The native-key runner currently covers sidebar, assignment and optional audit
-keys; it does not yet certify typing/focus behavior in the draft form.
+## Prepared native browser commands — NOT RUN for this artifact
 
-The current artifact also contains automatic draft-review assertions for changed,
-matching and Unknown baselines. Component checks against these exact bytes pass,
-including same-ID refresh replacing the old baseline/provenance. The narrow
-column rule was checked in source; visual appearance remains NOT RUN. These
-checks do not certify native typing, review-column geometry or screen readers.
+On an authorized host with existing Chromium/Node selected through
+`DIT_CHROMIUM` / `DIT_NODE`:
 
-The draft-review candidate checks the synthetic offline-inspector-bot, matching
-loaded goal text, Unknown personality baseline, focus retention and discard.
-It requires a separate complete `draftReview` receipt when selected. Simulated
-adapter tests against the actual application reject typing, focus, discard and
-fixture-baseline failures; twelve runner tests passed with fabricated process
-outputs. This runner uses the network-isolated standalone file, not a localhost
-HTTP page. Localhost mock HTTP checks are separate and do not establish browser
-rendering. No device run, runtime installation or namespace bypass was requested.
+```sh
+python3 tools/run_headless_playtest.py --expected-artifact-sha256 524ed94c8f7d1807baf9e80a8d60619b28763fa23c5493a9feaa9c6bf2be6260
+python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 524ed94c8f7d1807baf9e80a8d60619b28763fa23c5493a9feaa9c6bf2be6260
+```
 
-Runner candidate checkpoint: `f014678` adds `--draft-review`; it is separate from
-the UI/artifact checkpoint above. Follow-on orchestration checks cover all eight
-combinations of draft review with screenshots, gap export and routing audit.
-Thirteen focused runner tests pass, plus fake-CDP and artifact-bound simulated
-input checks. Capture publication and process execution are fabricated in these
-tests. No success receipt exists from a real draft-review browser run.
+The previous Chromium attempt against artifact `96d4b70e` exited 2 before browser
+launch because Chromium was unavailable. No namespace operation or localhost
+browser session started. That blocker was not turned into a native pass by the
+jsdom result. The native runner uses the isolated standalone file, not an HTTP
+page. Draft input helper `f014678` requires its own complete receipt; eight option
+combinations have offline orchestration coverage, not native evidence.
+
+The approved `8eb2c9f` device bundle and delivered Alienware previews are
+unchanged. These commands do not authorize a device run, browser install,
+namespace bypass or substitution of that bundle. No real draft-review browser
+success receipt is recorded.

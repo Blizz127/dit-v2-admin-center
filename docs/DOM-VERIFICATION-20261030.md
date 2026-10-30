@@ -43,3 +43,15 @@ npm ci --prefix build/dom-runtime --ignore-scripts --no-audit --no-fund
 The runner itself never installs packages. Its missing-module check still exits
 2 and was verified separately after this change. No browser-isolation denial
 was retried or bypassed.
+
+## Follow-on draft focus execution
+
+Checkpoint `8c9ce8e` focuses the first invalid draft field, focuses Goals for an
+empty proposal, and preserves preview-button focus after valid submission.
+The standalone driver also checks associated labels and validation descriptions.
+The same jsdom command then passed **105 checks**, zero transport attempts, on
+artifact `524ed94c8f7d1807baf9e80a8d60619b28763fa23c5493a9feaa9c6bf2be6260`
+(221537 bytes), with the same two declared shims and `nativeKeyboard: not-run`.
+The earlier 100-check receipt remains evidence for its earlier artifact only.
+Ten focused Python mock/artifact checks also passed after this source change;
+no browser rendering or native input is claimed.
