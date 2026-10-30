@@ -91,7 +91,9 @@ class CardMarkupTests(unittest.TestCase):
         self.assertIn(self.by_id['view-operations'], list(panel.ancestors()))
         text = panel.text()
         for value in ('37.27.113.160', 'enb.bansheerealm.com', '5:29 PM CT',
-                      'Coordinator relay', '22:19 UTC', 'E&B Rust lead', 'Unknown', 'rollback', 'reported stopped'):
+                      'Coordinator relay', '22:19 UTC', 'E&B Rust lead', 'Unknown', 'rollback', 'reported stopped',
+                      'Character select reported reached', 'October 30, 00:46 UTC',
+                      'not an Admin-observed session', 'gameplay or persistence'):
             self.assertIn(value, text)
         self.assertFalse(any(n.tag in ('a', 'button', 'input', 'form') for n in panel.descendants()))
 
@@ -165,7 +167,8 @@ class CardMarkupTests(unittest.TestCase):
             'ashes-move': ('19:30 UTC', '23:01 UTC', 'disposable staging', 'Unknown', 'not proof of gameplay'),
             'forever-move': ('forever-70', '6:42 PM CT', '7:21 PM CT', 'October 30, 00:21 UTC', 'owner-only for now', 'Unknown'),
             'wake-signin-repoint': ('completion unverified', 'b95f781', 'No completed repoint receipt',
-                                    'login.bansheerealm.com', '37.27.113.160:8450', '8446', 'Unknown'),
+                                    'login.bansheerealm.com', '37.27.113.160:8450', '8446', 'Unknown',
+                                    '5ce7919', 'no 8450 cutover claim'),
         }
         for identity, values in expected.items():
             panel = self.by_id[identity]
