@@ -39,7 +39,23 @@ const goals=get('bot-draft-goals'),personality=get('bot-draft-personality');
  assert.equal(get('bot-draft-fields').disabled,true);assert.equal(goals.value,'');
  context.inspectBot('one');goals.value='unsent';submit();
  assert.equal(requestCount(),before,'Preview/validation/cancel/select emit no request');
+ const originalFetch=context.fetch;
+ let release,refreshCalls=0;
+ context.fetch=async()=>{refreshCalls++;return new Promise(resolve=>{release=resolve;});};
+ try {
+   const pending=get('refresh').listeners.click();
+   assert.equal(goals.value,'','Starting refresh clears unsent text immediately');
+   assert.equal(get('bot-draft-result').textContent,'');
+   assert.equal(get('bot-draft-fields').disabled,true);
+   goals.value='Attempt during loading';submit();
+   assert.equal(goals.value,'');assert.equal(get('bot-draft-result').textContent,'');
+   release({ok:false,status:503});await pending;
+   assert.equal(get('bot-draft-result').textContent,'','Failed refresh must not revive a preview');
+   assert.equal(get('bot-draft-fields').disabled,true);
+   assert.equal(refreshCalls,1);
+ } finally {context.fetch=originalFetch;}
  await refresh({bots});assert.equal(goals.value,'');assert.equal(get('bot-draft-result').textContent,'');
+ assert.equal(get('bot-draft-fields').disabled,false,'Successful mock refresh allows a new draft');
  goals.value='old draft';submit();get('clear-bot').listeners.click();
  assert.equal(get('bot-draft-fields').disabled,true);assert.equal(goals.value,'');
  context.inspectBot('one');vm.runInContext("loadedSource='hub'",context);goals.value='not allowed';submit();

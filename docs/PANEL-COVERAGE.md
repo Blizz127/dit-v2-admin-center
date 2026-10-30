@@ -41,3 +41,8 @@ change. Goals are bounded to 1000 characters and personality to 500. Control
 characters and over-limit input invalidate and remove prior previews. Drafts
 are cleared on inspect/selection change, refresh, discard and session reset.
 No storage, request, save route, model change or bot command is connected.
+
+A deferred failed-refresh test confirms draft text and preview clear when the
+request starts, cannot be previewed during loading, stay cleared on failure,
+and allow a fresh draft after a successful mock refresh. This is simulated DOM
+evidence, not a native browser typing/focus check.
