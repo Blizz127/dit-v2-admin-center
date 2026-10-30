@@ -588,18 +588,34 @@ header lines from combining into a multi-megabyte block. A five-second
 socket inactivity timeout now bounds stalled reads and writes. A request-line or
 header read timeout attempts a fixed JSON 408 and closes the connection. If
 output has already started, no second response is appended; if the peer cannot
-receive the timeout response, the connection simply closes. This is an idle I/O
-limit, **not** a total deadline against a client continuously trickling bytes,
-and it does not time-limit collectors.
+receive the timeout response, the connection simply closes.
+
+A separate ten-second monotonic deadline spans the request line and all headers.
+It is checked between buffered bytes, with each socket read allowed only the
+smaller of the idle timeout and the remaining total time. Thus receiving a byte
+or finishing a line does not reset the total deadline. Body bytes are not
+consumed by this guard. Timeout responses and ordinary output regain the full
+five-second write allowance; collectors are outside the acquisition deadline.
 
 Eight focused offline checks passed for ambiguous/framing headers, valid zero
 length and repeated Accept headers, request/header limits, simulated read/write
 timeouts, existing write-body refusal and HEAD/protocol errors. The memory
-connection records the configured socket timeout; tests inject TimeoutError
-without sleeping or opening sockets. Actual elapsed-time behavior on a real
-socket was not measured. No service restart, device run or artifact change.
+connection records the configured socket timeout; those tests inject TimeoutError
+without sleeping or opening sockets. At that checkpoint actual socket timing was
+not measured; the local socket-pair checks below now cover it. No service restart,
+device run or artifact change.
 
 The aggregate-header follow-up passed five focused checks: exact 64 KiB
 acceptance, oversized-block refusal and acquisition bounds, existing line/count
 limits, header timeout handling, body refusal and GET framing behavior (the
 boundary scenarios share one check). No socket timing or native rendering claim.
+
+Measured local socket-pair checks (no listener or live collector) observed the
+default idle timeout at **5.006 seconds**. Request-line and header trickles every
+40 ms returned redacted 408 at **0.651 and 0.652 seconds** with test-only limits
+of 0.35 seconds idle / 0.65 seconds total. The production ten-second total value
+was not separately waited out. Both senders and handlers terminated; responses
+had correct JSON lengths and omitted private input. Six focused checks passed,
+including aggregate-header bounds, body refusal and response-write separation.
+These results establish local socket behavior, not deployed-service or browser
+verification.

@@ -277,6 +277,35 @@ def overview(source='mock'):
         return snapshot
 
 
+class _RequestDeadline:
+    """Enforce one deadline even within a buffered readline receiving trickles."""
+    def __init__(self, stream, connection, idle_timeout, deadline):
+        self.stream = stream
+        self.connection = connection
+        self.idle_timeout = idle_timeout
+        self.deadline = deadline
+
+    def readline(self, size=-1):
+        line = bytearray()
+        while size < 0 or len(line) < size:
+            remaining = self.deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError('Request acquisition deadline')
+            self.connection.settimeout(min(self.idle_timeout, remaining))
+            # readline(size) can do many socket reads internally. A one-byte
+            # buffered read returns control between bytes without consuming a
+            # following body; the socket buffer still amortizes actual recv calls.
+            byte = self.stream.readline(1)
+            if time.monotonic() >= self.deadline:
+                raise TimeoutError('Request acquisition deadline')
+            if not byte:
+                break
+            line.extend(byte)
+            if byte == b'\n':
+                break
+        return bytes(line)
+
+
 class _HeaderBudget:
     """Bound aggregate header acquisition, not just each individual line."""
     def __init__(self, stream, limit=65536):
@@ -296,9 +325,9 @@ class _HeaderBudget:
 
 
 class Handler(BaseHTTPRequestHandler):
-    # Socket inactivity limit, including request-line/header reads. This is not
-    # an overall deadline for a peer that continuously sends bytes.
+    # Idle I/O timeout plus one total request-line/header acquisition deadline.
     timeout = 5
+    request_timeout = 10
 
     def handle_one_request(self):
         # Keep stdlib dispatch/size limits, but distinguish a read timeout from
@@ -308,6 +337,9 @@ class Handler(BaseHTTPRequestHandler):
         self.request_version = 'HTTP/1.0'
         self._response_started = False
         reading = True
+        original = self.rfile
+        self.rfile = _RequestDeadline(original, self.connection, self.timeout,
+                                      time.monotonic() + self.request_timeout)
         try:
             self.raw_requestline = self.rfile.readline(65537)
             if len(self.raw_requestline) > 65536:
@@ -319,6 +351,7 @@ class Handler(BaseHTTPRequestHandler):
             if not self.parse_request():
                 return
             reading = False
+            self.connection.settimeout(self.timeout)
             method = getattr(self, 'do_' + self.command, None)
             if method is None:
                 self.send_error(501)
@@ -333,6 +366,8 @@ class Handler(BaseHTTPRequestHandler):
                 except OSError:
                     # A stalled/disconnected peer may not accept the refusal.
                     pass
+        finally:
+            self.rfile = original
 
     def parse_request(self):
         original = self.rfile
@@ -360,6 +395,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def send_content(self, status, content_type, body, *, allow=None):
         self._response_started = True
+        # A near-expired acquisition deadline must not shrink the response's
+        # write allowance, including the attempt to report a timeout itself.
+        self.connection.settimeout(self.timeout)
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Cache-Control", "no-store")
