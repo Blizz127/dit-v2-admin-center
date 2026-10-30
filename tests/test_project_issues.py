@@ -11,11 +11,24 @@ from contextlib import ExitStack
 from http.server import ThreadingHTTPServer
 
 import project_issues
+import presence_examples
 import server
 from tools.build_inspector_playtest import snapshot
 
 
 class ProjectIssuesTests(unittest.TestCase):
+    def test_presence_examples_shared_by_mock_and_preview(self):
+        expected = presence_examples.examples()
+        self.assertEqual(expected['kind'], 'synthetic')
+        self.assertEqual(len(expected['rows']), 3)
+        self.assertEqual(server.presence_examples(), expected)
+        self.assertEqual(snapshot()['presenceExamples'], expected)
+        with tempfile.TemporaryDirectory() as temp, patch.object(presence_examples, 'FIXTURE', Path(temp)/'cases.json'):
+            self.assertIsNone(presence_examples.examples())
+            presence_examples.FIXTURE.write_text('{"kind":"live","rows":[]}')
+            self.assertIsNone(presence_examples.examples())
+            presence_examples.FIXTURE.write_text('not json')
+            self.assertIsNone(presence_examples.examples())
     def test_repository_inventory_has_provenance_and_no_live_claims(self):
         rows = project_issues.read()
         self.assertEqual(len(rows), 6)
@@ -72,6 +85,7 @@ class ProjectIssuesTests(unittest.TestCase):
                         self.assertEqual(response.getheader('Cache-Control'), 'no-store')
                         if authorized:
                             self.assertEqual(body['issues'], project_issues.read())
+                            self.assertEqual(body['presenceExamples'], presence_examples.examples())
                             self.assertEqual(len(body['modelCalls']), 3)
                             self.assertEqual({r['model'] for r in body['modelCalls']}, {'Example model A','Example model B'})
                             self.assertTrue(all(r['quality'] is None for r in body['modelCalls']))

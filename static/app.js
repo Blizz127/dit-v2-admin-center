@@ -118,6 +118,7 @@ function renderWakeVerification(data) {
   document.getElementById('wake-filter-empty').hidden = shown !== 0;
 }
 function resetPanelSession() {
+  renderPresenceExamples(null);
   document.getElementById('wake-readiness-filter').value = 'all';
   renderWakeVerification(null);
   renderOperationSources(null);
@@ -746,6 +747,17 @@ function updateBotCount(bots) {
   const total = Array.isArray(supplied) && usableBotRows().length === supplied.length ? supplied.length : 'Unknown total';
   document.querySelector('#bot-count').textContent = `Showing ${bots.length} of ${total} loaded roster records; coverage and presence may be unknown.${rosterRecordIndex !== null ? ' Pinned snapshot row: ' + (rosterRecordIndex + 1) + '.' : ''}${selectedAmbiguous ? ' Selected bot identity is ambiguous; scoped inspection is unavailable.' : selectedMissing ? ' Selected bot is no longer in the loaded data.' : selectedHidden ? ' Selected bot is outside this filtered roster; its inspector remains selected.' : ''}`;
 }
+function renderPresenceExamples(data) {
+  const panel = document.getElementById('presence-examples'); panel.replaceChildren();
+  const rows = data?.kind === 'synthetic' && Array.isArray(data.rows) && data.rows.length <= 8 ? data.rows : null;
+  if (!rows) { item(panel, 'Presence review examples unavailable', 'Live presence: Unknown', 'No authoritative presence source is connected by this review.'); return; }
+  const usable = rows.filter(row => row && typeof row === 'object' && !Array.isArray(row)
+    && ['scenario', 'supplied', 'missing'].every(key => typeof row[key] === 'string' && row[key].trim() && row[key].length <= 500));
+  if (usable.length !== rows.length) item(panel, 'Example coverage Unknown', 'Malformed review cases were omitted.', 'This does not change any roster or live-presence state.');
+  if (!usable.length) item(panel, 'No usable presence review examples', 'Live presence: Unknown', 'An empty example list is not an empty game or bot roster.');
+  usable.forEach(row => item(panel, row.scenario, `Fictional supplied information: ${row.supplied}`,
+    `Still needed: ${row.missing} · Live presence: Unknown · Synthetic review only; not attached to a selected bot.`));
+}
 function renderBots() {
   const panel = document.querySelector('#bots');
   const bots = filteredBots();
@@ -1303,6 +1315,7 @@ async function load() {
     if (incomplete || !ffxiFeeds.length) item(document.querySelector('#ffxi-feeds'), 'FFXI feed coverage', 'Unknown', 'Missing or incomplete feed metadata; supplied rows do not establish complete FFXI coverage');
     ffxiFeeds.forEach(f => item(document.querySelector('#ffxi-feeds'), `${routingText(f.game)} · ${routingText(f.view)}`, routingText(f.status), `${routingText(f.note)} · Fetched: ${routingText(f.at)} · Not proof of game presence or delivery`));
     renderBotCoverage();
+    renderPresenceExamples(data.presenceExamples);
     renderBots();
     if (selectedBotId !== null) inspectBot(selectedBotId);
     else { renderAssignments(); renderReplySource(); renderSafety(); }

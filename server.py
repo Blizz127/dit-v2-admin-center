@@ -29,6 +29,7 @@ from nudge_history import nudge_history
 from session_markers import admin_markers, binding_issues, claude_markers, handoff_codex_markers
 from r10_projection import project_health, project_learning, project_learning_attention, project_roster
 from routing_audit import examples as routing_audit_examples
+from presence_examples import examples as presence_examples
 from wake_verification import read as read_wake_verification
 from operation_sources import read as read_operation_sources
 
@@ -225,6 +226,7 @@ def overview(source='mock'):
         ],
         "spendExample": synthetic_spend,
         "routingAudit": routing_audit_examples(),
+        "presenceExamples": presence_examples(),
         "modelCalls": json.loads((PROJECT / "data/fixtures/model-comparison.json").read_text()),
         "audit": [
             {"actor": "Example operator", "action": "Simulated model selection", "scope": "Example FFXI bot",

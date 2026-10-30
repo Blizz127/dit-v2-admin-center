@@ -47,6 +47,19 @@ try {
 /* APPLICATION */
   await settle(() => !document.querySelector('#workspace').hidden);
   check(document.querySelector('#error').textContent === '', 'Actual application loaded the projected fixture');
+  check(document.querySelectorAll('#presence-examples .row').length === 3 && textOf('presence-examples').includes('Live presence: Unknown') && textOf('presence-examples').includes('Different native identity'), 'Presence review loads three synthetic cases without claiming live presence');
+  const originalPresenceExamples = structuredClone(fixture.presenceExamples);
+  fixture.presenceExamples = {kind:'live', rows:originalPresenceExamples.rows};
+  await load();
+  check(textOf('presence-examples').includes('examples unavailable') && !textOf('presence-examples').includes('Roster status only'), 'Presence review refuses a non-synthetic envelope and clears previous cases');
+  fixture.presenceExamples = structuredClone(originalPresenceExamples);
+  fixture.presenceExamples.rows[0].scenario = '<img src="https://offline.invalid/never">';
+  fixture.presenceExamples.rows.push(null);
+  await load();
+  check(textOf('presence-examples').includes('Example coverage Unknown') && textOf('presence-examples').includes('<img') && document.querySelectorAll('#presence-examples img').length === 0, 'Partial presence examples retain usable text while omitting malformed rows');
+  fixture.presenceExamples = originalPresenceExamples;
+  await load();
+  check(document.querySelectorAll('#presence-examples .row').length === 3 && !textOf('presence-examples').includes('Example coverage Unknown'), 'Presence examples recover from the current snapshot only');
   const sectionOrder = ['overview', 'roster', 'ffxi', 'learning', 'evidence', 'operations', 'models', 'notes'];
   const sectionLinks = [...document.querySelectorAll('.workspace-nav a')];
   const sectionRequests = requests.length;

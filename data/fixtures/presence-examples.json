@@ -1,0 +1,8 @@
+{
+  "kind": "synthetic",
+  "rows": [
+    {"scenario": "Roster status only", "supplied": "A fictional roster entry says Paused. Registration and status labels are metadata.", "missing": "An authoritative native identity binding and a current presence observation in the same realm and server instance."},
+    {"scenario": "Old presence observation", "supplied": "A fictional observation once reported a character present. Its freshness window has expired.", "missing": "A new scoped observation. A later dashboard fetch must not refresh the observation's own timestamp."},
+    {"scenario": "Different native identity", "supplied": "A fictional observation has the same display name but a different native ID or realm.", "missing": "An exact identity and instance match. Display names and shared correlations must not join these records."}
+  ]
+}
