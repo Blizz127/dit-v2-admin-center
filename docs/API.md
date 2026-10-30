@@ -408,15 +408,78 @@ normalized included fields only; excluded or malformed fields are not compared.
 A missing ID yields one candidate, never a display-name join. Row positions and
 reported time are not persistent identity or authenticated provenance. A saved
 report remains a copy of its original snapshot after the workspace refreshes.
-# Local wake verification metadata
+## Local wake verification metadata
 
 Overview responses now include `wakeVerification`, projected from
 `data/local/wake-verification.json` on each refresh. This is an owning-lead
 supplied local receipt, not an8450 call, credential file or mutation route.
 See [receipt format and trust boundary](WAKE-VERIFICATION-RECEIPT.md).
-The projection has schema, coverage and exactly twelve rows with game, status,
-observedAt and receipt. Status is Unverified, Held or Verified readback (reported).
+The projection has `schema: dit-admin-wake-readback-v1`, `coverage`, `cutover`
+and exactly twelve rows with `game`, `status`, `observedAt` and `receipt`. Status is Unverified, Held or Verified readback (reported).
 Per-game authenticated ready evidence must match a completed Banshee8450
 cutover; the global cutover flag alone never verifies every game. Held rows
 cannot be cleared through this metadata. No actual receipt or live acceptance
 was installed as part of the source change.
+
+
+### Cutover projection
+
+`cutover` is null when the local envelope cannot establish a valid completed
+Banshee 8450 cutover. Otherwise it contains only `id`, `destination`
+(`banshee:8450`), timezone-qualified `completedAt`, and `receipt`. The source
+completion flag must be literal true, the completion time cannot be in the
+future, and IDs/references use the bounded content-free format described in
+[the receipt contract](WAKE-VERIFICATION-RECEIPT.md). Extra source fields are not
+returned. This is a reviewed local report, not remote authentication by Admin.
+
+A valid cutover with an empty game-observation list is still a valid cutover
+report, with all twelve rows Unverified or Held. Per-game `observedAt` and
+`receipt` are null unless that exact game has one valid matching authenticated
+ready readback. A duplicate game observation withholds only that game's claim;
+unknown IDs cannot match by name or alias. WAR and Marvel remain Held. An
+invalid cutover withholds all per-game positives. Reported readiness cannot lift
+lifecycle restrictions, establish current health or certify gameplay/save safety.
+
+Missing, unreadable, oversized or invalid local receipt input yields the default
+projection in the existing 200 overview, not a new HTTP error or cached success.
+These local reads run on each overview collection and do not use the optional
+upstream hub cache. The client clears cutover/readback claims on session reset or
+failed refresh. No upload, cutover request, write endpoint or real 8450 request
+exists. The standalone preview does not read the local receipt file.
+
+## Reviewed operations-source metadata in GET /api/overview
+
+`operationSources` has schema `dit-admin-operation-sources-v1` and three rows,
+with fixed IDs `wake-8450`, `ashes`, and `lotro`. Each row contains:
+
+| Field | Meaning |
+| --- | --- |
+| `id`, `title` | Fixed source identity and display label; not a roster or controller-ID join |
+| `reference` | Reviewed owning-lead document/commit attribution |
+| `sha256` | Expected digest of the reviewed note; not an observed service or installed binary hash |
+| `reported` | Curated dated summary, retained as historical context even if the file changes |
+| `missing` | Evidence not established by that reviewed note; not a new owner hold |
+| `state` | Local source-check result below |
+
+The fixed paths and expected hashes live in `operation_sources.py`; requests
+cannot choose a path or add a source. Each overview collection reads at most
+64 KiB plus one oversize sentinel per note. `state` is one of:
+
+- `Reviewed bytes match`: the local bytes match the reviewed hash.
+- `Source changed — review required`: the bytes differ or exceed the limit.
+- `Source unavailable`: the local file cannot be read.
+- `Not checked in standalone preview`: packaged dated context without any
+  external file read during standalone generation/execution.
+
+No raw note text, filesystem path, account information or read-error details are
+returned. The reader makes no subprocess, network or service call. An unchanged
+note does not prove its reported deployment remains current. Changed sources
+require human review and a source update; arbitrary new prose is never parsed
+into readiness. Missing/changed source checks remain in the 200 overview and
+cannot promote `wakeVerification`. The client clears source-check claims on
+session reset/failed refresh and withholds duplicate source identities.
+
+Ashes and LOTRO are outside the twelve-game wake-controller manifest; these
+rows describe their owning-lead evidence separately. Neither a deployment note
+nor a successful local hash check creates an 8450 binding or verifies a game.
+The field is local Admin presentation metadata, not a new upstream hub contract.

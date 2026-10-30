@@ -29,3 +29,22 @@ The r10 provider policy is global/per-purpose, not per bot. A proposed future po
 The AI spend ledger has provider/model/purpose and accounting details but lacks game/bot/party attribution in its attempts table. Each data directory has a separate ledger; v1 and fresh v2 totals must not be combined as reconciled. Missing rates, quota and evidence are unknown. Do not mint credentials. Read only the existing approved hub access-token file when its path and trusted access are established.
 
 The hub lead's reviewable proposal is `dit-v2-release-20261027/custody/per-bot-model-routing-draft.md`. It specifies adapter-verified `(gameId, realmId, nativeBotId, purpose)` identity; a verified selected speaker for FFXI group turns; exact override then explicit purpose default; and safe unavailability if resolution fails. Requested and effective routing, version, source, freshness and readiness are distinct. Unknown rate, allowance, credentials or budget must fail closed; no implicit paid fallback. Future compare-and-set changes require separate authorization, audit and approved provider/model/account routes. They cannot change credentials, budgets, fallback authorization or start actions. All attempts need reservation and settlement through the authoritative ledger with request and scope attribution. These are proposals, not implemented functionality; Blizz approved the draft; controls remain disabled until the hub implements the reviewed contract and model changes are separately authorized. The lead reports the offline FFXI bake-off covers ambiguous identity and unknown budget without provider calls; we have not independently inspected its results.
+
+
+## Local receipt and source-note boundary
+
+The operations view consumes two separate projections on each authenticated
+overview refresh. `wake_verification.py` reads the reviewed local cutover file
+and separates reported cutover completion from exact per-game readbacks.
+`operation_sources.py` checks fixed owning-lead note paths against reviewed
+hashes and returns curated dated summaries with match/changed/unavailable status.
+Neither reads remote services, game databases or saves, and neither is part of
+the optional hub cache. Source-note byte equality cannot establish cutover,
+current service health or game acceptance. Missing evidence retains Unknown or
+Unverified states; explicit holds remain separate.
+
+Only these safe projections reach the browser; raw notes and local paths do not.
+Standalone generation packages the curated source context with an explicit
+unchecked label, without reading those external files or the local cutover
+receipt. These are local presentation contracts documented in [API.md](API.md),
+not newly agreed hub routes. They add no model, game or service control.
