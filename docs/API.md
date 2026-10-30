@@ -503,3 +503,25 @@ The wake-readiness filter and displayed counts are browser-local derivatives of
 but resets with the session. Failure-cleared readbacks cannot be recovered from
 the cached overview by changing the filter. Count labels explicitly describe the
 twelve mapped rows, not current service health or all retained game restrictions.
+
+## Malformed GET request-target parsing
+
+A malformed bracketed authority in an absolute-form GET target could make
+`urlsplit` raise before the handler sent any response. The handler now catches
+that parser failure, closes the connection and returns 400 with the fixed JSON
+body `{"error":"invalid request target"}`, no-store/nosniff headers and a correct
+Content-Length. It never reflects the target, embedded user information or
+parser exception, and does not invoke a collector or upstream dependency.
+
+This protocol-level rejection occurs before a route can be identified, including
+with absent, wrong or valid Authorization headers. Once the target parses,
+existing API authentication still precedes query validation/collection. The
+parsed target is reused for route/query dispatch; valid encoded queries and
+default overview behavior are unchanged. This is not a blanket catch of handler
+programming errors or a new policy for every unusual URI form.
+
+Five focused in-memory handler checks passed: malformed authorities and subsequent
+valid-request recovery, unauthorized refusal, malformed query refusal, valid
+encoded/default queries and existing redacted error envelopes. Sockets, real
+collectors, databases and subprocesses were forbidden. No listener, token read,
+service restart or device action occurred; the standalone artifact is unchanged.

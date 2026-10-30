@@ -70,6 +70,25 @@ class OfflineInspectorHandlerTests(unittest.TestCase):
         self.assertNotIn(b'OMIT_RAW_ANSWER_AND_PLAYER_DATA', body)
         self.assertNotIn(b'fixture-token', body)
 
+    def test_malformed_request_target_returns_redacted_400_before_collection(self):
+        targets = ('http://[OMIT_PRIVATE_TARGET/api/overview',
+                   'http://[invalid]/api/overview',
+                   'http://user:OMIT_PRIVATE_SECRET@[bad]/api/trace?gameId=ffxi')
+        for path in targets:
+            for token in (None, 'wrong', 'fixture-token'):
+                with self.subTest(path=path, token=token):
+                    status, headers, body = self.request(path, token=token)
+                    self.assertEqual(status, 400)
+                    self.assert_error_envelope(headers, body)
+                    self.assertEqual(json.loads(body), {'error': 'invalid request target'})
+        self.overview.assert_not_called()
+        # The parser rejection is not a blanket handler failure: a later valid
+        # request still authenticates first and then collects the fixture.
+        self.assertEqual(self.request(token='wrong')[0], 401)
+        self.overview.assert_not_called()
+        self.assertEqual(self.request()[0], 200)
+        self.overview.assert_called_once_with('mock')
+
     def test_bridge_rejects_parameters_before_observer_and_auth_still_runs_first(self):
         # setUp guards the real observer: rejected queries must not reach it.
         for query in ('refresh=1', 'host=example.invalid', 'token=OMIT_PRIVATE_QUERY', 'flag'):

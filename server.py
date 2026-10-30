@@ -299,14 +299,22 @@ class Handler(BaseHTTPRequestHandler):
         super().send_error(code, message, explain)
 
     def do_GET(self):
-        path = urlsplit(self.path).path
+        try:
+            target = urlsplit(self.path)
+        except ValueError:
+            # Malformed authorities can fail before a route can be identified.
+            # Do not expose parser exception text or attempt any collection.
+            self.close_connection = True
+            self.send_content(400, 'application/json', b'{"error":"invalid request target"}')
+            return
+        path = target.path
         if path.startswith("/api/"):
             supplied = self.headers.get("Authorization", "")
             expected = "Bearer " + self.server.admin_token
             if not hmac.compare_digest(supplied.encode(), expected.encode()):
                 self.send_content(401, "application/json", b'{"error":"unauthorized"}')
             elif path == "/api/hub-health":
-                if urlsplit(self.path).query:
+                if target.query:
                     self.send_content(400, "application/json", b'{"error":"invalid query"}')
                     return
                 url, token_file = os.environ.get('HUB_READONLY_URL'), os.environ.get('HUB_TOKEN_FILE')
@@ -323,7 +331,7 @@ class Handler(BaseHTTPRequestHandler):
                     return
                 self.send_content(200, "application/json", json.dumps(result).encode())
             elif path == "/api/interaction":
-                if urlsplit(self.path).query:
+                if target.query:
                     self.send_content(400, "application/json", b'{"error":"interaction takes no parameters"}')
                     return
                 url, token_file = os.environ.get('HUB_READONLY_URL'), os.environ.get('HUB_TOKEN_FILE')
@@ -341,7 +349,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_content(200, "application/json", json.dumps(result).encode())
             elif path == "/api/trace":
                 try:
-                    query = parse_qs(urlsplit(self.path).query, keep_blank_values=True,
+                    query = parse_qs(target.query, keep_blank_values=True,
                                      strict_parsing=True, errors='strict', max_num_fields=2)
                 except ValueError:
                     self.send_content(400, "application/json", b'{"error":"invalid trace scope"}')
@@ -373,13 +381,13 @@ class Handler(BaseHTTPRequestHandler):
                         'coverage': 'Recent hub trace window, maximum 250 records; missing records do not prove no action.'}
                 self.send_content(200, "application/json", json.dumps(body).encode())
             elif path == "/api/bridge-status":
-                if urlsplit(self.path).query:
+                if target.query:
                     self.send_content(400, "application/json", b'{"error":"bridge status takes no parameters"}')
                     return
                 self.send_content(200, "application/json", json.dumps(BRIDGE.read()).encode())
             elif path == "/api/overview":
                 try:
-                    query = parse_qs(urlsplit(self.path).query, keep_blank_values=True,
+                    query = parse_qs(target.query, keep_blank_values=True,
                                      strict_parsing=True, errors='strict', max_num_fields=1)
                 except ValueError:
                     self.send_content(400, "application/json", b'{"error":"invalid source"}')
