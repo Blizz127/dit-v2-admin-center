@@ -4,7 +4,7 @@ const {spawn} = require('node:child_process');
 const {pathToFileURL} = require('node:url');
 
 function keyEvents(key, shift = false) {
-  const mapping = {Tab: ['Tab', 9], Enter: ['Enter', 13], ' ': ['Space', 32], Escape: ['Escape', 27]};
+  const mapping = {Tab: ['Tab', 9], Enter: ['Enter', 13], ' ': ['Space', 32], Escape: ['Escape', 27], Home: ['Home', 36], ArrowDown: ['ArrowDown', 40]};
   if (!mapping[key]) throw Error('Unsupported fixture key');
   const [code, value] = mapping[key];
   const base = {key, code, windowsVirtualKeyCode: value, modifiers: shift ? 8 : 0};
@@ -52,7 +52,7 @@ function connection(child) {
   });
 }
 
-async function run(browser, artifact, profile, screenshotDirectory, downloadDirectory) {
+async function run(browser, artifact, profile, screenshotDirectory, downloadDirectory, routingAuditRequested) {
   const child = spawn(browser, ['--headless', '--disable-gpu', '--disable-background-networking',
     '--no-first-run', '--no-default-browser-check', '--user-data-dir=' + profile,
     '--remote-debugging-pipe', 'about:blank'], {stdio: ['ignore', 'ignore', 'ignore', 'pipe', 'pipe']});
@@ -101,10 +101,12 @@ async function run(browser, artifact, profile, screenshotDirectory, downloadDire
         ? "document.documentElement.dataset.keyboardPlaytest === 'passed'"
         : "document.documentElement.dataset.keyboardPlaytest === 'running' && document.getElementById('keyboard-status').textContent.startsWith('Step " + (index + 2) + "/12:')");
     }
+    const routingAudit = routingAuditRequested ? await require('./verify_routing_audit.cjs').verifyRoutingAudit({evaluate,press,waitFor}) : null;
     const gapExport = downloadDirectory ? await require('./verify_gap_export.cjs').verifyGapExport({send, evaluate, waitFor, press}, downloadDirectory) : null;
     const visual = screenshotDirectory ? await require('./capture_comparisons.cjs').captureComparisons(command, screenshotDirectory) : null;
     return {status: 'passed', nativeKeyboard: 'passed', steps: keys.length, escapeCancellation: 'passed',
       shell,
+      ...(routingAudit ? {routingAudit} : {}),
       ...(visual ? {visual} : {}),
       ...(gapExport ? {gapExport} : {}),
       automaticDOM: 'passed', transport: 'anonymous debugging pipes',
@@ -114,8 +116,8 @@ async function run(browser, artifact, profile, screenshotDirectory, downloadDire
 
 module.exports = {keyEvents, connection};
 if (require.main === module) {
-  const [browser, artifact, profile, screenshotDirectory, downloadDirectory] = process.argv.slice(2);
+  const [browser, artifact, profile, screenshotDirectory, downloadDirectory, routingAuditRequested] = process.argv.slice(2);
   if (!browser || !artifact || !profile) { console.error('Use run_keyboard_playtest.py'); process.exitCode = 2; }
-  else run(browser, artifact, profile, screenshotDirectory, downloadDirectory).then(result => console.log(JSON.stringify(result)))
+  else run(browser, artifact, profile, screenshotDirectory, downloadDirectory, routingAuditRequested).then(result => console.log(JSON.stringify(result)))
     .catch(() => { console.error('FAIL: native keyboard check could not complete; no success claimed.'); process.exitCode = 1; });
 }

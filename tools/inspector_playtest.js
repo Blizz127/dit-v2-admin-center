@@ -64,6 +64,21 @@ try {
   readinessFilter.dispatchEvent(new Event('change', {bubbles: true}));
   check(visibleReadiness().length === 12 && requests.length === readinessRequests,
     'Readiness filters restore all rows without requesting data');
+  const auditRequests = requests.length;
+  const auditScope = document.getElementById('routing-audit-scope');
+  const auditOutcome = document.getElementById('routing-audit-outcome');
+  check(textOf('routing-audit-count').includes('Showing 3 of 3'), 'Audit starts with three synthetic examples');
+  auditScope.value = 'bot';
+  auditScope.dispatchEvent(new Event('change', {bubbles: true}));
+  check(textOf('routing-audit-count').includes('Showing 2 of 3'), 'Audit scope selects two per-bot examples');
+  auditOutcome.value = 'rejected';
+  auditOutcome.dispatchEvent(new Event('change', {bubbles: true}));
+  check(textOf('routing-audit-count').includes('Showing 1 of 3') && textOf('routing-audit').includes('Simulated rejection: stale version'), 'Audit outcome intersects scope without guessing effective model');
+  auditScope.value = 'all';
+  auditScope.dispatchEvent(new Event('change', {bubbles: true}));
+  check(textOf('routing-audit-count').includes('Showing 0 of 3') && textOf('routing-audit').includes('No matching model-switch examples'), 'Audit empty intersection is explicit');
+  document.getElementById('routing-audit-reset').click();
+  check(auditScope.value === '' && auditOutcome.value === '' && textOf('routing-audit-count').includes('Showing 3 of 3') && textOf('routing-audit').includes('Effective model: Unknown') && requests.length === auditRequests, 'Audit reset restores examples locally; effective models remain Unknown');
   check(textOf('learning-evidence').includes('No learning record selected'), 'Initial render explains the empty selection');
   const answers = ['Yes', 'No', 'Yes', 'Unknown'];
   fixture.learning.forEach((need, index) => {

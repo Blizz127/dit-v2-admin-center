@@ -14,6 +14,29 @@ SHELL = dict(status="passed", sections=8, widths=[1280, 390], traversal="Tab/Shi
 
 
 class KeyboardRunnerTests(unittest.TestCase):
+    def test_optional_audit_receipt_requires_all_checks(self):
+        good = dict(status='passed', nativeKeyboard='passed', steps=12,
+                    escapeCancellation='passed', automaticDOM='passed', shell=SHELL)
+        audit = dict(status='passed', counts=[3, 2, 1, 0, 3], traversal='Tab/Shift+Tab',
+                     selection='Home/ArrowDown', reset='Enter', focusRetained=True)
+        self.assertTrue(runner.valid_audit_receipt(dict(routingAudit=audit)))
+        for key in audit:
+            incomplete = dict(audit)
+            del incomplete[key]
+            self.assertFalse(runner.valid_audit_receipt(dict(routingAudit=incomplete)))
+        self.assertFalse(runner.valid_audit_receipt(dict(routingAudit={**audit, 'counts':[3,2,True,0,3]})))
+        for result, expected in ((good, 1), ({**good, 'routingAudit':audit}, 0)):
+            with patch.object(runner.shutil, 'which', side_effect=lambda name: '/fixture/' + name), \
+                    patch.object(runner, 'run_bounded', side_effect=[(0, '', ''), (0, json.dumps(result), '')]) as run, \
+                    patch.object(runner, 'build', return_value='<html>synthetic</html>'), \
+                    redirect_stdout(io.StringIO()) as stdout, redirect_stderr(io.StringIO()):
+                self.assertEqual(runner.main(routing_audit=True), expected)
+                self.assertEqual(run.call_args.args[0][-3:], ['', '', 'routing-audit'])
+                if expected:
+                    self.assertEqual(stdout.getvalue(), '')
+                else:
+                    self.assertEqual(json.loads(stdout.getvalue())['routingAudit'], audit)
+
     def test_expected_artifact_mismatch_stops_before_browser_and_removes_temp_file(self):
         from pathlib import Path
         from tempfile import TemporaryDirectory

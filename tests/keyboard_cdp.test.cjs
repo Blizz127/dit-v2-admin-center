@@ -12,7 +12,7 @@ function fake() {
   return {child, writes, send: connection(child)};
 }
 (async () => {
-  for (const [key, code, value] of [['Tab', 'Tab', 9], ['Enter', 'Enter', 13], [' ', 'Space', 32], ['Escape', 'Escape', 27]]) {
+  for (const [key, code, value] of [['Tab', 'Tab', 9], ['Enter', 'Enter', 13], [' ', 'Space', 32], ['Escape', 'Escape', 27], ['Home', 'Home', 36], ['ArrowDown', 'ArrowDown', 40]]) {
     const [down, up] = keyEvents(key);
     assert.equal(down.type, 'keyDown'); assert.equal(up.type, 'keyUp');
     assert.equal(down.key, key); assert.equal(down.code, code);

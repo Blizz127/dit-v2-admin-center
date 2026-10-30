@@ -125,7 +125,18 @@ def valid_export_receipt(result):
             and type(table.get('width')) in (int, float) and 0 < table['width'] <= 1280)
 
 
-def main(screenshots=False, gap_export=False, expected_artifact_sha256=None, preflight_only=False):
+def valid_audit_receipt(result):
+    audit = result.get('routingAudit') if isinstance(result, dict) else None
+    return (isinstance(audit, dict) and audit.get('status') == 'passed'
+            and audit.get('counts') == [3, 2, 1, 0, 3]
+            and all(type(n) is int for n in audit['counts'])
+            and audit.get('traversal') == 'Tab/Shift+Tab'
+            and audit.get('selection') == 'Home/ArrowDown'
+            and audit.get('reset') == 'Enter' and audit.get('focusRetained') is True)
+
+
+def main(screenshots=False, gap_export=False, expected_artifact_sha256=None, preflight_only=False,
+         routing_audit=False):
     if expected_artifact_sha256 is not None and (
             not isinstance(expected_artifact_sha256, str) or len(expected_artifact_sha256) != 64
             or any(c not in '0123456789abcdef' for c in expected_artifact_sha256)):
@@ -166,6 +177,13 @@ def main(screenshots=False, gap_export=False, expected_artifact_sha256=None, pre
             downloads = Path(directory) / 'downloads'
             downloads.mkdir(mode=0o700)
             command.append(str(downloads))
+        if routing_audit:
+            # Keep optional positional slots stable when captures/downloads are absent.
+            if not screenshots and not gap_export:
+                command.append('')
+            if not gap_export:
+                command.append('')
+            command.append('routing-audit')
         code, stdout, _ = run_bounded(command, 30, stdout_limit=MAX_RECEIPT_BYTES)
         try:
             result = decode_receipt(stdout) if not code else None
@@ -176,6 +194,9 @@ def main(screenshots=False, gap_export=False, expected_artifact_sha256=None, pre
             return 1
         if gap_export and not valid_export_receipt(result):
             print('FAIL: native gap download receipt incomplete; no export success claimed.', file=sys.stderr)
+            return 1
+        if routing_audit and not valid_audit_receipt(result):
+            print('FAIL: native audit filter receipt incomplete; no audit success claimed.', file=sys.stderr)
             return 1
         if screenshots:
             try:
@@ -192,6 +213,7 @@ def main(screenshots=False, gap_export=False, expected_artifact_sha256=None, pre
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--screenshots', action='store_true', help='Capture synthetic comparisons after native checks pass')
+    parser.add_argument('--routing-audit', action='store_true', help='Check synthetic audit selectors and reset with native keys')
     parser.add_argument('--gap-export', action='store_true', help='Check gap table and native Enter download in a disposable directory')
     parser.add_argument('--expected-artifact-sha256', help='Refuse to start the browser if the generated preview differs from this exact hash')
     parser.add_argument('--preflight-only', action='store_true', help='Resolve executable availability only; no process, namespace or browser launch')
@@ -199,7 +221,7 @@ if __name__ == '__main__':
         args = parser.parse_args()
         sys.exit(main(screenshots=args.screenshots, gap_export=args.gap_export,
                       expected_artifact_sha256=args.expected_artifact_sha256,
-                      preflight_only=args.preflight_only))
+                      preflight_only=args.preflight_only, routing_audit=args.routing_audit))
     except (OSError, RuntimeError):
         print('FAIL: bounded browser run could not complete; no success claimed.', file=sys.stderr)
         sys.exit(1)

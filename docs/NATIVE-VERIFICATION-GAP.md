@@ -314,3 +314,27 @@ For HTML `1759671c`, the local generated report is
 It explicitly says semantic-checks-passed and nativeRendering/nativeKeyboard
 NOT RUN. This is not a receipt for the older approved `8eb2c9f` artifact and must
 not be fed to the device receipt verifier as if it were one.
+
+## Audit filter workflow candidate (October 30)
+
+The current runner accepts `--routing-audit`. After the existing assignment
+checks it uses Home/ArrowDown, Tab/Shift+Tab and Enter to check the synthetic
+model-audit scope/outcome intersection, empty results and reset focus retention.
+Its separate receipt must contain the observed counts `[3, 2, 1, 0, 3]`; an old
+receipt without this workflow cannot satisfy the option. The standalone driver
+also checks these transitions with DOM events and verifies they make no request.
+
+`node tests/routing_audit_keyboard.test.cjs` executes that driver block and the
+native helper through a simulated adapter against the actual application. It
+also refuses missing change events, broken focus traversal and incomplete reset.
+These are **not** browser execution, native select behavior or visual evidence.
+The generated full script was syntax-checked, not executed in a DOM engine.
+
+Candidate artifact: `build/inspector-playtest.html`, 202296 bytes, SHA-256
+`d2765fd16eba26ee5d56708b4b6809f4f4608493816f5f67dda4ea8530fcc252`.
+The future isolated command is `python3 tools/run_keyboard_playtest.py
+--routing-audit --expected-artifact-sha256
+d2765fd16eba26ee5d56708b4b6809f4f4608493816f5f67dda4ea8530fcc252`
+(on one line). Native execution remains NOT RUN. This candidate changes neither
+the approved `8eb2c9f` bundle nor the delivered Alienware previews, and is not a
+request for another device run. Model controls remain disabled.

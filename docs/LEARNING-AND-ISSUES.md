@@ -931,3 +931,13 @@ preview/restore/clear passed without a listener or a new dependency. This
 narrows the disconnected-fixture gap; real DOM-engine execution and layout
 remain unverified. The standalone HTML now exposes seven source-input hashes
 for artifact identification, without claiming deployed-version equivalence.
+
+October 30 — the model-audit scope/outcome workflow now has a standalone-driver
+scenario and an optional native keyboard-runner candidate. Simulated app checks
+cover counts 3→2→1→0→3, explicit empty results, reset and unchanged effective-model
+Unknown state. The simulated adapter refuses lost focus, absent change events
+and broken reset; the runner refuses an incomplete audit receipt. Focused runner
+and artifact checks passed (17 Python checks plus the audit and fake-CDP Node
+checks). The local preview was rebuilt; full DOM/browser execution, native
+selection and appearance remain NOT RUN. See NATIVE-VERIFICATION-GAP.md for the
+candidate hash and the distinction from the unchanged approved device bundle.
