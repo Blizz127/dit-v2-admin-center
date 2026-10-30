@@ -345,3 +345,20 @@ outputs verify positional slots, disposable directories, cleanup and receipt
 handling; capture publication is mocked. Eleven focused runner tests passed.
 This checks orchestration only and supplies no isolation, download or browser
 execution evidence.
+
+## Download completion candidate (October 30)
+
+The existing `--gap-export` native path now waits within a three-second monotonic
+deadline for a complete report matching the copy-field UTF-8 bytes. A destination
+filename alone is no longer treated as download completion. Temporary download
+entries, missing/partial bytes and mismatches cannot yield success. Acquisition
+opens without following a leaf symlink or blocking on a FIFO, verifies the opened
+file is regular, reads at most 256 KiB plus one overflow byte, and closes the
+handle even on refusal. It changes no browser permissions or download scope.
+
+`tests/gap_download_completion.test.cjs` uses temporary synthetic files to check
+partial-to-complete progression, bounded refusals, FIFO/symlink refusal and file
+growth after stat. The existing fake-protocol export check and eleven focused
+runner checks pass. These do not establish Chromium download behavior. Native
+execution is still NOT RUN; the approved device bundle is unchanged. No HTML
+source changed in this slice, so the local preview remains `d2765fd1`.
