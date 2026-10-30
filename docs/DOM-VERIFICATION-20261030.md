@@ -270,3 +270,24 @@ Final artifact: **240341 bytes**, SHA-256
 `df5f099798c50172d1c871f17a4227ede851cbe21ee6e86474ae88ad7a2327d4`.
 Native keyboard, rendering and actual saving remain NOT RUN. No services,
 devices, models or game state were touched; delivered artifacts are unchanged.
+
+## Shared synthetic presence review
+
+Coordinator `d23b693cabaa01a3`; source `7a16041`. Four focused Python checks
+passed (`python3 -m unittest tests.test_project_issues`), including shared fixture
+equality, missing/non-synthetic/invalid JSON refusal, authenticated temporary
+localhost mock delivery and existing POST 405 behavior. The mock route used
+the standalone snapshot as its supplied overview; real collectors were forbidden.
+Server source separately wires the same fixture loader into overview collection.
+
+The final artifact passed **170 jsdom checks**, zero transport attempts,
+567 ms construction / 7657 ms completion wait. Cases remain explicitly synthetic,
+never change roster presence, refuse non-synthetic envelopes, retain usable
+partial text and clear stale examples on refresh. Final preview: **244384 bytes**,
+SHA-256 `d927884195a9ffa245d1107ef991e7ad13b5e871715426a50f810ead922972bc`.
+
+The panel table was reconciled down its remaining column: live presence, writes,
+routing, measured evaluation and authoritative producer evidence are external
+dependencies, not gaps that synthetic fixtures can close. No new control was
+enabled. Native rendering/default keys/saving remain NOT RUN; no deployment,
+game, device or provider action occurred.

@@ -813,3 +813,17 @@ strings are trimmed and joined in supplied order with newlines for text comparis
 only; this does not infer goal identity, execution, or a write contract. Each
 field retains its own loaded source and observation time. All text is rendered
 as text, with no markup parsing; blank proposals never clear current values.
+
+### Synthetic presence-review cases
+
+The existing authenticated overview includes `presenceExamples`, read from the
+committed `data/fixtures/presence-examples.json` via `presence_examples.py` and
+shared with the standalone builder. It is `{kind: "synthetic", rows: [...]}`;
+each row has bounded nonblank explanatory strings `scenario`, `supplied`,
+and `missing`. No timestamps, native IDs or live observations are fabricated.
+The UI accepts at most eight cases and displays only valid strings of at most
+500 characters per field; malformed cases retain Unknown coverage. A missing
+or non-synthetic envelope clears the examples and shows unavailable coverage.
+Every case states live presence is Unknown and is not attached to a selected
+bot. This is not an authoritative hub contract, a presence evaluator or a new
+endpoint. It neither changes roster states nor enables a write action.

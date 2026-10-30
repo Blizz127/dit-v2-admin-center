@@ -4,17 +4,24 @@ This tracks mock UI coverage, not live capability or completion of upstream
 contracts. Review follows the nine features in BRIEF.md. Disabled writes remain
 intentional; a synthetic UI must not silently activate them.
 
+Reconciled for request `d23b693cabaa01a3`: the final column lists external
+contracts/evidence still needed, not unbuilt mock UI or authority to fabricate
+results. Row 1's additional offline presence-review slice is complete; rows 2
+and 3 retain their contract holds. Continuing down the table finds producer or
+measurement dependencies in rows 4–8 and completed offline wiring in row 9.
+Native visual/keyboard/save verification remains separate for all rows.
+
 | # | Panel | Existing offline surface | Remaining gap / next action |
 | --- | --- | --- | --- |
-| 1 | Bots, games, status | Roster filters, coverage, exact-ID inspector and ambiguity report | Live presence remains Unknown without authoritative evidence. |
-| 2 | Per-bot controls | Goals, memory and personality inspection; bounded local goal/personality draft preview; disabled command controls | Writes require upstream contract; no start/stop/pause is implemented here. |
-| 3 | LLM choice | Per-bot/global disabled selectors; requested/effective distinctions | Model switching stays disabled; mock audit examples do not apply changes. |
-| 4 | Call logging / bake-off | Loaded model-call examples, numeric coverage and filters | Local comparison groups loaded samples by exact model/purpose/source, preserves numeric coverage and shares the availability filter. No measured benchmark or provider calls. |
-| 5 | Action/evidence ledger | Exact scope/correlation filtering, request/result/verification, Unknown outcomes | Live action verification needs source evidence. |
-| 6 | Kill switches/gates | Disabled controls and synthetic safety records | Current live state remains Unknown; no control routes. |
-| 7 | Audit log | Searchable examples and scope/outcome model-audit filters | No real admin actions or write audit claimed. |
-| 8 | Learning/training | Needs, dataset/policy inventory examples and evidence checklist | Authoritative assessment producer and game evidence unresolved. |
-| 9 | Issues/risks | Scope/status/search, bot/task links and historical observations | Now includes curated records from LEARNING-AND-ISSUES.md and NATIVE-VERIFICATION-GAP.md in mock API and standalone preview. |
+| 1 | Bots, games, status | Roster filters, exact-ID inspector, ambiguity report and shared synthetic presence-review cases (`7a16041`) | Authoritative native identity, realm/instance scope and fresh presence observations are still missing. Offline review is implemented; live presence remains Unknown. |
+| 2 | Per-bot controls | Goals/memory/personality inspection and bounded page-local draft review | Upstream bot-command contract and implementation remain unresolved. No start/stop/pause or draft-save route exists; mock POST remains 405. |
+| 3 | LLM choice | Disabled per-bot/global selectors, scoped assignment examples and audit review | Compatible routing/write contract remains unresolved; examples never apply model changes. Controls remain disabled. |
+| 4 | Call logging / bake-off | Exact model/purpose/source comparison, bounded finite means and expandable supplied samples | Real tasks, common evaluation metrics and measured provider results are not supplied. This remains descriptive example review, not a measured bake-off. |
+| 5 | Action/evidence ledger | Exact scope/correlation filters and separate request/result/verification | Authoritative scoped execution and verification evidence must come from the producer; no synthetic row can close this dependency. |
+| 6 | Kill switches/gates | Disabled controls and explicitly synthetic safety records | Authoritative live gate/switch observations and control contracts remain unresolved. Actual state stays Unknown. |
+| 7 | Audit log | Local search, partial-data coverage and synthetic model-audit examples | A real admin-action audit producer is not connected. Loaded examples do not establish actual actions or their absence. |
+| 8 | Learning/training | Needs/inventories, evidence checklist, draft assessment schema and fixtures | Hub assessment producer and scoped game/outcome evidence remain unresolved. Draft/schema tests are not live assessments. |
+| 9 | Issues/risks | Document-backed inventories, filters and exact bot/task links in mock API and preview | Offline inventory wiring is complete. Reconcile authoritative new evidence when supplied; retain native-verification and producer gaps meanwhile. |
 
 Panel 9 records are extracted from the explicitly marked JSON inventory blocks
 in those two repository documents. The surrounding prose is not guessed into
@@ -96,3 +103,10 @@ no-progress timeout and ten-second total timeout are distinct; terminal states
 cannot be changed by late progress. “Open check log” opens and focuses the
 report. A timeout marks it INCOMPLETE. No bot/service stall, owner/device result,
 trusted native input or successful file save is inferred from these views.
+
+Row 1 presence review shares `data/fixtures/presence-examples.json` through the
+mock overview and standalone snapshot. Cases explain roster-only status, old
+observations and mismatched native identity. The UI accepts only a synthetic
+envelope, withholds malformed cases, renders literal text and never associates
+a case with the selected bot. Every case retains Live presence: Unknown.
+This is explanatory review, not a new hub schema or evidence evaluator.

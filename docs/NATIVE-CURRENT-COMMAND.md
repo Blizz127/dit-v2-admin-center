@@ -1,8 +1,8 @@
 # Current local preview verification commands
 
-UI checkpoint: `d21042b` (visible local progress diagnostics and check-log navigation).
-Local artifact: `build/inspector-playtest.html`, **240341 bytes**.
-SHA-256: `df5f099798c50172d1c871f17a4227ede851cbe21ee6e86474ae88ad7a2327d4`.
+UI checkpoint: `7a16041` (shared synthetic presence review; prior diagnostics retained).
+Local artifact: `build/inspector-playtest.html`, **244384 bytes**.
+SHA-256: `d927884195a9ffa245d1107ef991e7ad13b5e871715426a50f810ead922972bc`.
 
 ## Executed DOM fallback
 
@@ -12,9 +12,9 @@ From this checkout with the pinned local tool dependency:
 DIT_JSDOM_MODULE="$PWD/build/dom-runtime/node_modules/jsdom" timeout 15 node tools/run_inspector_playtest.cjs
 ```
 
-Actual result: **166 checks passed**, jsdom 26.1.0, zero transport attempts,
+Actual result: **170 checks passed**, jsdom 26.1.0, zero transport attempts,
 artifact hash as above, `nativeKeyboard: not-run`.
-Measured DOM construction: 429 ms; completion wait: 5197 ms. Runner checkpoints
+Measured DOM construction: 567 ms; completion wait: 7657 ms. Runner checkpoints
 `68af3bb`, `95afcee`, `a3034f6` use a monotonic five-second no-assertion-progress
 limit and ten-second total completion limit, with the outer 15-second process
 limit in the command above. Failures report bounded progress/hash diagnostics;
@@ -66,8 +66,8 @@ On an authorized host with existing Chromium/Node selected through
 `DIT_CHROMIUM` / `DIT_NODE`:
 
 ```sh
-python3 tools/run_headless_playtest.py --expected-artifact-sha256 df5f099798c50172d1c871f17a4227ede851cbe21ee6e86474ae88ad7a2327d4
-python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 df5f099798c50172d1c871f17a4227ede851cbe21ee6e86474ae88ad7a2327d4
+python3 tools/run_headless_playtest.py --expected-artifact-sha256 d927884195a9ffa245d1107ef991e7ad13b5e871715426a50f810ead922972bc
+python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 d927884195a9ffa245d1107ef991e7ad13b5e871715426a50f810ead922972bc
 ```
 
 The previous Chromium attempt against artifact `96d4b70e` exited 2 before browser
