@@ -1129,6 +1129,28 @@ function renderModelComparison(rows) {
     item(panel, `${model} · ${purpose}`,
       `${samples.length} loaded samples · Mean supplied latency: ${meanText} (${latencies.length}/${samples.length} supplied)`,
       `${source} · Cost supplied: ${samples.filter(row => metricNumber(row.cost)).length}/${samples.length} · Quality supplied: ${samples.filter(row => metricNumber(row.quality)).length}/${samples.length} · No common quality scale or settled-spend claim.`);
+    const details = document.createElement('details');
+    const summary = document.createElement('summary'); summary.textContent = `Review ${samples.length} supplied rows`;
+    const region = document.createElement('div'); region.className = 'model-samples';
+    region.setAttribute('role', 'region'); region.setAttribute('aria-label', `Samples for ${model} · ${purpose} · ${source}`);
+    region.setAttribute('tabindex', '0');
+    const table = document.createElement('table');
+    const caption = document.createElement('caption');
+    caption.textContent = `Loaded rows · ${model} · ${purpose} · ${source}. Observation times are supplied labels, not verified freshness.`;
+    const head = document.createElement('thead'); const headings = document.createElement('tr');
+    for (const label of ['Row in group', 'Observed', 'Latency (ms)', 'Cost', 'Quality']) {
+      const cell = document.createElement('th'); cell.setAttribute('scope', 'col'); cell.textContent = label; headings.append(cell);
+    }
+    head.append(headings); const body = document.createElement('tbody');
+    samples.forEach((sample, index) => {
+      const row = document.createElement('tr');
+      const number = document.createElement('th'); number.setAttribute('scope', 'row'); number.textContent = String(index + 1); row.append(number);
+      for (const value of [routingText(sample.observedAt), ...['latencyMs', 'cost', 'quality'].map(key => metricNumber(sample[key]) ? String(sample[key]) : 'Unknown')]) {
+        const cell = document.createElement('td'); cell.textContent = value; row.append(cell);
+      }
+      body.append(row);
+    });
+    table.append(caption, head, body); region.append(table); details.append(summary, region); panel.lastElementChild.append(details);
   }
 }
 function renderModelCalls() {
