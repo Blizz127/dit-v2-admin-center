@@ -4,6 +4,7 @@ import socket
 import threading
 import time
 import unittest
+from contextlib import ExitStack
 from email.parser import BytesParser
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -12,7 +13,7 @@ from server import Handler
 
 
 class SocketDeadlineTests(unittest.TestCase):
-    def exchange(self, handler_type, prefix, trickle=False):
+    def exchange(self, handler_type, prefix, trickle=False, expected_status=408):
         client, peer = socket.socketpair()
         errors = []
         stopped = threading.Event()
@@ -42,24 +43,39 @@ class SocketDeadlineTests(unittest.TestCase):
             client.settimeout(handler_type.request_timeout + 3)
             client.sendall(prefix)
             started = time.monotonic()
-            with patch('server.overview', side_effect=AssertionError('Collection forbidden')) as overview:
+            with ExitStack() as guards:
+                readers = [guards.enter_context(patch(target, side_effect=AssertionError('Collection forbidden')))
+                           for target in ('server.overview', 'server.BRIDGE.read', 'server.HubReader',
+                                          'server.HUB_VIEWS.get', 'server.HUB_HEALTH.get', 'server.HUB_INTERACTION.get')]
                 worker.start()
                 self.assertTrue(ready.wait(1))
                 if sender:
                     sender.start()
                 wire = bytearray()
                 while True:
-                    chunk = client.recv(4096)
+                    try:
+                        chunk = client.recv(4096)
+                    except ConnectionResetError:
+                        # Closing with deliberately unread bytes may reset the
+                        # pair. Still require the complete refusal below.
+                        if expected_status != 405:
+                            raise
+                        break
                     if not chunk:
                         break
                     wire.extend(chunk)
                 elapsed = time.monotonic() - started
-                overview.assert_not_called()
+                for reader in readers:
+                    reader.assert_not_called()
             head, body = bytes(wire).split(b'\r\n\r\n', 1)
             status, raw_headers = head.split(b'\r\n', 1)
             headers = BytesParser().parsebytes(raw_headers)
-            self.assertEqual(int(status.split()[1]), 408)
-            self.assertEqual(json.loads(body), {'error': 'request rejected'})
+            self.assertEqual(int(status.split()[1]), expected_status)
+            self.assertEqual(json.loads(body), {'error': 'method not allowed' if expected_status == 405 else 'request rejected'})
+            if expected_status == 405:
+                self.assertEqual(headers['Allow'], 'GET')
+                self.assertEqual(headers['Connection'], 'close')
+                self.assertNotIn(b'100 Continue', wire)
             self.assertEqual(headers['Content-Type'], 'application/json')
             self.assertEqual(headers['Cache-Control'], 'no-store')
             self.assertEqual(int(headers['Content-Length']), len(body))
@@ -96,6 +112,40 @@ class SocketDeadlineTests(unittest.TestCase):
                 self.assertLess(elapsed, 2)
                 self.assertGreaterEqual(len(sent), 5)
                 print(f'trickled socket read: {elapsed:.3f}s (deadline 0.65s, {len(sent)} bytes)', flush=True)
+
+    def test_write_headers_refused_before_a_withheld_body_arrives(self):
+        framing_cases = (
+            'Content-Length: 1',
+            'Content-Length: 999999999999999999999999999',
+            'Transfer-Encoding: chunked',
+            'Content-Length: 1\r\nTransfer-Encoding: chunked',
+            'Content-Length: 1\r\ncontent-length: 9999999',
+            'Content-Length: OMIT_PRIVATE_INVALID',
+        )
+        elapsed_times = []
+        for method in ('POST', 'PUT'):
+            for route in ('/api/overview', '/api/bridge-status'):
+                for framing in framing_cases:
+                    with self.subTest(method=method, route=route, framing=framing):
+                        prefix = (f'{method} {route} HTTP/1.1\r\nHost: offline.invalid\r\n'
+                                  'Authorization: Bearer fixture-token\r\nConnection: keep-alive\r\n'
+                                  'Expect: 100-continue\r\n' + framing + '\r\n\r\n').encode()
+                        # Keep the sending side open but send no promised body.
+                        # A parser/drain would wait for the idle timeout instead.
+                        elapsed, _ = self.exchange(Handler, prefix, expected_status=405)
+                        self.assertLess(elapsed, 1.5)
+                        elapsed_times.append(elapsed)
+        print(f'24 withheld-body refusals: max {max(elapsed_times):.3f}s (idle timeout 5s)', flush=True)
+
+    def test_partial_chunk_and_pipelined_request_cannot_reach_readers(self):
+        for framing, body in ((b'Content-Length: 1', b'x'),
+                              (b'Transfer-Encoding: chunked', b'ffffff\r\nx')):
+            with self.subTest(framing=framing):
+                prefix = (b'POST /api/bridge-status HTTP/1.1\r\nConnection: keep-alive\r\n'
+                          + framing + b'\r\n\r\n' + body +
+                          b'GET /api/overview HTTP/1.1\r\nAuthorization: Bearer fixture-token\r\n\r\n')
+                elapsed, _ = self.exchange(Handler, prefix, expected_status=405)
+                self.assertLess(elapsed, 1.5)
 
 
 if __name__ == '__main__':

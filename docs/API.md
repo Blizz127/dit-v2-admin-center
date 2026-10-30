@@ -627,3 +627,26 @@ authenticated requests; a regression reproduced three such collector calls.
 An entirely empty connection still closes without a response. Five focused
 checks passed after the fix, including valid authenticated requests, aggregate
 size bounds, simulated idle timeouts and measured trickle-deadline behavior.
+
+## Write bodies: immediate refusal, no ingestion contract
+
+POST and PUT have no accepted payload schema, body parser, chunk decoder or
+drain phase. Their application-level body allowance is zero: after bounded,
+deadline-protected headers, they return redacted 405 immediately and close.
+This is not a 413 size-validation endpoint. A Content-Length/Transfer-Encoding
+conflict, duplicate lengths, huge/invalid lengths and incomplete chunk streams
+remain method-level 405 refusals; header acquisition errors retain 400/408/431.
+No separate slow-body deadline is needed because the handler never waits for a
+body byte. A future write endpoint must define its own bounded ingestion policy
+before accepting any payload; this refusal is not permission to add writes.
+
+Four focused checks passed. Local socket pairs measured **24** POST/PUT cases
+across admin and bridge routes, withholding every promised body while leaving
+the sending side open: the maximum refusal time was **0.006 seconds**, versus
+the five-second idle limit. Every response was complete JSON 405 with Allow: GET
+and Connection: close, with no 100 Continue. Partial chunks and a trailing
+authenticated GET produced one refusal and no reader calls. Existing in-memory
+checks additionally forbid body reads/JSON parsing, including actual payloads
+over 1 MiB. Socket buffering may prefetch bytes; zero ingestion refers to
+application consumption, not a claim that the kernel receives no body bytes.
+No listener, live service, token-file access or device action was used.
