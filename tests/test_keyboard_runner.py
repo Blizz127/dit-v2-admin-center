@@ -27,7 +27,12 @@ class KeyboardRunnerTests(unittest.TestCase):
             del incomplete[key]
             self.assertFalse(runner.valid_draft_receipt(dict(draftReview=incomplete)))
         self.assertFalse(runner.valid_draft_receipt(dict(draftReview={**draft, 'discardCleared':1})))
-        for result, expected in ((good, 0), ({**good, 'draftReview':None}, 1)):
+        wrong_focus = {**good, 'draftReview': {**draft, 'emptySubmissionFocus': 'preview'}}
+        wrong_activation = {**good, 'draftReview': {**draft, 'discardActivation': 'Enter'}}
+        old_coverage = {**good, 'draftReview': {key: value for key, value in draft.items()
+                                             if key not in ('emptySubmissionFocus', 'discardActivation')}}
+        for result, expected in ((good, 0), ({**good, 'draftReview':None}, 1),
+                                 (wrong_focus, 1), (wrong_activation, 1), (old_coverage, 1)):
             with patch.object(runner.shutil, 'which', side_effect=lambda name: '/fixture/' + name), \
                     patch.object(runner, 'run_bounded', side_effect=[(0, '', ''), (0, json.dumps(result), '')]) as run, \
                     patch.object(runner, 'build', return_value='<html>synthetic</html>'), \
