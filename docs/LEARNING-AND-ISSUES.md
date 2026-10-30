@@ -118,6 +118,17 @@ service was run for this follow-up; the full-linker hold is unchanged.
 - Learning references, candidate policies, verified artifacts, delivery, adoption and demonstrated outcomes are different milestones. Avoid mixing environments or implying training changed model weights.
 - Before real integration, resolve authentication/session security, credential handling, authorization, audit, availability, active-player safeguards and rollback with the owning project. FFXI access remains read-only.
 
+## Native evidence intake checkpoint (2026-10-30)
+
+The separate device attempt's receipt can now be checked locally with
+`tools/review_native_attempt.py` (`547b202`); see
+[the intake contract](NATIVE-RECEIPT-INTAKE.md). This completes the explicitly
+assigned verifier follow-up. It verifies supplied-report consistency only,
+keeping request, reported result and independently observed execution separate.
+Its six synthetic checks passed; no second-attempt receipt has been ingested.
+Remaining native evidence still depends on the real executor handoff, not on
+additional mock results. No new initial implementation task is implied.
+
 ## Initial-task checkpoint (2026-10-29)
 
 | Initial task | Existing checkpoint | Remaining boundary |

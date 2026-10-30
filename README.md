@@ -529,3 +529,20 @@ result; they identify the artifact inputs, not a deployed version or a test pass
 - Binds to localhost or the tailnet only.
 - No secrets in git. Use env vars or untracked `.env.local`.
 - Read-only against FFXI data until the owner grants more.
+
+### Review returned native-device evidence offline
+
+After the separately sequenced bazzite attempt returns through the trusted device
+lead, use the [receipt intake guide](docs/NATIVE-RECEIPT-INTAKE.md) to prepare a
+local review directory from its existing files and identity metadata:
+
+```sh
+python3 tools/review_native_attempt.py /path/to/local/returned-attempt
+```
+
+This command launches nothing and writes nothing. It distinguishes incomplete,
+blocked, failed and reported-pass evidence for the exact approved `8eb2c9f` pin.
+A reported pass is a consistency result, not independent device authentication
+or verification of newer previews. Do not invent missing values or request a
+new device run just to populate reviewer metadata. The original 23:20:30Z blocked
+attempt remains separate. See the guide for required files and exit codes.
