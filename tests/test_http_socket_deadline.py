@@ -13,7 +13,7 @@ from server import Handler
 
 
 class SocketDeadlineTests(unittest.TestCase):
-    def exchange(self, handler_type, prefix, trickle=False, expected_status=408):
+    def exchange(self, handler_type, prefix, trickle=False, expected_status=408, trickle_chunk=b'x'):
         client, peer = socket.socketpair()
         errors = []
         stopped = threading.Event()
@@ -32,7 +32,7 @@ class SocketDeadlineTests(unittest.TestCase):
         def feed():
             while not stopped.wait(0.04):
                 try:
-                    client.sendall(b'x')
+                    client.sendall(trickle_chunk)
                     sent.append(time.monotonic())
                 except OSError:
                     return
@@ -58,13 +58,15 @@ class SocketDeadlineTests(unittest.TestCase):
                     except ConnectionResetError:
                         # Closing with deliberately unread bytes may reset the
                         # pair. Still require the complete refusal below.
-                        if expected_status != 405:
+                        if expected_status not in (405, 414, 431):
                             raise
                         break
                     if not chunk:
                         break
                     wire.extend(chunk)
                 elapsed = time.monotonic() - started
+                worker.join(timeout=2)
+                self.assertFalse(worker.is_alive(), 'Handler did not exit after refusal')
                 for reader in readers:
                     reader.assert_not_called()
             head, body = bytes(wire).split(b'\r\n\r\n', 1)
@@ -136,6 +138,32 @@ class SocketDeadlineTests(unittest.TestCase):
                         self.assertLess(elapsed, 1.5)
                         elapsed_times.append(elapsed)
         print(f'24 withheld-body refusals: max {max(elapsed_times):.3f}s (idle timeout 5s)', flush=True)
+
+    def test_oversized_request_and_header_refusal_timing(self):
+        cases = (
+            ('request line', 414, b'GET /OMIT_PRIVATE_' + b'x' * 65536 + b' HTTP/1.1\r\n\r\n'),
+            ('header line', 431, b'GET /api/overview HTTP/1.1\r\nX-OMIT_PRIVATE: ' + b'x' * 65536 + b'\r\n\r\n'),
+            ('aggregate headers', 431, b'GET /api/overview HTTP/1.1\r\n' +
+             (b'X-OMIT_PRIVATE: ' + b'x' * 32768 + b'\r\n') * 2 + b'\r\n'),
+            ('header count', 431, b'GET /api/overview HTTP/1.1\r\n' + b'X-OMIT_PRIVATE: x\r\n' * 101 + b'\r\n'),
+        )
+        for label, expected, prefix in cases:
+            with self.subTest(limit=label):
+                elapsed, _ = self.exchange(Handler, prefix, expected_status=expected)
+                self.assertLess(elapsed, 2)
+                print(f'{label} refusal: {elapsed:.3f}s, status {expected}', flush=True)
+
+    def test_completed_header_lines_do_not_reset_total_deadline(self):
+        class ShortDeadline(Handler):
+            timeout = 0.35
+            request_timeout = 0.65
+
+        elapsed, sent = self.exchange(ShortDeadline, b'GET /api/overview HTTP/1.1\r\n',
+                                      trickle=True, trickle_chunk=b'X-Probe: completed\r\n')
+        self.assertGreaterEqual(elapsed, 0.58)
+        self.assertLess(elapsed, 2)
+        self.assertGreaterEqual(len(sent), 5)
+        print(f'completed-header trickle: {elapsed:.3f}s, {len(sent)} lines (total 0.65s)', flush=True)
 
     def test_partial_chunk_and_pipelined_request_cannot_reach_readers(self):
         for framing, body in ((b'Content-Length: 1', b'x'),

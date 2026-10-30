@@ -658,3 +658,25 @@ is claimed when the peer cannot receive it. The regression first reproduced both
 write failures and a read reset; four focused checks passed after the fix,
 including partial-body/pipelined refusal, response timeout handling and measured
 trickle deadlines. Other unexpected exception types are not blanket-suppressed.
+
+### Measured header-limit follow-up
+
+The existing limits were tested over local socket pairs without changing their
+policy or starting a listener. Oversized request lines returned redacted 414 in
+**0.142 seconds**; oversized individual headers, aggregate headers and excess
+header counts returned redacted 431 in **0.125, 0.115 and 0.005 seconds**.
+All responses were complete and contained no request details; unread input was
+not drained and no reader ran. A separate stream sending a complete header line
+every 40 ms hit the test-only 0.65-second total deadline at **0.654 seconds**
+after 16 lines, demonstrating that line completion does not reset the budget.
+Three focused checks passed, including partial-body/pipelined refusal regression.
+The test helper now joins the handler before inspecting its captured errors so
+late worker failures cannot be mistaken for a clean refusal.
+
+The header/body acquisition backlog is covered by `acebe96` (GET framing/idle
+guard), `8c2a19b` (aggregate bytes), `fdec05e` (total deadline and measured idle/
+trickle sockets), `1825ad3` (truncated headers), `7bc2e5f` (immediate write refusal)
+and `1f2472a` (aborted clients), plus the measured checks above. New write-body
+parsing, drains or alternative size/time limits are not pending implementations.
+These are local handler checks; running-service deployment, external-network
+load behavior and native browser verification remain outside this evidence.
