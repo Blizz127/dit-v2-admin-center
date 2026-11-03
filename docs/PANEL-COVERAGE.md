@@ -131,3 +131,7 @@ hub, token or network access is involved. Unset, nothing is read. This is an
 import path that works under either open owner decision, not a choice between them. Snapshot rows appear in the call list but stay
 out of the grouped comparison (counted as unattributed) because the export has no
 purpose; none is invented.
+
+A proposed bake-off run/attempt record that would close evaluator gaps (a)–(f) is in
+[the bake-off proposal](BAKEOFF-PRODUCER-PROPOSAL.md). It is for hub-lead review only;
+building it remains an open owner decision.
