@@ -39,6 +39,7 @@ enough.
 | `startedAtUtc`, `completedAtUtc` | Run bounds |
 | `environment` | `offline_fixture` \| `recorded_replay` \| `shadow_live` (never acts in game) |
 | `caseSet` | `{name, version, sha256}` of the fixed case list |
+| `inputCanonicalization` | Version name of the canonical request form hashed into `inputSha256` |
 | `candidates` | `[{provider, model, purpose}]` compared in this run |
 | `rubrics` | `[{name, version}]` applied |
 | `hubRevision` | Producing revision, as reported |
@@ -81,13 +82,40 @@ Comparison rules:
 
 It reads exported files only, so it does not depend on the live-read decision.
 
-## Questions for the hub lead
+## Hub lead review (November 3)
 
-1. Can `inputSha256` be computed at the `DialogueWordingRequest` boundary, before
-   provider-specific formatting? Otherwise, hash the formatted payload per provider.
-2. Do the providers expose a streaming first-token time (`firstTokenAtUtc`), or only
-   completion?
-3. Should `purpose` reuse the `attempts.purpose` values?
-4. Where do rubrics live, and who versions them?
-5. Is `shadow_live` acceptable at all under the FFXI player-protection rules, or
-   should bake-offs stay offline/replay only?
+The hub lead found the manifest and per-attempt shape right, and answered from code:
+
+1. **Input hash:** compute `inputSha256` at the `DialogueWordingRequest` boundary over a
+   canonical form that excludes per-call fields (`requestedAtUtc`, `expiresAtUtc`,
+   `correlationId`, `causationId`; `DialogueWordingModels.cs:161-192`). Otherwise two
+   runs of the same case never match. Add `inputCanonicalization` (a version name)
+   to the run manifest.
+2. **First-token time:** not available. Nothing streams today
+   (`DeepSeekPromptSerializer` sends `Stream: false`, and the devbox AI worker
+   rejects `stream=true`). `firstTokenAtUtc` stays optional and absent; providing it
+   needs a streaming path, which is a real change, not a field. The Admin Center
+   shows completion latency only.
+3. **Purpose:** reuse `attempts.purpose`. Current live values are
+   `subscription_chat`, `subscription_planetside_war`,
+   `subscription_companion_extract` and `research`. `attemptId` joins
+   `attempts.id`; `reported_model` and `basis` already exist there.
+4. **Rubrics:** none exist. `DialogueEvaluatorScore` is only (`Evaluator`, `Score`).
+   The hub lead would own rubrics, with the owner defining what "good" means. That
+   is part of the build decision, so nothing exists to version yet.
+5. **`shadow_live`: not allowed without an owner decision.** It reads live player
+   chat, and every candidate call spends from the AI budget (pay-per-use is capped
+   at $25/month, and subscription lanes have their own limits). `offline_fixture`
+   is fine. `recorded_replay` should use already-journalled lines
+   (`data/conversations/*.jsonl`), and still needs the owner's OK before player
+   text leaves the hub host.
+
+Consequence for this proposal: the default environments are `offline_fixture` and
+`recorded_replay`. `delivery` is therefore `not_applicable` until an owner-approved
+live mode exists.
+
+Open owner decisions this proposal depends on:
+- whether to build the producer;
+- what "good" means for rubrics;
+- whether recorded player text may leave the hub host;
+- whether any live mode is allowed.

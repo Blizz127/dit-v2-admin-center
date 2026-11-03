@@ -59,7 +59,8 @@ which this lane must not hold. Who exports, how often, and where files are copie
 is part of the owner's decision and the hub lead's operation. A tool on the hub
 side only needs to save the six response bodies above and write the manifest. The
 `server-status` response includes configured source paths, which this app drops.
-The exporter should decide whether those paths may leave the hub host.
+Hub lead (November 3): the exporter should omit them by default. They are not
+secrets, but they are host layout with no use off the hub host.
 
 ## Checks
 
