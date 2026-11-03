@@ -16,7 +16,7 @@ Native visual/keyboard/save verification remains separate for all rows.
 | 1 | Bots, games, status | Roster filters, exact-ID inspector, ambiguity report and shared synthetic presence-review cases (`7a16041`) | Authoritative native identity, realm/instance scope and fresh presence observations are still missing. Offline review is implemented; live presence remains Unknown. |
 | 2 | Per-bot controls | Goals/memory/personality inspection and bounded page-local draft review | Upstream bot-command contract and implementation remain unresolved. No start/stop/pause or draft-save route exists; mock POST remains 405. |
 | 3 | LLM choice | Disabled per-bot/global selectors, scoped assignment examples and audit review | Compatible routing/write contract remains unresolved; examples never apply model changes. Controls remain disabled. |
-| 4 | Call logging / bake-off | Exact model/purpose/source comparison, bounded finite means and expandable supplied samples | No hub bake-off producer exists (hub lead, Nov 3). The offline wording evaluator lacks run ID/input hash, game/actor attribution, time-to-first-token, rubric/evaluator version, delivery and fallback fields, and no real runs exist; live `attempts` has cost/tokens only. Building a producer is a hub-side decision. This remains descriptive example review, not a measured bake-off. |
+| 4 | Call logging / bake-off | Exact model/purpose/source comparison, bounded finite means, expandable supplied samples, and an off-by-default offline evaluator snapshot import (`DIT_EVALUATOR_SNAPSHOT_FILE`) | No hub bake-off producer exists (hub lead, Nov 3). Evaluator export gaps: (a) run ID and input hash; (b) game/actor attribution; (c) time-to-first-token; (d) rubric name and evaluator version on scores; (e) delivery outcome and fallback eligibility; (f) any live or recorded runs. Live `attempts` has cost/tokens only. Building a producer is a hub-side decision. Imported rows are offline evaluator records, not a measured bake-off. |
 | 5 | Action/evidence ledger | Exact scope/correlation filters and separate request/result/verification | Authoritative scoped execution and verification evidence must come from the producer; no synthetic row can close this dependency. |
 | 6 | Kill switches/gates | Disabled controls and explicitly synthetic safety records | Authoritative live gate/switch observations and control contracts remain unresolved. Actual state stays Unknown. |
 | 7 | Audit log | Local search, partial-data coverage and synthetic model-audit examples | A real admin-action audit producer is not connected. Loaded examples do not establish actual actions or their absence. |
@@ -117,3 +117,17 @@ simulation. It exercises strict synthetic inputs, explicit target sets, version
 conflicts, bounded idempotent retries and audit/readback. It is not registered
 with the mock web server: actual HTTP POST remains 405 and UI controls stay
 disabled. The hub contract/authority dependency in the table remains open.
+
+Panel 4 offline evaluator snapshot import (task `f5a0a3ffa40b`): when
+`DIT_EVALUATOR_SNAPSHOT_FILE` names a local JSON array exported by the hub's
+`DialogueWordingHarness compare-fixture`, each record matching the source-pinned
+`DialogueProviderEvaluationRecord` shape is appended to `modelCalls` as
+`Provider / Model` with latency and caller-supplied cost. Purpose, quality,
+observation time, run identity, attribution, rubric, delivery and fallback
+eligibility stay Unknown; evaluator scores are listed but never become quality.
+Records with renamed, extra or invalid fields are omitted and counted, never
+repaired. The file is read with the bounded non-blocking, no-symlink reader; no
+hub, token or network access is involved. Unset, nothing is read. This is an
+import path that works under either open owner decision, not a choice between them. Snapshot rows appear in the call list but stay
+out of the grouped comparison (counted as unattributed) because the export has no
+purpose; none is invented.

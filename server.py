@@ -30,6 +30,7 @@ from session_markers import admin_markers, binding_issues, claude_markers, hando
 from r10_projection import project_health, project_learning, project_learning_attention, project_roster
 from routing_audit import examples as routing_audit_examples
 from presence_examples import examples as presence_examples
+from evaluator_snapshot import from_env as evaluator_snapshot
 from wake_verification import read as read_wake_verification
 from operation_sources import read as read_operation_sources
 
@@ -169,6 +170,8 @@ def overview(source='mock'):
                                      'reservedOpenUsd': 0.10, 'pricingError': 'example unknown'}, '2026-01-01T12:00:00Z')
     synthetic_spend['source'] = 'Synthetic ledger fixture; no live spend read'
     monitoring = lead_monitoring()
+    # Off unless DIT_EVALUATOR_SNAPSHOT_FILE names a local export; never a hub read.
+    evaluator_rows, evaluator_coverage = evaluator_snapshot()
     lead_history = add_current_evidence(timeline(Path.home() / '.local/share/devbox-coordinator-state'), monitoring)
     add_checkout_history(lead_history, {'DIT v2 hub lead': hub_project, 'Admin Center lead': PROJECT})
     snapshot = {
@@ -227,7 +230,8 @@ def overview(source='mock'):
         "spendExample": synthetic_spend,
         "routingAudit": routing_audit_examples(),
         "presenceExamples": presence_examples(),
-        "modelCalls": json.loads((PROJECT / "data/fixtures/model-comparison.json").read_text()),
+        "modelCalls": json.loads((PROJECT / "data/fixtures/model-comparison.json").read_text()) + evaluator_rows,
+        "evaluatorSnapshot": evaluator_coverage,
         "audit": [
             {"actor": "Example operator", "action": "Simulated model selection", "scope": "Example FFXI bot",
              "result": "Example only; no change applied", "at": "2026-01-01T12:00:00Z", "source": "Synthetic audit fixture"},

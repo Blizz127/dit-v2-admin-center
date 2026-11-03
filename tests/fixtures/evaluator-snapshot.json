@@ -1,0 +1,47 @@
+[
+  {
+    "RequestId": "dit-wording-example-0001",
+    "IntentionId": "example-intention-001",
+    "SemanticTopic": "example_topic",
+    "Provider": "deterministic",
+    "Model": "fixed-template",
+    "Response": "Example reply.",
+    "CompletionStatus": "Succeeded",
+    "StructuralValidation": {"Status": "Accepted", "NormalizedText": "Example reply.", "Codes": ["Accepted"], "IsAccepted": true},
+    "SemanticCompliance": "NotEvaluated",
+    "Latency": "00:00:00",
+    "TokenUsage": null,
+    "EstimatedCost": null,
+    "EvaluatorScores": []
+  },
+  {
+    "RequestId": "dit-wording-example-0001",
+    "IntentionId": "example-intention-001",
+    "SemanticTopic": "example_topic",
+    "Provider": "example-a",
+    "Model": "example-a-v1",
+    "Response": "Another example reply.",
+    "CompletionStatus": "Succeeded",
+    "StructuralValidation": {"Status": "Accepted", "NormalizedText": "Another example reply.", "Codes": ["Accepted"], "IsAccepted": true},
+    "SemanticCompliance": "NotEvaluated",
+    "Latency": "00:00:00.2500000",
+    "TokenUsage": {"InputTokens": 24, "OutputTokens": 8, "TotalTokens": 32},
+    "EstimatedCost": 0.00012,
+    "EvaluatorScores": [{"Evaluator": "example-judge", "Score": 0.75}]
+  },
+  {
+    "RequestId": "dit-wording-example-0001",
+    "IntentionId": "example-intention-001",
+    "SemanticTopic": "example_topic",
+    "Provider": "example-b",
+    "Model": "example-b-v1",
+    "Response": null,
+    "CompletionStatus": "TimedOut",
+    "StructuralValidation": {"Status": "Rejected", "NormalizedText": null, "Codes": ["Empty"], "IsAccepted": false},
+    "SemanticCompliance": "NotEvaluated",
+    "Latency": "00:00:00.1000000",
+    "TokenUsage": null,
+    "EstimatedCost": null,
+    "EvaluatorScores": []
+  }
+]

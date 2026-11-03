@@ -1189,6 +1189,12 @@ function renderModelCalls() {
     item(panel, 'Model call coverage', 'Unknown', 'No usable model-call list in this snapshot.');
     return;
   }
+  const snapshot = currentSnapshot.evaluatorSnapshot;
+  if (snapshot && typeof snapshot === 'object' && !Array.isArray(snapshot)) {
+    item(panel, `Evaluator snapshot: ${routingText(snapshot.status)}`,
+      `Imported: ${metricNumber(snapshot.records) ? snapshot.records : 'Unknown'} · Omitted malformed: ${metricNumber(snapshot.omitted) ? snapshot.omitted : 'Unknown'}`,
+      `${routingText(snapshot.reason, 'Reason unknown')} · Offline file import; not live hub data or a bake-off.`);
+  }
   if (!calls.length) item(panel, 'No model call examples', 'No rows supplied.', 'This does not establish zero usage or cost.');
   const rows = calls.filter(row => row && typeof row === 'object' && !Array.isArray(row));
   if (rows.length !== calls.length) item(panel, 'Model call coverage', 'Unknown for omitted malformed rows', 'Valid supplied examples are shown below; coverage is incomplete.');
