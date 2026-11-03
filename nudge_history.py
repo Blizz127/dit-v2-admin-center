@@ -19,12 +19,21 @@ def nudge_history(database, codex_database=None, sessions_root=None, projects=No
             for item, (_, project) in zip(result, PROJECTS):
                 # Coordinator watcher origin is explicit. Owner-relayed stall-watch messages
                 # use a text marker; the marker is only a heuristic and text is never returned.
-                rows = db.execute('''SELECT m.created, m.delivered, m.status,
-                    (SELECT MIN(r.time) FROM replies r WHERE r.message_id=m.id AND r.time>=m.created),
-                    CASE WHEN m.origin='watcher' THEN 'watcher' ELSE 'stall-watch text match' END, m.agent, m.session
+                # Pick the 20 messages first, then scan replies once for just those IDs.
+                # A per-message correlated subquery rescans the unindexed replies table
+                # for every candidate and took seconds on a ~100 MB coordinator store.
+                rows = db.execute('''WITH picked AS (
+                    SELECT m.id, m.created, m.delivered, m.status,
+                    CASE WHEN m.origin='watcher' THEN 'watcher' ELSE 'stall-watch text match' END AS source,
+                    m.agent, m.session
                     FROM messages m WHERE m.project=? AND
                     (m.origin='watcher' OR (m.origin LIKE 'coordinator%' AND lower(m.text) LIKE '%stall watch%'))
-                    ORDER BY m.created DESC LIMIT 20''', (project,)).fetchall()
+                    ORDER BY m.created DESC LIMIT 20),
+                    first AS (SELECT r.message_id, MIN(r.time) AS time FROM replies r
+                    JOIN picked p ON r.message_id=p.id AND r.time>=p.created GROUP BY r.message_id)
+                    SELECT p.created, p.delivered, p.status, f.time, p.source, p.agent, p.session
+                    FROM picked p LEFT JOIN first f ON f.message_id=p.id
+                    ORDER BY p.created DESC''', (project,)).fetchall()
                 item['coverage'] = 'Latest 20 matching coordinator records; text matches are heuristic; other nudges may be absent'
                 cache = {}
                 for created, delivered, status, reply, source, agent, session in rows:
