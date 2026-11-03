@@ -314,3 +314,47 @@ checks, persistent idempotency retention, rejected-action audit, provider/accoun
 allowlists, concurrent/restart behavior, fixed versus evolving global targets,
 and failure/rollback semantics. This mock is concrete material for that review,
 not permission to connect it to an HTTP mutation route.
+
+## Hub lead answers — November 3
+
+Relayed by the DIT hub lead through the coordinator. Source tree: devbox worktree
+`~/dev/dit-ffxi-ls-replies-20261101` at `043bc4b1` (local commits). The live hub on
+Banshee reportedly runs release r5o from the same lineage; that is unverified here.
+This is information only and grants no hub access.
+
+**Live reads: HOLD (owner decision).** `AdminCenter.cs` checks
+`Role == HubRole.Admin` on every `/v1/control/*` route and maps write routes such as
+providers, goals, population, relationships and learning/teach in the same file
+(verified in source). The hub's reader role is refused. The only working credential
+is therefore write-capable, and this lane must not hold it. Options sent to the owner:
+(a) a hub change that accepts a reader token on control GETs only, plus a reader
+token for this lane; (b) exported snapshots or offline copies.
+
+**Contract sources** (read-only; owned by the hub lead):
+
+| Area | Source |
+| --- | --- |
+| Architecture | `docs/architecture/DIT_NEURONETWORK.md`, `CONTRACTS_V0.md`, `DIT_COMPANION_CONTRACT.md`, `CONTROL_CENTER_INFORMATION_ARCHITECTURE.md`, `ADMINISTRATOR_MISSION_CONTROL.md`, `PLATFORM_BOUNDARIES.md` |
+| Operations | `docs/operators/NEURONETWORK_OPERATIONS.md`, `MISSION_CONTROL_OPERATIONS.md` |
+| Bot commands | `GET /v1/games/{gameId}/commands` (pinned by `CommandCatalogTests.cs`) |
+| Routing | `GroupChatApi.cs` (era gate), `SquadDecideApi.cs`, `RelayChat.cs`, `CompanionApi.cs`, `ApprovalsApi.cs`, `InteractionApi.cs`, `InteractionAdminApi.cs` |
+| Gates | `EraRules.cs` (`DIT_ERA_FILES`), `GroundingContract.cs`, ADR-0006 (provider wording has no execution authority) |
+| Control reads | `AdminCenter.cs`, `ControlCenter.cs`, `StudyCenter.cs` (all GET, admin-only) |
+
+**Producers mapped to panels:**
+
+| Panel | Producer | Served as |
+| --- | --- | --- |
+| 4 Spend / calls | `data/ai-spend.sqlite` table `attempts` + `ai-pricing.json` | `/v1/control/ai-spend`, `aiSpend` in `/v1/control/providers` |
+| 5/7 Conversation, audit | `data/conversations/YYYY-MM-DD.jsonl`; approvals | `/v1/control/conversation`, logs routes, `/v1/control/approvals/groups`, trace |
+| 1 People | Shared relationship ledger | `/v1/control/relationships`, `people` |
+| 8 Learning | `AdministratorLearningWorker`, `LearningDemotionApi` | `learning`, `map-learning`, `study`, `knowledge-use`, `fact-usage` |
+| 6 Lifecycle audit | stackd, outside the hub: Banshee `~/.local/state/stackd-banshee-stage/audit.jsonl` | not served by the hub |
+
+**Bake-off: GAP.** The hub has no bake-off endpoint or data. The only comparison
+material is the provider-wording evaluation (`DialogueWordingEvaluator.cs`,
+`P5P1_DEEPSEEK_DIALOGUE_PROVIDER.md`). The `attempts` schema (`AiSpendLedger.cs`)
+records provider, model, purpose, billing, state, reserved/settled cost, input,
+output and cache-hit tokens, reported model, reason, process and reserve/settle
+times. It has no task or input identity, quality score, or game/bot attribution.
+Settle minus reserve time includes queueing, so it is not provider latency.
