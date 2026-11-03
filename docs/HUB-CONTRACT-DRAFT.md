@@ -358,3 +358,31 @@ records provider, model, purpose, billing, state, reserved/settled cost, input,
 output and cache-hit tokens, reported model, reason, process and reserve/settle
 times. It has no task or input identity, quality score, or game/bot attribution.
 Settle minus reserve time includes queueing, so it is not provider latency.
+
+**Evaluator follow-up (November 3).** The hub lead pointed to
+`DialogueWordingEvaluator.cs` as the only comparison producer. It is offline only;
+the live hub never calls it. Its harness command
+`dotnet run --project src/Dit.HumanBehavior.DialogueWordingHarness -- compare-fixture rahal-distortion`
+was run here once, with build output kept outside the hub worktree (no files there
+changed). It ran one built-in fixture against offline fake providers (100 ms
+timeout) and printed three records: `deterministic/fixed-template`, `fake-a/fake-a-v1`
+and `fake-b/fake-b-v1`. All were `Succeeded` and structurally `Accepted`, semantic
+compliance was `NotEvaluated`, `EstimatedCost` was null and `EvaluatorScores` was
+empty. These are shape samples, not bake-off data, and are not committed here.
+
+Source (`DialogueWordingModels.cs`, record `DialogueProviderEvaluationRecord`) is
+authoritative over the relayed description. The serialized fields are `RequestId`,
+`IntentionId`, `SemanticTopic`, `Provider`, `Model`, `Response`,
+`CompletionStatus`, `StructuralValidation`, `SemanticCompliance`, `Latency`
+(TimeSpan around the provider call), `TokenUsage`, `EstimatedCost` (caller-supplied)
+and `EvaluatorScores` (`Evaluator`, `Score`). The relay named `ProviderName`/
+`ModelName` and `fallbackEligible`. The first two are `Provider`/`Model`.
+`FallbackEligible` exists on the provider result, not on the evaluation record, so
+the export does not carry it.
+
+Hub-side producer gaps for a real bake-off (hub lead: logged as a gap; building it
+is a separate decision):
+(a) run ID and per-case input hash; (b) game and actor attribution;
+(c) time-to-first-token; (d) rubric name and evaluator version on scores;
+(e) delivered-or-not and fallback eligibility on the record; (f) any live or
+recorded bake-off runs. The live `attempts` table remains the only real per-call data.
