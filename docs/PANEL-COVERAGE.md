@@ -133,5 +133,6 @@ out of the grouped comparison (counted as unattributed) because the export has n
 purpose; none is invented.
 
 A proposed bake-off run/attempt record that would close evaluator gaps (a)–(f) is in
-[the bake-off proposal](BAKEOFF-PRODUCER-PROPOSAL.md). It is for hub-lead review only;
-building it remains an open owner decision.
+[the bake-off proposal](BAKEOFF-PRODUCER-PROPOSAL.md). The hub lead reviewed the shape on Nov 3, and the
+Admin Center importer is implemented offline behind `DIT_BAKEOFF_RUN_DIR`. Building
+the producer remains an open owner decision.

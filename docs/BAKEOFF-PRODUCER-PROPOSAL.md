@@ -119,3 +119,34 @@ Open owner decisions this proposal depends on:
 - what "good" means for rubrics;
 - whether recorded player text may leave the hub host;
 - whether any live mode is allowed.
+
+## Admin Center ingest: implemented offline (task `c4d9d0b449a4`)
+
+`bakeoff_run.py` reads one recorded run when `DIT_BAKEOFF_RUN_DIR` names an
+absolute local directory containing `manifest.json` and `attempts.jsonl`. It is off
+when unset. No producer exists, so only `tests/fixtures/bakeoff-run` (synthetic)
+has been imported. The importer enforces the review defaults:
+
+- **Environment:** only `offline_fixture` and `recorded_replay` runs are imported.
+  A `shadow_live` manifest is refused with an owner-decision reason.
+- **Input hash:** `inputSha256` is taken as the producer's hash, named by
+  `inputCanonicalization`. It is never recomputed here. A case whose candidates
+  report different hashes is dropped as not comparable.
+- **Latency:** total only (completed minus sent). `firstTokenAtUtc` is
+  format-checked but never shown.
+- **Delivery:** any delivery value other than `not_applicable` is refused for
+  offline runs.
+- **Quality:** set only when the run declares exactly one rubric and the attempt
+  has exactly one score for it. The rubric, evaluator, versions and scale are
+  carried in the row source, so grouped comparison never mixes them.
+- **Cost:** `costNusd` is converted to USD. A missing value stays unknown.
+- **Strictness:** attempts must belong to the run and a declared candidate, with
+  the exact allowed fields and enums (snake_case). Malformed, duplicate or
+  undeclared attempts are counted and omitted. Coverage reports present versus
+  expected case × candidate attempts.
+- **File safety:** reads use the bounded non-blocking, no-symlink reader, with
+  size and count limits.
+
+Rows join panel 4's model-call list and grouped comparison. A status line reports
+the run, canonicalization, revision and coverage. Checks:
+`tests/test_bakeoff_run.py` (9 tests) and a selector assertion for the status line.

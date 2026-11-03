@@ -1,0 +1,32 @@
+{
+ "schema": "dit-bakeoff-run-v0",
+ "runId": "example-run-1",
+ "startedAtUtc": "2026-01-01T12:00:00Z",
+ "completedAtUtc": "2026-01-01T12:05:00Z",
+ "environment": "offline_fixture",
+ "caseSet": {
+  "name": "example-cases",
+  "version": "1",
+  "sha256": "0c0126b2b0c7ecf074adac262d3169a13d9eec981da9864492b7f134d2fc40ad"
+ },
+ "inputCanonicalization": "example-canonical-v1",
+ "candidates": [
+  {
+   "provider": "example-a",
+   "model": "example-a-v1",
+   "purpose": "subscription_chat"
+  },
+  {
+   "provider": "example-b",
+   "model": "example-b-v1",
+   "purpose": "subscription_chat"
+  }
+ ],
+ "rubrics": [
+  {
+   "name": "example-naturalness",
+   "version": "1"
+  }
+ ],
+ "hubRevision": "example-rev"
+}

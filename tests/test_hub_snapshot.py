@@ -131,5 +131,18 @@ class HubSnapshotTests(unittest.TestCase):
         self.assertEqual(self.http('/api/hub-health', env)[0], 503)
 
 
+    def test_server_status_host_paths_never_reach_output(self):
+        marker = '/srv/hub-host-only/OMIT_HOST_PATH/settings.lua'
+        (self.root / 'ffxi/server-status.json').write_text(json.dumps({
+            'gameId': 'ffxi', 'status': {'checkedAtUtc': '2026-01-01T11:30:00Z', 'xpRate': 2},
+            'sources': [{'kind': 'settings', 'path': marker}]}))
+        with patch.dict('os.environ', {ENV: str(self.root)}, clear=True), \
+             patch.object(Path, 'home', return_value=Path(self.temp.name)), \
+             patch('server.LOCAL_DATA', Path(self.temp.name) / 'local'):
+            data = server.overview('hub')
+        self.assertEqual([s['xpRate'] for s in data['gameStatus'] if s['game'] == 'FFXI'], [2])
+        self.assertNotIn('OMIT_HOST_PATH', json.dumps(data))
+
+
 if __name__ == '__main__':
     unittest.main()

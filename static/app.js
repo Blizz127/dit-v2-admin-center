@@ -1189,11 +1189,13 @@ function renderModelCalls() {
     item(panel, 'Model call coverage', 'Unknown', 'No usable model-call list in this snapshot.');
     return;
   }
-  const snapshot = currentSnapshot.evaluatorSnapshot;
-  if (snapshot && typeof snapshot === 'object' && !Array.isArray(snapshot)) {
-    item(panel, `Evaluator snapshot: ${routingText(snapshot.status)}`,
+  for (const [key, label, note] of [['evaluatorSnapshot', 'Evaluator snapshot', 'Offline file import; not live hub data or a bake-off.'],
+                                    ['bakeoffRun', 'Bake-off run', 'Offline recorded run; proposal shape, not live hub data.']]) {
+    const snapshot = currentSnapshot[key];
+    if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) continue;
+    item(panel, `${label}: ${routingText(snapshot.status)}`,
       `Imported: ${metricNumber(snapshot.records) ? snapshot.records : 'Unknown'} · Omitted malformed: ${metricNumber(snapshot.omitted) ? snapshot.omitted : 'Unknown'}`,
-      `${routingText(snapshot.reason, 'Reason unknown')} · Offline file import; not live hub data or a bake-off.`);
+      `${routingText(snapshot.reason, 'Reason unknown')} · ${note}`);
   }
   if (!calls.length) item(panel, 'No model call examples', 'No rows supplied.', 'This does not establish zero usage or cost.');
   const rows = calls.filter(row => row && typeof row === 'object' && !Array.isArray(row));
