@@ -15,6 +15,8 @@ import unittest
 from unittest.mock import patch
 
 import server
+import presence_examples
+import project_issues
 import routing_audit
 from test_offline_inspector_handler import MemoryConnection
 
@@ -34,6 +36,17 @@ class OfflineOverviewCollectionTests(unittest.TestCase):
         self.reads = []
         self.routing_fixture = self.home / 'routing-audit-fixture.json'
         self.routing_fixture.write_bytes(routing_audit.FIXTURE.read_bytes())
+        self.presence_fixture = self.home / 'presence-examples-fixture.json'
+        self.presence_fixture.write_bytes(presence_examples.FIXTURE.read_bytes())
+        # server.PROJECT is redirected below; seed its committed model-call fixture.
+        models = self.home / 'dev/admin/data/fixtures/model-comparison.json'
+        models.parent.mkdir(parents=True)
+        models.write_bytes((server.PROJECT / 'data/fixtures/model-comparison.json').read_bytes())
+        # Copy the curated issue inventories so panel 9 reads stay inside the home.
+        for name in project_issues.DOCUMENTS:
+            target = self.home / 'dev/admin' / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes((project_issues.ROOT / name).read_bytes())
 
     def seed(self):
         with closing(self.connect(self.database)) as db, db:
@@ -89,6 +102,9 @@ class OfflineOverviewCollectionTests(unittest.TestCase):
 
         with ExitStack() as stack:
             stack.enter_context(patch('routing_audit.FIXTURE', self.routing_fixture))
+            stack.enter_context(patch('presence_examples.FIXTURE', self.presence_fixture))
+            stack.enter_context(patch('server.read_project_issues',
+                                      lambda: project_issues.read(self.home / 'dev/admin')))
             for target in ('socket.socket', 'socket.create_connection', 'subprocess.Popen',
                            'server.BRIDGE.read', 'server.HubReader', 'server.HUB_VIEWS.get',
                            'server.HUB_HEALTH.get', 'server.HUB_INTERACTION.get', 'os.kill'):
@@ -180,6 +196,13 @@ class OfflineOverviewCollectionTests(unittest.TestCase):
         self.assertEqual(data['hubFeeds'][0]['status'], 'Mock selected')
         self.assertEqual([row['scopeKind'] for row in data['routingAudit']], ['bot', 'all', 'bot'])
         self.assertIn('Simulated rejection', data['routingAudit'][2]['result'])
+        # Redirected committed fixtures must load, not degrade silently to Unknown.
+        self.assertEqual(data['presenceExamples']['kind'], 'synthetic')
+        self.assertTrue(data['modelCalls'])
+        # Missing documents yield id-less Unknown cards with the same source label.
+        sources = {issue.get('source') for issue in data['issues'] if issue.get('id')}
+        for name in project_issues.DOCUMENTS:
+            self.assertIn('Repository planning inventory · ' + name, sources)
         self.assertTrue(all(change['effective'] is None for row in data['routingAudit'] for change in row['changes']))
         self.assertEqual(data['leadActivity'][0]['taskStatus'], 'working')
         self.assertIn('withheld', data['leadActivity'][0]['taskSummary'])
