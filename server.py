@@ -31,6 +31,7 @@ from r10_projection import project_health, project_learning, project_learning_at
 from routing_audit import examples as routing_audit_examples
 from presence_examples import examples as presence_examples
 from evaluator_snapshot import from_env as evaluator_snapshot
+from hub_snapshot import ENV as HUB_SNAPSHOT_ENV, SnapshotReader
 from wake_verification import read as read_wake_verification
 from operation_sources import read as read_operation_sources
 
@@ -41,6 +42,23 @@ BRIDGE = BridgeObserver()
 HUB_VIEWS = HubViewsCache(lambda url, token_file: read_views(HubReader(url, token_file)))
 HUB_HEALTH = HubViewsCache(lambda url, token_file: project_hub_health(*HubReader(url, token_file).health()))
 HUB_INTERACTION = HubViewsCache(lambda url, token_file: project_interaction(*HubReader(url, token_file).interaction()))
+
+
+def hub_source():
+    """Return ('live', (url, token_file)), ('snapshot', directory), ('none', None) or ('conflict', None).
+
+    Exported snapshots and a live tunnel are mutually exclusive so a view is never
+    silently mixed or mislabeled; both configured is refused.
+    """
+    url, token_file = os.environ.get('HUB_READONLY_URL'), os.environ.get('HUB_TOKEN_FILE')
+    directory = os.environ.get(HUB_SNAPSHOT_ENV)
+    if directory and (url or token_file):
+        return 'conflict', None
+    if directory:
+        return 'snapshot', directory
+    if url and token_file:
+        return 'live', (url, token_file)
+    return 'none', None
 QUOTA_SOURCE = Path.home() / ".local/share/devbox-codex-accounts/state.json"
 ASSETS = {"/": ("index.html", "text/html; charset=utf-8"), "/playtest": ("playtest.html", "text/html; charset=utf-8"), "/app.js": ("app.js", "text/javascript; charset=utf-8"), "/style.css": ("style.css", "text/css; charset=utf-8")}
 
@@ -264,8 +282,12 @@ def overview(source='mock'):
             {"title": "Bot presence lacks current evidence", "detail": "Mock bot statuses cannot establish current game presence.", "status": "Open", "scope": "Bots", "source": "Synthetic planning example"},
         ] + read_project_issues() + project_learning_attention(projected) + monitoring_issues(monitoring) + marker_issues + binding_issues(hub_report) + [bridge_fault_issue()] + pending_decision_issues(owner_attention),
     }
-    url, token_file = os.environ.get('HUB_READONLY_URL'), os.environ.get('HUB_TOKEN_FILE')
-    if not url or not token_file:
+    kind, config = hub_source()
+    if kind == 'conflict':
+        snapshot['hubFeeds'] = [{'game': 'All', 'view': 'hub', 'status': 'Invalid configuration', 'at': None,
+                                 'note': 'Synthetic fallback; set either an exported snapshot directory or a live hub, not both'}]
+        return snapshot
+    if kind == 'none':
         snapshot['hubFeeds'] = [{'game': 'All', 'view': 'hub', 'status': 'Not configured', 'at': None,
                                  'note': 'Synthetic fallback; no live hub connection'}]
         return snapshot
@@ -274,7 +296,9 @@ def overview(source='mock'):
                                  'note': 'Synthetic data selected; no hub read attempted'}]
         return snapshot
     try:
-        return merge_views(snapshot, HUB_VIEWS.get(url, token_file))
+        if kind == 'snapshot':
+            return merge_views(snapshot, read_views(SnapshotReader(config)))
+        return merge_views(snapshot, HUB_VIEWS.get(*config))
     except ValueError:
         snapshot['hubFeeds'] = [{'game': 'All', 'view': 'hub', 'status': 'Invalid configuration', 'at': None,
                                  'note': 'Synthetic fallback; loopback tunnel required'}]
@@ -466,12 +490,12 @@ class Handler(BaseHTTPRequestHandler):
                 if target.query:
                     self.send_content(400, "application/json", b'{"error":"invalid query"}')
                     return
-                url, token_file = os.environ.get('HUB_READONLY_URL'), os.environ.get('HUB_TOKEN_FILE')
-                if not url or not token_file:
+                kind, config = hub_source()
+                if kind in ('none', 'conflict'):
                     self.send_content(503, "application/json", b'{"error":"hub not configured"}')
                     return
                 try:
-                    result = HUB_HEALTH.get(url, token_file)
+                    result = project_hub_health(*SnapshotReader(config).health()) if kind == 'snapshot' else HUB_HEALTH.get(*config)
                 except ValueError:
                     self.send_content(502, "application/json", b'{"error":"invalid health response or configuration"}')
                     return
@@ -483,12 +507,12 @@ class Handler(BaseHTTPRequestHandler):
                 if target.query:
                     self.send_content(400, "application/json", b'{"error":"interaction takes no parameters"}')
                     return
-                url, token_file = os.environ.get('HUB_READONLY_URL'), os.environ.get('HUB_TOKEN_FILE')
-                if not url or not token_file:
+                kind, config = hub_source()
+                if kind in ('none', 'conflict'):
                     self.send_content(503, "application/json", b'{"error":"hub not configured"}')
                     return
                 try:
-                    result = HUB_INTERACTION.get(url, token_file)
+                    result = project_interaction(*SnapshotReader(config).interaction()) if kind == 'snapshot' else HUB_INTERACTION.get(*config)
                 except ValueError:
                     self.send_content(502, "application/json", b'{"error":"invalid interaction response or configuration"}')
                     return
@@ -509,10 +533,14 @@ class Handler(BaseHTTPRequestHandler):
                 if query['gameId'][0] not in ('ffxi', 'swtor') or not CORRELATION.fullmatch(query['correlationId'][0]):
                     self.send_content(400, "application/json", b'{"error":"invalid trace scope"}')
                     return
-                url, token_file = os.environ.get('HUB_READONLY_URL'), os.environ.get('HUB_TOKEN_FILE')
-                if not url or not token_file:
+                kind, config = hub_source()
+                if kind in ('none', 'conflict'):
                     self.send_content(503, "application/json", b'{"error":"hub not configured"}')
                     return
+                if kind == 'snapshot':
+                    self.send_content(503, "application/json", b'{"error":"trace unavailable from exported snapshot"}')
+                    return
+                url, token_file = config
                 try:
                     result, fetched = HubReader(url, token_file).trace(query['gameId'][0], query['correlationId'][0])
                 except ValueError:

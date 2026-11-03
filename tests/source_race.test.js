@@ -14,7 +14,7 @@ const get = id => { if (!elements.has(id)) elements.set(id, new Element()); retu
 const document = {querySelector: s => get(s.slice(1)), getElementById: get, createElement: () => new Element()};
 const pending = [];
 const fetch = url => url === '/api/bridge-status' ? Promise.resolve({ok: true, json: async () => ({unit: 'unknown', substate: 'unknown', result: 'unknown', marker: 'unknown', source: 'Fixture', observedAt: null})}) : new Promise(resolve => pending.push({url, resolve}));
-const snapshot = status => ({generatedAt: 'test', hubFeeds: [{game: 'All', view: 'hub', status, note: '', at: null}], ownerAttention: {coverage: '', items: []}, bots: [], leads: [], leadActivity: [], leadMonitoring: [], leadTimeline: [], nudgeHistory: [], sessionMarkers: [], quotaHistory: [], spendExample: {month: null, settledUsd: null, reservedOpenUsd: null, budgetUsd: null, source: 'Synthetic', attribution: 'Unknown', fetchedAt: null}, modelCalls: [], safetyRecords: [], botDetails: [], replyEvents: [], assignmentHistory: [], audit: [], gameStatus: [], serviceHealth: [], issues: [], ledger: [], learningArtifacts: [], learningPlan: [], learning: []});
+const snapshot = (status, extra = []) => ({generatedAt: 'test', hubFeeds: [{game: 'All', view: 'hub', status, note: '', at: null}, ...extra], ownerAttention: {coverage: '', items: []}, bots: [], leads: [], leadActivity: [], leadMonitoring: [], leadTimeline: [], nudgeHistory: [], sessionMarkers: [], quotaHistory: [], spendExample: {month: null, settledUsd: null, reservedOpenUsd: null, budgetUsd: null, source: 'Synthetic', attribution: 'Unknown', fetchedAt: null}, modelCalls: [], safetyRecords: [], botDetails: [], replyEvents: [], assignmentHistory: [], audit: [], gameStatus: [], serviceHealth: [], issues: [], ledger: [], learningArtifacts: [], learningPlan: [], learning: []});
 const ctx = {document, fetch, sessionStorage: {getItem: () => 'test', setItem() {}, removeItem() {}}};
 vm.runInNewContext(fs.readFileSync('static/app.js', 'utf8'), ctx);
 (async () => {
@@ -55,19 +55,30 @@ vm.runInNewContext(fs.readFileSync('static/app.js', 'utf8'), ctx);
   pending[4].resolve({ok: true, json: async () => snapshot('Mock selected')});
   await retry;
   assert.match(get('hub-banner').textContent, /Synthetic examples selected/);
+  // An exported snapshot is never presented as live hub reads.
+  const exported = get('refresh').listeners.click();
+  pending[5].resolve({ok: true, json: async () => snapshot('Exported snapshot')});
+  await exported;
+  assert.match(get('hub-banner').textContent, /Exported hub snapshot loaded.*not live/);
+  assert.doesNotMatch(get('hub-banner').textContent, /Hub reads available/);
+  // A partial export (one game exported, another unavailable) still says not live.
+  const partial = get('refresh').listeners.click();
+  pending[6].resolve({ok: true, json: async () => snapshot('Exported snapshot', [{game: 'SWTOR', view: 'bots', status: 'Unavailable', note: '', at: null}])});
+  await partial;
+  assert.match(get('hub-banner').textContent, /exported hub snapshot.*not live.*synthetic fallback/);
   get('data-source').value = 'hub';
   const failedHub = get('data-source').listeners.change();
-  pending[5].resolve({ok: false, status: 503});
+  pending[7].resolve({ok: false, status: 503});
   await failedHub;
   get('correlation').value = 'after-failure';
   get('trace-search').listeners.submit({preventDefault() {}});
-  assert.equal(pending.length, 6);
+  assert.equal(pending.length, 8);
   assert.match(get('hub-trace').textContent, /Load the selected hub source successfully/);
   await get('hub-health-refresh').listeners.click();
-  assert.equal(pending.length, 6);
+  assert.equal(pending.length, 8);
   assert.match(get('hub-health').textContent, /Load the selected hub source successfully/);
   const denied = get('refresh').listeners.click();
-  pending[6].resolve({ok: false, status: 401});
+  pending[8].resolve({ok: false, status: 401});
   await denied;
   assert.equal(get('workspace').hidden, true);
   assert.equal(get('error').textContent, 'Token was not accepted.');

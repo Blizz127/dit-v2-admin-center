@@ -1312,6 +1312,9 @@ async function load() {
     else if (feeds.some(f => f.status === 'Not configured')) banner.textContent = 'Hub not configured. Bot and learning views use synthetic fallback.';
     else if (feeds.some(f => f.status === 'Mock selected')) banner.textContent = 'Synthetic examples selected. No hub read was attempted.';
     else if (feeds.some(f => f.status === 'Invalid configuration')) banner.textContent = 'Hub configuration invalid. Bot and learning views use synthetic fallback.';
+    else if (feeds.some(f => f.status === 'Exported snapshot')) banner.textContent = feeds.every(f => f.status === 'Exported snapshot')
+      ? 'Exported hub snapshot loaded. Data is as of its export time, not live; coverage and hub revision remain unverified.'
+      : 'Some views come from an exported hub snapshot as of its export time, not live; other views use synthetic fallback. Check each feed.';
     else if (feeds.some(f => f.status === 'Unavailable')) banner.textContent = 'Hub data is partially or fully unavailable. Check each feed for synthetic fallback.';
     else if (feeds.length && feeds.every(f => f.status === 'Live response')) banner.textContent = 'Hub reads available. Coverage and deployed revision remain unverified.';
     else banner.textContent = 'Hub status unknown. Check source labels for each view.';

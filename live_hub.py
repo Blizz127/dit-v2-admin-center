@@ -154,7 +154,7 @@ def read_views(reader, games=('ffxi', 'swtor')):
                     result['issues'][game] = project_learning_attention(rows)
                 else:
                     result['gameStatus'][game] = project_server_status(data, game, fetched)
-                result['feeds'].append({'game': game.upper(), 'view': view, 'status': 'Live response', 'at': fetched,
+                result['feeds'].append({'game': game.upper(), 'view': view, 'status': getattr(reader, 'feed_status', 'Live response'), 'at': fetched,
                                         'note': {'learning': 'Light task list; curriculum and evidence omitted; deployed revision unverified', 'bots': 'Registration only; presence, coverage and deployed revision unverified', 'server-status': 'Stored settings snapshot; not server liveness; deployed revision unverified'}[view]})
             except HubResponseTooLarge:
                 result['feeds'].append({'game': game.upper(), 'view': view, 'status': 'Unavailable', 'at': None,
