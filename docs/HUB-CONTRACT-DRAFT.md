@@ -386,3 +386,24 @@ is a separate decision):
 (c) time-to-first-token; (d) rubric name and evaluator version on scores;
 (e) delivered-or-not and fallback eligibility on the record; (f) any live or
 recorded bake-off runs. The live `attempts` table remains the only real per-call data.
+
+**Live-read shape check against `043bc4b1` (November 3, static source read).** The
+six control GETs this app can issue (`bots`, `learning?light&tasksOnly`,
+`server-status`, `health`, `interaction`, `trace`) all exist with the same query
+parameters. Every field the projections read (`live_hub.py`, `r10_projection.py`,
+`interaction_projection.py`) matches what the handlers emit. Field paths checked:
+- roster: `key`, `name`, `character`, `level`, `bodyKind`, `summary`;
+- server status: `status.xpRate`, `checkedAtUtc`;
+- light learning tasks;
+- health: `utc`, `services[].game/label/state`;
+- interaction: scopes, switches, bots, activity;
+- trace: `kind`, `type`, `occurredAtUtc`, `body.classification/disposition/isFinal`.
+
+No renamed, missing or retyped field was found. Hub JSON
+(`NeuronetworkJson.cs`) is camelCase, omits null properties rather than sending
+`null`, and writes enums as snake_case; the projections already treat absent
+fields as unknown. Fields the hub emits but this app ignores include health
+`since`/`restarts`, learning `counts`/`attempts`, interaction `note`/`currentOrder`,
+and trace `actorKey`/`reasonCode`. Limits: static source read of a clean worktree
+only, not a live response. SWTOR health rows and live trace bodies were not observed.
+Whether Banshee's r5o matches `043bc4b1` is unverified.
