@@ -4,6 +4,7 @@ import threading
 import tempfile
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 from server import capacity_context, make_server
 
@@ -11,6 +12,13 @@ from server import capacity_context, make_server
 class ServerTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        # Collectors read coordinator/Codex stores under Path.home(); point them at an
+        # empty home so these HTTP checks never depend on (or wait on) live local state.
+        cls.home = tempfile.TemporaryDirectory()
+        cls.home_patch = patch.object(Path, "home", return_value=Path(cls.home.name))
+        cls.home_patch.start()
+        cls.local_patch = patch("server.LOCAL_DATA", Path(cls.home.name) / "local")
+        cls.local_patch.start()
         cls.server = make_server(0, "test-private-token")
         cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
         cls.thread.start()
@@ -20,6 +28,9 @@ class ServerTests(unittest.TestCase):
         cls.server.shutdown()
         cls.server.server_close()
         cls.thread.join()
+        cls.local_patch.stop()
+        cls.home_patch.stop()
+        cls.home.cleanup()
 
     def request(self, method, path, token=None):
         conn = http.client.HTTPConnection(*self.server.server_address, timeout=3)
