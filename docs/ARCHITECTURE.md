@@ -14,6 +14,16 @@ A cross-game overview presents bots, issues, learning, model telemetry and the e
 
 Per-bot goals, personality, grounded memory, model routing and controls; global routing; provider-neutral call cost/latency/quality and bake-offs; audit; and learning datasets, policy verification and adoption are planned capabilities, not claims of implementation. Scheduled policy drafting and dialogue wording do not grant model output execution authority. Research and verified policy are distinct from actual adoption and demonstrated game outcomes.
 
+## Cross-game conversation context design, 2026-11-04
+
+The owner requested richer per-reply context and one shared bot-status view
+across games. [The proposed design](CROSS-GAME-CONTEXT-DESIGN.md) separates
+versioned native observations, conversation history and per-bot memory, preserves
+the active exchange through prompt construction, and gives the inspector the same
+context receipt used for the reply. It is not an implemented hub contract or a
+change to existing access, spend or release holds. A captioned
+[90-second overview was delivered to the Alienware](CROSS-GAME-CONTEXT-VIDEO-DELIVERY.md).
+
 ## Security and operation
 
 Owner authentication is mandatory for data. Secrets come from the environment or untracked local files, never git. Do not log tokens, expose provider or hub credentials to the browser, use SBISD accounts/models or the Grok pool. No FFXI writes, real saves or live characters. No connection to the v1 hub. Blizz authorized read-only hub integration; no live write or deployment is authorized. Before live use, design secure sessions, CSRF and origin controls, transport, audit, expiry, rate limits and fail-closed behavior against the agreed hub API.
