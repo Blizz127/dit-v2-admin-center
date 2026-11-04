@@ -152,6 +152,12 @@ manifest withholds the run; bad attempts are counted and omitted. Snapshot view
 projections retain unknown values or isolate invalid views. These checks do not
 establish live data quality or native browser behavior.
 
+Offline follow-up, November 4 — **completed**: an authenticated in-memory
+overview API check exercises a loaded bake-off import, an unreadable manifest,
+and a corrected import. It checks that unavailable imports expose no old rows or
+file contents and that the corrected import is read on the next request. This is
+synthetic handler evidence, not a native-browser or live-hub check.
+
 November 4 browser follow-up: the current bake-off panel's withholding, empty,
 unconfigured and unavailable states were exercised with a simulated DOM at
 `eafb56c`, not in a browser. A future owner-device or otherwise authorized native

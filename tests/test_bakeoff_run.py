@@ -256,6 +256,39 @@ class BakeoffRunTests(unittest.TestCase):
         self.assertEqual(len(rows), 4)
         self.assertTrue(all(row['quality'] is None for row in rows))
 
+    def test_overview_api_import_unavailable_and_recovery_do_not_leak_old_rows(self):
+        import server
+        from test_offline_inspector_handler import MemoryConnection
+        wire = (b'GET /api/overview HTTP/1.1\r\nHost: fixture.invalid\r\n'
+                b'Authorization: Bearer fixture-token\r\nConnection: close\r\n\r\n')
+
+        def request():
+            connection = MemoryConnection(wire)
+            server.Handler(connection, ('127.0.0.1', 0), SimpleNamespace(admin_token='fixture-token'))
+            head, body = bytes(connection.outgoing).split(b'\r\n\r\n', 1)
+            self.assertEqual(int(head.split()[1]), 200)
+            self.assertNotIn(b'PRIVATE_FIXTURE_MARKER', body)
+            return json.loads(body)
+
+        def bakeoff_rows(data):
+            return [row for row in data['modelCalls'] if row.get('id', '').startswith('bakeoff:')]
+
+        with patch.dict('os.environ', {run.ENV: str(self.root)}, clear=True), \
+             patch.object(Path, 'home', return_value=Path(self.temp.name)), \
+             patch('server.LOCAL_DATA', Path(self.temp.name) / 'local'), \
+             patch('server.HubReader', side_effect=AssertionError('live hub access forbidden')):
+            loaded = request()
+            self.assertEqual((loaded['bakeoffRun']['status'], len(bakeoff_rows(loaded))), ('Loaded', 4))
+            (self.root / 'manifest.json').write_text('{"PRIVATE_FIXTURE_MARKER":')
+            unavailable = request()
+            self.assertEqual((unavailable['bakeoffRun']['status'], unavailable['bakeoffRun']['omitted']),
+                             ('Unavailable', None))
+            self.assertEqual(bakeoff_rows(unavailable), [])
+            (self.root / 'manifest.json').write_text(json.dumps(self.manifest))
+            recovered = request()
+            self.assertEqual((recovered['bakeoffRun']['status'], recovered['bakeoffRun']['omitted'],
+                              len(bakeoff_rows(recovered))), ('Loaded', 0, 4))
+
 
 if __name__ == '__main__':
     unittest.main()
