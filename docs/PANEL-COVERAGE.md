@@ -166,6 +166,11 @@ Another offline test coordinates a reader with a writer that replaces a complete
 That read returns the old complete file and the next read returns the new one.
 This does not cover in-place mutation, other filesystems, or consistency between
 the separately read manifest and attempts files.
+The local importer optionally verifies an attempts-file SHA-256 supplied in the
+manifest, withholding a mismatched pair. An offline test covers a crash between
+the two atomic replacements in either order. Exports without the optional digest
+remain readable but explicitly unverified; no upstream producer has agreed to or
+implemented this local extension, and the digest does not authenticate data.
 
 November 4 browser follow-up: the current bake-off panel's withholding, empty,
 unconfigured and unavailable states were exercised with a simulated DOM at

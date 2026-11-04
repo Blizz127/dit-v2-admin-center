@@ -1,5 +1,6 @@
 """Offline bake-off run import: reviewed defaults enforced, nothing inferred, off by default."""
 import copy
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -249,6 +250,51 @@ class BakeoffRunTests(unittest.TestCase):
         new_rows, new_coverage = run.load(self.root)
         self.assertEqual((new_coverage['status'], new_coverage['omitted'], len(new_rows)), ('Loaded', 0, 4))
         self.assertEqual(new_rows[0]['cost'], 0.00034)
+
+    def test_digest_withholds_mixed_generations_and_recovers_after_both_renames(self):
+        old_attempts = (self.root / 'attempts.jsonl').read_bytes()
+        updated = copy.deepcopy(self.attempts)
+        updated[0]['costNusd'] = 340000
+        new_attempts = ''.join(json.dumps(a) + '\n' for a in updated).encode()
+        old_manifest = {**self.manifest, 'attemptsSha256': hashlib.sha256(old_attempts).hexdigest()}
+        new_manifest = {**self.manifest, 'attemptsSha256': hashlib.sha256(new_attempts).hexdigest()}
+
+        def publish(name, content):
+            temporary = self.root / (name + '.next')
+            temporary.write_bytes(content)
+            os.replace(temporary, self.root / name)
+
+        def assert_generation(expected_cost):
+            rows, coverage = run.load(self.root)
+            self.assertEqual((coverage['status'], len(rows), coverage['omitted']), ('Loaded', 4, 0))
+            self.assertEqual(rows[0]['cost'], expected_cost)
+            self.assertIn('attempts file matches manifest digest', coverage['reason'])
+
+        def assert_mixed_unavailable():
+            rows, coverage = run.load(self.root)
+            self.assertEqual((rows, coverage['status'], coverage['omitted']), ([], 'Unavailable', None))
+            self.assertIn('attempts digest mismatch', coverage['reason'])
+
+        for first in ('manifest.json', 'attempts.jsonl'):
+            with self.subTest(first_replaced=first):
+                publish('manifest.json', json.dumps(old_manifest).encode())
+                publish('attempts.jsonl', old_attempts)
+                assert_generation(0.00012)
+                changes = {'manifest.json': json.dumps(new_manifest).encode(), 'attempts.jsonl': new_attempts}
+                publish(first, changes[first])
+                assert_mixed_unavailable()  # crash here leaves no mixed-generation rows
+                second = 'attempts.jsonl' if first == 'manifest.json' else 'manifest.json'
+                publish(second, changes[second])
+                assert_generation(0.00034)
+
+    def test_absent_or_invalid_attempts_digest_is_not_claimed_verified(self):
+        rows, coverage = run.load(self.root)
+        self.assertEqual(len(rows), 4)
+        self.assertIn('manifest/attempts consistency unverified: no digest', coverage['reason'])
+        for value in (None, '', 'g' * 64, 'a' * 63, 42):
+            with self.subTest(value=value):
+                rows, coverage = self.write(manifest={**self.manifest, 'attemptsSha256': value})
+                self.assertEqual((rows, coverage['status']), ([], 'Unavailable'))
 
     def test_overview_switch(self):
         import server

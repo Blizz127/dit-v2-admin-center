@@ -16,6 +16,7 @@ Review defaults enforced here:
 - Offline runs cannot claim delivery.
 """
 from datetime import datetime
+import hashlib
 import json
 import math
 import os
@@ -46,7 +47,7 @@ OPTIONAL = frozenset({'gameId', 'actorKey', 'reportedModel', 'firstTokenAtUtc', 
                       'attemptId', 'structuralValidation', 'semanticCompliance', 'fallbackEligible',
                       'fallbackUsed', 'delivery', 'scores'})
 MANIFEST_FIELDS = frozenset({'schema', 'runId', 'startedAtUtc', 'completedAtUtc', 'environment', 'caseSet',
-                             'inputCanonicalization', 'candidates', 'rubrics', 'hubRevision'})
+                             'inputCanonicalization', 'candidates', 'rubrics', 'hubRevision', 'attemptsSha256'})
 
 
 class RunError(ValueError):
@@ -144,12 +145,16 @@ def manifest(data):
     if len(rubric_keys) != len(rubrics):
         raise RunError('duplicate rubric')
     revision = data.get('hubRevision')
+    attempts_sha = data.get('attemptsSha256')
+    if 'attemptsSha256' in data and (not isinstance(attempts_sha, str) or not SHA256.fullmatch(attempts_sha)):
+        raise RunError('invalid attempts digest')
     return {
         'runId': _token(data.get('runId'), 'run id'), 'environment': environment,
         'caseSet': f"{_token(case_set['name'], 'case set')}@{_token(case_set['version'], 'case set version')}",
         'canonicalization': _token(data.get('inputCanonicalization'), 'canonicalization'),
         'candidates': keys, 'rubrics': rubric_keys,
         'hubRevision': _token(revision, 'hub revision') if revision is not None else None,
+        'attemptsSha256': attempts_sha,
         'completedAtUtc': data['completedAtUtc'],
     }
 
@@ -247,6 +252,8 @@ def load(directory):
         raw = read_bytes(root / 'attempts.jsonl', ATTEMPTS_LIMIT)
         if len(raw) > ATTEMPTS_LIMIT:
             raise RunError('oversized attempts')
+        if run['attemptsSha256'] is not None and hashlib.sha256(raw).hexdigest() != run['attemptsSha256']:
+            raise RunError('attempts digest mismatch')
         lines = [line for line in raw.split(b'\n') if line.strip()]
         if len(lines) > MAX_ATTEMPTS:
             raise RunError('too many attempts')
@@ -306,10 +313,12 @@ def load(directory):
     slots = len(cases) * len(run['candidates'])
     case_label = 'case' if len(cases) == 1 else 'cases'
     revision = f"reported hub revision {run['hubRevision']}" if run['hubRevision'] else 'hub revision not reported'
+    integrity = ('attempts file matches manifest digest' if run['attemptsSha256'] is not None
+                 else 'manifest/attempts consistency unverified: no digest')
     return kept, {'status': 'Loaded', 'records': len(kept), 'omitted': omitted,
                   'omittedDuplicate': duplicate_omitted, 'omittedHashMismatch': mismatch_omitted,
                   'reason': f"Run {run['runId']} ({run['environment']}, cases {run['caseSet']}, input hash "
-                            f"{run['canonicalization']}, {revision}). {len(kept)} retained of {slots} candidate slots "
+                            f"{run['canonicalization']}, {revision}; {integrity}). {len(kept)} retained of {slots} candidate slots "
                             f'across {len(cases)} identifiable {case_label}; total case set size unknown. '
                             f'Means include partial cases; disclosed, not filtered. Total latency only; {quality_note} Offline runs have no delivery. '
                             'Proposal shape, not an implemented hub contract.'}

@@ -154,6 +154,20 @@ has been imported. The importer enforces the review defaults:
   before joining them, so punctuation in one component cannot create false duplicates.
 - **File safety:** reads use the bounded non-blocking, no-symlink reader, with
   size and count limits.
+- **Optional local consistency check:** the manifest may include `attemptsSha256`,
+  a lowercase SHA-256 of the exact `attempts.jsonl` bytes. If present, a mismatch
+  withholds the whole run. An absent digest preserves compatibility with earlier
+  exports and is labeled **manifest/attempts consistency unverified**. This field
+  is a local consumer extension, not an agreed hub producer contract.
+
+For an exporter that supplies this digest, compute it over the completed attempts
+bytes and prepare both files before replacing them. A crash between the two
+replacements leaves a mismatched pair that this importer refuses; the run loads
+when the matching pair is present. Each replacement should be atomic on the same
+filesystem. A matching digest checks byte consistency, not who produced the files,
+the completeness of the case set, or the truth of their contents. Legacy exports
+without a digest remain readable and can still expose a mixed pair. A producer
+needs to agree on and supply the extension before it protects real exports.
 
 Rows join panel 4's model-call list and grouped comparison. A status line reports
 the run, canonicalization, revision and coverage. Focused checks are in
