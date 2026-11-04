@@ -17,6 +17,13 @@ source, with a status recheck after generation. No production source or live
 Admin feed is wired. Real producer mappings, native delivery and memory remain
 next; the integration fixtures do not establish live conversation quality.
 
+The next isolated [producer mapping candidate](NATIVE-STATUS-PRODUCER-MAPPING.md)
+reads the existing FFXI ordered store with authenticated caller scope. Its v1
+producer lacks explicit presence and the native identity registry is not
+configured, so known body facts remain withheld; SWTOR's native feed remains a
+producer dependency. The [native-browser checklist](CONTEXT-NATIVE-BROWSER-CHECKLIST.md)
+and dedicated panel fixture are prepared. Native execution remains NOT RUN.
+
 ## What a reply should know
 
 Every game publishes its authoritative observations into DIT. DIT maintains a
