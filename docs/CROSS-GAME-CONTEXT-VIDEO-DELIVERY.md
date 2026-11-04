@@ -35,3 +35,25 @@ Alienware playback was not launched or tested. No game runtime, live model call,
 context behavior or cross-game deployment was tested. Existing hub/bridge
 worktrees, in-flight cleanup candidate, access choices and player/release holds
 remain unchanged. The native-browser test hold is unrelated and was not retried.
+
+## Implementation preview, 2026-11-04
+
+The video was left unchanged. New offline previews were delivered at
+`2026-11-04T19:55:19.766955+00:00` to its child folder
+`Implementation-Preview-74b7b6a`:
+
+- `Context-Receipt-Preview.html`: four captured FFXI/SWTOR reply/rewrite prompts,
+  each retaining 12 supplied conversation turns; exact prompt and receipt details.
+- `Status-Projection-Preview.html`: captured shared status views while fresh,
+  after expiry and after a native disconnect. Not wired to live replies.
+- `READ-ME-FIRST.txt`: implementation and verification limits.
+
+All three sizes and SHA-256 hashes matched an independent remote readback via
+the same existing strict SSH route. The exclusive destination and private file
+modes preserve the earlier overview. Local receipt:
+`build/context-slice/alienware-preview-delivery.json`.
+
+Local implementation commits are `56924b8` (conversation) and `74b7b6a` (status).
+Checks: 101 focused conversation .NET tests, 6 Python preview tests, and 16
+status .NET tests passed. The hub candidates have not been integrated or
+released. No native browser or Alienware playback was opened for these previews.
