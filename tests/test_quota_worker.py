@@ -102,6 +102,19 @@ class QuotaWorkerTests(unittest.TestCase):
                          {('unified7d', 50), ('unified5h', 75)})
         self.assertNotIn('fixture@example.invalid', str(rows))
 
+    def test_excessively_nested_snapshot_does_not_stop_worker_recovery(self):
+        # A bounded but deeply nested JSON document can exceed the parser limit.
+        self.source.write_bytes(b'[' * 20000 + b']' * 20000)
+        def advance(count):
+            if count == 1:
+                self.write_source(1767225660, .25)
+        stop = StopAfter(2, advance)
+        server.run_quota_collector(stop)
+        self.assertEqual(stop.waits, [60, 60])
+        rows = history(self.local)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual((rows[0]['window'], rows[0]['remainingPercent']), ('unified5h', 75))
+
 
 if __name__ == '__main__':
     unittest.main()

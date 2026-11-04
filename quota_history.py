@@ -61,7 +61,7 @@ def observations(path):
                     if finite_number(used) and 0 <= used <= 1:
                         result.append((account, float(stamp), window, float(used)))
         return result
-    except (OSError, ValueError, TypeError, AttributeError):
+    except (OSError, ValueError, TypeError, AttributeError, RecursionError):
         return []
 
 
