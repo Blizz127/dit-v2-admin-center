@@ -118,6 +118,23 @@ class BakeoffRunTests(unittest.TestCase):
         self.assertEqual((len(rows), coverage['omitted']), (2, 1))
         self.assertIn('2 retained of 2 candidate slots across 1 identifiable case; total case set size unknown', coverage['reason'])
 
+    def test_separator_characters_do_not_conflate_distinct_attempt_identities(self):
+        manifest = copy.deepcopy(self.manifest)
+        manifest['candidates'] = [
+            {'provider': 'b', 'model': 'm/x', 'purpose': 'p'},
+            {'provider': 'a:b', 'model': 'm', 'purpose': 'x/p'},
+        ]
+        first = {**copy.deepcopy(self.attempts[0]), 'caseId': 'case:a',
+                 'provider': 'b', 'model': 'm/x', 'purpose': 'p'}
+        second = {**copy.deepcopy(self.attempts[0]), 'caseId': 'case',
+                  'provider': 'a:b', 'model': 'm', 'purpose': 'x/p'}
+        rows, coverage = self.write(manifest=manifest, attempts=[first, second])
+        self.assertEqual((len(rows), coverage['omitted']), (2, 0))
+        self.assertEqual(len({row['id'] for row in rows}), 2)
+        rows, coverage = self.write(attempts=[first, first, second])
+        self.assertEqual((len(rows), coverage['omitted']), (1, 2))
+        self.assertEqual(rows[0]['bakeoff']['caseId'], 'case')
+
     def test_multiple_rubrics_never_become_quality(self):
         manifest = {**self.manifest, 'rubrics': self.manifest['rubrics'] + [{'name': 'other', 'version': '1'}]}
         rows, _ = self.write(manifest=manifest)

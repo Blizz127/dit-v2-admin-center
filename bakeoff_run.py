@@ -21,6 +21,7 @@ import math
 import os
 import re
 from pathlib import Path
+from urllib.parse import quote
 
 from local_evidence import read_bytes
 
@@ -211,7 +212,9 @@ def attempt(data, run):
     # candidate shares one comparison group whether or not it was scored.
     source = f"Bake-off run {run['runId']} · {run['environment']} · cases {run['caseSet']}"
     return {
-        'id': f"bakeoff:{run['runId']}:{case}:{'/'.join(key)}",
+        # Escape each component before joining: tokens may themselves contain
+        # colons, slashes or percent signs, which otherwise collide across tuples.
+        'id': f"bakeoff:{quote(run['runId'], safe='')}:{quote(case, safe='')}:{'/'.join(quote(part, safe='') for part in key)}",
         'model': f'{key[0]} / {key[1]}', 'purpose': key[2],
         'latencyMs': round((completed - sent).total_seconds() * 1000, 3),
         'cost': cost / 1e9 if cost is not None else None,

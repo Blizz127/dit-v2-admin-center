@@ -145,6 +145,8 @@ has been imported. The importer enforces the review defaults:
   undeclared attempts are counted and omitted. Coverage reports retained attempts
   against candidate slots for identifiable cases before ambiguity filtering. The
   manifest does not enumerate cases, so the full case-set size remains unknown.
+- **Identity:** generated attempt IDs escape each run, case and candidate component
+  before joining them, so punctuation in one component cannot create false duplicates.
 - **File safety:** reads use the bounded non-blocking, no-symlink reader, with
   size and count limits.
 
