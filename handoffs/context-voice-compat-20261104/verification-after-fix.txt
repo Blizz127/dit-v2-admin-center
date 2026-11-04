@@ -1,0 +1,26 @@
+  Dit.HumanBehavior.Contracts -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.Contracts/bin/Debug/net10.0/Dit.HumanBehavior.Contracts.dll
+  Dit.HumanBehavior.ObservationBridge -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.ObservationBridge/bin/Debug/net10.0/Dit.HumanBehavior.ObservationBridge.dll
+  Dit.HumanBehavior.ExecutionTransport -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.ExecutionTransport/bin/Debug/net10.0/Dit.HumanBehavior.ExecutionTransport.dll
+  Dit.HumanBehavior.DialogueWording -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.DialogueWording/bin/Debug/net10.0/Dit.HumanBehavior.DialogueWording.dll
+  Dit.HumanBehavior.AiSpend -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.AiSpend/bin/Debug/net10.0/Dit.HumanBehavior.AiSpend.dll
+  Dit.HumanBehavior.BehaviorPlanning -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.BehaviorPlanning/bin/Debug/net10.0/Dit.HumanBehavior.BehaviorPlanning.dll
+  Dit.HumanBehavior.DialogueWording.DeepSeek -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.DialogueWording.DeepSeek/bin/Debug/net10.0/Dit.HumanBehavior.DialogueWording.DeepSeek.dll
+  Dit.HumanBehavior.EarthAndBeyondAdapter -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.EarthAndBeyondAdapter/bin/Debug/net10.0/Dit.HumanBehavior.EarthAndBeyondAdapter.dll
+  Dit.HumanBehavior.FfxiWordingExecution -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.FfxiWordingExecution/bin/Debug/net10.0/Dit.HumanBehavior.FfxiWordingExecution.dll
+  Dit.HumanBehavior.FfxiContextualChatter -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.FfxiContextualChatter/bin/Debug/net10.0/Dit.HumanBehavior.FfxiContextualChatter.dll
+  Dit.HumanBehavior.WowWotlkAdapter -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.WowWotlkAdapter/bin/Debug/net10.0/Dit.HumanBehavior.WowWotlkAdapter.dll
+  Dit.HumanBehavior.MarvelHeroesAdapter -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.MarvelHeroesAdapter/bin/Debug/net10.0/Dit.HumanBehavior.MarvelHeroesAdapter.dll
+  Dit.HumanBehavior.PolicyAuthoring.OpenAiCompatible -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.PolicyAuthoring.OpenAiCompatible/bin/Debug/net10.0/Dit.HumanBehavior.PolicyAuthoring.OpenAiCompatible.dll
+  Dit.HumanBehavior.WowRotationAuthoring -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.WowRotationAuthoring/bin/Debug/net10.0/Dit.HumanBehavior.WowRotationAuthoring.dll
+  Dit.HumanBehavior.WowWotlkLearning -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.WowWotlkLearning/bin/Debug/net10.0/Dit.HumanBehavior.WowWotlkLearning.dll
+  Dit.HumanBehavior.Neuronetwork.Client -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.Neuronetwork.Client/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Client.dll
+  Dit.HumanBehavior.Neuronetwork -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.Neuronetwork/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.dll
+  Dit.HumanBehavior.Neuronetwork.Hub -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.Neuronetwork.Hub/bin/Debug/net10.0/dit-neuronetwork.dll
+  Dit.HumanBehavior.Neuronetwork.Tests -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Tests.dll
+Test run for /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Tests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.2 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:    83, Skipped:     0, Total:    83, Duration: 6 s - Dit.HumanBehavior.Neuronetwork.Tests.dll (net10.0)

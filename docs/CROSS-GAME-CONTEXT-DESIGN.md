@@ -27,6 +27,12 @@ The [context limit audit](CONVERSATION-CONTEXT-LIMITS.md) separates producer,
 transport and prompt limits so a full captured-input count is not mistaken for
 a complete original conversation.
 
+The [context/voice compatibility follow-up](../handoffs/context-voice-compat-20261104/README.md)
+rebases the source candidate onto hub `3dd21dc7`, preserving newer channel and
+shout voice rules. It fixes a reproduced interaction in which status binding
+dropped shout protection; all 83 focused checks pass in the isolated checkout.
+The updated combined patch remains local and unapplied to the shared hub.
+
 Current readiness, after the local inspector consistency fix (`b7e3688`):
 
 | Part | What is ready locally | What is still unverified or missing |
