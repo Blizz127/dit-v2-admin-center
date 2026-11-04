@@ -312,6 +312,25 @@ class BakeoffRunTests(unittest.TestCase):
         self.assertEqual((len(rows), coverage['status'], coverage['omitted']), (4, 'Loaded', 0))
         self.assertIn('attempts file matches manifest digest', coverage['reason'])
 
+    def test_digest_refuses_truncated_attempts_and_missing_run_directory(self):
+        path = self.root / 'attempts.jsonl'
+        original = path.read_bytes()
+        manifest = {**self.manifest, 'attemptsSha256': hashlib.sha256(original).hexdigest()}
+        (self.root / 'manifest.json').write_text(json.dumps(manifest))
+        # Keep complete leading records and a partial trailing record: with a
+        # digest the whole run must be withheld, not loaded as a partial run.
+        lines = original.splitlines(keepends=True)
+        path.write_bytes(b''.join(lines[:-1]) + lines[-1][:20])
+        rows, coverage = run.load(self.root)
+        self.assertEqual((rows, coverage['status'], coverage['omitted']), ([], 'Unavailable', None))
+        self.assertIn('attempts digest mismatch', coverage['reason'])
+        rows, coverage = run.load(Path(self.temp.name) / 'missing-run')
+        self.assertEqual((rows, coverage['status'], coverage['omitted']), ([], 'Unavailable', None))
+        self.assertNotIn(self.temp.name, coverage['reason'])
+        path.write_bytes(original)
+        rows, coverage = run.load(self.root)
+        self.assertEqual((len(rows), coverage['status'], coverage['omitted']), (4, 'Loaded', 0))
+
     def test_digest_mismatch_reaches_overview_as_unavailable_without_rows(self):
         import server
         from test_offline_inspector_handler import MemoryConnection
