@@ -12,6 +12,15 @@ WINDOWS = ('unified5h', 'unified7d')
 MAX_ROWS = 10000
 
 
+def finite_number(value):
+    if type(value) not in (int, float):
+        return False
+    try:
+        return math.isfinite(value)
+    except OverflowError:
+        return False
+
+
 def observations(path):
     try:
         if path.stat().st_size > 1_000_000:
@@ -32,7 +41,7 @@ def observations(path):
             if not isinstance(usage, dict) or usage.get('error'):
                 continue
             stamp = usage.get('checked_at')
-            if type(stamp) not in (int, float) or not math.isfinite(stamp) or stamp <= 0:
+            if not finite_number(stamp) or stamp <= 0:
                 continue
             try:
                 datetime.fromtimestamp(stamp, timezone.utc)
@@ -48,7 +57,7 @@ def observations(path):
                     continue
                 for window in WINDOWS:
                     used = quota.get(window)
-                    if type(used) in (int, float) and math.isfinite(used) and 0 <= used <= 1:
+                    if finite_number(used) and 0 <= used <= 1:
                         result.append((account, float(stamp), window, float(used)))
         return result
     except (OSError, ValueError, TypeError, AttributeError):

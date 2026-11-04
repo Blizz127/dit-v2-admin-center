@@ -84,6 +84,24 @@ class QuotaWorkerTests(unittest.TestCase):
         self.assertEqual(stop.waits, [])
         self.assertFalse(self.local.exists())
 
+    def test_oversized_numbers_do_not_stop_collector_or_hide_valid_entries(self):
+        self.source.write_text(json.dumps({'accounts': {
+            'bad-time': {'email': 'fixture@example.invalid', 'usage': {
+                'checked_at': 10**400, 'rows': [{'quota': {'unified5h': .1}}]}},
+            'mixed': {'email': 'fixture@example.invalid', 'usage': {
+                'checked_at': 1767225600, 'rows': [{'quota': {'unified5h': 10**400, 'unified7d': .5}}]}},
+        }}))
+        def advance(count):
+            if count == 1:
+                self.write_source(1767225660, .25)
+        stop = StopAfter(2, advance)
+        server.run_quota_collector(stop)
+        self.assertEqual(stop.waits, [60, 60])
+        rows = history(self.local)
+        self.assertEqual({(row['window'], row['remainingPercent']) for row in rows},
+                         {('unified7d', 50), ('unified5h', 75)})
+        self.assertNotIn('fixture@example.invalid', str(rows))
+
 
 if __name__ == '__main__':
     unittest.main()
