@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import shutil
 import tempfile
+import threading
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -204,6 +205,50 @@ class BakeoffRunTests(unittest.TestCase):
         self.assertEqual(run.load('relative/run')[1]['status'], 'Unavailable')
         (self.root / 'manifest.json').write_bytes(b'{"schema": "a", "schema": "b"}')
         self.assertEqual(run.load(self.root)[1]['status'], 'Unavailable')
+
+    def test_atomic_attempts_replacement_during_open_read(self):
+        path = self.root / 'attempts.jsonl'
+        replacement = self.root / 'attempts.next'
+        updated = copy.deepcopy(self.attempts)
+        updated[0]['costNusd'] = 340000
+        replacement.write_text(''.join(json.dumps(a) + '\n' for a in updated))
+        old_stat = path.stat()
+        opened, replaced = threading.Event(), threading.Event()
+        errors = []
+        original_fstat = os.fstat
+
+        def after_open(fd):
+            result = original_fstat(fd)
+            if (result.st_dev, result.st_ino) == (old_stat.st_dev, old_stat.st_ino):
+                opened.set()
+                if not replaced.wait(3):
+                    raise OSError('fixture writer did not finish')
+            return result
+
+        def writer():
+            try:
+                if not opened.wait(3):
+                    raise RuntimeError('fixture reader did not open attempts')
+                os.replace(replacement, path)
+            except Exception as error:
+                errors.append(error)
+            finally:
+                replaced.set()
+
+        thread = threading.Thread(target=writer)
+        thread.start()
+        try:
+            with patch('local_evidence.os.fstat', side_effect=after_open):
+                old_rows, old_coverage = run.load(self.root)
+        finally:
+            thread.join(4)
+        self.assertFalse(thread.is_alive())
+        self.assertEqual(errors, [])
+        self.assertEqual((old_coverage['status'], old_coverage['omitted'], len(old_rows)), ('Loaded', 0, 4))
+        self.assertEqual(old_rows[0]['cost'], 0.00012)
+        new_rows, new_coverage = run.load(self.root)
+        self.assertEqual((new_coverage['status'], new_coverage['omitted'], len(new_rows)), ('Loaded', 0, 4))
+        self.assertEqual(new_rows[0]['cost'], 0.00034)
 
     def test_overview_switch(self):
         import server

@@ -161,6 +161,11 @@ The same offline follow-up covers a truncated attempts line: the incomplete line
 is omitted, valid lines remain, and the next request reads the repaired fixture.
 This simulates a partial file; it does not establish behavior for every concurrent
 writer interleaving or guarantee an atomic two-file snapshot.
+Another offline test coordinates a reader with a writer that replaces a complete
+`attempts.jsonl` by same-directory rename after the reader opens the old file.
+That read returns the old complete file and the next read returns the new one.
+This does not cover in-place mutation, other filesystems, or consistency between
+the separately read manifest and attempts files.
 
 November 4 browser follow-up: the current bake-off panel's withholding, empty,
 unconfigured and unavailable states were exercised with a simulated DOM at
