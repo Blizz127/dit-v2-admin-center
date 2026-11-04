@@ -61,6 +61,8 @@ draft, a published inbox item and native-confirmed speech, using stable IDs and
 scope rather than text equality. Pending/cancelled speech must not be represented
 as something another player already heard. This is a proposed producer contract,
 not a change to the current bridge or a claim that native receipts exist.
+The [producer provenance proposal](CONVERSATION-TURN-PROVENANCE-PROPOSAL.md)
+spells out the proposed states, ambiguous outcomes and isolated acceptance cases.
 
 Inspection pin: bridge checkout `4fe1ac1477065d49b17b9b59aaeb81366cd32ef0`;
 candidate file SHA-256
