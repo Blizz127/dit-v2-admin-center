@@ -286,8 +286,19 @@ def load(directory):
             if row['bakeoff']['scores']:
                 row['quality'] = row['bakeoff']['scores'][0]['score']
     else:
-        quality_note = ('no quality shown: scores are absent or mix rubrics, evaluators or scales.'
-                        if scored else 'no quality shown: no attempt was scored.')
+        if not scored:
+            quality_note = 'no quality shown: no attempt was scored.'
+        else:
+            reasons = []
+            if len(run['rubrics']) != 1:
+                reasons.append('run does not declare exactly one rubric')
+            if any(len(r['bakeoff']['scores']) != 1 for r in scored):
+                reasons.append('multiple scores per attempt')
+            if len({(d[1], d[2], d[3]) for d in descriptors}) > 1:
+                reasons.append('evaluator mismatch')
+            if len({(d[4], d[5]) for d in descriptors}) > 1:
+                reasons.append('score scale mismatch')
+            quality_note = 'scores withheld: ' + '; '.join(reasons) + '.'
     # The manifest identifies the case set by hash, but does not enumerate it.
     # Count valid identifiable cases before ambiguity filtering; entirely missing
     # or malformed cases are unknowable and must not imply complete coverage.

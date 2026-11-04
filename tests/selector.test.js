@@ -53,9 +53,10 @@ setImmediate(async () => {
   assert.match(get('model-calls').children[1].children[1].textContent, /Imported: 0 · Omitted: Unknown/);
   assert.match(get('model-calls').children[1].children[2].textContent, /Run reason · Offline recorded run; proposal shape, not live hub data/);
   const unavailableBakeoff = data.bakeoffRun;
-  data.bakeoffRun = {status: 'Loaded', records: 3, omitted: 2, omittedDuplicate: 2, omittedHashMismatch: 0, reason: 'Partial run'};
+  data.bakeoffRun = {status: 'Loaded', records: 3, omitted: 2, omittedDuplicate: 2, omittedHashMismatch: 0, reason: 'scores withheld: evaluator mismatch.'};
   context.renderModelCalls();
   assert.match(get('model-calls').children[1].children[1].textContent, /Imported: 3 · Omitted: 2 · Duplicate attempts withheld: 2 · Hash mismatch withheld: 0/);
+  assert.match(get('model-calls').children[1].children[2].textContent, /scores withheld: evaluator mismatch/);
   data.bakeoffRun = unavailableBakeoff;
   context.renderModelCalls();
   assert.match(get('game-status').children[0].children[1].textContent, /XP rate: Unknown · Server liveness: Unknown/);

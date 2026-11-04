@@ -55,7 +55,7 @@ class BakeoffRunTests(unittest.TestCase):
         rows, coverage = self.write(attempts=attempts)
         self.assertTrue(all(r['quality'] is None for r in rows))
         self.assertEqual(len({(r['model'], r['purpose'], r['source']) for r in rows}), 2)
-        self.assertIn('mix rubrics, evaluators or scales', coverage['reason'])
+        self.assertIn('scores withheld: evaluator mismatch', coverage['reason'])
 
     def test_different_evaluator_kinds_or_separator_collisions_never_mix_quality(self):
         for changes in (
@@ -70,7 +70,20 @@ class BakeoffRunTests(unittest.TestCase):
                 attempts[2]['scores'][0].update(changes[0])
                 rows, coverage = self.write(attempts=attempts)
                 self.assertTrue(all(row['quality'] is None for row in rows))
-                self.assertIn('no quality shown', coverage['reason'])
+                self.assertIn('scores withheld: evaluator mismatch', coverage['reason'])
+
+    def test_withholding_reasons_distinguish_other_cases(self):
+        attempts = copy.deepcopy(self.attempts)
+        attempts[1]['scores'][0]['scaleMax'] = 10
+        _, coverage = self.write(attempts=attempts)
+        self.assertIn('scores withheld: score scale mismatch', coverage['reason'])
+        attempts[1]['scores'][0]['evaluatorKind'] = 'model'
+        _, coverage = self.write(attempts=attempts)
+        self.assertIn('scores withheld: evaluator mismatch; score scale mismatch', coverage['reason'])
+        for attempt in attempts:
+            attempt['scores'] = []
+        _, coverage = self.write(attempts=attempts)
+        self.assertIn('no quality shown: no attempt was scored', coverage['reason'])
 
     def test_shadow_live_and_bad_manifests_import_nothing(self):
         cases = [dict(environment='shadow_live'), dict(environment='live'), dict(schema='other'),
@@ -154,8 +167,9 @@ class BakeoffRunTests(unittest.TestCase):
 
     def test_multiple_rubrics_never_become_quality(self):
         manifest = {**self.manifest, 'rubrics': self.manifest['rubrics'] + [{'name': 'other', 'version': '1'}]}
-        rows, _ = self.write(manifest=manifest)
+        rows, coverage = self.write(manifest=manifest)
         self.assertTrue(all(r['quality'] is None for r in rows))
+        self.assertIn('scores withheld: run does not declare exactly one rubric', coverage['reason'])
 
     def test_unsafe_files_and_paths(self):
         (self.root / 'attempts.jsonl').unlink()
@@ -198,6 +212,26 @@ class BakeoffRunTests(unittest.TestCase):
                           data['bakeoffRun']['omittedDuplicate'], data['bakeoffRun']['omittedHashMismatch']),
                          (3, 2, 2, 0))
         self.assertEqual(sum(row.get('id', '').startswith('bakeoff:') for row in data['modelCalls']), 3)
+
+    def test_evaluator_mismatch_reason_reaches_authenticated_overview_api(self):
+        import server
+        from test_offline_inspector_handler import MemoryConnection
+        attempts = copy.deepcopy(self.attempts)
+        attempts[1]['scores'][0]['evaluatorKind'] = 'model'
+        self.write(attempts=attempts)
+        connection = MemoryConnection(b'GET /api/overview HTTP/1.1\r\nHost: fixture.invalid\r\n'
+                                      b'Authorization: Bearer fixture-token\r\nConnection: close\r\n\r\n')
+        with patch.dict('os.environ', {run.ENV: str(self.root)}, clear=True), \
+             patch.object(Path, 'home', return_value=Path(self.temp.name)), \
+             patch('server.LOCAL_DATA', Path(self.temp.name) / 'local'):
+            server.Handler(connection, ('127.0.0.1', 0), SimpleNamespace(admin_token='fixture-token'))
+        head, body = bytes(connection.outgoing).split(b'\r\n\r\n', 1)
+        self.assertEqual(int(head.split()[1]), 200)
+        data = json.loads(body)
+        self.assertIn('scores withheld: evaluator mismatch', data['bakeoffRun']['reason'])
+        rows = [row for row in data['modelCalls'] if row.get('id', '').startswith('bakeoff:')]
+        self.assertEqual(len(rows), 4)
+        self.assertTrue(all(row['quality'] is None for row in rows))
 
 
 if __name__ == '__main__':

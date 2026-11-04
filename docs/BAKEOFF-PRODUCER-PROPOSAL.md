@@ -139,7 +139,8 @@ has been imported. The importer enforces the review defaults:
 - **Quality:** set only when the run declares exactly one rubric and every scored
   attempt has one score using the same evaluator name, version, kind and scale.
   These fields are compared separately, so punctuation cannot merge evaluator
-  identities. The rubric, evaluator, kind and scale are carried in the row source.
+  identities. The rubric, evaluator, kind and scale are carried in the row source;
+  the run status identifies evaluator or scale mismatches and other withholding reasons.
 - **Cost:** `costNusd` is converted to USD. A missing value stays unknown.
 - **Strictness:** attempts must belong to the run and a declared candidate, with
   the exact allowed fields and enums (snake_case). Malformed, duplicate or
