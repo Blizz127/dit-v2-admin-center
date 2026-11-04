@@ -146,6 +146,21 @@ class BakeoffRunTests(unittest.TestCase):
         self.assertEqual((coverage['omittedDuplicate'], coverage['omittedHashMismatch']), (2, 2))
         self.assertIn('1 retained of 4 candidate slots across 2 identifiable cases', coverage['reason'])
 
+    def test_overlapping_omission_causes_are_counted_once_and_recover(self):
+        attempts = copy.deepcopy(self.attempts)
+        attempts[1]['inputSha256'] = 'f' * 64
+        duplicate = copy.deepcopy(attempts[0])
+        invalid = {**copy.deepcopy(attempts[2]), 'completionStatus': 'invalid'}
+        rows, coverage = self.write(attempts=attempts + [duplicate, invalid])
+        self.assertEqual([r['bakeoff']['caseId'] for r in rows], ['case-2', 'case-2'])
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['omittedDuplicate'],
+                          coverage['omittedHashMismatch']), (2, 4, 2, 1))
+        self.assertIn('2 retained of 4 candidate slots across 2 identifiable cases', coverage['reason'])
+        rows, coverage = self.write(attempts=self.attempts)
+        self.assertEqual((len(rows), coverage['omitted'], coverage['omittedDuplicate'],
+                          coverage['omittedHashMismatch']), (4, 0, 0, 0))
+        self.assertEqual([row['quality'] for row in rows], [4, 3, 5, None])
+
     def test_unidentifiable_or_missing_cases_do_not_imply_complete_coverage(self):
         rows, coverage = self.write(attempts=[])
         self.assertEqual(rows, [])
