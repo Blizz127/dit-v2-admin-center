@@ -41,13 +41,15 @@ class DeliveryCorrelationPreviewTests(unittest.TestCase):
             self.assertEqual(self.cli('--enable-offline', '--capture', str(path)).returncode, 0)
         self.assertEqual(self.cli('--simulate-native-receipts').returncode, 2)
 
-    def test_six_preview_states_keep_actual_delivery_unknown_without_active_content(self):
+    def test_seven_preview_states_keep_actual_delivery_unknown_without_active_content(self):
         cases = scenarios()
-        self.assertEqual(len(cases), 6)
+        self.assertEqual(len(cases), 7)
         self.assertEqual(cases[1][1]['counts']['syntheticConfirmed'], 2)
         self.assertEqual(cases[2][1]['counts']['conflicted'], 2)
         page = build()
-        self.assertEqual(page.count('<section>'), 6)
+        self.assertEqual(page.count('<section>'), 7)
+        self.assertIn('Wording withheld: publication conflict', page)
+        self.assertNotIn('A conflicting synthetic line', page)
         self.assertIn('Actual in-game delivery: Unknown', page)
         self.assertIn('Native browser: NOT RUN', page)
         self.assertIn("connect-src 'none'", page)

@@ -106,6 +106,22 @@ class DeliveryCorrelationTests(unittest.TestCase):
                 self.assertIsNone(report['deliveredInGame'])
                 self.assertTrue(all(row['actualDelivery'] == 'Unknown' for row in report['records']))
 
+    def test_conflicting_wording_is_withheld_in_either_record_order(self):
+        for reverse in (False, True):
+            data = copy.deepcopy(self.data)
+            conflict = copy.deepcopy(data['decisions'][0])
+            conflict['replies'][0].update(text_final='ARBITRARY_CONFLICTING_WORDING', bot='AnotherLabel')
+            data['decisions'].append(conflict)
+            if reverse:
+                data['decisions'].reverse()
+            report = self.check(data)
+            record = next(row for row in report['records'] if row['inboxSeq'] == 41)
+            with self.subTest(reverse=reverse):
+                self.assertEqual(record['publication'], 'Conflict')
+                self.assertIsNone(record['text'])
+                self.assertIsNone(record['bot'])
+                self.assertNotIn('ARBITRARY_CONFLICTING_WORDING', json.dumps(report))
+
     def test_receipt_arrival_order_does_not_rewrite_native_observation_time(self):
         self.data['receipts'].reverse()
         report = self.check()

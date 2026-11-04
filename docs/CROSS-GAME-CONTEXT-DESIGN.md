@@ -35,7 +35,7 @@ Current readiness, after the local inspector consistency fix (`b7e3688`):
 | Shared status | Scoped source adapter, expiry/revision checks, and explicit unknown values | Verified FFXI native identity/presence and an equivalent SWTOR producer; live status is not enabled |
 | Inspector | Exact captured context/status agreement, empty and unavailable packets, stale-clear/recovery; 25 focused Python checks plus simulated-DOM passed | Native browser rendering remains NOT RUN; this is a synthetic capture inspector, not live monitoring |
 | Conversation provenance | [Scoped producer proposal](CONVERSATION-TURN-PROVENANCE-PROPOSAL.md) separates drafts, publication, confirmed speech and ambiguous outcomes | Stable native turn identities and delivery evidence are not an agreed/implemented producer contract |
-| Delivery analysis | [Read-only offline correlator](DELIVERY-EVIDENCE-CORRELATION.md) joins publication records and exercises scoped synthetic receipts; 14 focused tests passed | Actual delivery remains Unknown; no native receipt authority, real-log collection or history update is connected |
+| Delivery analysis | [Read-only offline correlator](DELIVERY-EVIDENCE-CORRELATION.md) joins publication records and exercises scoped synthetic receipts; 15 focused tests passed | Actual delivery remains Unknown; no native receipt authority, real-log collection or history update is connected |
 | Owner overview | [Video and earlier preview deliveries](CROSS-GAME-CONTEXT-VIDEO-DELIVERY.md) are recorded on Alienware | Copy/hash receipts do not establish playback, browser validation or live game behavior |
 
 The live chat issue remains unresolved. All runtime changes are isolated

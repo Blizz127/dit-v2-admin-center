@@ -17,11 +17,14 @@ def scenarios():
     ffxi, swtor = (read_json(FIXTURES / (game + '.json'), LIMIT) for game in ('ffxi', 'swtor'))
     conflict = copy.deepcopy(ffxi)
     conflict['receipts'][1]['observationId'] = conflict['receipts'][0]['observationId']
+    publication_conflict = copy.deepcopy(ffxi)
+    publication_conflict['inbox'].append(publication_conflict['inbox'][0] | {'text': 'A conflicting synthetic line'})
     verify_fixture = lambda _: True
     return [
         ('FFXI publication only', correlate(ffxi, enabled=True)),
         ('FFXI synthetic native matches', correlate(ffxi, enabled=True, native_verifier=verify_fixture)),
         ('FFXI conflicting native observation IDs', correlate(conflict, enabled=True, native_verifier=verify_fixture)),
+        ('FFXI conflicting publication records', correlate(publication_conflict, enabled=True, native_verifier=verify_fixture)),
         ('SWTOR synthetic native matches', correlate(swtor, enabled=True, native_verifier=verify_fixture)),
         ('Disabled reader', correlate()),
         ('Unavailable capture', correlate({}, enabled=True)),
@@ -42,8 +45,9 @@ def build():
             f"{report['rejectedReceipts']} receipts rejected or unverified.")
         rows = []
         for record in report['records']:
+            wording = 'Wording withheld: publication conflict' if record['publication'] == 'Conflict' else record['text'] or 'No final text'
             cells = [str(record['inboxSeq']) if record['inboxSeq'] is not None else 'No sequence',
-                     record['text'] or 'No final text', record['publication'], record['fixtureConfirmation'],
+                     wording, record['publication'], record['fixtureConfirmation'],
                      record['actualDelivery'], record['observedAtUtc'] or 'Unknown', record['receivedAtUtc'] or 'Unknown', record['reason']]
             rows.append('<tr>' + ''.join('<td>' + esc(cell) + '</td>' for cell in cells) + '</tr>')
         table = ('<div class="scroll" tabindex="0" role="region" aria-label="' + esc(name) + ' records"><table><thead><tr>'

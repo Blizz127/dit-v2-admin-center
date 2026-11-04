@@ -55,6 +55,8 @@ Publication matching requires sequence, actor key, bot label, channel and exact
 final text. Text equality alone never correlates messages. A repeated sentence
 with two different sequences remains two attempts. Identical duplicate records
 do not inflate counts; conflicting records under one sequence withhold a result.
+Conflicting publication records also withhold wording/name, rather than letting
+their input order choose a sentence for the inspector.
 Drafts without a sequence are labelled by their capture positions, which are
 not promoted to native identities. A dropped draft is not evidence that no other
 attempt or message reached chat.
@@ -102,14 +104,19 @@ synthetic input format; it never upgrades the actual-delivery fields. CLI exit
 path or its contents. The preview is static HTML, blocks connections, embeds no
 script, and includes source/fixture hashes. It is built locally, not copied to
 or launched on Alienware. The [browser checklist](CONTEXT-NATIVE-BROWSER-CHECKLIST.md)
-contains six ready-to-run cases; execution remains NOT RUN under existing holds.
+contains seven ready-to-run cases; execution remains NOT RUN under existing holds.
 
-Verification on 2026-11-04: all 14 focused tests in the two commands' test modules
+Initial verification at `0273b68` on 2026-11-04: all 14 focused tests in the two test modules
 passed, including duplicate/conflict and scope cases, file corruption/recovery,
 CLI default-off behavior and escaped static output. The preview was built with
 SHA-256 `247a31e9ccd9f545cbf071967eddef6d20257c6cdf56f324640209ea04e31991`.
 This is artifact/source validation, not a browser run. No full suite or live
 producer check was run for this addition.
+
+The wording-conflict follow-up passes 15 focused tests, including reversed
+record order. Its seven-section preview SHA-256 is
+`3cba663047bd39fb42306b2755882d737bdd3be2db88f1d3f2672c42c3440e15`;
+conflicting publication wording/name is withheld. Native browser remains NOT RUN.
 
 ## What a real integration still needs
 

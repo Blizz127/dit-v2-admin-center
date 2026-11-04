@@ -98,7 +98,7 @@ No device copy or browser launch has been performed. The same device/namespace
 holds above apply; this checklist does not release them.
 
 Once the designated device step is released, record PASS/FAIL/BLOCKED/NOT RUN
-for each of these six sections:
+for each of these seven sections:
 
 1. **FFXI publication only:** four recorded attempts, two publication matches,
    zero synthetic native matches. Actual game delivery must remain Unknown.
@@ -108,12 +108,15 @@ for each of these six sections:
    Unknown, and the banner identifies the entire artifact as synthetic.
 3. **FFXI conflicting native observation IDs:** two conflicts, no synthetic
    matches. A receipt identity collision must not look like successful speech.
-4. **SWTOR synthetic native matches:** the scope is SWTOR, not FFXI, with two
+4. **FFXI conflicting publication records:** sequence 41 must withhold its
+   wording/name and show a publication conflict; no arbitrary competing text
+   is chosen. Other independent records keep their own results.
+5. **SWTOR synthetic native matches:** the scope is SWTOR, not FFXI, with two
    synthetic matches. Its input shape is explicitly illustrative, not evidence
    of an installed SWTOR producer. Actual delivery remains Unknown.
-5. **Disabled reader:** no records or counts are shown. Separate automated tests
+6. **Disabled reader:** no records or counts are shown. Separate automated tests
    establish that disabled operation performs no file reads or verification.
-6. **Unavailable capture:** no old prompt/message values or fabricated zeros.
+7. **Unavailable capture:** no old prompt/message values or fabricated zeros.
    Counts are unavailable. The API/CLI input checks are separate Python tests;
    static browser rendering does not prove file handling or authentication.
 

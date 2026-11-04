@@ -198,7 +198,11 @@ def _correlate(data, verifier):
                            receivedAtUtc=receipt['receivedAtUtc'])
     records = []
     for key, attempt in attempts.items():
-        records.append({'correlationId': fingerprint([scope, session, key]), **attempt})
+        record = {'correlationId': fingerprint([scope, session, key]), **attempt}
+        if record['publication'] == 'Conflict':
+            # A conflict has no chosen wording/name, regardless of input order.
+            record.update(text=None, bot=None)
+        records.append(record)
     return base('Loaded') | dict(scope=scope, records=records, rejectedReceipts=rejected,
         counts=dict(recordedAttempts=len(records), publicationMatched=sum(r['publication'] == 'Matched' for r in records),
                     syntheticConfirmed=sum(r['fixtureConfirmation'] == 'Synthetic match' for r in records),
