@@ -25,3 +25,13 @@ and receipt suites, schema-validator checks and simulated-DOM tests. The
 JSONL and browser tests do not prove behavior for every concurrent writer or
 native-browser implementation. Leaf symlinks and non-regular files are refused
 by the bounded local-file helper.
+
+Additional deterministic mutation checks exercise selected truncated prefixes
+and wrong root types across snapshot manifests, evaluator and wake imports,
+quota and issue inputs, fake hub and bridge responses, mock routing and reported
+native receipts. Existing reader tests cover size limits and other malformed
+inputs; fake CDP pipes and synthetic saved-report checks cover selected malformed
+and oversized responses. The internally generated readiness and preview-driver
+JSON paths also have synthetic mutation checks; the latter uses the existing
+local jsdom runtime, not a browser. These are bounded examples, not exhaustive
+fuzzing. No real hub, native browser or device was used.

@@ -34,6 +34,12 @@ const expected=JSON.stringify(report,null,2);
   for(const bad of ['broken',JSON.stringify({...report,candidates:[{snapshotRow:2}]}),JSON.stringify({...report,extra:'Unexpected'})]){
     fs.writeFileSync(filename,bad);assert.throws(()=>verifySavedReport(directory,expected));
   }
+  // Exercise the parser with equal copy/file bytes so refusal is not merely a
+  // mismatch with the expected string. No browser or real download is used.
+  for(const bad of [expected.slice(0,1),expected.slice(0,Math.floor(expected.length/2)),
+                    expected.slice(0,-1),'null','[]','true',' '.repeat(256*1024+1)]){
+    fs.writeFileSync(filename,bad);assert.throws(()=>verifySavedReport(directory,bad));
+  }
   fs.unlinkSync(filename);fs.writeFileSync(path.join(root,'outside.json'),expected);
   fs.symlinkSync(path.join(root,'outside.json'),filename);
   assert.throws(()=>verifySavedReport(directory,expected));fs.unlinkSync(filename);

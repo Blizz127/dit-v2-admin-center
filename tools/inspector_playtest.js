@@ -306,6 +306,7 @@ try {
   const copyBytes = new Uint8Array(await new Blob([copyField.value]).arrayBuffer());
   check(copyField.readOnly && blobBytes.length > 0 && blobBytes.length === copyBytes.length && blobBytes.every((byte, index) => byte === copyBytes[index]), 'Gap Blob bytes equal the read-only JSON copy field; no file save claimed');
   const previousExportUrl = exportLink.getAttribute('href');
+  check(exportBlob.size <= 256 * 1024, 'Gap Blob is within the local JSON report limit');
   const exportedGap = JSON.parse(await exportBlob.text());
   check(exportedGap.candidates.length === 2 && exportedGap.selectedSnapshotRow === 2 && exportedGap.differingFields.includes('game'), 'Local JSON export retains all candidate rows and differences');
   check(document.querySelector('#roster-gap-detail textarea').value === JSON.stringify(exportedGap, null, 2), 'Copy field and downloadable JSON agree');

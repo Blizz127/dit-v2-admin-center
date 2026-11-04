@@ -51,6 +51,18 @@ class PartyGreetingCLITests(unittest.TestCase):
         self.assertEqual(assessment['modelOrigin'], 'Unknown')
         self.assertNotIn('passed', assessment.values())
 
+    def test_truncated_fixture_prefixes_never_become_an_assessment(self):
+        raw = (ROOT / 'tests/fixtures/party-greeting-review.json').read_bytes()
+        for cut in sorted({1, 2, len(raw) // 5, len(raw) // 2, len(raw) - 2}):
+            prefix = raw[:cut]
+            try:
+                json.loads(prefix)
+            except (ValueError, RecursionError):
+                with self.subTest(cut=cut):
+                    result = self.run_file(prefix)
+                    self.assertEqual((result.returncode, result.stdout), (2, ''))
+                    self.assertIn('no evidence assessed', result.stderr)
+
     def test_fifo_is_refused_without_waiting_for_a_writer(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'metadata.json'

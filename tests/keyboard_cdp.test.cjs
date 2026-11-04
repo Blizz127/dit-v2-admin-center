@@ -39,6 +39,11 @@ function fake() {
   const malformed = fake(); const request = malformed.send('Page.enable');
   malformed.child.stdio[4].emit('data', 'PRIVATE_NOT_JSON\0');
   await assert.rejects(request, /Browser pipe closed/);
+  for (const raw of ['{', '{"id":1,"result":', ' '.repeat(4 * 1024 * 1024 + 1)]) {
+    const invalid = fake(), waiting = invalid.send('Page.enable');
+    invalid.child.stdio[4].emit('data', raw + '\0');
+    await assert.rejects(waiting, /Browser pipe closed/);
+  }
   for (const payload of ['null', '[]', 'false', '12', '"PRIVATE_SCALAR"']) {
     const invalid = fake();
     const waiting = invalid.send('Page.enable');

@@ -53,13 +53,19 @@ class RuntimeJsonInputTests(unittest.TestCase):
                     self.assertIsNone(server.model_call_examples())
 
     def test_bad_handoff_metadata_is_unknown(self):
+        sessions = self.root / 'sessions'
+        sessions.mkdir()
+        session_file = sessions / 'fixture.json'
         for raw in BAD_JSON:
             with self.subTest(size=len(raw)):
                 self.path.write_bytes(raw)
+                session_file.write_bytes(raw)
                 report = session_markers.handoff_codex_markers(self.root / 'absent.sqlite', self.root,
                                                                self.root, self.path, 'Example')
                 self.assertTrue(report['coverage'].startswith('Session marker coverage unknown'))
                 self.assertEqual(report['markers'], [])
+                report = session_markers.claude_markers(self.root, self.root / 'project', 'fixture', 'Example')
+                self.assertTrue(report['coverage'].startswith('Session marker coverage unknown'))
 
     def test_bad_jsonl_tail_never_establishes_marker_or_resume_coverage(self):
         valid = json.dumps({'type': 'event_msg', 'timestamp': '2026-01-01T00:00:00Z',
