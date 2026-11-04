@@ -2,7 +2,7 @@
 from contextlib import closing
 from datetime import datetime, timezone
 import sqlite3
-import json
+from local_evidence import read_json
 
 LEADS = (
     ('DIT v2 hub lead', 'claude-dit-human-behavior-platform', 'claude'),
@@ -13,9 +13,9 @@ LEADS = (
 def timeline(root):
     result = [{'lead': name, 'events': [], 'coverage': 'Unknown', 'watchCoverage': 'Unknown'} for name, _, _ in LEADS]
     try:
-        config = json.loads((root / 'watch.json').read_text())
+        config = read_json(root / 'watch.json', 1024 * 1024)
         targets = config['targets'] if isinstance(config['targets'], list) else []
-    except (OSError, ValueError, TypeError, KeyError):
+    except (OSError, ValueError, TypeError, KeyError, RecursionError):
         targets = []
     try:
         with closing(sqlite3.connect((root / 'tasks.sqlite').as_uri() + '?mode=ro', uri=True, timeout=2)) as db:

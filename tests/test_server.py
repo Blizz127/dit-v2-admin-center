@@ -196,6 +196,17 @@ class ServerTests(unittest.TestCase):
 
 
 class CapacityTests(unittest.TestCase):
+    def test_bad_capacity_snapshots_are_unknown(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / 'routing-capacity.json'
+            for raw in (b' ' * (1024 * 1024 + 1), b'{"checked_at":', b'[]',
+                        b'{"checked_at":1000,"providers":{"claude":[]}}',
+                        b'[' * 20000 + b']' * 20000):
+                with self.subTest(size=len(raw)):
+                    target.write_bytes(raw)
+                    self.assertEqual(capacity_context(root, 'claude', now=1010)[0], 'Unknown')
+
     def test_pool_scope_and_stale_fail_closed(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

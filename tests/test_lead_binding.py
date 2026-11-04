@@ -8,6 +8,25 @@ from server import lead_monitoring
 
 
 class LeadBindingTests(unittest.TestCase):
+    def test_bad_watcher_snapshots_do_not_claim_a_status(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / '.local/share/devbox-coordinator-state'
+            root.mkdir(parents=True)
+            binding = {'provider': 'codex', 'thread': 'fixture-thread', 'coverage': 'Fixture binding'}
+            config = {'targets': [{'name': 'bound', 'project': 'claude-dit-human-behavior-platform',
+                                   'agent': 'codex', 'session': 'fixture-thread'}]}
+            state = {'bound': {'kind': 'OK', 'checked': 1000}}
+            for target in ('watch.json', 'watch-state.json'):
+                for raw in (b' ' * (1024 * 1024 + 1), b'{"broken":', b'[]', b'[' * 20000 + b']' * 20000):
+                    with self.subTest(target=target, size=len(raw)):
+                        (root / 'watch.json').write_text(json.dumps(config))
+                        (root / 'watch-state.json').write_text(json.dumps(state))
+                        (root / target).write_bytes(raw)
+                        with patch('pathlib.Path.home', return_value=Path(directory)), \
+                             patch('server.current_codex_binding', return_value=binding), \
+                             patch('server.session_activity', return_value='fixture'):
+                            self.assertEqual(lead_monitoring()[0]['stall'], 'Unknown')
+
     def test_only_fresh_exact_thread_watcher_is_attributed(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / '.local/share/devbox-coordinator-state'

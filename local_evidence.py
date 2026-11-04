@@ -1,6 +1,7 @@
 """Bounded local metadata reads; never wait for a FIFO writer or follow a leaf symlink."""
 import os
 import stat
+import json
 
 
 def read_bytes(path, limit):
@@ -9,3 +10,10 @@ def read_bytes(path, limit):
         if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
             raise OSError('Evidence must be a regular file')
         return stream.read(limit + 1)  # Caller retains its existing oversize behavior.
+
+
+def read_json(path, limit):
+    raw = read_bytes(path, limit)
+    if len(raw) > limit:
+        raise ValueError('Evidence exceeds size limit')
+    return json.loads(raw)

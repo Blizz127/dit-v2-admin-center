@@ -10,6 +10,20 @@ from lead_timeline import add_checkout_history, add_current_evidence, monitoring
 
 
 class LeadTimelineTests(unittest.TestCase):
+    def test_bad_watcher_config_preserves_task_history_as_unverified(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with sqlite3.connect(root / 'tasks.sqlite') as db:
+                db.executescript('CREATE TABLE tasks(id TEXT, project TEXT, agent TEXT); CREATE TABLE events(task TEXT, status TEXT, time REAL); CREATE TABLE watch_alerts(target TEXT, kind TEXT, time REAL);')
+                db.execute('INSERT INTO tasks VALUES (?, ?, ?)', ('one', 'claude-dit-human-behavior-platform', 'claude'))
+                db.execute('INSERT INTO events VALUES (?, ?, ?)', ('one', 'working', 1000))
+            for raw in (b' ' * (1024 * 1024 + 1), b'{"targets":', b'[]', b'[' * 20000 + b']' * 20000):
+                with self.subTest(size=len(raw)):
+                    (root / 'watch.json').write_bytes(raw)
+                    row = timeline(root)[0]
+                    self.assertEqual(row['events'][0]['status'], 'working')
+                    self.assertEqual(row['watchCoverage'], 'Unknown: no unambiguous watcher target')
+
     def test_exact_scope_and_bounded_task_history(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

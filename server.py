@@ -35,6 +35,7 @@ from hub_snapshot import ENV as HUB_SNAPSHOT_ENV, SnapshotReader
 from bakeoff_run import from_env as bakeoff_run
 from wake_verification import read as read_wake_verification
 from operation_sources import read as read_operation_sources
+from local_evidence import read_json
 
 PROJECT = Path(__file__).resolve().parent
 ROOT = PROJECT / "static"
@@ -90,7 +91,7 @@ def capacity_context(root, provider, now=None):
     if not provider:
         return "Unknown", "Lead provider identity is not established"
     try:
-        snapshot = json.loads((root / "routing-capacity.json").read_text())
+        snapshot = read_json(root / "routing-capacity.json", 1024 * 1024)
         checked = snapshot["checked_at"]
         entry = snapshot["providers"][provider]
         if type(checked) not in (int, float) or not math.isfinite(checked):
@@ -103,7 +104,7 @@ def capacity_context(root, provider, now=None):
         if type(value) not in (int, float) or not math.isfinite(value) or not 0 <= value <= 1:
             return "Unknown", "Coordinator provider pool estimate unavailable; checked " + at
         return f"{value * 100:.0f}%", "Coordinator provider pool estimate; checked " + at + "; not the lead's own quota"
-    except (OSError, ValueError, KeyError, TypeError, OverflowError):
+    except (OSError, ValueError, KeyError, TypeError, AttributeError, OverflowError, RecursionError):
         return "Unknown", "Coordinator provider pool estimate unavailable"
 
 
@@ -125,12 +126,12 @@ def lead_monitoring():
     targets = [("DIT v2 hub lead", "claude-dit-human-behavior-platform", home / 'dev/dit-human-behavior-platform'),
                ("Admin Center lead", "claude-dit-v2-admin-center", PROJECT)]
     try:
-        config = json.loads((root / "watch.json").read_text())
-        state = json.loads((root / "watch-state.json").read_text())
+        config = read_json(root / "watch.json", 1024 * 1024)
+        state = read_json(root / "watch-state.json", 1024 * 1024)
         records = config["targets"]
         if not isinstance(records, list) or not isinstance(state, dict):
             raise ValueError("invalid watcher data")
-    except (OSError, ValueError, KeyError, TypeError):
+    except (OSError, ValueError, KeyError, TypeError, RecursionError):
         records, state = [], {}
     result = []
     for name, project, workspace_path in targets:
@@ -145,7 +146,7 @@ def lead_monitoring():
         item["sessionActivity"] = session_activity(project) if provider else "Unknown"
         matches = [t for t in records if isinstance(t, dict) and t.get("project") == project
                    and t.get("agent") == provider and t.get('session') == thread and t.get("enabled", True)]
-        if provider is not None and len(matches) == 1:
+        if provider is not None and len(matches) == 1 and isinstance(matches[0].get('name'), str):
             entry = state.get(matches[0].get("name"), {})
             if isinstance(entry, dict) and entry.get("kind") in ("STALLED", "STOPPED", "OFF-TRACK", "OK") and type(entry.get("checked")) in (int, float):
                 try:
