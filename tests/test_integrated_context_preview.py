@@ -17,7 +17,7 @@ class IntegratedPreviewTests(unittest.TestCase):
         captures = [read_json(p, 262144) for p in sorted(FIXTURES.glob('*.json'))]
         self.assertEqual(len(captures), 6)
         page = build(captures)
-        self.assertEqual(page.count('12 / 12 supplied turns retained'), 6)
+        self.assertEqual(page.count('12 / 12 captured input turns retained'), 6)
         self.assertIn('SWTOR · intent', page)
         self.assertIn('No real model call or delivery was attempted', page)
         self.assertNotIn('<script', page)
@@ -69,7 +69,7 @@ class IntegratedPreviewTests(unittest.TestCase):
         self.assertEqual(len(paths), 4)
         data = [read_json(p, 262144) for p in paths]
         page = build(data)
-        self.assertEqual(page.count('12 / 12 supplied turns retained'), 4)
+        self.assertEqual(page.count('12 / 12 captured input turns retained'), 4)
         self.assertIn('Native body/source unbound: source unavailable', page)
         self.assertIn('sequence gap: snapshot required', page)
         self.assertNotIn('Synthetic native west entrance', page)

@@ -23,6 +23,9 @@ producer lacks explicit presence and the native identity registry is not
 configured, so known body facts remain withheld; SWTOR's native feed remains a
 producer dependency. The [native-browser checklist](CONTEXT-NATIVE-BROWSER-CHECKLIST.md)
 and dedicated panel fixture are prepared. Native execution remains NOT RUN.
+The [context limit audit](CONVERSATION-CONTEXT-LIMITS.md) separates producer,
+transport and prompt limits so a full captured-input count is not mistaken for
+a complete original conversation.
 
 ## What a reply should know
 

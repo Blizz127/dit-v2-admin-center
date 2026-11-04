@@ -228,8 +228,8 @@ function renderContextCapture(data) {
   } else if (binding.State === 'snapshot unavailable' && (view.Source !== null || view.RevisionSha256 !== null
       || view.Fields.some(field => field?.State !== 'Unknown' || field.ObservedAtUtc !== null || field.ValidUntilUtc !== null))) throw new Error('invalid unavailable snapshot');
   item(panel, `${capture.game.toUpperCase()} · ${capture.path} · Synthetic captured packet`,
-    `${receipt.IncludedHistoryTurns} / ${receipt.SuppliedHistoryTurns} supplied turns retained; ${receipt.OmittedHistoryTurns} omitted.`,
-    'No real model call or delivery attempted. This packet is independent of roster selection.');
+    `${receipt.IncludedHistoryTurns} / ${receipt.SuppliedHistoryTurns} captured input turns retained; ${receipt.OmittedHistoryTurns} omitted.`,
+    'No real model call or delivery attempted. Counts start at this captured input; earlier producer omissions are not measured. This packet is independent of roster selection.');
   const fields = unbound ? fieldNames.map(Field => ({Field, State:'Unknown', Value:null, Reason:binding.State})) : view.Fields;
   for (const field of fields) {
     if (!field || !['Known', 'Stale', 'Unknown'].includes(field.State) || typeof field.Field !== 'string'

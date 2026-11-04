@@ -148,7 +148,7 @@ def build(records):
         revision = view['RevisionSha256'] if view is not None else None
         turns = ''.join('<li>' + esc(line) + '</li>' for line in data['suppliedHistory'][r['OmittedHistoryTurns']:])
         sections.append(f'''<section><h2>{esc(data['game'].upper())} · {esc(data['path'])}</h2>
-<p><strong>{r['IncludedHistoryTurns']} / {r['SuppliedHistoryTurns']} supplied turns retained</strong> · {r['OmittedHistoryTurns']} omitted · {r['SerializedCharacters']:,} UTF-16 characters. Token count unknown.</p>
+<p><strong>{r['IncludedHistoryTurns']} / {r['SuppliedHistoryTurns']} captured input turns retained</strong> · {r['OmittedHistoryTurns']} omitted · {r['SerializedCharacters']:,} UTF-16 characters. Token count unknown. Counts start at this captured input; earlier producer omissions are not measured.</p>
 <table><tr><th>Body field</th><th>Knowledge</th><th>Value used</th><th>Reason</th></tr>{rows}</table>
 {source}
 <details><summary>Retained conversation</summary><ol>{turns}</ol></details>
