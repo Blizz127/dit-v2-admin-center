@@ -89,3 +89,19 @@ No full suite, HTTP hub startup, native browser or real provider/game test ran.
 `git apply --check` against shared hub revision
 `189e6cc8fb424d3aa3f7cfdea801cc2ab3d242e4`; it was not applied there. Both patch
 hashes are in `SHA256SUMS`. Original source base is recorded in `BASE_REVISION`.
+
+## Offline inspector preview
+
+The Admin artifact builder pairs each captured request with its own status view:
+
+```sh
+python3 -m unittest tests.test_integrated_context_preview -v
+python3 tools/build_integrated_context_preview.py tests/fixtures/context-status-integration/*.json --output build/context-slice/Integrated-Context-Preview.html
+```
+
+Six focused Python checks cover the six actual captures, mismatched request or
+prompt digest, scope mismatch, unavailable/expired status falsely marked known,
+invented live/delivery claims, field omissions and escaped display metadata.
+The generated static HTML makes no network requests. It checks artifact
+consistency and explicitly does not authenticate producer evidence. No live
+Admin route or native browser check is added.
