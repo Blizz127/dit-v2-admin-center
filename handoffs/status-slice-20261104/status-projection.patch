@@ -1,0 +1,332 @@
+diff --git a/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationStatusProjection.cs b/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationStatusProjection.cs
+new file mode 100644
+index 0000000..58c588f
+--- /dev/null
++++ b/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationStatusProjection.cs
+@@ -0,0 +1,143 @@
++using System.Globalization;
++using System.Security.Cryptography;
++using System.Text;
++using System.Text.Json;
++using Dit.HumanBehavior.Contracts;
++
++namespace Dit.HumanBehavior.Neuronetwork.Conversation;
++
++// Offline proposal: no route, producer registration or conversation wiring.
++// A trusted adapter boundary must supply the identity, current cursor and source
++// policy. Values in chat, persona configuration and plans cannot supply them.
++public sealed record StatusBodyIdentity(string Game, string Realm, string Instance, string NativeActorId);
++public sealed record StatusExpectation(StatusBodyIdentity Body, string Epoch, long Sequence, bool NeedsSnapshot = false);
++public enum StatusOrigin { NativeAdapter, Conversation, Plan }
++public enum StatusField { Presence, Location, Activity, Party, Job, Level }
++public enum StatusKnowledge { Known, Stale, Unknown }
++public sealed record StatusFieldObservation(StatusField Field, string? Value, DateTimeOffset ObservedAtUtc, DateTimeOffset ValidUntilUtc);
++public sealed record StatusSnapshot(StatusBodyIdentity Body, string Epoch, long Sequence, string Source,
++    StatusOrigin Origin, bool Complete, DateTimeOffset ReceivedAtUtc, ValueList<StatusFieldObservation> Fields);
++public sealed record StatusFieldView(StatusField Field, StatusKnowledge State, string? Value, string Reason,
++    DateTimeOffset? ObservedAtUtc, DateTimeOffset? ValidUntilUtc);
++public sealed record ConversationStatusView(StatusBodyIdentity Body, string Epoch, long Sequence,
++    string? Source, string? RevisionSha256, string FreshnessPolicyVersion, DateTimeOffset ReadAtUtc, ValueList<StatusFieldView> Fields)
++{
++    // Only current, scoped observations can enter a reply's approved facts.
++    // Unknown/stale fields are separately visible; never rebrand their old value.
++    public ValueList<ConversationFact> ApprovedFacts => ValueList<ConversationFact>.From(Fields
++        .Where(f => f.State == StatusKnowledge.Known && f.Value is not null)
++        .Select(f => new ConversationFact("native_status_" + f.Field.ToString().ToLowerInvariant(), f.Value!)));
++}
++
++/// <summary>Caller-owned per-game expiry policy. No guessed universal lifetime.</summary>
++public sealed class ConversationStatusPolicy
++{
++    internal string Source { get; }
++    internal string Version { get; }
++    internal IReadOnlyDictionary<StatusField, TimeSpan> MaxAges { get; }
++    public ConversationStatusPolicy(string source, string version, IReadOnlyDictionary<StatusField, TimeSpan> maxAges)
++    {
++        if (string.IsNullOrWhiteSpace(source) || source.Length > 128 || source.Any(char.IsControl) ||
++            string.IsNullOrWhiteSpace(version) || version.Length > 128 || version.Any(char.IsControl) ||
++            maxAges.Count != Enum.GetValues<StatusField>().Length ||
++            Enum.GetValues<StatusField>().Any(f => !maxAges.TryGetValue(f, out var age) || age <= TimeSpan.Zero || age > TimeSpan.FromDays(1)))
++            throw new ArgumentException("An explicit bounded expiry policy is required for every supported field.");
++        Source = source;
++        Version = version;
++        MaxAges = new Dictionary<StatusField, TimeSpan>(maxAges);
++    }
++}
++
++/// <summary>
++/// A pure read projection for bot context and Admin consumers. It does not replace
++/// the existing native state store, authenticate a source, infer a new epoch, merge
++/// deltas, or grant a bot visibility of another body. The caller supplies the exact
++/// authorized identity and current store cursor from one atomic snapshot read.
++/// </summary>
++public static class ConversationStatusProjection
++{
++    public static ConversationStatusView Build(StatusExpectation expected, StatusSnapshot? snapshot,
++        ConversationStatusPolicy policy, DateTimeOffset now)
++    {
++        if (!ValidIdentity(expected.Body) || !Key(expected.Epoch) || expected.Sequence < 0 || now.Offset != TimeSpan.Zero)
++            throw new ArgumentException("Invalid trusted status expectation or read clock.");
++        var reason = UnavailableReason(expected, snapshot, policy, now);
++        if (reason is not null)
++            return new(expected.Body, expected.Epoch, expected.Sequence, null, null, policy.Version, now,
++                ValueList<StatusFieldView>.From(Enum.GetValues<StatusField>().Select(f => Unknown(f, reason))));
++
++        var frame = snapshot!;
++        var byField = frame.Fields.ToDictionary(f => f.Field);
++        var views = Enum.GetValues<StatusField>().Select(field =>
++        {
++            if (!byField.TryGetValue(field, out var input) || input.Value is null)
++                return Unknown(field, "not observed");
++            var maxAge = policy.MaxAges[field];
++            // Subtract instead of adding near DateTimeOffset.MaxValue.
++            var expired = now >= input.ValidUntilUtc || now - input.ObservedAtUtc >= maxAge;
++            var deadline = input.ValidUntilUtc - input.ObservedAtUtc > maxAge
++                ? input.ObservedAtUtc.Add(maxAge) : input.ValidUntilUtc;
++            return new StatusFieldView(field, expired ? StatusKnowledge.Stale : StatusKnowledge.Known,
++                expired ? null : input.Value, expired ? "expired observation" : "native observation", input.ObservedAtUtc, deadline);
++        }).ToArray();
++        var presence = views.Single(f => f.Field == StatusField.Presence);
++        // A body without confirmed current presence cannot supply current activity.
++        // Preserve field timestamps for inspection, but withhold their values.
++        if (presence.State != StatusKnowledge.Known || presence.Value != "online")
++        {
++            var why = presence.State == StatusKnowledge.Known ? "native disconnect" : "presence unconfirmed";
++            for (var i = 0; i < views.Length; i++)
++                if (views[i].Field != StatusField.Presence)
++                    views[i] = views[i] with { State = StatusKnowledge.Unknown, Value = null, Reason = why };
++        }
++        return new(expected.Body, expected.Epoch, expected.Sequence, frame.Source, Digest(frame), policy.Version, now,
++            ValueList<StatusFieldView>.From(views));
++    }
++
++    private static string? UnavailableReason(StatusExpectation expected, StatusSnapshot? frame,
++        ConversationStatusPolicy policy, DateTimeOffset now)
++    {
++        if (expected.NeedsSnapshot) return "sequence gap: snapshot required";
++        if (frame is null) return "snapshot unavailable";
++        if (frame.Body != expected.Body) return "body scope mismatch";
++        if (frame.Epoch != expected.Epoch) return "session epoch mismatch";
++        if (frame.Sequence != expected.Sequence) return "snapshot revision mismatch";
++        if (frame.Source != policy.Source || frame.Origin != StatusOrigin.NativeAdapter) return "untrusted status source";
++        if (!frame.Complete) return "incomplete snapshot";
++        if (frame.ReceivedAtUtc.Offset != TimeSpan.Zero || frame.ReceivedAtUtc > now || frame.Fields is null || frame.Fields.Count > 6)
++            return "invalid snapshot";
++        if (frame.Fields.Any(f => f is null || !Enum.IsDefined(f.Field)) ||
++            frame.Fields.Select(f => f.Field).Distinct().Count() != frame.Fields.Count)
++            return "invalid snapshot fields";
++        foreach (var field in frame.Fields)
++        {
++            if (field.ObservedAtUtc.Offset != TimeSpan.Zero || field.ValidUntilUtc.Offset != TimeSpan.Zero ||
++                field.ObservedAtUtc > frame.ReceivedAtUtc || field.ValidUntilUtc <= field.ObservedAtUtc ||
++                field.Value is not null && (string.IsNullOrWhiteSpace(field.Value) || field.Value.Length > 256 || field.Value.Any(char.IsControl)))
++                return "invalid field observation";
++            if (field.Field == StatusField.Presence && field.Value is not (null or "online" or "offline"))
++                return "invalid presence observation";
++        }
++        return null;
++    }
++
++    private static StatusFieldView Unknown(StatusField field, string reason) => new(field, StatusKnowledge.Unknown, null, reason, null, null);
++    private static bool Key(string? value) => !string.IsNullOrWhiteSpace(value) && value.Length <= 128 && !value.Any(char.IsControl);
++    private static bool ValidIdentity(StatusBodyIdentity? body) => body is not null && Key(body.Game) && Key(body.Realm) && Key(body.Instance) && Key(body.NativeActorId);
++    private static string Digest(StatusSnapshot frame)
++    {
++        // Explicit stable ordering; received time is transport metadata, not an
++        // observation revision. Duplicate receipt cannot extend field validity.
++        var canonical = JsonSerializer.Serialize(new
++        {
++            schema = "dit.status-projection-candidate.v1", frame.Body, frame.Epoch, frame.Sequence, frame.Source,
++            fields = frame.Fields.OrderBy(f => f.Field).Select(f => new
++            {
++                name = f.Field.ToString(), f.Value,
++                observed = f.ObservedAtUtc.ToString("O", CultureInfo.InvariantCulture),
++                validUntil = f.ValidUntilUtc.ToString("O", CultureInfo.InvariantCulture)
++            })
++        });
++        return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(canonical)));
++    }
++}
+diff --git a/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusProjectionTests.cs b/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusProjectionTests.cs
+new file mode 100644
+index 0000000..ca31632
+--- /dev/null
++++ b/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusProjectionTests.cs
+@@ -0,0 +1,177 @@
++using System.Text.Json;
++using System.Text.Json.Serialization;
++using Dit.HumanBehavior.Contracts;
++using Dit.HumanBehavior.Neuronetwork.Conversation;
++using Xunit;
++
++namespace Dit.HumanBehavior.Neuronetwork.Tests;
++
++public sealed class ConversationStatusProjectionTests
++{
++    private static readonly DateTimeOffset Now = new(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
++    private static StatusBodyIdentity Body(string game = "ffxi") => new(game, "synthetic-realm", "synthetic-instance", "native-fixture-1");
++    private static StatusExpectation Expected(string game = "ffxi") => new(Body(game), "epoch-2", 7);
++    private static ConversationStatusPolicy Policy() => new("fixture-native-adapter", "synthetic-expiry-v1", Ages());
++    private static Dictionary<StatusField, TimeSpan> Ages() => Enum.GetValues<StatusField>()
++        .ToDictionary(f => f, f => TimeSpan.FromSeconds(f == StatusField.Presence ? 60 : 20));
++    private static StatusSnapshot Frame(string game = "ffxi") => new(Body(game), "epoch-2", 7, "fixture-native-adapter",
++        StatusOrigin.NativeAdapter, true, Now, ValueList<StatusFieldObservation>.From([
++            new(StatusField.Presence, "online", Now, Now.AddSeconds(60)),
++            new(StatusField.Location, "Synthetic western entrance", Now, Now.AddSeconds(60)),
++            new(StatusField.Activity, "resting", Now, Now.AddSeconds(60))
++        ]));
++    private static StatusSnapshot Fields(StatusSnapshot frame, params StatusFieldObservation[] values) =>
++        frame with { Fields = ValueList<StatusFieldObservation>.From(values) };
++    private static StatusFieldView Field(ConversationStatusView view, StatusField field) => view.Fields.Single(f => f.Field == field);
++    private static void AssertUnavailable(ConversationStatusView view, string reason)
++    {
++        Assert.Empty(view.ApprovedFacts); Assert.Null(view.RevisionSha256); Assert.Null(view.Source);
++        Assert.All(view.Fields, f => { Assert.Equal(StatusKnowledge.Unknown, f.State); Assert.Null(f.Value); Assert.Equal(reason, f.Reason); });
++    }
++
++    [Theory]
++    [InlineData("ffxi")] [InlineData("swtor")]
++    public void Shared_readers_get_same_revision_and_only_their_scoped_native_facts(string game)
++    {
++        var snapshot = Frame(game);
++        var bot = ConversationStatusProjection.Build(Expected(game), snapshot, Policy(), Now);
++        var inspector = ConversationStatusProjection.Build(Expected(game), snapshot, Policy(), Now);
++        Assert.Equal(bot.RevisionSha256, inspector.RevisionSha256);
++        Assert.Equal(bot.Fields, inspector.Fields);
++        Assert.Equal("Synthetic western entrance", Field(bot, StatusField.Location).Value);
++        Assert.Equal(Now.AddSeconds(20), Field(bot, StatusField.Location).ValidUntilUtc);
++        Assert.Equal(StatusKnowledge.Unknown, Field(bot, StatusField.Level).State);
++        Assert.DoesNotContain(bot.ApprovedFacts, f => f.Key.EndsWith("level"));
++        Assert.Equal(3, bot.ApprovedFacts.Count);
++        if (Environment.GetEnvironmentVariable("DIT_STATUS_FIXTURE_OUTPUT") is { Length: > 0 } output)
++        {
++            Directory.CreateDirectory(output);
++            var options = new JsonSerializerOptions { WriteIndented = true, Converters = { new JsonStringEnumConverter() } };
++            File.WriteAllText(Path.Combine(output, game + "-status.json"), JsonSerializer.Serialize(new
++            {
++                schema = "dit.status-preview.v1", synthetic = true,
++                source = "Offline shared status projection, no producer integration or game access",
++                known = bot,
++                aged = ConversationStatusProjection.Build(Expected(game), snapshot, Policy(), Now.AddSeconds(20)),
++                disconnected = ConversationStatusProjection.Build(Expected(game), Fields(snapshot,
++                    new(StatusField.Presence, "offline", Now, Now.AddSeconds(60)), snapshot.Fields[1]), Policy(), Now)
++            }, options));
++        }
++    }
++
++    [Theory]
++    [InlineData("game")] [InlineData("realm")] [InlineData("instance")] [InlineData("actor")]
++    public void Same_display_name_cannot_cross_body_boundaries(string changed)
++    {
++        var original = Frame();
++        var wrong = original.Body with
++        {
++            Game = changed == "game" ? "swtor" : original.Body.Game,
++            Realm = changed == "realm" ? "another-realm" : original.Body.Realm,
++            Instance = changed == "instance" ? "another-instance" : original.Body.Instance,
++            NativeActorId = changed == "actor" ? "another-actor" : original.Body.NativeActorId
++        };
++        AssertUnavailable(ConversationStatusProjection.Build(Expected(), original with { Body = wrong }, Policy(), Now), "body scope mismatch");
++    }
++
++    [Fact]
++    public void Old_epoch_old_or_ahead_revision_and_sequence_gap_are_unknown()
++    {
++        AssertUnavailable(ConversationStatusProjection.Build(Expected(), Frame() with { Epoch = "epoch-1" }, Policy(), Now), "session epoch mismatch");
++        foreach (var sequence in new[] { 6L, 8L })
++            AssertUnavailable(ConversationStatusProjection.Build(Expected(), Frame() with { Sequence = sequence }, Policy(), Now), "snapshot revision mismatch");
++        AssertUnavailable(ConversationStatusProjection.Build(Expected() with { NeedsSnapshot = true }, Frame(), Policy(), Now), "sequence gap: snapshot required");
++        AssertUnavailable(ConversationStatusProjection.Build(Expected(), Frame() with { Complete = false }, Policy(), Now), "incomplete snapshot");
++    }
++
++    [Theory]
++    [InlineData(StatusOrigin.Conversation)] [InlineData(StatusOrigin.Plan)]
++    public void Chat_and_plans_never_become_native_activity(StatusOrigin origin)
++    {
++        AssertUnavailable(ConversationStatusProjection.Build(Expected(), Frame() with { Origin = origin }, Policy(), Now), "untrusted status source");
++    }
++
++    [Fact]
++    public void Unknown_producer_is_not_promoted_by_claiming_native_origin()
++    {
++        AssertUnavailable(ConversationStatusProjection.Build(Expected(), Frame() with { Source = "other-producer" }, Policy(), Now), "untrusted status source");
++    }
++
++    [Fact]
++    public void Heartbeat_and_duplicate_receipt_do_not_refresh_activity()
++    {
++        var first = ConversationStatusProjection.Build(Expected(), Frame(), Policy(), Now);
++        var later = Now.AddSeconds(20);
++        var replay = Frame() with { ReceivedAtUtc = later };
++        var result = ConversationStatusProjection.Build(Expected(), replay, Policy(), later);
++        Assert.Equal(first.RevisionSha256, result.RevisionSha256);
++        Assert.Equal(StatusKnowledge.Known, Field(result, StatusField.Presence).State);
++        Assert.Equal(StatusKnowledge.Stale, Field(result, StatusField.Activity).State);
++        Assert.Null(Field(result, StatusField.Activity).Value);
++        Assert.Single(result.ApprovedFacts);
++    }
++
++    [Fact]
++    public void Native_validity_can_be_shorter_than_operator_max_age()
++    {
++        var frame = Frame();
++        frame = Fields(frame, frame.Fields[0], frame.Fields[1] with { ValidUntilUtc = Now.AddSeconds(3) });
++        var before = ConversationStatusProjection.Build(Expected(), frame, Policy(), Now.AddSeconds(2));
++        var atExpiry = ConversationStatusProjection.Build(Expected(), frame, Policy(), Now.AddSeconds(3));
++        Assert.Equal(StatusKnowledge.Known, Field(before, StatusField.Location).State);
++        Assert.Equal(StatusKnowledge.Stale, Field(atExpiry, StatusField.Location).State);
++    }
++
++    [Fact]
++    public void Disconnect_or_unconfirmed_presence_withholds_current_body_facts()
++    {
++        var frame = Frame();
++        var offline = Fields(frame, frame.Fields[0] with { Value = "offline" }, frame.Fields[1]);
++        var view = ConversationStatusProjection.Build(Expected(), offline, Policy(), Now);
++        Assert.Equal("offline", Assert.Single(view.ApprovedFacts).Value);
++        Assert.Equal("native disconnect", Field(view, StatusField.Location).Reason);
++        Assert.Null(Field(view, StatusField.Location).Value);
++        foreach (var missingPresence in new[] { Fields(frame, frame.Fields[1]), Fields(frame, frame.Fields[0] with { Value = null }, frame.Fields[1]) })
++            Assert.Empty(ConversationStatusProjection.Build(Expected(), missingPresence, Policy(), Now).ApprovedFacts);
++        var expiredPresence = Fields(frame, frame.Fields[0] with { ValidUntilUtc = Now.AddSeconds(1) }, frame.Fields[1]);
++        Assert.Empty(ConversationStatusProjection.Build(Expected(), expiredPresence, Policy(), Now.AddSeconds(1)).ApprovedFacts);
++    }
++
++    [Fact]
++    public void Invalid_fields_are_unavailable_without_partial_fact_leakage()
++    {
++        var frame = Frame(); var location = frame.Fields[1];
++        foreach (var invalid in new[] {
++            location with { Value = new string('x', 257) }, location with { Value = "\nforge state" },
++            location with { ObservedAtUtc = Now.AddSeconds(1) }, location with { ValidUntilUtc = Now },
++            location with { ObservedAtUtc = Now.ToOffset(TimeSpan.FromHours(1)) } })
++            AssertUnavailable(ConversationStatusProjection.Build(Expected(), Fields(frame, frame.Fields[0], invalid), Policy(), Now), "invalid field observation");
++        AssertUnavailable(ConversationStatusProjection.Build(Expected(), Fields(frame, location, location), Policy(), Now), "invalid snapshot fields");
++        AssertUnavailable(ConversationStatusProjection.Build(Expected(), Fields(frame, location with { Field = (StatusField)99 }), Policy(), Now), "invalid snapshot fields");
++        AssertUnavailable(ConversationStatusProjection.Build(Expected(), Fields(frame, frame.Fields[0] with { Value = "maybe" }), Policy(), Now), "invalid presence observation");
++        AssertUnavailable(ConversationStatusProjection.Build(Expected(), frame with { ReceivedAtUtc = Now.AddSeconds(1) }, Policy(), Now), "invalid snapshot");
++        AssertUnavailable(ConversationStatusProjection.Build(Expected(), null, Policy(), Now), "snapshot unavailable");
++    }
++
++    [Fact]
++    public void Policy_requires_explicit_lifetimes_and_copies_configuration()
++    {
++        Assert.Throws<ArgumentException>(() => new ConversationStatusPolicy("fixture", "v1", new Dictionary<StatusField, TimeSpan>()));
++        var ages = Ages(); ages[StatusField.Activity] = TimeSpan.Zero;
++        Assert.Throws<ArgumentException>(() => new ConversationStatusPolicy("fixture", "v1", ages));
++        ages = Ages(); var policy = new ConversationStatusPolicy("fixture-native-adapter", "v1", ages);
++        ages[StatusField.Activity] = TimeSpan.FromHours(1);
++        Assert.Equal(StatusKnowledge.Stale, Field(ConversationStatusProjection.Build(Expected(), Frame(), policy, Now.AddSeconds(20)), StatusField.Activity).State);
++    }
++
++    [Fact]
++    public void Revision_binds_observed_values_epoch_and_sequence_but_not_input_field_order()
++    {
++        var frame = Frame(); var view = ConversationStatusProjection.Build(Expected(), frame, Policy(), Now);
++        Assert.Equal(view.RevisionSha256, ConversationStatusProjection.Build(Expected(), Fields(frame, frame.Fields.Reverse().ToArray()), Policy(), Now).RevisionSha256);
++        var changed = Fields(frame, frame.Fields[0], frame.Fields[1] with { Value = "Synthetic eastern entrance" });
++        Assert.NotEqual(view.RevisionSha256, ConversationStatusProjection.Build(Expected(), changed, Policy(), Now).RevisionSha256);
++        var next = frame with { Epoch = "epoch-3", Sequence = 0 };
++        Assert.NotEqual(view.RevisionSha256, ConversationStatusProjection.Build(Expected() with { Epoch = next.Epoch, Sequence = 0 }, next, Policy(), Now).RevisionSha256);
++    }
++}

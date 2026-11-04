@@ -1,0 +1,223 @@
+{
+  "schema": "dit.status-preview.v1",
+  "synthetic": true,
+  "source": "Offline shared status projection, no producer integration or game access",
+  "known": {
+    "Body": {
+      "Game": "swtor",
+      "Realm": "synthetic-realm",
+      "Instance": "synthetic-instance",
+      "NativeActorId": "native-fixture-1"
+    },
+    "Epoch": "epoch-2",
+    "Sequence": 7,
+    "Source": "fixture-native-adapter",
+    "RevisionSha256": "8a52b45e628fa8c8826f6d4449094843c8b31b55608cd86b8733604f47deeaea",
+    "FreshnessPolicyVersion": "synthetic-expiry-v1",
+    "ReadAtUtc": "2030-01-01T00:00:00+00:00",
+    "Fields": [
+      {
+        "Field": "Presence",
+        "State": "Known",
+        "Value": "online",
+        "Reason": "native observation",
+        "ObservedAtUtc": "2030-01-01T00:00:00+00:00",
+        "ValidUntilUtc": "2030-01-01T00:01:00+00:00"
+      },
+      {
+        "Field": "Location",
+        "State": "Known",
+        "Value": "Synthetic western entrance",
+        "Reason": "native observation",
+        "ObservedAtUtc": "2030-01-01T00:00:00+00:00",
+        "ValidUntilUtc": "2030-01-01T00:00:20+00:00"
+      },
+      {
+        "Field": "Activity",
+        "State": "Known",
+        "Value": "resting",
+        "Reason": "native observation",
+        "ObservedAtUtc": "2030-01-01T00:00:00+00:00",
+        "ValidUntilUtc": "2030-01-01T00:00:20+00:00"
+      },
+      {
+        "Field": "Party",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "not observed",
+        "ObservedAtUtc": null,
+        "ValidUntilUtc": null
+      },
+      {
+        "Field": "Job",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "not observed",
+        "ObservedAtUtc": null,
+        "ValidUntilUtc": null
+      },
+      {
+        "Field": "Level",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "not observed",
+        "ObservedAtUtc": null,
+        "ValidUntilUtc": null
+      }
+    ],
+    "ApprovedFacts": [
+      {
+        "Key": "native_status_presence",
+        "Value": "online"
+      },
+      {
+        "Key": "native_status_location",
+        "Value": "Synthetic western entrance"
+      },
+      {
+        "Key": "native_status_activity",
+        "Value": "resting"
+      }
+    ]
+  },
+  "aged": {
+    "Body": {
+      "Game": "swtor",
+      "Realm": "synthetic-realm",
+      "Instance": "synthetic-instance",
+      "NativeActorId": "native-fixture-1"
+    },
+    "Epoch": "epoch-2",
+    "Sequence": 7,
+    "Source": "fixture-native-adapter",
+    "RevisionSha256": "8a52b45e628fa8c8826f6d4449094843c8b31b55608cd86b8733604f47deeaea",
+    "FreshnessPolicyVersion": "synthetic-expiry-v1",
+    "ReadAtUtc": "2030-01-01T00:00:20+00:00",
+    "Fields": [
+      {
+        "Field": "Presence",
+        "State": "Known",
+        "Value": "online",
+        "Reason": "native observation",
+        "ObservedAtUtc": "2030-01-01T00:00:00+00:00",
+        "ValidUntilUtc": "2030-01-01T00:01:00+00:00"
+      },
+      {
+        "Field": "Location",
+        "State": "Stale",
+        "Value": null,
+        "Reason": "expired observation",
+        "ObservedAtUtc": "2030-01-01T00:00:00+00:00",
+        "ValidUntilUtc": "2030-01-01T00:00:20+00:00"
+      },
+      {
+        "Field": "Activity",
+        "State": "Stale",
+        "Value": null,
+        "Reason": "expired observation",
+        "ObservedAtUtc": "2030-01-01T00:00:00+00:00",
+        "ValidUntilUtc": "2030-01-01T00:00:20+00:00"
+      },
+      {
+        "Field": "Party",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "not observed",
+        "ObservedAtUtc": null,
+        "ValidUntilUtc": null
+      },
+      {
+        "Field": "Job",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "not observed",
+        "ObservedAtUtc": null,
+        "ValidUntilUtc": null
+      },
+      {
+        "Field": "Level",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "not observed",
+        "ObservedAtUtc": null,
+        "ValidUntilUtc": null
+      }
+    ],
+    "ApprovedFacts": [
+      {
+        "Key": "native_status_presence",
+        "Value": "online"
+      }
+    ]
+  },
+  "disconnected": {
+    "Body": {
+      "Game": "swtor",
+      "Realm": "synthetic-realm",
+      "Instance": "synthetic-instance",
+      "NativeActorId": "native-fixture-1"
+    },
+    "Epoch": "epoch-2",
+    "Sequence": 7,
+    "Source": "fixture-native-adapter",
+    "RevisionSha256": "554db929e35b5d31253b95b6ab5172b01cfdf0a5a4a1ce8413743b93acb5c54d",
+    "FreshnessPolicyVersion": "synthetic-expiry-v1",
+    "ReadAtUtc": "2030-01-01T00:00:00+00:00",
+    "Fields": [
+      {
+        "Field": "Presence",
+        "State": "Known",
+        "Value": "offline",
+        "Reason": "native observation",
+        "ObservedAtUtc": "2030-01-01T00:00:00+00:00",
+        "ValidUntilUtc": "2030-01-01T00:01:00+00:00"
+      },
+      {
+        "Field": "Location",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "native disconnect",
+        "ObservedAtUtc": "2030-01-01T00:00:00+00:00",
+        "ValidUntilUtc": "2030-01-01T00:00:20+00:00"
+      },
+      {
+        "Field": "Activity",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "native disconnect",
+        "ObservedAtUtc": null,
+        "ValidUntilUtc": null
+      },
+      {
+        "Field": "Party",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "native disconnect",
+        "ObservedAtUtc": null,
+        "ValidUntilUtc": null
+      },
+      {
+        "Field": "Job",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "native disconnect",
+        "ObservedAtUtc": null,
+        "ValidUntilUtc": null
+      },
+      {
+        "Field": "Level",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "native disconnect",
+        "ObservedAtUtc": null,
+        "ValidUntilUtc": null
+      }
+    ],
+    "ApprovedFacts": [
+      {
+        "Key": "native_status_presence",
+        "Value": "offline"
+      }
+    ]
+  }
+}

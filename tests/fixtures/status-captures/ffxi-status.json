@@ -1,0 +1,223 @@
+{
+  "schema": "dit.status-preview.v1",
+  "synthetic": true,
+  "source": "Offline shared status projection, no producer integration or game access",
+  "known": {
+    "Body": {
+      "Game": "ffxi",
+      "Realm": "synthetic-realm",
+      "Instance": "synthetic-instance",
+      "NativeActorId": "native-fixture-1"
+    },
+    "Epoch": "epoch-2",
+    "Sequence": 7,
+    "Source": "fixture-native-adapter",
+    "RevisionSha256": "2f5e16d51576c63baf75cc7385307416b2ac05f1e3ab9c344e0c21c93b6eb318",
+    "FreshnessPolicyVersion": "synthetic-expiry-v1",
+    "ReadAtUtc": "2030-01-01T00:00:00+00:00",
+    "Fields": [
+      {
+        "Field": "Presence",
+        "State": "Known",
+        "Value": "online",
+        "Reason": "native observation",
+        "ObservedAtUtc": "2030-01-01T00:00:00+00:00",
+        "ValidUntilUtc": "2030-01-01T00:01:00+00:00"
+      },
+      {
+        "Field": "Location",
+        "State": "Known",
+        "Value": "Synthetic western entrance",
+        "Reason": "native observation",
+        "ObservedAtUtc": "2030-01-01T00:00:00+00:00",
+        "ValidUntilUtc": "2030-01-01T00:00:20+00:00"
+      },
+      {
+        "Field": "Activity",
+        "State": "Known",
+        "Value": "resting",
+        "Reason": "native observation",
+        "ObservedAtUtc": "2030-01-01T00:00:00+00:00",
+        "ValidUntilUtc": "2030-01-01T00:00:20+00:00"
+      },
+      {
+        "Field": "Party",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "not observed",
+        "ObservedAtUtc": null,
+        "ValidUntilUtc": null
+      },
+      {
+        "Field": "Job",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "not observed",
+        "ObservedAtUtc": null,
+        "ValidUntilUtc": null
+      },
+      {
+        "Field": "Level",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "not observed",
+        "ObservedAtUtc": null,
+        "ValidUntilUtc": null
+      }
+    ],
+    "ApprovedFacts": [
+      {
+        "Key": "native_status_presence",
+        "Value": "online"
+      },
+      {
+        "Key": "native_status_location",
+        "Value": "Synthetic western entrance"
+      },
+      {
+        "Key": "native_status_activity",
+        "Value": "resting"
+      }
+    ]
+  },
+  "aged": {
+    "Body": {
+      "Game": "ffxi",
+      "Realm": "synthetic-realm",
+      "Instance": "synthetic-instance",
+      "NativeActorId": "native-fixture-1"
+    },
+    "Epoch": "epoch-2",
+    "Sequence": 7,
+    "Source": "fixture-native-adapter",
+    "RevisionSha256": "2f5e16d51576c63baf75cc7385307416b2ac05f1e3ab9c344e0c21c93b6eb318",
+    "FreshnessPolicyVersion": "synthetic-expiry-v1",
+    "ReadAtUtc": "2030-01-01T00:00:20+00:00",
+    "Fields": [
+      {
+        "Field": "Presence",
+        "State": "Known",
+        "Value": "online",
+        "Reason": "native observation",
+        "ObservedAtUtc": "2030-01-01T00:00:00+00:00",
+        "ValidUntilUtc": "2030-01-01T00:01:00+00:00"
+      },
+      {
+        "Field": "Location",
+        "State": "Stale",
+        "Value": null,
+        "Reason": "expired observation",
+        "ObservedAtUtc": "2030-01-01T00:00:00+00:00",
+        "ValidUntilUtc": "2030-01-01T00:00:20+00:00"
+      },
+      {
+        "Field": "Activity",
+        "State": "Stale",
+        "Value": null,
+        "Reason": "expired observation",
+        "ObservedAtUtc": "2030-01-01T00:00:00+00:00",
+        "ValidUntilUtc": "2030-01-01T00:00:20+00:00"
+      },
+      {
+        "Field": "Party",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "not observed",
+        "ObservedAtUtc": null,
+        "ValidUntilUtc": null
+      },
+      {
+        "Field": "Job",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "not observed",
+        "ObservedAtUtc": null,
+        "ValidUntilUtc": null
+      },
+      {
+        "Field": "Level",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "not observed",
+        "ObservedAtUtc": null,
+        "ValidUntilUtc": null
+      }
+    ],
+    "ApprovedFacts": [
+      {
+        "Key": "native_status_presence",
+        "Value": "online"
+      }
+    ]
+  },
+  "disconnected": {
+    "Body": {
+      "Game": "ffxi",
+      "Realm": "synthetic-realm",
+      "Instance": "synthetic-instance",
+      "NativeActorId": "native-fixture-1"
+    },
+    "Epoch": "epoch-2",
+    "Sequence": 7,
+    "Source": "fixture-native-adapter",
+    "RevisionSha256": "dcfb16289934c7860b55b2c004d74bfadd54d39e16e276985ea276c4d954acae",
+    "FreshnessPolicyVersion": "synthetic-expiry-v1",
+    "ReadAtUtc": "2030-01-01T00:00:00+00:00",
+    "Fields": [
+      {
+        "Field": "Presence",
+        "State": "Known",
+        "Value": "offline",
+        "Reason": "native observation",
+        "ObservedAtUtc": "2030-01-01T00:00:00+00:00",
+        "ValidUntilUtc": "2030-01-01T00:01:00+00:00"
+      },
+      {
+        "Field": "Location",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "native disconnect",
+        "ObservedAtUtc": "2030-01-01T00:00:00+00:00",
+        "ValidUntilUtc": "2030-01-01T00:00:20+00:00"
+      },
+      {
+        "Field": "Activity",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "native disconnect",
+        "ObservedAtUtc": null,
+        "ValidUntilUtc": null
+      },
+      {
+        "Field": "Party",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "native disconnect",
+        "ObservedAtUtc": null,
+        "ValidUntilUtc": null
+      },
+      {
+        "Field": "Job",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "native disconnect",
+        "ObservedAtUtc": null,
+        "ValidUntilUtc": null
+      },
+      {
+        "Field": "Level",
+        "State": "Unknown",
+        "Value": null,
+        "Reason": "native disconnect",
+        "ObservedAtUtc": null,
+        "ValidUntilUtc": null
+      }
+    ],
+    "ApprovedFacts": [
+      {
+        "Key": "native_status_presence",
+        "Value": "offline"
+      }
+    ]
+  }
+}

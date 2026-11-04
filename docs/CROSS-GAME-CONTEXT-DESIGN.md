@@ -9,7 +9,10 @@ Implementation checkpoint: the [first offline hub candidate](../handoffs/context
 separates history from trigger facts and captures the exact wording prompt.
 Four synthetic FFXI/SWTOR reply/rewrite captures retain all 12 supplied turns.
 The candidate remains default-off and unapplied to the shared hub; this is not
-evidence of improved live conversation. Shared status and memory remain next.
+evidence of improved live conversation. A separate [status read projection
+candidate](../handoffs/status-slice-20261104/README.md) defines the common scoped,
+freshness-aware read view. It is not wired to a producer, reply, or live Admin
+feed. Producer mappings, status integration and memory remain next.
 
 ## What a reply should know
 
