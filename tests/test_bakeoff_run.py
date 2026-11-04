@@ -44,7 +44,7 @@ class BakeoffRunTests(unittest.TestCase):
         self.assertEqual([r['quality'] for r in rows], [4, 3, 5, None])
         self.assertTrue(all(r['purpose'] == 'subscription_chat' for r in rows))
         self.assertTrue(all('first-token time not available' in r['bakeoff']['latency'] for r in rows))
-        self.assertIn('example-naturalness@1 by example-judge@1 on 0–5', rows[0]['source'])
+        self.assertIn('example-naturalness@1 by example-judge@1 (rule) on 0–5', rows[0]['source'])
         # One comparison group per candidate: scored and unscored attempts share a source.
         groups = {(r['model'], r['purpose'], r['source']) for r in rows}
         self.assertEqual(len(groups), 2)
@@ -56,6 +56,21 @@ class BakeoffRunTests(unittest.TestCase):
         self.assertTrue(all(r['quality'] is None for r in rows))
         self.assertEqual(len({(r['model'], r['purpose'], r['source']) for r in rows}), 2)
         self.assertIn('mix rubrics, evaluators or scales', coverage['reason'])
+
+    def test_different_evaluator_kinds_or_separator_collisions_never_mix_quality(self):
+        for changes in (
+            ({'evaluatorKind': 'rule'}, {'evaluatorKind': 'model'}),
+            ({'evaluator': 'judge@v', 'evaluatorVersion': '1'},
+             {'evaluator': 'judge', 'evaluatorVersion': 'v@1'}),
+        ):
+            with self.subTest(changes=changes):
+                attempts = copy.deepcopy(self.attempts)
+                for attempt, change in zip(attempts[:2], changes):
+                    attempt['scores'][0].update(change)
+                attempts[2]['scores'][0].update(changes[0])
+                rows, coverage = self.write(attempts=attempts)
+                self.assertTrue(all(row['quality'] is None for row in rows))
+                self.assertIn('no quality shown', coverage['reason'])
 
     def test_shadow_live_and_bad_manifests_import_nothing(self):
         cases = [dict(environment='shadow_live'), dict(environment='live'), dict(schema='other'),

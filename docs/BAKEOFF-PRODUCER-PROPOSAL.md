@@ -136,9 +136,10 @@ has been imported. The importer enforces the review defaults:
   format-checked but never shown.
 - **Delivery:** any delivery value other than `not_applicable` is refused for
   offline runs.
-- **Quality:** set only when the run declares exactly one rubric and the attempt
-  has exactly one score for it. The rubric, evaluator, versions and scale are
-  carried in the row source, so grouped comparison never mixes them.
+- **Quality:** set only when the run declares exactly one rubric and every scored
+  attempt has one score using the same evaluator name, version, kind and scale.
+  These fields are compared separately, so punctuation cannot merge evaluator
+  identities. The rubric, evaluator, kind and scale are carried in the row source.
 - **Cost:** `costNusd` is converted to USD. A missing value stays unknown.
 - **Strictness:** attempts must belong to the run and a declared candidate, with
   the exact allowed fields and enums (snake_case). Malformed, duplicate or

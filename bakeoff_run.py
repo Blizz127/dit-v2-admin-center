@@ -195,8 +195,11 @@ def attempt(data, run):
         low, high, value = (_number(score[k], k) for k in ('scaleMin', 'scaleMax', 'score'))
         if not low < high or not low <= value <= high:
             raise RunError('score outside its scale')
+        evaluator_name = _token(score['evaluator'], 'evaluator')
+        evaluator_version = _token(score['evaluatorVersion'], 'evaluator version')
         parsed.append({'rubric': f'{rubric[0]}@{rubric[1]}', 'evaluator':
-                       f"{_token(score['evaluator'], 'evaluator')}@{_token(score['evaluatorVersion'], 'evaluator version')}",
+                       f'{evaluator_name}@{evaluator_version}', 'evaluatorName': evaluator_name,
+                       'evaluatorVersion': evaluator_version,
                        'evaluatorKind': score['evaluatorKind'], 'scaleMin': low, 'scaleMax': high, 'score': value})
     for field in ('gameId', 'actorKey', 'reportedModel', 'pricingBasis', 'attemptId'):
         if field in data:
@@ -270,12 +273,13 @@ def load(directory):
     mismatch_omitted = sum(1 for row in rows if counts[row['id']] == 1 and len(hashes[row['bakeoff']['caseId']]) > 1)
     omitted += duplicate_omitted + mismatch_omitted
     # Quality only if the run declares one rubric and every scored attempt has exactly
-    # one score with the same rubric, evaluator, version and scale; otherwise none.
+    # one score with the same rubric, evaluator identity, kind and scale; otherwise none.
     scored = [r for r in kept if r['bakeoff']['scores']]
-    descriptors = {(sc['rubric'], sc['evaluator'], sc['scaleMin'], sc['scaleMax'])
+    descriptors = {(sc['rubric'], sc['evaluatorName'], sc['evaluatorVersion'], sc['evaluatorKind'], sc['scaleMin'], sc['scaleMax'])
                    for r in scored for sc in r['bakeoff']['scores']}
     if len(run['rubrics']) == 1 and len(descriptors) == 1 and all(len(r['bakeoff']['scores']) == 1 for r in scored):
-        rubric, evaluator, low, high = descriptors.pop()
+        rubric, evaluator_name, evaluator_version, kind, low, high = descriptors.pop()
+        evaluator = f'{evaluator_name}@{evaluator_version} ({kind})'
         quality_note = f'quality: {rubric} by {evaluator} on {low}–{high}; unscored attempts are unknown.'
         for row in kept:
             row['source'] += f' · {rubric} by {evaluator} on {low}–{high}'
