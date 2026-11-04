@@ -85,6 +85,14 @@ class BakeoffRunTests(unittest.TestCase):
         _, coverage = self.write(attempts=attempts)
         self.assertIn('no quality shown: no attempt was scored', coverage['reason'])
 
+    def test_multiple_scores_are_withheld_and_explained(self):
+        attempts = copy.deepcopy(self.attempts)
+        attempts[0]['scores'].append(copy.deepcopy(attempts[0]['scores'][0]))
+        rows, coverage = self.write(attempts=attempts)
+        self.assertEqual(len(rows), 4)
+        self.assertTrue(all(row['quality'] is None for row in rows))
+        self.assertIn('scores withheld: multiple scores per attempt', coverage['reason'])
+
     def test_shadow_live_and_bad_manifests_import_nothing(self):
         cases = [dict(environment='shadow_live'), dict(environment='live'), dict(schema='other'),
                  dict(completedAtUtc='2025-01-01T00:00:00Z'), dict(caseSet={'name': 'x', 'version': '1', 'sha256': 'abc'}),

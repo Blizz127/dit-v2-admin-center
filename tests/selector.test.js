@@ -57,8 +57,28 @@ setImmediate(async () => {
   context.renderModelCalls();
   assert.match(get('model-calls').children[1].children[1].textContent, /Imported: 3 · Omitted: 2 · Duplicate attempts withheld: 2 · Hash mismatch withheld: 0/);
   assert.match(get('model-calls').children[1].children[2].textContent, /scores withheld: evaluator mismatch/);
+  for (const reason of [
+    'scores withheld: score scale mismatch.',
+    'scores withheld: evaluator mismatch; score scale mismatch.',
+    'scores withheld: multiple scores per attempt.',
+    'scores withheld: run does not declare exactly one rubric.',
+    'no quality shown: no attempt was scored.',
+  ]) {
+    data.bakeoffRun = {status: 'Loaded', records: 0, omitted: 0, omittedDuplicate: 0, omittedHashMismatch: 0, reason};
+    context.renderModelCalls();
+    assert.equal(get('model-calls').children[1].children[0].textContent, 'Bake-off run: Loaded');
+    assert.match(get('model-calls').children[1].children[1].textContent, /Imported: 0 · Omitted: 0/);
+    assert.ok(get('model-calls').children[1].children[2].textContent.includes(reason));
+    assert.equal(get('model-calls').children[2].children[0].textContent, 'No model call examples');
+  }
+  data.bakeoffRun = {status: 'Not configured', records: 0, omitted: 0, reason: 'Import is off.'};
+  context.renderModelCalls();
+  assert.equal(get('model-calls').children[1].children[0].textContent, 'Bake-off run: Not configured');
+  assert.ok(get('model-calls').children[1].children[2].textContent.includes('Import is off.'));
   data.bakeoffRun = unavailableBakeoff;
   context.renderModelCalls();
+  assert.equal(get('model-calls').children[1].children[0].textContent, 'Bake-off run: Unavailable');
+  assert.ok(!get('model-calls').children[1].children[2].textContent.includes('no attempt was scored'));
   assert.match(get('game-status').children[0].children[1].textContent, /XP rate: Unknown · Server liveness: Unknown/);
   assert.match(get('bot-coverage').children[0].children[2].textContent, /registration does not establish online presence/);
   get('bot-search').value = 'absent';
