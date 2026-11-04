@@ -838,3 +838,28 @@ scope/version validation, atomic fixture updates, bounded idempotent retries and
 JSON-compatible audit/readback are described in
 [the mock contract proposal](HUB-CONTRACT-DRAFT.md#isolated-mock-routing-write-proposal--october-30).
 No authoritative write contract, live audit, credentials or deployment is implied.
+
+## Optional synthetic context capture
+
+`GET /api/context-capture` uses the existing Admin Bearer authentication and
+accepts no query parameters. Authentication runs before any capture file read.
+It returns `{status, capture}` where status is `Not configured`, `Loaded`, or
+`Unavailable`. The optional `DIT_CONTEXT_CAPTURE_FILE` names one local synthetic
+`dit.context-status-integration.v1` capture, bounded to 256 KiB. Missing, malformed,
+oversized, mismatched or non-synthetic inputs return `Unavailable` with a null
+capture. Leaf symlinks and non-regular files are refused; no cached old capture
+is retained. Unset configuration performs no capture file read.
+
+Loaded captures have a validated request/status identity, prompt SHA-256 and
+coverage counts; supported scope is synthetic FFXI or SWTOR companion/heard/intent.
+Known status must be fresh at its captured read time and match the prompt;
+unavailable fields cannot carry values. Only documented capture fields are
+exported. No filesystem path, token, unknown extra field, hub request or model
+call is introduced. A matching digest does not authenticate a producer.
+
+The Bots workspace has an explicit **Load configured offline capture** button.
+Its view is independent of roster selection and uses a 512 KiB response bound.
+It renders text nodes, clears old content on errors and ignores late responses
+after a session reset. The existing no-store/nosniff headers and no-write routes
+apply. This is an offline inspector, not the live hub packet feed or evidence of
+game delivery. Native browser rendering remains untested.

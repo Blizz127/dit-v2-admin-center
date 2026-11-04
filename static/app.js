@@ -9,6 +9,7 @@ let traceVersion = 0;
 let healthVersion = 0;
 let interactionVersion = 0;
 let sessionVersion = 0;
+let contextCaptureVersion = 0;
 let selectedBotId = null;
 let rosterRecordIndex = null;
 let rosterGapDownloadUrl = null;
@@ -153,6 +154,7 @@ function renderWakeVerification(data) {
   document.getElementById('wake-filter-empty').hidden = shown !== 0;
 }
 function resetPanelSession() {
+  resetContextCapture();
   renderPresenceExamples(null);
   document.getElementById('wake-readiness-filter').value = 'all';
   renderWakeVerification(null);
@@ -195,6 +197,56 @@ function item(parent, title, detail, meta) {
   const small = document.createElement('small'); small.textContent = meta || '';
   row.append(heading, text, small); parent.append(row);
 }
+function resetContextCapture() {
+  contextCaptureVersion++;
+  const panel = document.querySelector('#context-capture');
+  if (panel) { panel.replaceChildren(); panel.textContent = 'Not requested in this session.'; }
+  const button = document.querySelector('#context-capture-load');
+  if (button) button.disabled = false;
+}
+function renderContextCapture(data) {
+  const panel = document.querySelector('#context-capture');
+  panel.replaceChildren();
+  if (data.status === 'Not configured' && data.capture === null) { panel.textContent = 'No offline capture configured.'; return; }
+  const capture = data.capture, receipt = capture?.contextReceipt, binding = capture?.statusBinding, view = binding?.View;
+  if (data.status !== 'Loaded' || capture?.schema !== 'dit.context-status-integration.v1' || capture.synthetic !== true
+      || !['ffxi', 'swtor'].includes(capture.game) || !['companion', 'heard', 'intent'].includes(capture.path)
+      || capture.delivery !== 'not attempted' || capture.modelCall !== 'not attempted'
+      || !receipt || binding?.RequestId !== receipt.RequestId || !view || !Array.isArray(view.Fields) || view.Fields.length !== 6
+      || typeof capture.systemMessage !== 'string' || typeof capture.userMessage !== 'string'
+      || !Number.isInteger(receipt.IncludedHistoryTurns) || !Number.isInteger(receipt.SuppliedHistoryTurns)) throw new Error('invalid capture');
+  item(panel, `${capture.game.toUpperCase()} · ${capture.path} · Synthetic captured packet`,
+    `${receipt.IncludedHistoryTurns} / ${receipt.SuppliedHistoryTurns} supplied turns retained; ${receipt.OmittedHistoryTurns} omitted.`,
+    'No real model call or delivery attempted. This packet is independent of roster selection.');
+  for (const field of view.Fields) {
+    if (!field || !['Known', 'Stale', 'Unknown'].includes(field.State) || typeof field.Field !== 'string'
+        || typeof field.Reason !== 'string' || (field.State === 'Known' ? typeof field.Value !== 'string' : field.Value !== null)) throw new Error('invalid field');
+    item(panel, field.Field, `${field.State} · ${field.Value ?? 'Value withheld'}`, field.Reason);
+  }
+  item(panel, 'Captured source', `${view.Source} · policy ${view.FreshnessPolicyVersion} · read ${view.ReadAtUtc}`,
+    `Request ${receipt.RequestId} · status revision ${view.RevisionSha256}. Artifact consistency is not producer authenticity or live health.`);
+  const details = document.createElement('details'), summary = document.createElement('summary'), prompt = document.createElement('pre');
+  summary.textContent = 'Exact captured prompt';
+  prompt.setAttribute('tabindex', '0'); prompt.setAttribute('aria-label', 'Exact captured prompt');
+  prompt.textContent = `SYSTEM\n${capture.systemMessage}\n\nUSER\n${capture.userMessage}`;
+  details.append(summary, prompt); panel.append(details);
+}
+async function loadContextCapture() {
+  if (!token || workspace.hidden) return;
+  const id = ++contextCaptureVersion, requestToken = token, session = sessionVersion;
+  const panel = document.querySelector('#context-capture'), button = document.querySelector('#context-capture-load');
+  const current = () => id === contextCaptureVersion && panelSessionCurrent(requestToken, session);
+  panel.replaceChildren(); panel.textContent = 'Loading configured offline capture…'; button.disabled = true;
+  try {
+    const response = await fetch('/api/context-capture', {headers: {Authorization: `Bearer ${requestToken}`}, cache: 'no-store'});
+    if (!response.ok) throw new Error('unavailable');
+    const data = await readBoundedJson(response, 512 * 1024);
+    if (current()) renderContextCapture(data);
+  } catch (_) {
+    if (current()) { panel.replaceChildren(); panel.textContent = 'Offline capture unavailable. Previous packet content has been cleared.'; }
+  } finally { if (current()) button.disabled = false; }
+}
+document.querySelector('#context-capture-load')?.addEventListener('click', loadContextCapture);
 function renderInteraction(data, source) {
   const panel = document.querySelector('#interaction-status');
   panel.replaceChildren();

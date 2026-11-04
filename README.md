@@ -627,3 +627,18 @@ version checks, bounded retries, concurrent conflicts and audit copies. They
 also confirm the real HTTP handler still refuses the mock dispatch path with
 405. No write listener, UI control, provider call or live change is enabled.
 See [the proposed contract](docs/HUB-CONTRACT-DRAFT.md#isolated-mock-routing-write-proposal--october-30).
+
+### Inspect one synthetic conversation/status packet
+
+The Bots workspace includes **Load configured offline capture**. It is off until
+`DIT_CONTEXT_CAPTURE_FILE` points to a captured fixture, for example
+`tests/fixtures/context-status-integration/ffxi-companion.json` (resolve the path
+from the server's working directory). Use the existing local development startup
+and authentication; no new token or live hub access is needed. The endpoint is
+`GET /api/context-capture`, under the existing Admin Bearer check.
+
+The view pairs the exact prompt, retained history count and status binding from
+one offline integration test. It is independent of roster selection. Malformed
+or missing input clears the view; it never substitutes old or live data. See the
+[integration handoff](handoffs/context-status-integration-20261104/README.md) for
+source candidates, rollout/rollback and verification limits.

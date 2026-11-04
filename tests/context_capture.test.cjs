@@ -1,0 +1,46 @@
+// Actual click/session code; simulated DOM, no native browser or live request.
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const {get, refresh, context} = require('./overview_snapshot_harness.cjs');
+const capture = JSON.parse(fs.readFileSync('tests/fixtures/context-status-integration/ffxi-companion.json', 'utf8'));
+(async () => {
+  await refresh({});
+  const panel = get('context-capture'), button = get('context-capture-load');
+  let response = {status:'Loaded', capture};
+  context.fetch = async (path, options) => {
+    assert.equal(path, '/api/context-capture');
+    assert.equal(options.method || 'GET', 'GET');
+    assert.equal(options.headers.Authorization, 'Bearer synthetic-test-token');
+    assert.equal(options.cache, 'no-store');
+    return {ok:true, json:async()=>response};
+  };
+  await button.listeners.click();
+  assert.match(panel.textContent, /12 \/ 12 supplied turns retained/);
+  assert.ok(panel.textContent.includes(capture.userMessage));
+  assert.ok(panel.textContent.includes(capture.statusBinding.View.RevisionSha256));
+  assert.match(panel.textContent, /independent of roster selection/);
+  assert.equal(button.disabled, false);
+  response = {status:'Not configured', capture:null};
+  await button.listeners.click();
+  assert.equal(panel.textContent, 'No offline capture configured.');
+  response = {status:'Unavailable', capture:null};
+  await button.listeners.click();
+  assert.match(panel.textContent, /Offline capture unavailable/);
+  assert.ok(!panel.textContent.includes(capture.userMessage));
+  response = {status:'Loaded', capture:structuredClone(capture)};
+  response.capture.statusBinding.View.Fields[3].Value = 'leaked unavailable value';
+  await button.listeners.click();
+  assert.ok(!panel.textContent.includes('leaked unavailable value'));
+  assert.match(panel.textContent, /Offline capture unavailable/);
+  let resolve;
+  context.fetch = () => new Promise(done => {resolve=done;});
+  const pending = button.listeners.click();
+  assert.equal(button.disabled, true);
+  vm.runInContext('resetPanelSession()', context);
+  resolve({ok:true, json:async()=>({status:'Loaded', capture})});
+  await pending;
+  assert.equal(panel.textContent, 'Not requested in this session.');
+  assert.equal(button.disabled, false);
+  console.log('PASS: authenticated capture click, unavailable clearing, invalid fields and session-race suppression; native browser NOT RUN.');
+})().catch(error => {console.error(error); process.exitCode=1;});

@@ -7,6 +7,7 @@ healthy source.
 
 | Readers | Input and handling |
 | --- | --- |
+| `context_capture.py`; `tools/build_integrated_context_preview.py` | Optional 256 KiB synthetic context/status capture; validates scope, prompt digest, request binding, field states and captured freshness. Default off; invalid file clears the API capture. Extra file fields are not exported. No live producer access. |
 | `local_evidence.py`; `server.py` capacity/watcher; `lead_timeline.py`; `quota_history.py` | Bounded regular-file JSON reads; invalid, ambiguous, oversized or deeply nested snapshots return Unknown/unavailable. Quota history is a separate read-only SQLite projection. |
 | `lead_binding.py`; `session_markers.py` handoff/session metadata | Bounded local JSON; bad or ambiguous identity remains unverified. |
 | `session_markers.py`; `resume_signal.py` | Bounded JSONL tail; incomplete or invalid complete lines make coverage unavailable, not a claim that no event exists. The initial fragment of a truncated tail is discarded. |
@@ -14,7 +15,7 @@ healthy source.
 | `project_issues.py`; `wake_verification.py`; `evaluator_snapshot.py`; `bakeoff_run.py`; `hub_snapshot.py` | Existing bounded local inputs and type/shape checks; malformed input produces the reader's documented Unknown, unavailable, or counted-omission state. |
 | `live_hub.py`; `bridge_status.py` | Existing bounded external-response parsers and unavailable fallbacks. This review made no live call. |
 | `mock_routing_api.py` | Bounded synthetic in-process request body, invalid JSON refused; not a registered HTTP write route. |
-| `static/app.js` | Five API response readers share a 16 MiB streamed-byte bound, object-root check and depth limit. Errors follow each panel's unavailable or refresh-failure path. Native browser execution remains unverified. |
+| `static/app.js` | API response readers share streamed-byte bounds, object-root checks and a depth limit. The context capture reader uses 512 KiB; existing readers use 16 MiB. Errors follow each panel's unavailable or refresh-failure path. Native browser execution remains unverified. |
 | `tools/check_learning_assessment_schema.py`; `tools/check_wake_verification_schema.py`; `tools/check_offline_contracts.py` | Bounded synthetic schema, fixture and checker-report inputs; invalid checks fail rather than pass. |
 | `tools/build_inspector_playtest.py`; `tools/review_party_greeting.py` | Bounded synthetic fixture or explicitly supplied review metadata; bad build inputs fail without writing an artifact, and the metadata CLI returns unavailable. |
 | `tools/review_native_attempt.py`; `tools/run_keyboard_playtest.py` | Previously bounded receipt parsers; invalid receipts do not establish a pass. No device or browser was run in this review. |

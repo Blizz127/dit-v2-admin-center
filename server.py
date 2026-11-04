@@ -36,6 +36,7 @@ from bakeoff_run import from_env as bakeoff_run
 from wake_verification import read as read_wake_verification
 from operation_sources import read as read_operation_sources
 from local_evidence import read_json
+from context_capture import from_env as context_capture
 
 PROJECT = Path(__file__).resolve().parent
 ROOT = PROJECT / "static"
@@ -500,6 +501,11 @@ class Handler(BaseHTTPRequestHandler):
             expected = "Bearer " + self.server.admin_token
             if not hmac.compare_digest(supplied.encode(), expected.encode()):
                 self.send_content(401, "application/json", b'{"error":"unauthorized"}')
+            elif path == "/api/context-capture":
+                if target.query:
+                    self.send_content(400, "application/json", b'{"error":"context capture takes no parameters"}')
+                    return
+                self.send_content(200, "application/json", json.dumps(context_capture()).encode())
             elif path == "/api/hub-health":
                 if target.query:
                     self.send_content(400, "application/json", b'{"error":"invalid query"}')
