@@ -152,6 +152,15 @@ manifest withholds the run; bad attempts are counted and omitted. Snapshot view
 projections retain unknown values or isolate invalid views. These checks do not
 establish live data quality or native browser behavior.
 
+November 4 browser follow-up: the current bake-off panel's withholding, empty,
+unconfigured and unavailable states were exercised with a simulated DOM at
+`eafb56c`, not in a browser. A future owner-device or otherwise authorized native
+browser check of this newer panel remains pending; no such run has been dispatched
+or passed. Devbox has no Chromium, Chrome or Firefox executable on PATH, and its
+recorded user-namespace denial remains unresolved and was not retried. The
+separate device-lead handoff is pinned to the older `8eb2c9f` bundle; its pending
+result cannot verify this newer panel. See [native handoff](NATIVE-RUN-HANDOFF-8eb2c9f.md).
+
 A proposed bake-off run/attempt record that would close evaluator gaps (a)–(f) is in
 [the bake-off proposal](BAKEOFF-PRODUCER-PROPOSAL.md). The hub lead reviewed the shape on Nov 3, and the
 Admin Center importer is implemented offline behind `DIT_BAKEOFF_RUN_DIR`. Building
