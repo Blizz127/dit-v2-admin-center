@@ -1,5 +1,6 @@
 import copy
 import json
+from itertools import permutations
 from pathlib import Path
 import tempfile
 import unittest
@@ -110,7 +111,7 @@ class DeliveryCorrelationTests(unittest.TestCase):
         for reverse in (False, True):
             data = copy.deepcopy(self.data)
             conflict = copy.deepcopy(data['decisions'][0])
-            conflict['replies'][0].update(text_final='ARBITRARY_CONFLICTING_WORDING', bot='AnotherLabel')
+            conflict['replies'][0].update(text_final='ARBITRARY_CONFLICTING_WORDING', bot='AnotherLabel', verdict='dropped')
             data['decisions'].append(conflict)
             if reverse:
                 data['decisions'].reverse()
@@ -120,7 +121,49 @@ class DeliveryCorrelationTests(unittest.TestCase):
                 self.assertEqual(record['publication'], 'Conflict')
                 self.assertIsNone(record['text'])
                 self.assertIsNone(record['bot'])
+                self.assertIsNone(record['verdict'])
                 self.assertNotIn('ARBITRARY_CONFLICTING_WORDING', json.dumps(report))
+
+    def test_multiple_receipts_for_one_observation_keep_earliest_supplied_time(self):
+        later = self.data['receipts'][0] | dict(receiptId='later-receipt', receivedAtUtc='2030-01-01T00:00:30Z')
+        expected = None
+        for order in permutations([*self.data['receipts'], later]):
+            data = copy.deepcopy(self.data)
+            data['receipts'] = list(order)
+            report = self.check(data)
+            self.assertEqual(report['counts']['syntheticConfirmed'], 2)
+            row = next(row for row in report['records'] if row['inboxSeq'] == 41)
+            self.assertEqual(row['receivedAtUtc'], '2030-01-01T00:00:11Z')
+            self.assertEqual(row['observedAtUtc'], '2030-01-01T00:00:01Z')
+            if expected is None: expected = report
+            self.assertEqual(report, expected)
+
+    def test_receipt_collision_and_duplicate_orders_preserve_unrelated_evidence(self):
+        third = copy.deepcopy(self.data['decisions'][0])
+        third['replies'][0]['inbox_seq'] = 44
+        self.data['decisions'].append(third)
+        self.data['inbox'].append(self.data['inbox'][0] | {'seq': 44})
+        unrelated = self.data['receipts'][0] | dict(receiptId='unrelated-receipt', observationId='unrelated-observation', inboxSeq=44)
+        first, second = self.data['receipts']
+        second = second | {'receiptId': first['receiptId']}
+        expected = None
+        for order in permutations([first, second, copy.deepcopy(first), unrelated]):
+            data = copy.deepcopy(self.data)
+            data['receipts'] = list(order)
+            report = self.check(data)
+            self.assertEqual(report['counts']['syntheticConfirmed'], 1)
+            self.assertEqual(report['counts']['conflicted'], 2)
+            for record in report['records']:
+                if record['inboxSeq'] in (41, 42):
+                    self.assertEqual(record['fixtureConfirmation'], 'Conflict')
+                    self.assertIsNone(record['nativeObservationId'])
+                    self.assertIsNone(record['observedAtUtc'])
+                    self.assertIsNone(record['receivedAtUtc'])
+                elif record['inboxSeq'] == 44:
+                    self.assertEqual(record['fixtureConfirmation'], 'Synthetic match')
+            # Duplicate counting must also be independent of collision order.
+            if expected is None: expected = report
+            self.assertEqual(report, expected)
 
     def test_receipt_arrival_order_does_not_rewrite_native_observation_time(self):
         self.data['receipts'].reverse()

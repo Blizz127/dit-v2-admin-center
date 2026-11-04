@@ -19,6 +19,8 @@ def scenarios():
     conflict['receipts'][1]['observationId'] = conflict['receipts'][0]['observationId']
     publication_conflict = copy.deepcopy(ffxi)
     publication_conflict['inbox'].append(publication_conflict['inbox'][0] | {'text': 'A conflicting synthetic line'})
+    repeated = copy.deepcopy(ffxi)
+    repeated['receipts'].append(repeated['receipts'][0] | dict(receiptId='later-fixture-receipt', receivedAtUtc='2030-01-01T00:00:30Z'))
     verify_fixture = lambda _: True
     return [
         ('FFXI publication only', correlate(ffxi, enabled=True)),
@@ -28,6 +30,7 @@ def scenarios():
         ('SWTOR synthetic native matches', correlate(swtor, enabled=True, native_verifier=verify_fixture)),
         ('Disabled reader', correlate()),
         ('Unavailable capture', correlate({}, enabled=True)),
+        ('FFXI repeated observation receipts', correlate(repeated, enabled=True, native_verifier=verify_fixture)),
     ]
 
 
@@ -52,7 +55,7 @@ def build():
             rows.append('<tr>' + ''.join('<td>' + esc(cell) + '</td>' for cell in cells) + '</tr>')
         table = ('<div class="scroll" tabindex="0" role="region" aria-label="' + esc(name) + ' records"><table><thead><tr>'
                  '<th>Inbox sequence</th><th>Final wording</th><th>Publication</th><th>Fixture confirmation</th>'
-                 '<th>Actual game delivery</th><th>Native observation time (fixture)</th><th>Receipt time (fixture)</th><th>Reason</th>'
+                 '<th>Actual game delivery</th><th>Native observation time (fixture)</th><th>Receipt time (fixture; earliest supplied)</th><th>Reason</th>'
                  '</tr></thead><tbody>' + ''.join(rows) + '</tbody></table></div>') if rows else '<p>No records displayed.</p>'
         sections.append('<section><h2>' + esc(name) + '</h2><p>Status: ' + esc(report['status']) + '</p><p>' + esc(identity) +
                         '</p><p>' + esc(coverage) + '</p>' + table + '<p>' + esc(report['coverage']) + '</p>' +

@@ -55,7 +55,7 @@ Publication matching requires sequence, actor key, bot label, channel and exact
 final text. Text equality alone never correlates messages. A repeated sentence
 with two different sequences remains two attempts. Identical duplicate records
 do not inflate counts; conflicting records under one sequence withhold a result.
-Conflicting publication records also withhold wording/name, rather than letting
+Conflicting publication records also withhold wording/name/verdict, rather than letting
 their input order choose a sentence for the inspector.
 Drafts without a sequence are labelled by their capture positions, which are
 not promoted to native identities. A dropped draft is not evidence that no other
@@ -71,7 +71,12 @@ Self-declared `trusted` fields have no effect. No verifier is present by default
 Only a matching publication, identity, epoch, text and noncontradictory timing
 can produce `fixtureConfirmation: Synthetic match`. Receipt/observation ID
 collisions or multiple observation identities for one publication produce a
-conflict. Arrival order never replaces native observation time. The tool does
+conflict. Exact duplicate receipts are counted independently of where a
+conflicting receipt appears in the input. Multiple nonconflicting receipt IDs
+for the same observation keep the earliest validated `receivedAtUtc` in this
+supplied capture, not the last array entry. That is not the first receipt ever
+received or a latency measurement. Arrival order never replaces native
+observation time. The tool does
 not reorder the transcript or claim a global chronology across producers.
 
 Every output, including a synthetic match, retains:
@@ -104,7 +109,7 @@ synthetic input format; it never upgrades the actual-delivery fields. CLI exit
 path or its contents. The preview is static HTML, blocks connections, embeds no
 script, and includes source/fixture hashes. It is built locally, not copied to
 or launched on Alienware. The [browser checklist](CONTEXT-NATIVE-BROWSER-CHECKLIST.md)
-contains seven ready-to-run cases; execution remains NOT RUN under existing holds.
+contains eight ready-to-run cases; execution remains NOT RUN under existing holds.
 
 Initial verification at `0273b68` on 2026-11-04: all 14 focused tests in the two test modules
 passed, including duplicate/conflict and scope cases, file corruption/recovery,
@@ -132,16 +137,26 @@ No running environment or service has been configured by this source change.
 The actual panel is embedded in `Context-Panel-Playtest.html` alongside the
 context inspector. Its fake responses select FFXI/SWTOR from the capture choice
 and exercise unavailable/invalid/delayed paths with network connections blocked.
-This is distinct from the static seven-case delivery preview, whose explicitly
+This is distinct from the static eight-case delivery preview, whose explicitly
 fabricated verifier demonstrates synthetic native matches. See [API details](API.md).
 
 The loader follow-up passes 20 focused Python checks (correlation, CLI, API and
 artifact), plus the context and delivery simulated-DOM checks. Both local
 artifacts were rebuilt; neither was opened in a native browser or copied to a
-device. Current SHA-256 values:
+device. SHA-256 values at `f304686`:
 
 - `Delivery-Evidence-Preview.html`: `42862f03933e1e816dda0182e9423d6d371166c884271518a3c07441fff75b1c`
 - `Context-Panel-Playtest.html`: `3ed54ec429571af1a6c9f78c6913c667e07db597f2f68f38f72bb93829d1deab`
+
+The receipt-order follow-up passes 22 focused Python checks plus the delivery
+simulated-DOM check. Six permutations keep the earliest supplied time stable;
+24 collision/duplicate permutations preserve unrelated evidence and consistent
+counts. The latter initially reproduced an order-dependent duplicate count;
+the corrected implementation passes every case. No full suite or native browser
+was run. Current rebuilt artifact SHA-256 values:
+
+- `Delivery-Evidence-Preview.html`: `ca25cb7351b37453a278b1ef9bb9a43d39e1bca398b911cadf0a0bb7d36a1fae`
+- `Context-Panel-Playtest.html`: `e3d6f497cc3bce906ff82e3705f1ac7b6b0c3d23a3bbb6d3507744cd3d0cb7a2`
 
 ## What a real integration still needs
 

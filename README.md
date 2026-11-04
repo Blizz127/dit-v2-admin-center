@@ -668,6 +668,6 @@ performed by this feature.
 `python3 -m tools.build_context_capture_playtest` embeds the actual loader with
 two synthetic reports and network disabled. The separate
 `python3 -m tools.build_delivery_correlation_preview` produces a static preview
-of seven publication/receipt states, including explicitly fabricated native
+of eight publication/receipt states, including explicitly fabricated native
 matches. Both remain local artifacts with native browser NOT RUN; the
 [checklist](docs/CONTEXT-NATIVE-BROWSER-CHECKLIST.md) preserves device and live-game holds.

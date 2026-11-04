@@ -41,13 +41,14 @@ class DeliveryCorrelationPreviewTests(unittest.TestCase):
             self.assertEqual(self.cli('--enable-offline', '--capture', str(path)).returncode, 0)
         self.assertEqual(self.cli('--simulate-native-receipts').returncode, 2)
 
-    def test_seven_preview_states_keep_actual_delivery_unknown_without_active_content(self):
+    def test_eight_preview_states_keep_actual_delivery_unknown_without_active_content(self):
         cases = scenarios()
-        self.assertEqual(len(cases), 7)
+        self.assertEqual(len(cases), 8)
         self.assertEqual(cases[1][1]['counts']['syntheticConfirmed'], 2)
         self.assertEqual(cases[2][1]['counts']['conflicted'], 2)
         page = build()
-        self.assertEqual(page.count('<section>'), 7)
+        self.assertEqual(page.count('<section>'), 8)
+        self.assertEqual(cases[-1][1]['records'][0]['receivedAtUtc'], '2030-01-01T00:00:11Z')
         self.assertIn('Wording withheld: publication conflict', page)
         self.assertNotIn('A conflicting synthetic line', page)
         self.assertIn('Actual in-game delivery: Unknown', page)
@@ -56,7 +57,7 @@ class DeliveryCorrelationPreviewTests(unittest.TestCase):
         self.assertNotIn('<script', page)
         self.assertNotIn('src=', page)
         self.assertIn('Native observation time (fixture)', page)
-        self.assertIn('Receipt time (fixture)', page)
+        self.assertIn('Receipt time (fixture; earliest supplied)', page)
         cases[1][1]['records'][0]['text'] = '<img src=x onerror=alert(1)>'
         with patch('tools.build_delivery_correlation_preview.scenarios', return_value=cases):
             escaped = build()

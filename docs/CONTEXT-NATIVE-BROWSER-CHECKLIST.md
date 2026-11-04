@@ -110,7 +110,7 @@ No device copy or browser launch has been performed. The same device/namespace
 holds above apply; this checklist does not release them.
 
 Once the designated device step is released, record PASS/FAIL/BLOCKED/NOT RUN
-for each of these seven sections:
+for each of these eight sections:
 
 1. **FFXI publication only:** four recorded attempts, two publication matches,
    zero synthetic native matches. Actual game delivery must remain Unknown.
@@ -121,7 +121,7 @@ for each of these seven sections:
 3. **FFXI conflicting native observation IDs:** two conflicts, no synthetic
    matches. A receipt identity collision must not look like successful speech.
 4. **FFXI conflicting publication records:** sequence 41 must withhold its
-   wording/name and show a publication conflict; no arbitrary competing text
+   wording/name/verdict and show a publication conflict; no arbitrary competing text
    is chosen. Other independent records keep their own results.
 5. **SWTOR synthetic native matches:** the scope is SWTOR, not FFXI, with two
    synthetic matches. Its input shape is explicitly illustrative, not evidence
@@ -131,6 +131,11 @@ for each of these seven sections:
 7. **Unavailable capture:** no old prompt/message values or fabricated zeros.
    Counts are unavailable. The API/CLI input checks are separate Python tests;
    static browser rendering does not prove file handling or authentication.
+8. **FFXI repeated observation receipts:** still two synthetic native matches.
+   Sequence 41 keeps native observation time `00:00:01Z` and earliest supplied
+   receipt time `00:00:11Z`, despite an additional receipt at `00:00:30Z`.
+   All times use the fictional 2030-01-01 date. The native observation is counted
+   once; this is not a measurement of real first-receipt time or latency.
 
 At 1280 and 390 CSS pixels and 200% zoom, check readable banners, horizontal
 table scrolling, keyboard focus on each scroll region and disclosure, literal

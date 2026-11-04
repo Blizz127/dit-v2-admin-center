@@ -148,6 +148,7 @@ def _correlate(data, verifier):
     # in a file. Scope and IDs still have to match after fixture verification.
     receipts, rejected, receipt_duplicates = [], 0, 0
     by_receipt, by_observation, by_attempt = {}, {}, {}
+    seen_receipts = set()
     conflicts = set()
     for raw in rows(data['receipts']):
         try:
@@ -178,11 +179,12 @@ def _correlate(data, verifier):
             rejected += 1
             continue
         identity = fingerprint(receipt)
+        if identity in seen_receipts:
+            receipt_duplicates += 1
+            continue
+        seen_receipts.add(identity)
         old = by_receipt.get(receipt['receiptId'])
         if old is not None:
-            if old[0] == identity:
-                receipt_duplicates += 1
-                continue
             conflicts.update((old[1], seq))
         by_receipt[receipt['receiptId']] = (identity, seq)
         # Native observation IDs are unique within the explicit body/session.
@@ -200,7 +202,9 @@ def _correlate(data, verifier):
         attempt = attempts[('inbox', receipt['inboxSeq'])]
         if receipt['inboxSeq'] in conflicts:
             attempt.update(fixtureConfirmation='Conflict', reason='Verified fixture receipts disagree; no unique delivery conclusion.')
-        else:
+        elif attempt['receivedAtUtc'] is None or (timestamp(receipt['receivedAtUtc']), receipt['receivedAtUtc']) < (timestamp(attempt['receivedAtUtc']), attempt['receivedAtUtc']):
+            # Multiple receipt IDs can describe the same native observation.
+            # Keep the earliest supplied receipt time, not the last array entry.
             attempt.update(fixtureConfirmation='Synthetic match', reason='Fixture evidence matches; actual game delivery remains unknown.',
                            nativeObservationId=receipt['observationId'], observedAtUtc=receipt['observedAtUtc'],
                            receivedAtUtc=receipt['receivedAtUtc'])
@@ -208,8 +212,8 @@ def _correlate(data, verifier):
     for key, attempt in attempts.items():
         record = {'correlationId': fingerprint([scope, session, key]), **attempt}
         if record['publication'] == 'Conflict':
-            # A conflict has no chosen wording/name, regardless of input order.
-            record.update(text=None, bot=None)
+            # A conflict has no chosen wording/name/verdict, regardless of order.
+            record.update(text=None, bot=None, verdict=None)
         records.append(record)
     return base('Loaded') | dict(scope=scope, records=records, rejectedReceipts=rejected,
         counts=dict(recordedAttempts=len(records), publicationMatched=sum(r['publication'] == 'Matched' for r in records),
