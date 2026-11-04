@@ -1193,8 +1193,10 @@ function renderModelCalls() {
                                     ['bakeoffRun', 'Bake-off run', 'Offline recorded run; proposal shape, not live hub data.']]) {
     const snapshot = currentSnapshot[key];
     if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) continue;
+    const omissions = key === 'bakeoffRun' && metricNumber(snapshot.omittedDuplicate) && metricNumber(snapshot.omittedHashMismatch)
+      ? ` · Duplicate attempts withheld: ${snapshot.omittedDuplicate} · Hash mismatch withheld: ${snapshot.omittedHashMismatch}` : '';
     item(panel, `${label}: ${routingText(snapshot.status)}`,
-      `Imported: ${metricNumber(snapshot.records) ? snapshot.records : 'Unknown'} · Omitted malformed: ${metricNumber(snapshot.omitted) ? snapshot.omitted : 'Unknown'}`,
+      `Imported: ${metricNumber(snapshot.records) ? snapshot.records : 'Unknown'} · Omitted: ${metricNumber(snapshot.omitted) ? snapshot.omitted : 'Unknown'}${omissions}`,
       `${routingText(snapshot.reason, 'Reason unknown')} · ${note}`);
   }
   if (!calls.length) item(panel, 'No model call examples', 'No rows supplied.', 'This does not establish zero usage or cost.');

@@ -266,7 +266,9 @@ def load(directory):
     for row in rows:
         hashes.setdefault(row['bakeoff']['caseId'], set()).add(row['bakeoff']['inputSha256'])
     kept = [r for r in rows if counts[r['id']] == 1 and len(hashes[r['bakeoff']['caseId']]) == 1]
-    omitted += len(rows) - len(kept)
+    duplicate_omitted = sum(1 for row in rows if counts[row['id']] > 1)
+    mismatch_omitted = sum(1 for row in rows if counts[row['id']] == 1 and len(hashes[row['bakeoff']['caseId']]) > 1)
+    omitted += duplicate_omitted + mismatch_omitted
     # Quality only if the run declares one rubric and every scored attempt has exactly
     # one score with the same rubric, evaluator, version and scale; otherwise none.
     scored = [r for r in kept if r['bakeoff']['scores']]
@@ -290,6 +292,7 @@ def load(directory):
     case_label = 'case' if len(cases) == 1 else 'cases'
     revision = f"reported hub revision {run['hubRevision']}" if run['hubRevision'] else 'hub revision not reported'
     return kept, {'status': 'Loaded', 'records': len(kept), 'omitted': omitted,
+                  'omittedDuplicate': duplicate_omitted, 'omittedHashMismatch': mismatch_omitted,
                   'reason': f"Run {run['runId']} ({run['environment']}, cases {run['caseSet']}, input hash "
                             f"{run['canonicalization']}, {revision}). {len(kept)} retained of {slots} candidate slots "
                             f'across {len(cases)} identifiable {case_label}; total case set size unknown. '

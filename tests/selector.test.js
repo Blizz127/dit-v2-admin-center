@@ -47,11 +47,17 @@ setImmediate(async () => {
   assert.match(get('spend-example').children[0].children[1].textContent, /Settled: \$0.00 · Open reservations: Unknown · Budget: Unknown/);
   // Offline evaluator snapshot coverage renders literally, with zero imported shown as 0, not Unknown.
   assert.equal(get('model-calls').children[0].children[0].textContent, 'Evaluator snapshot: Loaded');
-  assert.match(get('model-calls').children[0].children[1].textContent, /Imported: 0 · Omitted malformed: 2/);
+  assert.match(get('model-calls').children[0].children[1].textContent, /Imported: 0 · Omitted: 2/);
   assert.match(get('model-calls').children[0].children[2].textContent, /Fixture reason · Offline file import; not live hub data or a bake-off/);
   assert.equal(get('model-calls').children[1].children[0].textContent, 'Bake-off run: Unavailable');
-  assert.match(get('model-calls').children[1].children[1].textContent, /Imported: 0 · Omitted malformed: Unknown/);
+  assert.match(get('model-calls').children[1].children[1].textContent, /Imported: 0 · Omitted: Unknown/);
   assert.match(get('model-calls').children[1].children[2].textContent, /Run reason · Offline recorded run; proposal shape, not live hub data/);
+  const unavailableBakeoff = data.bakeoffRun;
+  data.bakeoffRun = {status: 'Loaded', records: 3, omitted: 2, omittedDuplicate: 2, omittedHashMismatch: 0, reason: 'Partial run'};
+  context.renderModelCalls();
+  assert.match(get('model-calls').children[1].children[1].textContent, /Imported: 3 · Omitted: 2 · Duplicate attempts withheld: 2 · Hash mismatch withheld: 0/);
+  data.bakeoffRun = unavailableBakeoff;
+  context.renderModelCalls();
   assert.match(get('game-status').children[0].children[1].textContent, /XP rate: Unknown · Server liveness: Unknown/);
   assert.match(get('bot-coverage').children[0].children[2].textContent, /registration does not establish online presence/);
   get('bot-search').value = 'absent';

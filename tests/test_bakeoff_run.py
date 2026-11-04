@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import tempfile
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import bakeoff_run as run
@@ -106,6 +107,7 @@ class BakeoffRunTests(unittest.TestCase):
         rows, coverage = self.write(attempts=attempts)
         self.assertEqual([r['id'].split(':')[2:] for r in rows], [['case-2', 'example-b/example-b-v1/subscription_chat']])
         self.assertEqual(coverage['omitted'], 4)
+        self.assertEqual((coverage['omittedDuplicate'], coverage['omittedHashMismatch']), (2, 2))
         self.assertIn('1 retained of 4 candidate slots across 2 identifiable cases', coverage['reason'])
 
     def test_unidentifiable_or_missing_cases_do_not_imply_complete_coverage(self):
@@ -162,6 +164,25 @@ class BakeoffRunTests(unittest.TestCase):
         self.assertEqual(off['bakeoffRun']['status'], 'Not configured')
         self.assertEqual(on['bakeoffRun']['records'], 4)
         self.assertEqual(len(on['modelCalls']), len(off['modelCalls']) + 4)
+
+    def test_duplicate_counts_reach_authenticated_overview_api(self):
+        import server
+        from test_offline_inspector_handler import MemoryConnection
+        self.write(attempts=self.attempts + [self.attempts[0]])
+        wire = (b'GET /api/overview HTTP/1.1\r\nHost: fixture.invalid\r\n'
+                b'Authorization: Bearer fixture-token\r\nConnection: close\r\n\r\n')
+        connection = MemoryConnection(wire)
+        with patch.dict('os.environ', {run.ENV: str(self.root)}, clear=True), \
+             patch.object(Path, 'home', return_value=Path(self.temp.name)), \
+             patch('server.LOCAL_DATA', Path(self.temp.name) / 'local'):
+            server.Handler(connection, ('127.0.0.1', 0), SimpleNamespace(admin_token='fixture-token'))
+        head, body = bytes(connection.outgoing).split(b'\r\n\r\n', 1)
+        self.assertEqual(int(head.split()[1]), 200)
+        data = json.loads(body)
+        self.assertEqual((data['bakeoffRun']['records'], data['bakeoffRun']['omitted'],
+                          data['bakeoffRun']['omittedDuplicate'], data['bakeoffRun']['omittedHashMismatch']),
+                         (3, 2, 2, 0))
+        self.assertEqual(sum(row.get('id', '').startswith('bakeoff:') for row in data['modelCalls']), 3)
 
 
 if __name__ == '__main__':
