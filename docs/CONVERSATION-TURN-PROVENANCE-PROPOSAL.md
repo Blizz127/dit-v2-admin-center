@@ -99,3 +99,8 @@ consumer behavior; they cannot establish that a native game emits these
 receipts. Real producer mapping and native delivery confirmation remain the
 owning integrator's unresolved dependencies. This proposal does not unblock
 any held device, live-game or rollout step.
+
+The local [delivery evidence correlator](DELIVERY-EVIDENCE-CORRELATION.md) now
+exercises publication matching and separately verified synthetic receipts.
+It leaves actual delivery unknown and does not implement or accept this
+proposal as a native producer contract.

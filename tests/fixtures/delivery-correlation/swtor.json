@@ -1,0 +1,169 @@
+{
+  "schema": "dit.delivery-correlation-fixture.v1",
+  "synthetic": true,
+  "scope": {
+    "game": "swtor",
+    "realm": "synthetic-realm",
+    "instance": "synthetic-instance",
+    "thread": "synthetic-room",
+    "channel": "party",
+    "actorKey": "fixture-bot",
+    "nativeActorId": "synthetic-native-body",
+    "epoch": "synthetic-body-session"
+  },
+  "bridgeSession": "synthetic-bridge-session",
+  "decisions": [
+    {
+      "schema": "dit.chat.decision.v2",
+      "ts": "2030-01-01T00:00:00Z",
+      "game": "swtor",
+      "scope": "synthetic-room",
+      "channel": "party",
+      "heard": null,
+      "replies": [
+        {
+          "bot": "Fixture",
+          "actor_key": "fixture-bot",
+          "reply_to": "Player",
+          "is_reply": true,
+          "addressed": true,
+          "text_model": "yes, that same entrance",
+          "text_final": "yes, that same entrance",
+          "verdict": "sent",
+          "filters": [],
+          "delay_s": 1,
+          "inbox_seq": 41
+        }
+      ]
+    },
+    {
+      "schema": "dit.chat.decision.v2",
+      "ts": "2030-01-01T00:00:00Z",
+      "game": "swtor",
+      "scope": "synthetic-room",
+      "channel": "party",
+      "heard": null,
+      "replies": [
+        {
+          "bot": "Fixture",
+          "actor_key": "fixture-bot",
+          "reply_to": "Player",
+          "is_reply": true,
+          "addressed": true,
+          "text_model": "yes, that same entrance",
+          "text_final": "yes, that same entrance",
+          "verdict": "sent",
+          "filters": [],
+          "delay_s": 1,
+          "inbox_seq": 42
+        }
+      ]
+    },
+    {
+      "schema": "dit.chat.decision.v2",
+      "ts": "2030-01-01T00:00:00Z",
+      "game": "swtor",
+      "scope": "synthetic-room",
+      "channel": "party",
+      "heard": null,
+      "replies": [
+        {
+          "bot": "Fixture",
+          "actor_key": "fixture-bot",
+          "reply_to": "Player",
+          "is_reply": true,
+          "addressed": true,
+          "text_model": "a separate synthetic draft",
+          "text_final": "a separate synthetic draft",
+          "verdict": "sent",
+          "filters": [],
+          "delay_s": 1,
+          "inbox_seq": 43
+        }
+      ]
+    },
+    {
+      "schema": "dit.chat.decision.v2",
+      "ts": "2030-01-01T00:00:00Z",
+      "game": "swtor",
+      "scope": "synthetic-room",
+      "channel": "party",
+      "heard": null,
+      "replies": [
+        {
+          "bot": "Fixture",
+          "actor_key": "fixture-bot",
+          "reply_to": "Player",
+          "is_reply": true,
+          "addressed": true,
+          "text_model": "a separate synthetic draft",
+          "text_final": "a separate synthetic draft",
+          "verdict": "dropped",
+          "filters": [],
+          "delay_s": 1,
+          "inbox_seq": null
+        }
+      ]
+    }
+  ],
+  "inbox": [
+    {
+      "seq": 41,
+      "ts": 1893456000,
+      "channel": "party",
+      "bot": "Fixture",
+      "actorKey": "fixture-bot",
+      "text": "yes, that same entrance"
+    },
+    {
+      "seq": 42,
+      "ts": 1893456000,
+      "channel": "party",
+      "bot": "Fixture",
+      "actorKey": "fixture-bot",
+      "text": "yes, that same entrance"
+    }
+  ],
+  "receipts": [
+    {
+      "schema": "dit.synthetic-chat-receipt.v1",
+      "receiptId": "fixture-receipt-41",
+      "observationId": "fixture-observation-41",
+      "scope": {
+        "game": "swtor",
+        "realm": "synthetic-realm",
+        "instance": "synthetic-instance",
+        "thread": "synthetic-room",
+        "channel": "party",
+        "actorKey": "fixture-bot",
+        "nativeActorId": "synthetic-native-body",
+        "epoch": "synthetic-body-session"
+      },
+      "bridgeSession": "synthetic-bridge-session",
+      "inboxSeq": 41,
+      "textSha256": "6622aa4dfa267b22fd352dc2f8e3fecfebb79511f7ba6e0985f7d26ccf92e68f",
+      "observedAtUtc": "2030-01-01T00:00:01Z",
+      "receivedAtUtc": "2030-01-01T00:00:11Z"
+    },
+    {
+      "schema": "dit.synthetic-chat-receipt.v1",
+      "receiptId": "fixture-receipt-42",
+      "observationId": "fixture-observation-42",
+      "scope": {
+        "game": "swtor",
+        "realm": "synthetic-realm",
+        "instance": "synthetic-instance",
+        "thread": "synthetic-room",
+        "channel": "party",
+        "actorKey": "fixture-bot",
+        "nativeActorId": "synthetic-native-body",
+        "epoch": "synthetic-body-session"
+      },
+      "bridgeSession": "synthetic-bridge-session",
+      "inboxSeq": 42,
+      "textSha256": "6622aa4dfa267b22fd352dc2f8e3fecfebb79511f7ba6e0985f7d26ccf92e68f",
+      "observedAtUtc": "2030-01-01T00:00:02Z",
+      "receivedAtUtc": "2030-01-01T00:00:12Z"
+    }
+  ]
+}

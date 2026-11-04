@@ -89,6 +89,47 @@ execution stays with the designated device lead and its existing holds.
 
 ## Receipt and remaining limits
 
+### Prepared delivery-evidence preview
+
+This is a separate static read-only artifact, not a new live Admin endpoint.
+Build it locally with `python3 -m tools.build_delivery_correlation_preview` and
+record the SHA-256 of `build/context-slice/Delivery-Evidence-Preview.html`.
+No device copy or browser launch has been performed. The same device/namespace
+holds above apply; this checklist does not release them.
+
+Once the designated device step is released, record PASS/FAIL/BLOCKED/NOT RUN
+for each of these six sections:
+
+1. **FFXI publication only:** four recorded attempts, two publication matches,
+   zero synthetic native matches. Actual game delivery must remain Unknown.
+   The two identical sentences must appear as separate sequences (41 and 42).
+2. **FFXI synthetic native matches:** exactly two synthetic matches. The native
+   and receipt timestamps remain separate; all actual-delivery cells still say
+   Unknown, and the banner identifies the entire artifact as synthetic.
+3. **FFXI conflicting native observation IDs:** two conflicts, no synthetic
+   matches. A receipt identity collision must not look like successful speech.
+4. **SWTOR synthetic native matches:** the scope is SWTOR, not FFXI, with two
+   synthetic matches. Its input shape is explicitly illustrative, not evidence
+   of an installed SWTOR producer. Actual delivery remains Unknown.
+5. **Disabled reader:** no records or counts are shown. Separate automated tests
+   establish that disabled operation performs no file reads or verification.
+6. **Unavailable capture:** no old prompt/message values or fabricated zeros.
+   Counts are unavailable. The API/CLI input checks are separate Python tests;
+   static browser rendering does not prove file handling or authentication.
+
+At 1280 and 390 CSS pixels and 200% zoom, check readable banners, horizontal
+table scrolling, keyboard focus on each scroll region and disclosure, literal
+text rendering, and no outgoing requests. Compare embedded JSON and source
+hashes with the exact artifact. There are no replay, confirm or native action
+controls. The observed/receipt timestamps do not assert transcript chronology.
+Record this section's result separately from the interactive context panel;
+opening this static preview does not pass the panel fetch/session checks.
+
+See [delivery evidence correlation](DELIVERY-EVIDENCE-CORRELATION.md) for the
+source pins, duplicate/conflict rules and missing native receipt dependency.
+
+### Validation receipt
+
 Record a separate **PASS / FAIL / BLOCKED / NOT RUN** for every step, attaching
 screenshots only where permitted and useful. Record exact console/network
 errors without secrets. A blocked launch is not a failed feature assertion or
