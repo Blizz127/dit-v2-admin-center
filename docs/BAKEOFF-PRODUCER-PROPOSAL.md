@@ -156,5 +156,29 @@ has been imported. The importer enforces the review defaults:
   size and count limits.
 
 Rows join panel 4's model-call list and grouped comparison. A status line reports
-the run, canonicalization, revision and coverage. Checks:
-`tests/test_bakeoff_run.py` (9 tests) and a selector assertion for the status line.
+the run, canonicalization, revision and coverage. Focused checks are in
+`tests/test_bakeoff_run.py` and `tests/selector.test.js`.
+
+### Interpreting omissions and recovery
+
+1. In the model-call panel, **Not configured** means the run directory switch is
+   unset. **Unavailable** means the run as a whole could not be read or accepted;
+   its omitted count is Unknown, not zero. A `shadow_live` manifest is refused
+   while its owner decision is open.
+2. For a loaded run, **Omitted** counts invalid and withheld attempt records.
+   **Duplicate attempts withheld** counts every copy of a repeated case and
+   candidate, not just the extra copy. **Hash mismatch withheld** counts other
+   attempts whose case has conflicting input hashes. A duplicate with a conflicting
+   hash is counted only as a duplicate; other attempts for that case remain
+   withheld. The remaining omissions are invalid records. The full number of
+   expected cases is unknown because the manifest does not list them.
+3. Obtain a corrected export from its producer or correct the synthetic fixture;
+   do not guess an input hash or invent missing evidence. Keep one unambiguous
+   attempt per case and candidate and preserve the producer's actual input hashes.
+   Select **Refresh snapshot** to reread the configured files. The displayed
+   counts and rows are recalculated; resolve any remaining problems before drawing
+   conclusions. If changing the server's directory switch, restart the local server
+   with the intended configuration first.
+
+Refreshing is a local import, not a hub write or live bake-off. It does not lift
+the owner decisions governing player-text exports, live runs, scoring or access.
