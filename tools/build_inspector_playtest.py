@@ -16,10 +16,21 @@ from tools.review_party_greeting import decode_metadata, review
 from project_issues import read as read_project_issues
 from routing_audit import examples as routing_audit_examples
 from presence_examples import examples as presence_examples
+from local_evidence import read_bytes, read_json
+
+
+def fixture_json(path, expected):
+    try:
+        value = read_json(path, 256 * 1024)
+        if not isinstance(value, expected):
+            raise ValueError('Unexpected fixture type')
+        return value
+    except (OSError, ValueError, RecursionError) as error:
+        raise ValueError('Synthetic preview fixture unavailable') from error
 
 
 def snapshot():
-    payload = json.loads((ROOT / 'tests/fixtures/learning-evidence-e8c81be.json').read_text())
+    payload = fixture_json(ROOT / 'tests/fixtures/learning-evidence-e8c81be.json', dict)
     rows = project_learning(payload)
     for row in rows:
         row['game'] = 'FFXI'
@@ -29,7 +40,7 @@ def snapshot():
         'sessionMarkers', 'quotaHistory', 'modelCalls', 'safetyRecords', 'botDetails',
         'replyEvents', 'assignmentHistory', 'audit', 'gameStatus', 'serviceHealth',
         'issues', 'ledger', 'learningArtifacts', 'learningPlan')}
-    result.update(presenceExamples=presence_examples(), modelCalls=json.loads((ROOT / "data/fixtures/model-comparison.json").read_text()), issues=read_project_issues(), operationSources=read_operation_sources(), generatedAt='2026-01-01T12:00:00Z', learning=rows, routingAudit=routing_audit_examples(),
+    result.update(presenceExamples=presence_examples(), modelCalls=fixture_json(ROOT / 'data/fixtures/model-comparison.json', list), issues=read_project_issues(), operationSources=read_operation_sources(), generatedAt='2026-01-01T12:00:00Z', learning=rows, routingAudit=routing_audit_examples(),
                   hubFeeds=[dict(game='All', view='hub', status='Not configured',
                                  note='Offline harness; no hub access', at=None)],
                   ownerAttention=dict(coverage='Synthetic empty fixture', items=[]),
@@ -49,7 +60,12 @@ def source_fingerprints():
 
 
 def party_review_examples():
-    base = decode_metadata((ROOT / 'tests/fixtures/party-greeting-review.json').read_bytes())
+    raw = read_bytes(ROOT / 'tests/fixtures/party-greeting-review.json', 256 * 1024)
+    if len(raw) > 256 * 1024:
+        raise ValueError('Synthetic preview fixture unavailable')
+    base = decode_metadata(raw)
+    if not isinstance(base, dict):
+        raise ValueError('Synthetic preview fixture unavailable')
     owner = copy.deepcopy(base)
     owner['queuedReplies'] = []
     owner['ownerSpeech'] = dict(scope=copy.deepcopy(base['scope']), correlationId=base['greeting']['correlationId'],
@@ -88,7 +104,7 @@ def build():
     app = (ROOT / 'static/app.js').read_text()
     driver = (ROOT / 'tools/preview_progress.js').read_text() + '\n' + (ROOT / 'tools/assignment_keyboard_playtest.js').read_text() + '\n' + (ROOT / 'tools/inspector_playtest.js').read_text()
     data = json.dumps(snapshot()).replace('<', '\\u003c')
-    assignment_data = json.dumps(json.loads((ROOT / 'tests/fixtures/assignment-pages.json').read_text())).replace('<', '\\u003c')
+    assignment_data = json.dumps(fixture_json(ROOT / 'tests/fixtures/assignment-pages.json', dict)).replace('<', '\\u003c')
     script = '(async function () {\nconst fixture = ' + data + ';\nconst assignmentFixtures = ' + assignment_data + ';\n' + driver.replace('/* APPLICATION */', app) + '\n})();'
     if '</script' in script.lower() or '</style' in css.lower():
         raise ValueError('Unsafe inline asset terminator')
@@ -132,6 +148,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, default=ROOT / 'build/inspector-playtest.html')
     args = parser.parse_args()
+    try:
+        content = build()
+    except (OSError, ValueError, TypeError, KeyError, RecursionError):
+        parser.exit(1, 'Synthetic preview inputs unavailable; no artifact written.\n')
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(build())
+    args.output.write_text(content)
     print(f'Created {args.output}; open locally in a browser. Browser checks have NOT run.')

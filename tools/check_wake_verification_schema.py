@@ -11,6 +11,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from wake_verification import GAMES, HELD, project, timestamp
+from local_evidence import read_json
 
 
 def main(root=ROOT):
@@ -23,8 +24,8 @@ def main(root=ROOT):
     schema_path = root / 'schemas/wake-verification-v1.schema.json'
     directory = root / 'tests/fixtures/wake-verification'
     try:
-        schema = json.loads(schema_path.read_text())
-        cases = json.loads((root / 'schemas/wake-verification-v1.cases.json').read_text())
+        schema = read_json(schema_path, 256 * 1024)
+        cases = read_json(root / 'schemas/wake-verification-v1.cases.json', 256 * 1024)
         discovered = {p.relative_to(directory).as_posix() for p in directory.rglob('*.json')}
         if not isinstance(cases, dict) or not cases or set(cases) != discovered:
             raise ValueError('Fixture inventory mismatch')
@@ -47,7 +48,7 @@ def main(root=ROOT):
                                 for game in expected['verifiedGames']) or
                         len(set(expected['verifiedGames'])) != len(expected['verifiedGames'])):
                     raise ValueError('Invalid expectations')
-                payload = json.loads((directory / name).read_text())
+                payload = read_json(directory / name, 256 * 1024)
                 if validator.is_valid(payload) != expected['schemaValid']:
                     raise ValueError('Structure disagreement')
                 result = project(payload, datetime(2026, 1, 2, tzinfo=timezone.utc))
@@ -58,7 +59,7 @@ def main(root=ROOT):
                         any(rows[game] != 'Held' for game in HELD) or
                         any(rows[game] != 'Unverified' for game in set(GAMES) - HELD - verified)):
                     raise ValueError('Projection disagreement')
-    except (OSError, ValueError, TypeError, AssertionError, SchemaError):
+    except (OSError, ValueError, TypeError, AssertionError, RecursionError, SchemaError):
         print(json.dumps({'status': 'failed', 'reason': 'Wake schema/fixture/projection checks did not agree'}))
         return 1
     print(json.dumps({

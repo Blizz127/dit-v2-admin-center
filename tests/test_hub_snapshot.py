@@ -85,6 +85,15 @@ class HubSnapshotTests(unittest.TestCase):
         (self.root / 'manifest.json').unlink()
         self.assertEqual(read_views(SnapshotReader(self.root, NOW))['bots'], {})
 
+    def test_malformed_manifest_bytes_withhold_all_views(self):
+        path = self.root / 'manifest.json'
+        for raw in (b' ' * 4097, b'{"broken":', b'[]', b'[' * 2000 + b']' * 2000):
+            with self.subTest(size=len(raw)):
+                path.write_bytes(raw)
+                result = read_views(SnapshotReader(self.root, NOW))
+                self.assertEqual((result['bots'], result['learning'], result['gameStatus']), ({}, {}, {}))
+                self.assertTrue(all(feed['status'] == 'Unavailable' for feed in result['feeds']))
+
     def test_unsafe_or_invalid_view_files_fall_back_per_view(self):
         (self.root / 'ffxi/bots.json').write_text('[{"key":"a","name":"A"},{"key":"a","name":"B"}]')
         (self.root / 'ffxi/learning.json').write_text('{"gameId": "ffxi", "gameId": "swtor"}')

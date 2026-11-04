@@ -163,6 +163,14 @@ def lead_monitoring():
     return result
 
 
+def model_call_examples():
+    try:
+        rows = read_json(PROJECT / 'data/fixtures/model-comparison.json', 256 * 1024)
+        return rows if isinstance(rows, list) else None
+    except (OSError, ValueError, RecursionError):
+        return None
+
+
 def overview(source='mock'):
     # Synthetic r10 light/task-only shape; never fetched from the hub.
     projected = project_learning({'gameId': 'ffxi', 'tasks': [{
@@ -194,6 +202,7 @@ def overview(source='mock'):
     evaluator_rows, evaluator_coverage = evaluator_snapshot()
     # Off unless DIT_BAKEOFF_RUN_DIR names a recorded offline run; no hub read or AI spend.
     bakeoff_rows, bakeoff_coverage = bakeoff_run()
+    example_calls = model_call_examples()
     lead_history = add_current_evidence(timeline(Path.home() / '.local/share/devbox-coordinator-state'), monitoring)
     add_checkout_history(lead_history, {'DIT v2 hub lead': hub_project, 'Admin Center lead': PROJECT})
     snapshot = {
@@ -252,7 +261,7 @@ def overview(source='mock'):
         "spendExample": synthetic_spend,
         "routingAudit": routing_audit_examples(),
         "presenceExamples": presence_examples(),
-        "modelCalls": json.loads((PROJECT / "data/fixtures/model-comparison.json").read_text()) + evaluator_rows + bakeoff_rows,
+        "modelCalls": None if example_calls is None else example_calls + evaluator_rows + bakeoff_rows,
         "evaluatorSnapshot": evaluator_coverage,
         "bakeoffRun": bakeoff_coverage,
         "audit": [

@@ -73,7 +73,7 @@ class OfflineOverviewCollectionTests(unittest.TestCase):
         self.local.mkdir()
         with closing(self.connect(self.local / 'codex-quota.sqlite')) as db, db:
             db.execute('CREATE TABLE samples(account TEXT, observed REAL, window TEXT, used REAL)')
-            db.execute('INSERT INTO samples VALUES (?,?,?,?)', ('synthetic-account', 1767225600, 'unified5h', 0.25))
+            db.execute('INSERT INTO samples VALUES (?,?,?,?)', ('0123456789abcdef', 1767225600, 'unified5h', 0.25))
 
     def fingerprint(self):
         return {str(path.relative_to(self.home)): hashlib.sha256(path.read_bytes()).hexdigest()

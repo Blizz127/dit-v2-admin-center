@@ -26,7 +26,7 @@ try:
             try:
                 data = json.loads(os.read(fd, 4097))
                 if data == {'state': 'failed', 'reason': 'delayed_delivery_failed'}: result['markerReason'] = 'delayed_delivery_failed'
-            except (ValueError, UnicodeError): pass
+            except (ValueError, UnicodeError, RecursionError): pass
     finally: os.close(fd)
 except FileNotFoundError:
     try:
@@ -77,7 +77,7 @@ class BridgeObserver:
                     raise ValueError('fault classification without marker')
                 self.cached = {key: data[key] for key in ('observedAt', *allowed)}
                 self.cached['source'] = 'Read-only Banshee SSH; bridge unit and private fault marker'
-            except (OSError, subprocess.SubprocessError, ValueError, TypeError, KeyError):
+            except (OSError, subprocess.SubprocessError, ValueError, TypeError, KeyError, RecursionError):
                 self.cached = unknown
             self.checked = now
             return dict(self.cached)

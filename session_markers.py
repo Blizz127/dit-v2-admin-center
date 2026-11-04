@@ -10,6 +10,7 @@ import re
 import os
 import uuid
 import sqlite3
+from local_evidence import read_json, read_tail
 
 MAX_TAIL = 256 * 1024
 PATTERNS = (
@@ -20,12 +21,11 @@ PATTERNS = (
 
 def scan(path, source='Codex system event heuristic'):
     try:
-        with path.open('rb') as stream:
-            stream.seek(0, 2)
-            size = stream.tell()
-            stream.seek(max(0, size - MAX_TAIL))
-            lines = stream.read(MAX_TAIL).splitlines()
+        size, raw = read_tail(path, MAX_TAIL)
+        lines = raw.splitlines()
         if size > MAX_TAIL:
+            if len(lines) <= 1:
+                return None  # No complete bounded line is available.
             lines = lines[1:]  # first line may be partial
         hits = []
         for raw in lines:
@@ -53,8 +53,8 @@ def scan(path, source='Codex system event heuristic'):
                     marker = next((name for name, pattern in PATTERNS if pattern.search(message)), None)
                 if marker:
                     hits.append({'kind': marker, 'observedAt': at, 'source': source})
-            except (ValueError, TypeError, AttributeError):
-                continue
+            except (ValueError, TypeError, AttributeError, RecursionError):
+                return None  # Incomplete tail cannot establish marker coverage.
         return hits[-10:]
     except OSError:
         return None
@@ -86,7 +86,7 @@ def claude_markers(native_root, project, tmux_session, lead):
         candidates = []
         for file in (native_root / 'sessions').glob('*.json'):
             try:
-                data = json.loads(file.read_text())
+                data = read_json(file, 256 * 1024)
                 pid, session = data.get('pid'), data.get('sessionId')
                 if type(pid) is not int or pid <= 1 or not data.get('messagingSocketPath') or data.get('peerProtocol') != 1:
                     continue
@@ -95,7 +95,7 @@ def claude_markers(native_root, project, tmux_session, lead):
                     continue
                 uuid.UUID(session)
                 candidates.append(session)
-            except (OSError, ValueError, TypeError, AttributeError):
+            except (OSError, ValueError, TypeError, AttributeError, RecursionError):
                 continue
         if len(candidates) != 1:
             return unknown('no unique live native Claude session matching configured cwd and tmux')
@@ -119,7 +119,7 @@ def handoff_codex_markers(database, sessions_root, project, lane_path, lead):
     def unknown(reason):
         return {'lead': lead, 'coverage': 'Session marker coverage unknown: ' + reason, 'markers': []}
     try:
-        lane = json.loads(lane_path.read_text())
+        lane = read_json(lane_path, 256 * 1024)
         marker = lane.get('marker')
         if lane.get('provider') != 'codex' or lane.get('cwd') != str(project) or not isinstance(marker, str) or not marker:
             return unknown('handoff provider, project, or marker is missing or mismatched')
@@ -134,7 +134,7 @@ def handoff_codex_markers(database, sessions_root, project, lane_path, lead):
         if markers is None:
             return unknown('bound rollout is unavailable')
         return {'lead': lead, 'coverage': 'Coordinator handoff binds one thread; live process unverified. Recent rollout tail only.', 'markers': markers}
-    except (OSError, ValueError, TypeError, sqlite3.Error):
+    except (OSError, ValueError, TypeError, AttributeError, RecursionError, sqlite3.Error):
         return unknown('handoff metadata or bound rollout is unavailable')
 
 

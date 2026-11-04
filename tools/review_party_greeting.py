@@ -8,6 +8,8 @@ from datetime import datetime
 import json
 import math
 from pathlib import Path
+import os
+import stat
 
 
 def timestamp(value):
@@ -111,11 +113,16 @@ def main():
     parser.add_argument('metadata', type=Path, help='Explicit local redacted review JSON; no live collection')
     args = parser.parse_args()
     try:
-        with args.metadata.open('rb') as source:
+        fd = os.open(args.metadata, os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW)
+        with os.fdopen(fd, 'rb') as source:
+            if not stat.S_ISREG(os.fstat(source.fileno()).st_mode):
+                raise ValueError('not a regular file')
             raw = source.read(65537)
         if len(raw) > 65536:
             raise ValueError('oversized')
         data = decode_metadata(raw)
+        if not isinstance(data, dict):
+            raise ValueError('invalid metadata type')
     except (OSError, ValueError, RecursionError):
         parser.exit(2, 'Unavailable or invalid review metadata; no evidence assessed.\n')
     print(json.dumps(review(data), indent=2))

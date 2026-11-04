@@ -2,12 +2,12 @@
 from contextlib import closing
 from datetime import datetime, timezone
 import hashlib
-import json
 import math
 import os
 import re
 from pathlib import Path
 import sqlite3
+from local_evidence import read_json
 
 WINDOWS = ('unified5h', 'unified7d')
 MAX_ROWS = 10000
@@ -24,9 +24,7 @@ def finite_number(value):
 
 def observations(path):
     try:
-        if path.stat().st_size > 1_000_000:
-            return []
-        data = json.loads(path.read_text())
+        data = read_json(path, 1_000_000)
         accounts = data.get('accounts', {})
         if not isinstance(accounts, dict):
             return []

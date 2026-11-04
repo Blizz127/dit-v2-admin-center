@@ -27,6 +27,14 @@ class BridgeObserverTests(unittest.TestCase):
         self.assertEqual(result['unit'], 'unknown')
         self.assertNotIn('private', str(result))
 
+    def test_malformed_or_oversized_status_is_unknown(self):
+        for payload in (' ' * 4097, '{"unit":', '[]', '{"unit": []}', '[' * 2000 + ']' * 2000):
+            with self.subTest(size=len(payload)):
+                observer = BridgeObserver(lambda *args, **kwargs: SimpleNamespace(stdout=payload), lambda: 0)
+                result = observer.read()
+                self.assertEqual(result['unit'], 'unknown')
+                self.assertEqual(result['marker'], 'unknown')
+
     def test_rejects_missing_timestamp_or_fault_without_marker(self):
         good = {'observedAt': '2026-01-01T00:00:00Z', 'unit': 'active', 'substate': 'running',
                 'result': 'success', 'marker': 'absent', 'markerReason': 'unknown'}

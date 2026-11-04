@@ -71,7 +71,7 @@ class EvaluatorSnapshotTests(unittest.TestCase):
         rows, coverage = snap.load(self.write([self.records[1], self.records[1]]))
         self.assertEqual((len(rows), coverage['omitted']), (1, 1))
         for raw in (b'{"a": 1}', b'[NaN]', b'[{"RequestId": "a", "RequestId": "b"}]', b'\xff',
-                    b'[' + b' ' * snap.LIMIT + b']'):
+                    b'[' * 20000 + b']' * 20000, b'[' + b' ' * snap.LIMIT + b']'):
             rows, coverage = snap.load(self.write(None, raw))
             self.assertEqual((rows, coverage['status']), ([], 'Unavailable'))
             self.assertNotIn('RequestId', coverage['reason'])

@@ -6,6 +6,7 @@ Only minimal identity fields leave this module; command lines are never returned
 import json
 import sqlite3
 import uuid
+from local_evidence import read_bytes
 from contextlib import closing
 from pathlib import Path
 
@@ -37,8 +38,7 @@ def current_codex_binding(lane_path, database, project, proc_root=Path('/proc'))
     unknown = {'provider': None, 'thread': None,
                'coverage': 'Current lead process binding is unverified'}
     try:
-        with lane_path.open('rb') as stream:
-            raw = stream.read(262145)
+        raw = read_bytes(lane_path, 262144)
         if len(raw) > 262144:
             return unknown
         lane = json.loads(raw)
@@ -67,5 +67,5 @@ def current_codex_binding(lane_path, database, project, proc_root=Path('/proc'))
             return unknown
         return {'provider': 'codex', 'thread': thread,
                 'coverage': 'Coordinator handoff, native process and thread metadata agree; activity and quota unverified'}
-    except (OSError, ValueError, TypeError, AttributeError, sqlite3.Error):
+    except (OSError, ValueError, TypeError, AttributeError, RecursionError, sqlite3.Error):
         return unknown

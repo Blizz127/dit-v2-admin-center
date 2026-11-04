@@ -67,7 +67,7 @@ class MockRoutingAPITests(unittest.TestCase):
                    {**self.data, 'reason':'x'*257}, {**self.data, 'reason':'bad\x00'},
                    {**self.data, 'requestId':'../../OMIT_PRIVATE'}]
         bodies = [json.dumps(data).encode() for data in invalid]
-        bodies += [b'\xff', b'{"contract":"OMIT_PRIVATE","contract":"duplicate"}',
+        bodies += [b'\xff', b'[' * 7000 + b']' * 7000, b'{"contract":"OMIT_PRIVATE","contract":"duplicate"}',
                    b'{"x":NaN}', b'not JSON OMIT_PRIVATE']
         for body in bodies:
             with self.subTest(body=body[:32]):

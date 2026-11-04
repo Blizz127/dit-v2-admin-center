@@ -16,6 +16,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from learning_assessment_draft import _timestamp, review
+from local_evidence import read_json
 
 
 def main(root=ROOT):
@@ -29,8 +30,8 @@ def main(root=ROOT):
     schema_path = root / 'schemas/learning-assessment-draft-v1.schema.json'
     fixture_root = root / 'tests/fixtures/learning-assessment-draft'
     try:
-        schema = json.loads(schema_path.read_text())
-        cases = json.loads((root / 'schemas/learning-assessment-draft-v1.cases.json').read_text())
+        schema = read_json(schema_path, 256 * 1024)
+        cases = read_json(root / 'schemas/learning-assessment-draft-v1.cases.json', 256 * 1024)
         discovered = {p.relative_to(fixture_root).as_posix() for p in fixture_root.rglob('*.json')}
         if not isinstance(cases, dict) or not cases or set(cases) != discovered or 'mixed.json' not in cases:
             raise ValueError('Fixture inventory mismatch')
@@ -39,8 +40,10 @@ def main(root=ROOT):
                     type(expected['schemaValid']) is not bool or
                     expected['reviewStatus'] not in ('reviewed-synthetic', 'unavailable')):
                 raise ValueError('Invalid case expectations')
-        fixtures = {name: json.loads((fixture_root / name).read_text()) for name in sorted(cases)}
-    except (OSError, ValueError):
+        fixtures = {name: read_json(fixture_root / name, 256 * 1024) for name in sorted(cases)}
+        if not isinstance(fixtures['mixed.json'], dict) or not isinstance(fixtures['mixed.json'].get('scope'), dict):
+            raise ValueError('Invalid mixed fixture')
+    except (OSError, ValueError, TypeError, RecursionError):
         print(json.dumps({'status': 'failed', 'reason': 'Draft schema/fixture inventory is incomplete or invalid'}))
         return 1
     mixed = fixtures['mixed.json']
@@ -93,7 +96,7 @@ def main(root=ROOT):
                 require(validator.is_valid(payload), f'structurally valid semantic case {index}')
                 require(review(payload, scope, now=now, max_age_seconds=300)['status'] == 'unavailable',
                         f'semantic refusal {index}')
-    except (ValueError, AssertionError, SchemaError):
+    except (ValueError, TypeError, AssertionError, RecursionError, SchemaError):
         print(json.dumps({'status': 'failed', 'reason': 'Draft schema/semantic checks did not agree'}))
         return 1
 

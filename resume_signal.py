@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 import json
 import sqlite3
+from local_evidence import read_tail
 
 MAX_TAIL = 256 * 1024
 
@@ -18,11 +19,12 @@ def parse_time(value):
 
 def work_items(path):
     try:
-        with path.open('rb') as stream:
-            stream.seek(0, 2); size = stream.tell()
-            stream.seek(max(0, size - MAX_TAIL)); lines = stream.read(MAX_TAIL).splitlines()
+        size, raw = read_tail(path, MAX_TAIL)
+        lines = raw.splitlines()
         truncated = size > MAX_TAIL
         if truncated:
+            if len(lines) <= 1:
+                return None  # No complete bounded line is available.
             lines = lines[1:]
         times, items = [], []
         for line in lines:
@@ -35,8 +37,8 @@ def work_items(path):
                 payload = record.get('payload') or {}
                 if record.get('type') == 'response_item' and isinstance(payload, dict) and payload.get('type') in ('function_call', 'custom_tool_call'):
                     items.append(at)
-            except (ValueError, TypeError, AttributeError):
-                continue
+            except (ValueError, TypeError, AttributeError, RecursionError):
+                return None  # Incomplete tail cannot establish the first work item.
         return {'truncated': truncated, 'earliest': min(times) if times else None, 'items': sorted(items)}
     except OSError:
         return None

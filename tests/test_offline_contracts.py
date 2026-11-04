@@ -1,5 +1,6 @@
 """Discovery hook for real schema validation; missing engine fails explicitly."""
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
@@ -8,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -91,6 +93,29 @@ class OfflineContractChecks(unittest.TestCase):
         cases['cross-instance-refusal.json']['reviewStatus'] = 'reviewed-synthetic'
         manifest.write_text(json.dumps(cases))
         self.assertEqual(self.run_check(root).returncode, 1)
+
+    def test_schema_readers_reject_oversized_truncated_nested_and_wrong_type_inputs(self):
+        for name in ('learning-assessment-draft-v1.schema.json', 'wake-verification-v1.schema.json'):
+            root = self.copy_inputs()
+            path = root / 'schemas' / name
+            for raw in (b' ' * (256 * 1024 + 1), b'{"broken":', b'[]', b'[' * 20000 + b']' * 20000):
+                with self.subTest(name=name, size=len(raw)):
+                    path.write_bytes(raw)
+                    result = self.run_check(root)
+                    self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                    self.assertEqual(json.loads(result.stdout)['status'], 'failed')
+
+    def test_invalid_checker_report_fails_closed(self):
+        from tools import check_offline_contracts
+        for raw in (' ' * (256 * 1024 + 1), '{"incomplete":', '[]', '[' * 20000 + ']' * 20000):
+            def checker(_root):
+                print(raw)
+                return 0
+            output = io.StringIO()
+            with self.subTest(size=len(raw)), patch.dict(check_offline_contracts.CHECKERS,
+                    {name: checker for name in check_offline_contracts.CHECKERS}, clear=True), redirect_stdout(output):
+                self.assertEqual(check_offline_contracts.main(ROOT), 1)
+            self.assertEqual(json.loads(output.getvalue())['status'], 'failed')
 
     def test_missing_engine_and_invalid_override_are_explicit_failures(self):
         environment = dict(os.environ)

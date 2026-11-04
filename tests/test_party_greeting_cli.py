@@ -1,5 +1,6 @@
 """Invoke the offline reviewer with temporary synthetic files, never live logs."""
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -23,7 +24,7 @@ class PartyGreetingCLITests(unittest.TestCase):
             return result
 
     def test_invalid_files_are_redacted_and_never_produce_an_assessment(self):
-        cases = [None, b'', b'{"OMIT_PRIVATE_CHAT":', b'\xff', b' ' * 65537,
+        cases = [None, b'', b'{"OMIT_PRIVATE_CHAT":', b'\xff', b'[]', b' ' * 65537,
                  b'[' * 10000 + b']' * 10000,
                  b'{"ownerGenerated":false,"ownerGenerated":true}',
                  b'{"scope":{"botId":"one","botId":"two"}}',
@@ -49,3 +50,13 @@ class PartyGreetingCLITests(unittest.TestCase):
         self.assertEqual(assessment['nativeSpeech'], 'Unknown')
         self.assertEqual(assessment['modelOrigin'], 'Unknown')
         self.assertNotIn('passed', assessment.values())
+
+    def test_fifo_is_refused_without_waiting_for_a_writer(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'metadata.json'
+            os.mkfifo(path)
+            result = subprocess.run([sys.executable, str(ROOT / 'tools/review_party_greeting.py'), str(path)],
+                                    capture_output=True, text=True, timeout=3)
+            self.assertEqual(result.returncode, 2)
+            self.assertEqual(result.stdout, '')
+            self.assertIn('Unavailable or invalid review metadata', result.stderr)

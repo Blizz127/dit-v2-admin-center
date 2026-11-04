@@ -23,6 +23,41 @@ let bridgePending = false;
 let selectedLearningId = null;
 let token = sessionStorage.getItem('dit-admin-token') || '';
 let selectedWorkspaceSection = null;
+async function readBoundedJson(response, limit = 16 * 1024 * 1024) {
+  let data;
+  if (response.body && typeof response.body.getReader === 'function') {
+    const reader = response.body.getReader(), decoder = new TextDecoder('utf-8', {fatal: true});
+    let size = 0, text = '';
+    try {
+      while (true) {
+        const chunk = await reader.read();
+        if (chunk.done) break;
+        size += chunk.value.byteLength;
+        if (size > limit) throw new Error('response too large');
+        text += decoder.decode(chunk.value, {stream: true});
+      }
+      data = JSON.parse(text + decoder.decode());
+    } catch (error) {
+      try { await reader.cancel(); } catch (_) {}
+      throw error;
+    }
+  } else {
+    // A null body fails JSON parsing in a browser; test doubles supply json().
+    data = await response.json();
+  }
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    const error = new Error('invalid response'); error.invalidShape = true; throw error;
+  }
+  const pending = [[data, 0]];
+  while (pending.length) {
+    const [value, depth] = pending.pop();
+    if (depth > 128) throw new Error('response too deeply nested');
+    if (value && typeof value === 'object') {
+      for (const child of Object.values(value)) if (child && typeof child === 'object') pending.push([child, depth + 1]);
+    }
+  }
+  return data;
+}
 function markWorkspaceSection(section) {
   selectedWorkspaceSection = workspaceSections.includes(section) ? section : null;
   for (const key of workspaceSections) document.getElementById('nav-' + key).setAttribute('aria-current',
@@ -204,7 +239,7 @@ async function loadInteraction() {
   try {
     const response = await fetch('/api/interaction', {headers: {Authorization: `Bearer ${requestToken}`}, cache: 'no-store'});
     if (!response.ok) throw new Error('unavailable');
-    const data = await response.json();
+    const data = await readBoundedJson(response);
     if (id !== interactionVersion || !panelSessionCurrent(requestToken, session)) return;
     renderInteraction(data, 'Hub interaction response · candidate contract, deployed revision unverified');
   } catch (_) {
@@ -234,7 +269,7 @@ async function loadHubHealth() {
   try {
     const response = await fetch('/api/hub-health', {headers: {Authorization: `Bearer ${requestToken}`}, cache: 'no-store'});
     if (!response.ok) throw new Error('unavailable');
-    const data = await response.json();
+    const data = await readBoundedJson(response);
     if (id !== healthVersion || !panelSessionCurrent(requestToken, session)) return;
     panel.replaceChildren();
     if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('unavailable');
@@ -252,7 +287,7 @@ async function loadBridge() {
   try {
     const response = await fetch('/api/bridge-status', {headers: {Authorization: `Bearer ${requestToken}`}, cache: 'no-store'});
     if (!response.ok) throw new Error('unavailable');
-    const received = await response.json();
+    const received = await readBoundedJson(response);
     if (!panelSessionCurrent(requestToken, session)) return;
     if (!received || typeof received !== 'object' || Array.isArray(received)) throw new Error('unavailable');
     const data = Object.fromEntries(['unit', 'substate', 'result', 'marker', 'markerReason', 'source', 'observedAt']
@@ -564,7 +599,7 @@ async function loadHubTrace(correlation) {
   try {
     const response = await fetch(`/api/trace?gameId=${encodeURIComponent(game)}&correlationId=${encodeURIComponent(correlation)}`, {headers: {Authorization: `Bearer ${requestToken}`}, cache: 'no-store'});
     if (!response.ok) throw new Error('unavailable');
-    const data = await response.json();
+    const data = await readBoundedJson(response);
     if (id !== traceVersion || !panelSessionCurrent(requestToken, session)) return;
     panel.replaceChildren();
     if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('unavailable');
@@ -1184,11 +1219,6 @@ function renderModelCalls() {
   const coverage = document.querySelector('#model-call-coverage');
   coverage.textContent = 'Metric coverage unknown.';
   const calls = currentSnapshot.modelCalls;
-  if (!Array.isArray(calls)) {
-    renderModelComparison(null);
-    item(panel, 'Model call coverage', 'Unknown', 'No usable model-call list in this snapshot.');
-    return;
-  }
   for (const [key, label, note] of [['evaluatorSnapshot', 'Evaluator snapshot', 'Offline file import; not live hub data or a bake-off.'],
                                     ['bakeoffRun', 'Bake-off run', 'Offline recorded run; proposal shape, not live hub data.']]) {
     const snapshot = currentSnapshot[key];
@@ -1198,6 +1228,11 @@ function renderModelCalls() {
     item(panel, `${label}: ${routingText(snapshot.status)}`,
       `Imported: ${metricNumber(snapshot.records) ? snapshot.records : 'Unknown'} · Omitted: ${metricNumber(snapshot.omitted) ? snapshot.omitted : 'Unknown'}${omissions}`,
       `${routingText(snapshot.reason, 'Reason unknown')} · ${note}`);
+  }
+  if (!Array.isArray(calls)) {
+    renderModelComparison(null);
+    item(panel, 'Model call coverage', 'Unknown', 'No usable model-call list in this snapshot; imported rows are not shown.');
+    return;
   }
   if (!calls.length) item(panel, 'No model call examples', 'No rows supplied.', 'This does not establish zero usage or cost.');
   const rows = calls.filter(row => row && typeof row === 'object' && !Array.isArray(row));
@@ -1289,7 +1324,7 @@ async function load() {
     const response = await fetch(`/api/overview?source=${source}`, {headers: {Authorization: `Bearer ${requestToken}`}, cache: 'no-store'});
     if (!current()) return;
     if (!response.ok) { unauthorized = response.status === 401; throw new Error(unauthorized ? 'Token was not accepted.' : 'Could not load the workspace.'); }
-    const data = await response.json();
+    const data = await readBoundedJson(response);
     if (!current()) return;
     rendering = true;
     for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'model-comparison', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage', 'bot-coverage', 'learning-plan', 'learning-evidence', 'game-status', 'spend-example', 'learning-artifacts', 'safety-records', 'ffxi-focus', 'ffxi-feeds']) document.getElementById(id).replaceChildren();
@@ -1371,7 +1406,7 @@ async function load() {
     renderWakeVerification(null);
     renderOperationSources(null);
     sourceLoading = false;
-    if (currentSnapshot && loadedSource && !unauthorized && !rendering) {
+    if (currentSnapshot && loadedSource && !unauthorized && !rendering && !e?.invalidShape) {
       document.querySelector('#hub-banner').textContent = `Refresh failed. Showing previous ${loadedSource} request snapshot from ${currentSnapshot.generatedAt || 'unknown time'}; selected source may not match. Check each feed's source.`;
       return;
     }

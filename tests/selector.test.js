@@ -20,9 +20,24 @@ const data = {generatedAt: 'test', hubFeeds: [{status: 'Not configured', game: '
 data.ffxiFocus = {closest: 'Party greeting; active source unverified', whatToLookFor: 'Wait for readiness', toggle: 'No connected toggle', unverified: 'Delivery unknown', source: 'Dated evidence'};
 let requestedUrl;
 let requestCount = 0;
-const context = {document, sessionStorage: {getItem: () => 'test', setItem() {}, removeItem() {}}, fetch: async url => { requestCount++; if (url === '/api/interaction') return {ok: true, json: async () => ({switches: {contract: false, naturalOrders: false, selfClaims: false}, bots: [], coverage: 'Stub interaction', fetchedAt: 'time', freshForSeconds: 30, truncated: false})}; if (url === '/api/hub-health') return {ok: true, json: async () => ({coverage: 'Service coverage', source: 'Stub', fetchedAt: 'time', services: [{game: 'FFXI', label: 'Example feed', state: 'quiet', observedAt: null}]})}; if (url.startsWith('/api/trace?')) return {ok: true, json: async () => ({coverage: 'Bounded trace', fetchedAt: 'time', records: [{kind: 'outcome', type: 'example.outcome', disposition: 'pending', classification: 'queued_for_native_delivery', isFinal: false, occurredAt: 'time'}]})}; if (url === '/api/bridge-status') return {ok: true, json: async () => ({unit: 'unknown', substate: 'unknown', result: 'unknown', marker: 'present', markerReason: 'delayed_delivery_failed', source: 'Fixture', observedAt: 'test time'})}; requestedUrl = url; return {ok: true, json: async () => data}; }};
+const context = {document, TextDecoder, sessionStorage: {getItem: () => 'test', setItem() {}, removeItem() {}}, fetch: async url => { requestCount++; if (url === '/api/interaction') return {ok: true, json: async () => ({switches: {contract: false, naturalOrders: false, selfClaims: false}, bots: [], coverage: 'Stub interaction', fetchedAt: 'time', freshForSeconds: 30, truncated: false})}; if (url === '/api/hub-health') return {ok: true, json: async () => ({coverage: 'Service coverage', source: 'Stub', fetchedAt: 'time', services: [{game: 'FFXI', label: 'Example feed', state: 'quiet', observedAt: null}]})}; if (url.startsWith('/api/trace?')) return {ok: true, json: async () => ({coverage: 'Bounded trace', fetchedAt: 'time', records: [{kind: 'outcome', type: 'example.outcome', disposition: 'pending', classification: 'queued_for_native_delivery', isFinal: false, occurredAt: 'time'}]})}; if (url === '/api/bridge-status') return {ok: true, json: async () => ({unit: 'unknown', substate: 'unknown', result: 'unknown', marker: 'present', markerReason: 'delayed_delivery_failed', source: 'Fixture', observedAt: 'test time'})}; requestedUrl = url; return {ok: true, json: async () => data}; }};
 vm.runInNewContext(fs.readFileSync('static/app.js', 'utf8'), context);
 setImmediate(async () => {
+  function streamed(text) {
+    let sent = false, cancelled = false;
+    const reader = {read: async () => sent ? {done: true} : (sent = true, {done: false, value: Buffer.from(text)}),
+                    cancel: async () => { cancelled = true; }};
+    return {response: {body: {getReader: () => reader}}, cancelled: () => cancelled};
+  }
+  const validResponse = streamed('{"status":"ok"}');
+  assert.equal((await context.readBoundedJson(validResponse.response, 64)).status, 'ok');
+  for (const text of ['{"value":"' + 'x'.repeat(64) + '"}', '{"broken":', '[]', '{"nested":' + '['.repeat(130) + '0' + ']'.repeat(130) + '}']) {
+    const sample = streamed(text);
+    await assert.rejects(context.readBoundedJson(sample.response, text.length > 100 ? 1024 : 32));
+  }
+  const oversizedResponse = streamed('{"value":"' + 'x'.repeat(64) + '"}');
+  await assert.rejects(context.readBoundedJson(oversizedResponse.response, 32));
+  assert.equal(oversizedResponse.cancelled(), true);
   assert.equal(get('learning-evidence').children[0].children[0].textContent, 'No learning record selected');
   const beforePreview = requestCount;
   get('interaction-preview').listeners.click();
@@ -84,6 +99,13 @@ setImmediate(async () => {
   context.renderModelCalls();
   assert.equal(get('model-calls').children[1].children[0].textContent, 'Bake-off run: Unavailable');
   assert.ok(!get('model-calls').children[1].children[2].textContent.includes('no attempt was scored'));
+  data.modelCalls = null;
+  context.renderModelCalls();
+  assert.equal(get('model-calls').children[1].children[0].textContent, 'Bake-off run: Unavailable');
+  assert.equal(get('model-calls').children[2].children[0].textContent, 'Model call coverage');
+  assert.equal(get('model-calls').children[2].children[1].textContent, 'Unknown');
+  data.modelCalls = [];
+  context.renderModelCalls();
   assert.match(get('game-status').children[0].children[1].textContent, /XP rate: Unknown · Server liveness: Unknown/);
   assert.match(get('bot-coverage').children[0].children[2].textContent, /registration does not establish online presence/);
   get('bot-search').value = 'absent';

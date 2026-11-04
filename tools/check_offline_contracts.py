@@ -29,7 +29,17 @@ def main(root=ROOT):
         if result:
             print(output.getvalue(), end='')
             return result
-        reports[name] = json.loads(output.getvalue())
+        try:
+            raw = output.getvalue()
+            if len(raw.encode('utf-8')) > 256 * 1024:
+                raise ValueError('Checker report too large')
+            report = json.loads(raw)
+            if not isinstance(report, dict) or report.get('status') != 'passed':
+                raise ValueError('Invalid checker report')
+            reports[name] = report
+        except (ValueError, UnicodeError, RecursionError):
+            print(json.dumps({'status': 'failed', 'reason': 'Offline checker report unavailable or invalid'}))
+            return 1
     print(json.dumps({'status': 'passed', 'contracts': reports}, indent=2))
     return 0
 

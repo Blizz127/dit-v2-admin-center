@@ -66,7 +66,8 @@ class WakeVerificationTests(unittest.TestCase):
     def test_local_file_is_bounded_strict_and_not_cached(self):
         with tempfile.TemporaryDirectory() as root:
             path = Path(root) / 'receipt.json'
-            for raw in (b'', b'{', b'\xff', b' ' * (LIMIT + 1), b'{"schema":0,"schema":1}', b'{"x":NaN}'):
+            for raw in (b'', b'{', b'\xff', b'[]', b'[' * 20000 + b']' * 20000,
+                        b' ' * (LIMIT + 1), b'{"schema":0,"schema":1}', b'{"x":NaN}'):
                 path.write_bytes(raw)
                 self.assertTrue(all(r['status'] in ('Unverified', 'Held') for r in read(path)['rows']))
             path.write_text(json.dumps(receipt()))

@@ -112,7 +112,8 @@ class NativeAttemptReviewTests(unittest.TestCase):
 
     def test_bounded_strict_files_and_redacted_cli(self):
         path = self.root / 'attempt.json'
-        for raw in (b'', b'\xff', b'{' + b'"host":"PRIVATE",' + json.dumps(self.metadata).encode()[1:],
+        for raw in (b'', b'\xff', b'[]', b'[' * 20000 + b']' * 20000,
+                    b'{' + b'"host":"PRIVATE",' + json.dumps(self.metadata).encode()[1:],
                     b'{"extra":1e999}', b' ' * (reviewer.LIMIT + 1)):
             path.write_bytes(raw)
             with redirect_stdout(io.StringIO()) as stdout:
