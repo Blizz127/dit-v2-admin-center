@@ -31,6 +31,14 @@ const capture = JSON.parse(fs.readFileSync('tests/fixtures/context-status-integr
     assert.ok(panel.textContent.includes(failure === 'gap' ? 'sequence gap: snapshot required' : unavailable.statusBinding.State));
     assert.match(panel.textContent, /Unknown · Value withheld/);
   }
+  for (const game of ['ffxi', 'swtor']) {
+    const empty = JSON.parse(fs.readFileSync(`tests/fixtures/context-status-empty/${game}-empty-intent.json`, 'utf8'));
+    response = {status:'Loaded', capture:empty};
+    await button.listeners.click();
+    assert.match(panel.textContent, /0 \/ 0 captured input turns retained/);
+    assert.ok(panel.textContent.includes(empty.userMessage));
+    assert.match(panel.textContent, /Native status unavailable/);
+  }
   response = {status:'Loaded', capture:structuredClone(capture)};
   response.capture.statusBinding.View = null;
   response.capture.statusBinding.State = 'source unavailable';

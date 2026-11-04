@@ -30,8 +30,8 @@ execution stays with the designated device lead and its existing holds.
   sha256sum build/context-slice/Context-Panel-Playtest.html
   ```
 
-  It embeds the unchanged current application plus six ordinary and four
-  unavailable-status captures from the actual hub prompt builder/serializer.
+  It embeds the unchanged current application plus six ordinary, four unavailable-status and two empty-context
+  captures from the actual hub prompt builder/serializer.
   Its fixture `fetch` cannot call the network, polling is disabled, and CSP
   explicitly blocks connections. Open this file only on the released device
   step. No server, token file or normal collector is needed. The generic older
@@ -57,11 +57,13 @@ execution stays with the designated device lead and its existing holds.
 
 1. Select **Not configured** in the fixture response selector. Confirm the panel displays **No offline capture configured** after its load button is pressed.
    Loading a capture is explicit and independent of roster selection.
-2. Select **Loaded** and load each of the ten exact fixtures. Check 12/12 turns, matching request and
+2. Select **Loaded** and load each of the twelve exact fixtures. Check 12/12 captured input
+   turns on the ordinary/unavailable cases and 0/0 on empty intents, matching request and
    status identity, source policy/revision, and exact system/user prompt text.
    Verify **synthetic**, **no model call** and **no delivery** remain visible.
    Missing-source, source-read-error and binding-mismatch captures must retain
-   their prompt while showing unknown fields and no invented body/revision.
+   their prompt while showing unknown fields and no invented body/revision. Empty intent packets must
+   remain inspectable despite having no recent-conversation section.
    The sequence-gap fixture must show snapshot unavailable with its actual
    policy and no native observation values or revision.
 3. After a successful load, select **Unavailable**, **Invalid field**, then
@@ -95,7 +97,8 @@ a pass. A static review does not pass the interactive section.
 Existing evidence: the initial 12 focused Python capture/preview checks,
 simulated-DOM panel checks and authenticated localhost smoke passed at
 `dc52281`. The unavailable-source follow-up adds actual prompt-builder fixtures
-and has 18 focused Python checks plus simulated-DOM and localhost coverage.
+and the empty-intent follow-up bring this to 21 focused Python checks plus
+simulated-DOM and localhost coverage.
 Those checks do not establish native rendering, real producer
 authenticity, model understanding or chat delivery. The FFXI v1 producer lacks
 explicit presence; SWTOR native status wiring remains a producer dependency.

@@ -1,0 +1,30 @@
+{
+  "schema": "dit.context-status-integration.v1",
+  "synthetic": true,
+  "game": "swtor",
+  "path": "intent",
+  "suppliedHistory": [],
+  "systemMessage": "You generate only the dialogue line requested by DIT.\nYou have no authority over game actions, recipients, channels, or execution.\nReturn exactly one short in-character chat line.\nWrite one clause only. Do not put a period, question mark, or exclamation mark except possibly as the final character. Do not write a greeting then more words.\nDo not include a speaker name, quotation marks, slash commands, channel commands, narration, explanation, URLs, actions, JSON, markdown, or multiple lines.\nUse only plain ASCII characters: straight apostrophes and hyphens, never curly quotes, em or en dashes, emoji, or accented characters.\n\nDIT WORDING POLICY\nProduce dialogue wording only for the already-approved semantic intent.\n- Do not issue commands or instructions.\n- Do not change actor, recipient, audience, channel, trigger, or facts.\n- Do not include a speaker prefix or out-of-band explanation.",
+  "userMessage": "ACTOR\nFixture\n\nPERSONALITY\na regular player of this game.\n\nCURRENT SITUATION\nUnknown\n\nTRIGGER CONTEXT\nsocial.intent\n\nTRIGGER FACTS\n- only_your_own_live_state: Only known native_status facts describe your current body. Stale or unknown means you do not know; never infer idle, progress or location from chat, memory, plans or missing fields.\n- you_are: Fixture\n- moment: Social intent, not a native observation: Say something brief\n- reply_focus: Say one short thing a player would type in this moment, or very little. Not a greeter, not a host. Invent nothing.\n\nAPPROVED FACTS\n- native_status_presence_state: unknown: source unavailable\n- native_status_location_state: unknown: source unavailable\n- native_status_activity_state: unknown: source unavailable\n- native_status_party_state: unknown: source unavailable\n- native_status_job_state: unknown: source unavailable\n- native_status_level_state: unknown: source unavailable\n\nRELATIONSHIP CONTEXT\nRole: Party member\nSummary: In the same group right now.\n\nSEMANTIC TOPIC\nsocial_intent\n\nSEMANTIC INTENT\nWrite the one line a player types in the moment described, in this channel. A few words is normal. Nothing invented.\n\nSTYLE\ncasual, short, lower-case, a bit dry\n\nCHANNEL CONTEXT\nparty (context only; do not emit a channel command)\n\nOUTPUT LIMIT\n120 characters / 240 UTF-8 bytes. Locale en-US. Exactly one plain-text line.",
+  "contextReceipt": {
+    "RequestId": "dit-wording-12b085b3a795217b7252413a34bb3cb0b7bc9d119f5aa03052dcb01a584a0303",
+    "SuppliedHistoryTurns": 0,
+    "IncludedHistoryTurns": 0,
+    "OmittedHistoryTurns": 0,
+    "SerializedCharacters": 2269,
+    "MaximumSerializedCharacters": 24576,
+    "PromptSha256": "b09f1b40f052ab23fd24f4f498d884fc9942c23a7ff55967d9a3c550eb778d8a"
+  },
+  "statusBinding": {
+    "RequestId": "dit-wording-12b085b3a795217b7252413a34bb3cb0b7bc9d119f5aa03052dcb01a584a0303",
+    "Lookup": {
+      "Game": "swtor",
+      "ServerInstance": "synthetic-instance",
+      "ActorKey": "fixture"
+    },
+    "State": "source unavailable",
+    "View": null
+  },
+  "delivery": "not attempted",
+  "modelCall": "not attempted"
+}

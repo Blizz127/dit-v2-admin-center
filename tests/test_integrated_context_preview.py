@@ -104,3 +104,31 @@ class IntegratedPreviewTests(unittest.TestCase):
         data['contextReceipt']['PromptSha256'] = hashlib.sha256(f'{utf16_length(system)}:{system}{utf16_length(user)}:{user}'.encode()).hexdigest()
         with self.assertRaises(ValueError):
             validate(data)
+
+    def test_actual_empty_intent_packets_need_no_recent_conversation_section(self):
+        paths = sorted((FIXTURES.parent / 'context-status-empty').glob('*.json'))
+        self.assertEqual(len(paths), 2)
+        for path in paths:
+            data = read_json(path, 262144)
+            with self.subTest(path=path.name):
+                self.assertEqual(data['suppliedHistory'], [])
+                self.assertNotIn('UNTRUSTED RECENT CONVERSATION\n', data['userMessage'])
+                self.assertIs(validate(data), data)
+                self.assertIn('0 / 0 captured input turns retained', build([data]))
+
+    def test_turn_count_and_exact_order_must_match_the_conversation_section(self):
+        for change in ('prefix', 'zero-count', 'outside-section'):
+            data = copy.deepcopy(self.data)
+            if change == 'prefix':
+                data['suppliedHistory'][0] = data['suppliedHistory'][0][:-1]
+            elif change == 'zero-count':
+                data['suppliedHistory'] = []
+                data['contextReceipt'].update(SuppliedHistoryTurns=0, IncludedHistoryTurns=0)
+            else:
+                turns = '\n'.join('- ' + turn for turn in data['suppliedHistory'])
+                data['userMessage'] = data['userMessage'].replace(turns, '') + '\n\nOTHER CONTEXT\n' + turns
+                system, user = data['systemMessage'], data['userMessage']
+                data['contextReceipt']['SerializedCharacters'] = utf16_length(system) + utf16_length(user)
+                data['contextReceipt']['PromptSha256'] = hashlib.sha256(f'{utf16_length(system)}:{system}{utf16_length(user)}:{user}'.encode()).hexdigest()
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                validate(data)

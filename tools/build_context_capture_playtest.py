@@ -18,6 +18,10 @@ def build():
     if len(unavailable) != 4:
         raise ValueError('Expected four unavailable-status captures')
     paths += unavailable
+    empty = sorted((ROOT / 'tests/fixtures/context-status-empty').glob('*.json'))
+    if len(empty) != 2:
+        raise ValueError('Expected two empty-context captures')
+    paths += empty
     captures = {p.stem: validate(fixture_json(p, dict)) for p in paths}
     sources = [ROOT / name for name in ('static/index.html', 'static/app.js', 'static/style.css',
                                        'tools/build_context_capture_playtest.py')]

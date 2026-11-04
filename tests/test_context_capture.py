@@ -108,6 +108,19 @@ class ContextCaptureTests(unittest.TestCase):
         self.path.write_bytes(FIXTURE.read_bytes())
         self.assertEqual(json.loads(self.request()[2])['status'], 'Loaded')
 
+    def test_empty_intent_packets_load_with_zero_history_and_unknown_status(self):
+        fixtures = sorted((FIXTURE.parent.parent / 'context-status-empty').glob('*.json'))
+        self.assertEqual(len(fixtures), 2)
+        for fixture in fixtures:
+            self.path.write_bytes(fixture.read_bytes())
+            status, _, body = self.request()
+            with self.subTest(fixture=fixture.name):
+                self.assertEqual(status, 200)
+                data = json.loads(body)
+                self.assertEqual(data['status'], 'Loaded')
+                self.assertEqual(data['capture']['contextReceipt']['IncludedHistoryTurns'], 0)
+                self.assertIsNone(data['capture']['statusBinding']['View'])
+
     def test_non_synthetic_file_missing_file_and_leaf_symlink_are_unavailable(self):
         data = json.loads(FIXTURE.read_text()); data['synthetic'] = False
         self.path.write_text(json.dumps(data))

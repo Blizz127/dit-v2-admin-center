@@ -39,16 +39,18 @@ class Page(HTMLParser):
 
 
 class ContextPanelPlaytestTests(unittest.TestCase):
-    def test_artifact_binds_actual_application_and_all_ten_validated_captures(self):
+    def test_artifact_binds_actual_application_and_all_twelve_validated_captures(self):
         page = Page(build())
         self.assertEqual(len(page.scripts), 1)
         script = page.scripts[0]
         self.assertIn((ROOT / 'static/app.js').read_text(), script)
         payload = script.split('const fixtures = ', 1)[1].split(';\nconst sessionStorage', 1)[0]
         data = json.loads(payload)
-        self.assertEqual(len(data['captures']), 10)
+        self.assertEqual(len(data['captures']), 12)
         for name, capture in data['captures'].items():
             folder = 'context-status-unavailable' if name in ('ffxi-missing', 'ffxi-error', 'ffxi-binding', 'ffxi-gap') else 'context-status-integration'
+            if name.endswith('-empty-intent'):
+                folder = 'context-status-empty'
             self.assertEqual(capture, json.loads((ROOT / 'tests/fixtures' / folder / (name + '.json')).read_text()))
 
     def test_artifact_blocks_network_and_script_is_valid_without_launching_browser(self):

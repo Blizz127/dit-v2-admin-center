@@ -1,0 +1,37 @@
+diff --git a/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusIntegrationTests.cs b/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusIntegrationTests.cs
+index 8754aa3..d90f0d0 100644
+--- a/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusIntegrationTests.cs
++++ b/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusIntegrationTests.cs
+@@ -146,6 +146,32 @@ public sealed class ConversationStatusIntegrationTests
+         Assert.Equal(status != "ffxi", DialogueWordingPromptText.Build(request).UserMessage.Contains("LegacyPoison", StringComparison.Ordinal));
+     }
+ 
++    [Theory]
++    [InlineData("ffxi")] [InlineData("swtor")]
++    public async Task Empty_intent_context_is_a_valid_packet_without_a_recent_conversation_section(string game)
++    {
++        using var store = new NeuronetworkStore(":memory:");
++        var provider = new Provider(); var service = Service(store, provider, new Clock(), null);
++        await service.WordIntentAsync(game, "synthetic-instance", Bot(), "Say something brief", "party", [], "", 120, default);
++        var request = Assert.Single(provider.Requests); var prompt = Wire(request);
++        Assert.Empty(request.ConversationContext!.History); Assert.Null(request.ConversationContext.CurrentMessage);
++        Assert.Equal(0, prompt.ContextReceipt!.SuppliedHistoryTurns);
++        Assert.Equal(0, prompt.ContextReceipt.IncludedHistoryTurns); Assert.Equal(0, prompt.ContextReceipt.OmittedHistoryTurns);
++        Assert.DoesNotContain("UNTRUSTED RECENT CONVERSATION\n", prompt.UserMessage);
++        Assert.Null(service.StatusBindingFor(request)!.View);
++        if (Environment.GetEnvironmentVariable("DIT_EMPTY_CONTEXT_FIXTURE_OUTPUT") is { Length: > 0 } output)
++        {
++            Directory.CreateDirectory(output);
++            File.WriteAllText(Path.Combine(output, game + "-empty-intent.json"), JsonSerializer.Serialize(new
++            {
++                schema = "dit.context-status-integration.v1", synthetic = true, game, path = "intent",
++                suppliedHistory = Array.Empty<string>(), systemMessage = prompt.SystemMessage, userMessage = prompt.UserMessage,
++                contextReceipt = prompt.ContextReceipt, statusBinding = service.StatusBindingFor(request),
++                delivery = "not attempted", modelCall = "not attempted"
++            }, new JsonSerializerOptions { WriteIndented = true, Converters = { new JsonStringEnumConverter() } }));
++        }
++    }
++
+     [Theory]
+     [InlineData("ffxi")] [InlineData("swtor")]
+     public void Rewrite_recaptures_freshness_without_losing_history_or_correction(string game)

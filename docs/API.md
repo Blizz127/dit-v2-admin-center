@@ -859,6 +859,12 @@ unknown fields and null source/revision. These packets remain inspectable.
 Forged values, inconsistent status/prompt metadata and missing fact sections
 remain `Unavailable` with no old capture retained.
 
+An intent packet with zero retained history and no current player message may
+legitimately omit the recent-conversation section. Its zero-count receipt stays
+inspectable. When turns are retained, validation requires their exact order in
+that section; a prefix match or matching text elsewhere in the prompt does not
+establish retained history.
+
 Loaded captures have a validated request/status identity, prompt SHA-256 and
 coverage counts; supported scope is synthetic FFXI or SWTOR companion/heard/intent.
 Known status must be fresh at its captured read time and match the prompt;
