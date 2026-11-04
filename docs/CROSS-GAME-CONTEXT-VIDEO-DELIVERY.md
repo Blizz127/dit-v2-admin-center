@@ -57,3 +57,20 @@ Local implementation commits are `56924b8` (conversation) and `74b7b6a` (status)
 Checks: 101 focused conversation .NET tests, 6 Python preview tests, and 16
 status .NET tests passed. The hub candidates have not been integrated or
 released. No native browser or Alienware playback was opened for these previews.
+
+## Integrated preview, 2026-11-04
+
+At `2026-11-04T20:31:16.929688+00:00`, the new
+`Integrated-Preview-153855b` child folder was created alongside the earlier
+previews. It contains `Integrated-Context-Preview.html` and `READ-ME-FIRST.txt`.
+Both files' sizes and SHA-256 hashes matched a separate remote readback over
+the same strict SSH route. No earlier files were replaced and no viewer opened.
+
+The HTML pairs six actual synthetic service/serializer captures (FFXI/SWTOR
+companion, heard reply and intent) with their bound status and prompt receipts.
+Local commits: `8c71905` integration; `153855b` inspector. Verification: 92
+focused .NET tests and 6 inspector Python tests passed. Production sources,
+live flags, model calls, hub HTTP startup and native browser validation remain
+absent. The existing video is unchanged.
+
+Local delivery receipt: `build/context-slice/integrated-alienware-delivery.json`.
