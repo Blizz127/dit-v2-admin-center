@@ -296,6 +296,22 @@ class BakeoffRunTests(unittest.TestCase):
                 rows, coverage = self.write(manifest={**self.manifest, 'attemptsSha256': value})
                 self.assertEqual((rows, coverage['status']), ([], 'Unavailable'))
 
+    def test_missing_attempts_file_with_or_without_digest_is_unavailable(self):
+        path = self.root / 'attempts.jsonl'
+        original = path.read_bytes()
+        digest = hashlib.sha256(original).hexdigest()
+        path.unlink()
+        for manifest in (self.manifest, {**self.manifest, 'attemptsSha256': digest}):
+            with self.subTest(digest='attemptsSha256' in manifest):
+                rows, coverage = self.write(manifest=manifest)
+                self.assertEqual((rows, coverage['status'], coverage['records'], coverage['omitted']),
+                                 ([], 'Unavailable', 0, None))
+                self.assertNotIn(str(self.root), coverage['reason'])
+        path.write_bytes(original)
+        rows, coverage = run.load(self.root)
+        self.assertEqual((len(rows), coverage['status'], coverage['omitted']), (4, 'Loaded', 0))
+        self.assertIn('attempts file matches manifest digest', coverage['reason'])
+
     def test_overview_switch(self):
         import server
         def overview(environ):

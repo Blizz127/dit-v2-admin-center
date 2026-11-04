@@ -44,6 +44,16 @@ enough.
 | `rubrics` | `[{name, version}]` applied |
 | `hubRevision` | Producing revision, as reported |
 
+**Proposed addition for hub review, November 4:** `attemptsSha256` is an optional
+manifest string containing the 64 lowercase hexadecimal characters of SHA-256
+over the exact bytes of `attempts.jsonl`, including line endings. The current
+Admin Center importer accepts older manifests without it and labels consistency
+unverified; a malformed digest or a mismatch makes the run unavailable. A missing
+or unreadable attempts file also makes the run unavailable whether or not a digest
+is present. This field is implemented only as a local consumer extension; it is not
+part of the previously reviewed shape or an agreed hub contract. The hub lead and
+owner retain the existing decisions on any producer work.
+
 ### Attempt: one per case × candidate (closes a–e)
 
 | Field | Gap | Meaning |
