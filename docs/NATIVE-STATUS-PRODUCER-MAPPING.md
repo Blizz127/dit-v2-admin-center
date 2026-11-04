@@ -6,6 +6,25 @@ The shared hub, bridge, SWTOR source and game processes were not modified.
 
 ## Implemented boundary
 
+The shared C# conversation client now forwards structured history and its
+current message when `DIT_CONVERSATION_CONTEXT_GAMES` selects that game.
+Previously it extracted up to eight legacy trigger facts and ignored the
+structured context. Reply, group and event paths preserve order and repeated
+turns. The existing HTTP envelope still permits 16 turns, so the client retains
+the newest 16 whole turns when more are supplied. Its optional report callback
+records supplied/prepared/omitted counts without conversation content; prepared
+does not establish a successful HTTP send or delivery. A hub
+prompt receipt describes the turns that actually reached the hub, not turns
+already omitted at the producer. The 32-turn prompt type does not enlarge the
+16-turn transport contract. No flag or producer process was enabled.
+
+Unselected games and requests without structured context keep the old client
+behavior. The selected structured current message is not reconstructed from
+old trigger facts; a structured event with no current message stays an event.
+Both sides need their existing context flag selected for a later released
+canary. This is a source candidate for the shared client, not evidence that
+FFXI's separate Python bridge or SWTOR's native producer supplies this object.
+
 The isolated hub candidate reads the existing FFXI `ObservedStateStore` through
 `FfxiInteraction`. It does not call the report route, ingest a new snapshot,
 create an order, dispatch an action or contact a device. Snapshot, actual ingress
