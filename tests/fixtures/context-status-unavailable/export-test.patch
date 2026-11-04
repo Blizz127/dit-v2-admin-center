@@ -1,0 +1,24 @@
+diff --git a/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusIntegrationTests.cs b/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusIntegrationTests.cs
+index 11ce2f2..8754aa3 100644
+--- a/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusIntegrationTests.cs
++++ b/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusIntegrationTests.cs
+@@ -189,6 +189,19 @@ public sealed class ConversationStatusIntegrationTests
+         var service = Service(store, new Provider(), new Clock(), source);
+         var request = CompanionRequest(service, Line("ffxi")); AssertBound(service, request, false);
+         Assert.DoesNotContain("secret path", Wire(request).UserMessage);
++        if (failure is "missing" or "error" or "binding" or "gap" &&
++            Environment.GetEnvironmentVariable("DIT_STATUS_FAILURE_FIXTURE_OUTPUT") is { Length: > 0 } output)
++        {
++            Directory.CreateDirectory(output);
++            var prompt = Wire(request);
++            File.WriteAllText(Path.Combine(output, "ffxi-" + failure + ".json"), JsonSerializer.Serialize(new
++            {
++                schema = "dit.context-status-integration.v1", synthetic = true, game = "ffxi", path = "companion",
++                suppliedHistory = History, systemMessage = prompt.SystemMessage, userMessage = prompt.UserMessage,
++                contextReceipt = prompt.ContextReceipt, statusBinding = service.StatusBindingFor(request),
++                delivery = "not attempted", modelCall = "not attempted"
++            }, new JsonSerializerOptions { WriteIndented = true, Converters = { new JsonStringEnumConverter() } }));
++        }
+     }
+ 
+     [Fact]

@@ -7,7 +7,7 @@ healthy source.
 
 | Readers | Input and handling |
 | --- | --- |
-| `context_capture.py`; `tools/build_integrated_context_preview.py` | Optional 256 KiB synthetic context/status capture; validates scope, prompt digest, request binding, field states and captured freshness. Default off; invalid file clears the API capture. Extra file fields are not exported. No live producer access. |
+| `context_capture.py`; `tools/build_integrated_context_preview.py` | Optional 256 KiB synthetic context/status capture; validates scope, prompt digest, request binding, field states and captured freshness. Valid unavailable-source packets retain context with unknown status; contradictory values/revisions and malformed packets are refused. Default off; invalid file clears the API capture. Extra file fields are not exported. No live producer access. |
 | `local_evidence.py`; `server.py` capacity/watcher; `lead_timeline.py`; `quota_history.py` | Bounded regular-file JSON reads; invalid, ambiguous, oversized or deeply nested snapshots return Unknown/unavailable. Quota history is a separate read-only SQLite projection. |
 | `lead_binding.py`; `session_markers.py` handoff/session metadata | Bounded local JSON; bad or ambiguous identity remains unverified. |
 | `session_markers.py`; `resume_signal.py` | Bounded JSONL tail; incomplete or invalid complete lines make coverage unavailable, not a claim that no event exists. The initial fragment of a truncated tail is discarded. |

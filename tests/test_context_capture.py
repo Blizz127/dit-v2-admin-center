@@ -90,6 +90,24 @@ class ContextCaptureTests(unittest.TestCase):
         self.assertEqual(json.loads(body)['status'], 'Loaded')
         self.assertNotIn(b'OMIT_EXTRA_FILE_CONTENT', body)
 
+    def test_valid_unknown_packets_load_without_reusing_previous_native_values(self):
+        self.assertEqual(json.loads(self.request()[2])['status'], 'Loaded')
+        for fixture in sorted((FIXTURE.parent.parent / 'context-status-unavailable').glob('*.json')):
+            data = json.loads(fixture.read_text())
+            data['statusBinding']['Lookup']['privateExtra'] = 'OMIT_EXTRA_FILE_CONTENT'
+            self.path.write_text(json.dumps(data))
+            status, _, body = self.request()
+            with self.subTest(fixture=fixture.name):
+                self.assertEqual(status, 200)
+                response = json.loads(body)
+                self.assertEqual(response['status'], 'Loaded')
+                self.assertEqual(response['capture']['statusBinding']['State'], data['statusBinding']['State'])
+                self.assertEqual(response['capture']['userMessage'], data['userMessage'])
+                self.assertNotIn(b'Synthetic native west entrance', body)
+                self.assertNotIn(b'OMIT_EXTRA_FILE_CONTENT', body)
+        self.path.write_bytes(FIXTURE.read_bytes())
+        self.assertEqual(json.loads(self.request()[2])['status'], 'Loaded')
+
     def test_non_synthetic_file_missing_file_and_leaf_symlink_are_unavailable(self):
         data = json.loads(FIXTURE.read_text()); data['synthetic'] = False
         self.path.write_text(json.dumps(data))

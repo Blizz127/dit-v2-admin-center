@@ -14,6 +14,10 @@ def build():
     paths = sorted((ROOT / 'tests/fixtures/context-status-integration').glob('*.json'))
     if len(paths) != 6:
         raise ValueError('Expected six synthetic integration captures')
+    unavailable = sorted((ROOT / 'tests/fixtures/context-status-unavailable').glob('*.json'))
+    if len(unavailable) != 4:
+        raise ValueError('Expected four unavailable-status captures')
+    paths += unavailable
     captures = {p.stem: validate(fixture_json(p, dict)) for p in paths}
     sources = [ROOT / name for name in ('static/index.html', 'static/app.js', 'static/style.css',
                                        'tools/build_context_capture_playtest.py')]
@@ -39,7 +43,10 @@ const fetch = async (url, options = {}) => {
   else {
     const selected = document.getElementById('fixture-capture').value;
     const capture = structuredClone(fixtures.captures[selected]);
-    if (scenario === 'invalid') { capture.statusBinding.View.Fields[0].State = 'Unknown'; capture.statusBinding.View.Fields[0].Value = 'BAD_WITHHELD_VALUE'; }
+    if (scenario === 'invalid') {
+      if (capture.statusBinding.View) { capture.statusBinding.View.Fields[0].State = 'Unknown'; capture.statusBinding.View.Fields[0].Value = 'BAD_WITHHELD_VALUE'; }
+      else capture.statusBinding.State = 'snapshot projected';
+    }
     result = {status:'Loaded', capture};
   }
   if (scenario === 'delayed') return new Promise(resolve => { releaseResponse = () => resolve({ok:true, json:async()=>result}); });

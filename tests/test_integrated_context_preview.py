@@ -1,9 +1,10 @@
 import copy
+import hashlib
 from pathlib import Path
 import unittest
 
 from local_evidence import read_json
-from tools.build_integrated_context_preview import build, validate
+from tools.build_integrated_context_preview import build, validate, utf16_length
 
 FIXTURES = Path(__file__).parent / 'fixtures/context-status-integration'
 
@@ -62,3 +63,44 @@ class IntegratedPreviewTests(unittest.TestCase):
             else: data['statusBinding']['View']['ApprovedFacts'][0]['Value'] = 'offline'
             with self.subTest(change=change), self.assertRaises(ValueError):
                 validate(data)
+
+    def test_actual_unavailable_source_and_snapshot_packets_remain_inspectable(self):
+        paths = sorted((FIXTURES.parent / 'context-status-unavailable').glob('*.json'))
+        self.assertEqual(len(paths), 4)
+        data = [read_json(p, 262144) for p in paths]
+        page = build(data)
+        self.assertEqual(page.count('12 / 12 supplied turns retained'), 4)
+        self.assertIn('Native body/source unbound: source unavailable', page)
+        self.assertIn('sequence gap: snapshot required', page)
+        self.assertNotIn('Synthetic native west entrance', page)
+        for capture in data:
+            self.assertIs(validate(capture), capture)
+
+    def test_missing_source_cannot_hide_known_facts_or_claim_a_native_revision(self):
+        missing = read_json(FIXTURES.parent / 'context-status-unavailable/ffxi-missing.json', 262144)
+        for change in ('known-prompt', 'state', 'scope'):
+            data = copy.deepcopy(missing)
+            if change == 'known-prompt':
+                data = copy.deepcopy(self.data)
+                data['statusBinding'].update(State='source unavailable', View=None)
+            if change == 'state': data['statusBinding']['State'] = 'snapshot projected'
+            if change == 'scope': data['statusBinding']['Lookup']['Game'] = 'swtor'
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                validate(data)
+        gap = read_json(FIXTURES.parent / 'context-status-unavailable/ffxi-gap.json', 262144)
+        for change in ('source', 'revision', 'observation'):
+            data = copy.deepcopy(gap)
+            if change == 'source': data['statusBinding']['View']['Source'] = 'invented'
+            if change == 'revision': data['statusBinding']['View']['RevisionSha256'] = '0' * 64
+            if change == 'observation': data['statusBinding']['View']['Fields'][0]['ObservedAtUtc'] = '2030-01-01T00:00:00Z'
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                validate(data)
+
+    def test_missing_fact_section_is_a_validation_error_even_with_matching_digest(self):
+        data = copy.deepcopy(self.data)
+        data['userMessage'] = data['userMessage'].replace('APPROVED FACTS\n', 'REMOVED  FACTS\n')
+        system, user = data['systemMessage'], data['userMessage']
+        data['contextReceipt']['SerializedCharacters'] = utf16_length(system) + utf16_length(user)
+        data['contextReceipt']['PromptSha256'] = hashlib.sha256(f'{utf16_length(system)}:{system}{utf16_length(user)}:{user}'.encode()).hexdigest()
+        with self.assertRaises(ValueError):
+            validate(data)

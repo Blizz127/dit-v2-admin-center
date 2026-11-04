@@ -1,7 +1,8 @@
 # Conversation inspector: pending native-browser check
 
 Status: **NOT RUN**. Prepared 2026-11-04 for the cross-game context work.
-The current Admin implementation is `dc52281`. The integrated preview was
+The initial Admin implementation was `dc52281`; the current fixture records
+the exact application and capture input hashes. The integrated preview was
 delivered to Alienware under `Integrated-Preview-153855b`; copying and hashing
 that file did not launch a browser or validate rendering.
 
@@ -29,7 +30,8 @@ execution stays with the designated device lead and its existing holds.
   sha256sum build/context-slice/Context-Panel-Playtest.html
   ```
 
-  It embeds the unchanged current application plus all six validated captures.
+  It embeds the unchanged current application plus six ordinary and four
+  unavailable-status captures from the actual hub prompt builder/serializer.
   Its fixture `fetch` cannot call the network, polling is disabled, and CSP
   explicitly blocks connections. Open this file only on the released device
   step. No server, token file or normal collector is needed. The generic older
@@ -55,9 +57,13 @@ execution stays with the designated device lead and its existing holds.
 
 1. Select **Not configured** in the fixture response selector. Confirm the panel displays **No offline capture configured** after its load button is pressed.
    Loading a capture is explicit and independent of roster selection.
-2. Select **Loaded** and load each of the six exact fixtures. Check 12/12 turns, matching request and
+2. Select **Loaded** and load each of the ten exact fixtures. Check 12/12 turns, matching request and
    status identity, source policy/revision, and exact system/user prompt text.
    Verify **synthetic**, **no model call** and **no delivery** remain visible.
+   Missing-source, source-read-error and binding-mismatch captures must retain
+   their prompt while showing unknown fields and no invented body/revision.
+   The sequence-gap fixture must show snapshot unavailable with its actual
+   policy and no native observation values or revision.
 3. After a successful load, select **Unavailable**, **Invalid field**, then
    **HTTP error fixture**, pressing the panel load button each time. Every error
    must remove the previous prompt/body values. Return to **Loaded** and verify
@@ -86,9 +92,11 @@ screenshots only where permitted and useful. Record exact console/network
 errors without secrets. A blocked launch is not a failed feature assertion or
 a pass. A static review does not pass the interactive section.
 
-Existing evidence: 12 focused Python capture/preview checks, simulated-DOM
-panel checks, and authenticated localhost startup/API smoke passed at
-`dc52281`. Those checks do not establish native rendering, real producer
+Existing evidence: the initial 12 focused Python capture/preview checks,
+simulated-DOM panel checks and authenticated localhost smoke passed at
+`dc52281`. The unavailable-source follow-up adds actual prompt-builder fixtures
+and has 18 focused Python checks plus simulated-DOM and localhost coverage.
+Those checks do not establish native rendering, real producer
 authenticity, model understanding or chat delivery. The FFXI v1 producer lacks
 explicit presence; SWTOR native status wiring remains a producer dependency.
 

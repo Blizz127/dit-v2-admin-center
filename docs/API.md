@@ -850,6 +850,15 @@ oversized, mismatched or non-synthetic inputs return `Unavailable` with a null
 capture. Leaf symlinks and non-regular files are refused; no cached old capture
 is retained. Unset configuration performs no capture file read.
 
+`Loaded` describes a valid captured packet, not availability of native status.
+For `source unavailable`, `source read failed` or `source binding mismatch`,
+`capture.statusBinding.View` is null and the prompt must contain all six unknown
+status states with no native values, policy or revision. A rejected snapshot
+can instead have a scoped view with `State: "snapshot unavailable"`, a policy,
+unknown fields and null source/revision. These packets remain inspectable.
+Forged values, inconsistent status/prompt metadata and missing fact sections
+remain `Unavailable` with no old capture retained.
+
 Loaded captures have a validated request/status identity, prompt SHA-256 and
 coverage counts; supported scope is synthetic FFXI or SWTOR companion/heard/intent.
 Known status must be fresh at its captured read time and match the prompt;

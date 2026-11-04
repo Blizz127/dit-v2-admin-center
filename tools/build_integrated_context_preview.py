@@ -16,6 +16,7 @@ from local_evidence import read_json
 from tools.build_context_receipt_preview import utf16_length
 
 FIELDS = ('Presence', 'Location', 'Activity', 'Party', 'Job', 'Level')
+UNBOUND_STATES = ('source unavailable', 'source read failed', 'source binding mismatch')
 
 
 def bounded(value, maximum=256):
@@ -62,22 +63,48 @@ def validate(data):
         cursor = user.index(normalized, cursor) + len(normalized)
 
     view, lookup = binding['View'], binding['Lookup']
-    if binding['State'] != 'snapshot projected' or lookup['Game'] != data['game'] or view['Body']['Game'] != data['game'] or view['Body']['Instance'] != lookup['ServerInstance']:
+    if lookup['Game'] != data['game']:
         raise ValueError('Status scope mismatch')
-    for value in [*view['Body'].values(), *lookup.values(), view['Epoch'], view['Source'], view['FreshnessPolicyVersion']]:
+    for key in ('Game', 'ServerInstance', 'ActorKey'):
+        bounded(lookup[key], 128)
+    _, marker, remainder = user.partition('APPROVED FACTS\n')
+    if not marker:
+        raise ValueError('Approved facts section missing')
+    approved = remainder.split('\n\n', 1)[0].splitlines()
+    if view is None:
+        if binding['State'] not in UNBOUND_STATES:
+            raise ValueError('Invalid missing-source binding')
+        expected = ['- native_status_' + field.lower() + '_state: unknown: ' + binding['State'] for field in FIELDS]
+        actual = [line for line in approved if line.startswith('- native_status_')]
+        if actual != expected:
+            raise ValueError('Unbound source cannot supply native status values or a revision')
+        return data
+    unavailable = binding['State'] == 'snapshot unavailable'
+    if (binding['State'] not in ('snapshot projected', 'snapshot unavailable')
+            or view['Body']['Game'] != data['game'] or view['Body']['Instance'] != lookup['ServerInstance']):
+        raise ValueError('Status scope mismatch')
+    for value in [*view['Body'].values(), view['Epoch'], view['FreshnessPolicyVersion']]:
         bounded(value, 128)
-    if type(view['Sequence']) is not int or view['Sequence'] < 0 or not re.fullmatch('[0-9a-f]{64}', bounded(view['RevisionSha256'], 64)):
+    if type(view['Sequence']) is not int or view['Sequence'] < 0:
         raise ValueError('Invalid source revision')
+    if unavailable:
+        if view['Source'] is not None or view['RevisionSha256'] is not None:
+            raise ValueError('Unavailable snapshot cannot claim a source revision')
+    elif not re.fullmatch('[0-9a-f]{64}', bounded(view['RevisionSha256'], 64)):
+        raise ValueError('Invalid source revision')
+    else:
+        bounded(view['Source'], 128)
     read_at = timestamp(view['ReadAtUtc'])
     fields = view['Fields']
     if not isinstance(fields, list) or len(fields) != 6 or [f['Field'] for f in fields] != list(FIELDS):
         raise ValueError('Invalid status field set')
-    approved = user.split('APPROVED FACTS\n', 1)[1].split('\n\n', 1)[0].splitlines()
     expected_facts = []
     for field in fields:
         state = field['State']
         key = 'native_status_' + field['Field'].lower()
         reason = bounded(field['Reason'])
+        if unavailable and (state != 'Unknown' or field['ObservedAtUtc'] is not None or field['ValidUntilUtc'] is not None):
+            raise ValueError('Unavailable snapshot cannot carry observations')
         if state not in ('Known', 'Stale', 'Unknown') or '- ' + key + '_state: ' + state.lower() + ': ' + ' '.join(reason.split()) not in approved:
             raise ValueError('Status state differs from prompt')
         if state == 'Known':
@@ -92,6 +119,10 @@ def validate(data):
     if expected_facts != view['ApprovedFacts']:
         raise ValueError('Approved status facts disagree')
     for key, value in [('revision', view['RevisionSha256']), ('policy', view['FreshnessPolicyVersion'])]:
+        if value is None:
+            if any(line.startswith('- native_status_' + key + ': ') for line in approved):
+                raise ValueError('Unavailable binding cannot carry a revision')
+            continue
         if '- native_status_' + key + ': ' + value not in approved:
             raise ValueError('Source binding differs from prompt')
     return data
@@ -104,16 +135,24 @@ def build(records):
     esc = html.escape
     for data in records:
         validate(data)
-        r, view = data['contextReceipt'], data['statusBinding']['View']
-        rows = ''.join('<tr><th>' + esc(f['Field']) + '</th><td>' + esc(f['State']) + '</td><td>' + esc(f['Value'] or '—') + '</td><td>' + esc(f['Reason']) + '</td></tr>' for f in view['Fields'])
+        r, binding = data['contextReceipt'], data['statusBinding']
+        view = binding['View']
+        fields = view['Fields'] if view is not None else [dict(Field=f, State='Unknown', Value=None, Reason=binding['State']) for f in FIELDS]
+        rows = ''.join('<tr><th>' + esc(f['Field']) + '</th><td>' + esc(f['State']) + '</td><td>' + esc(f['Value'] or '—') + '</td><td>' + esc(f['Reason']) + '</td></tr>' for f in fields)
+        if view is None:
+            source = '<p>Native body/source unbound: ' + esc(binding['State']) + '. No status revision is available.</p>'
+        else:
+            source = (f"<p>Body: {esc(view['Body']['Realm'])} / {esc(view['Body']['Instance'])} / {esc(view['Body']['NativeActorId'])}. "
+                      f"Session: {esc(view['Epoch'])}. Source: {esc(view['Source'] or 'Unavailable')}.</p>"
+                      f"<p>Fixture read time: {esc(view['ReadAtUtc'])}. Policy: {esc(view['FreshnessPolicyVersion'])}.</p>")
+        revision = view['RevisionSha256'] if view is not None else None
         turns = ''.join('<li>' + esc(line) + '</li>' for line in data['suppliedHistory'][r['OmittedHistoryTurns']:])
         sections.append(f'''<section><h2>{esc(data['game'].upper())} · {esc(data['path'])}</h2>
 <p><strong>{r['IncludedHistoryTurns']} / {r['SuppliedHistoryTurns']} supplied turns retained</strong> · {r['OmittedHistoryTurns']} omitted · {r['SerializedCharacters']:,} UTF-16 characters. Token count unknown.</p>
 <table><tr><th>Body field</th><th>Knowledge</th><th>Value used</th><th>Reason</th></tr>{rows}</table>
-<p>Body: {esc(view['Body']['Realm'])} / {esc(view['Body']['Instance'])} / {esc(view['Body']['NativeActorId'])}. Session: {esc(view['Epoch'])}. Source: {esc(view['Source'])}.</p>
-<p>Fixture read time: {esc(view['ReadAtUtc'])}. Policy: {esc(view['FreshnessPolicyVersion'])}.</p>
+{source}
 <details><summary>Retained conversation</summary><ol>{turns}</ol></details>
-<details><summary>Exact prompt and matching identities</summary><p>Request: <code>{esc(r['RequestId'])}</code></p><p>Status revision: <code>{esc(view['RevisionSha256'])}</code></p><p>Prompt SHA-256: <code>{esc(r['PromptSha256'])}</code></p><h3>System</h3><pre>{esc(data['systemMessage'])}</pre><h3>User</h3><pre>{esc(data['userMessage'])}</pre></details></section>''')
+<details><summary>Exact prompt and matching identities</summary><p>Request: <code>{esc(r['RequestId'])}</code></p><p>Status revision: <code>{esc(revision or 'Unavailable')}</code></p><p>Prompt SHA-256: <code>{esc(r['PromptSha256'])}</code></p><h3>System</h3><pre>{esc(data['systemMessage'])}</pre><h3>User</h3><pre>{esc(data['userMessage'])}</pre></details></section>''')
     return '''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
 <title>DIT · Integrated context preview</title><style>body{max-width:1150px;margin:40px auto;padding:0 20px;background:#0b1220;color:#eff5ff;font:17px/1.5 system-ui}h1,h2{color:#57e0d1}section{background:#152338;padding:24px;border-radius:14px;margin:24px 0}table{width:100%;border-collapse:collapse}td,th{text-align:left;border:1px solid #36506b;padding:10px}pre{white-space:pre-wrap;overflow-wrap:anywhere}code{overflow-wrap:anywhere}aside{color:#ffd27b}summary{cursor:pointer;margin-top:16px}</style>

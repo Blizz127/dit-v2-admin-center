@@ -20,7 +20,7 @@ def from_env():
         data = validate(read_json(path, LIMIT))
         binding = data['statusBinding']
         view = binding['View']
-        for field in view['Fields']:
+        for field in view['Fields'] if view is not None else []:
             for key in ('ObservedAtUtc', 'ValidUntilUtc'):
                 if field[key] is not None:
                     timestamp(field[key])
@@ -29,6 +29,9 @@ def from_env():
         capture['contextReceipt'] = selected(data['contextReceipt'], 'RequestId SuppliedHistoryTurns IncludedHistoryTurns OmittedHistoryTurns SerializedCharacters MaximumSerializedCharacters PromptSha256')
         capture['statusBinding'] = selected(binding, 'RequestId State')
         capture['statusBinding']['Lookup'] = selected(binding['Lookup'], 'Game ServerInstance ActorKey')
+        if view is None:
+            capture['statusBinding']['View'] = None
+            return {'status': 'Loaded', 'capture': capture}
         capture['statusBinding']['View'] = selected(view, 'Epoch Sequence Source RevisionSha256 FreshnessPolicyVersion ReadAtUtc')
         output = capture['statusBinding']['View']
         output['Body'] = selected(view['Body'], 'Game Realm Instance NativeActorId')

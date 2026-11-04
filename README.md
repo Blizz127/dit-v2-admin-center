@@ -642,3 +642,10 @@ one offline integration test. It is independent of roster selection. Malformed
 or missing input clears the view; it never substitutes old or live data. See the
 [integration handoff](handoffs/context-status-integration-20261104/README.md) for
 source candidates, rollout/rollback and verification limits.
+
+A valid packet whose native source is unavailable still displays its captured
+conversation with unknown status fields. It does not invent a body identity or
+revision. The [native-browser checklist](docs/CONTEXT-NATIVE-BROWSER-CHECKLIST.md)
+and `python3 -m tools.build_context_capture_playtest` provide an offline preview
+of the panel using six ordinary and four unavailable-status captures. Native
+browser execution remains pending under the recorded device restrictions.

@@ -21,6 +21,22 @@ const capture = JSON.parse(fs.readFileSync('tests/fixtures/context-status-integr
   assert.ok(panel.textContent.includes(capture.statusBinding.View.RevisionSha256));
   assert.match(panel.textContent, /independent of roster selection/);
   assert.equal(button.disabled, false);
+  for (const failure of ['missing', 'error', 'binding', 'gap']) {
+    const unavailable = JSON.parse(fs.readFileSync(`tests/fixtures/context-status-unavailable/ffxi-${failure}.json`, 'utf8'));
+    response = {status:'Loaded', capture:unavailable};
+    await button.listeners.click();
+    assert.match(panel.textContent, /12 \/ 12 supplied turns retained/);
+    assert.ok(panel.textContent.includes(unavailable.userMessage));
+    assert.ok(!panel.textContent.includes('Synthetic native west entrance'));
+    assert.ok(panel.textContent.includes(failure === 'gap' ? 'sequence gap: snapshot required' : unavailable.statusBinding.State));
+    assert.match(panel.textContent, /Unknown · Value withheld/);
+  }
+  response = {status:'Loaded', capture:structuredClone(capture)};
+  response.capture.statusBinding.View = null;
+  response.capture.statusBinding.State = 'source unavailable';
+  await button.listeners.click();
+  assert.match(panel.textContent, /Offline capture unavailable/);
+  assert.ok(!panel.textContent.includes('Synthetic native west entrance'));
   response = {status:'Not configured', capture:null};
   await button.listeners.click();
   assert.equal(panel.textContent, 'No offline capture configured.');

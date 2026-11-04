@@ -209,22 +209,37 @@ function renderContextCapture(data) {
   panel.replaceChildren();
   if (data.status === 'Not configured' && data.capture === null) { panel.textContent = 'No offline capture configured.'; return; }
   const capture = data.capture, receipt = capture?.contextReceipt, binding = capture?.statusBinding, view = binding?.View;
+  const fieldNames = ['Presence', 'Location', 'Activity', 'Party', 'Job', 'Level'];
+  const unbound = view === null && ['source unavailable', 'source read failed', 'source binding mismatch'].includes(binding?.State);
   if (data.status !== 'Loaded' || capture?.schema !== 'dit.context-status-integration.v1' || capture.synthetic !== true
       || !['ffxi', 'swtor'].includes(capture.game) || !['companion', 'heard', 'intent'].includes(capture.path)
       || capture.delivery !== 'not attempted' || capture.modelCall !== 'not attempted'
-      || !receipt || binding?.RequestId !== receipt.RequestId || !view || !Array.isArray(view.Fields) || view.Fields.length !== 6
+      || !receipt || binding?.RequestId !== receipt.RequestId
+      || (!unbound && (!view || !Array.isArray(view.Fields) || view.Fields.length !== 6 || !['snapshot projected', 'snapshot unavailable'].includes(binding.State)))
       || typeof capture.systemMessage !== 'string' || typeof capture.userMessage !== 'string'
       || !Number.isInteger(receipt.IncludedHistoryTurns) || !Number.isInteger(receipt.SuppliedHistoryTurns)) throw new Error('invalid capture');
+  if (unbound) {
+    const lookup = binding.Lookup;
+    if (lookup?.Game !== capture.game || typeof lookup.ServerInstance !== 'string' || !lookup.ServerInstance
+        || typeof lookup.ActorKey !== 'string' || !lookup.ActorKey) throw new Error('invalid scope');
+    const approved = capture.userMessage.split('APPROVED FACTS\n')[1]?.split('\n\n')[0].split('\n').filter(line => line.startsWith('- native_status_'));
+    const expected = fieldNames.map(field => `- native_status_${field.toLowerCase()}_state: unknown: ${binding.State}`);
+    if (!approved || JSON.stringify(approved) !== JSON.stringify(expected)) throw new Error('unbound status has values');
+  } else if (binding.State === 'snapshot unavailable' && (view.Source !== null || view.RevisionSha256 !== null
+      || view.Fields.some(field => field?.State !== 'Unknown' || field.ObservedAtUtc !== null || field.ValidUntilUtc !== null))) throw new Error('invalid unavailable snapshot');
   item(panel, `${capture.game.toUpperCase()} · ${capture.path} · Synthetic captured packet`,
     `${receipt.IncludedHistoryTurns} / ${receipt.SuppliedHistoryTurns} supplied turns retained; ${receipt.OmittedHistoryTurns} omitted.`,
     'No real model call or delivery attempted. This packet is independent of roster selection.');
-  for (const field of view.Fields) {
+  const fields = unbound ? fieldNames.map(Field => ({Field, State:'Unknown', Value:null, Reason:binding.State})) : view.Fields;
+  for (const field of fields) {
     if (!field || !['Known', 'Stale', 'Unknown'].includes(field.State) || typeof field.Field !== 'string'
         || typeof field.Reason !== 'string' || (field.State === 'Known' ? typeof field.Value !== 'string' : field.Value !== null)) throw new Error('invalid field');
     item(panel, field.Field, `${field.State} · ${field.Value ?? 'Value withheld'}`, field.Reason);
   }
-  item(panel, 'Captured source', `${view.Source} · policy ${view.FreshnessPolicyVersion} · read ${view.ReadAtUtc}`,
-    `Request ${receipt.RequestId} · status revision ${view.RevisionSha256}. Artifact consistency is not producer authenticity or live health.`);
+  if (unbound) item(panel, 'Native status unavailable', binding.State,
+    `Request ${receipt.RequestId} · No native body or status revision is bound. Conversation context remains inspectable.`);
+  else item(panel, 'Captured source', `${view.Source ?? 'Unavailable'} · policy ${view.FreshnessPolicyVersion} · read ${view.ReadAtUtc}`,
+    `Request ${receipt.RequestId} · status revision ${view.RevisionSha256 ?? 'Unavailable'}. Artifact consistency is not producer authenticity or live health.`);
   const details = document.createElement('details'), summary = document.createElement('summary'), prompt = document.createElement('pre');
   summary.textContent = 'Exact captured prompt';
   prompt.setAttribute('tabindex', '0'); prompt.setAttribute('aria-label', 'Exact captured prompt');
