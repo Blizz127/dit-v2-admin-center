@@ -83,8 +83,8 @@ Every output, including a synthetic match, retains:
 
 Every row's `actualDelivery` stays `Unknown`. Counts describe supplied records
 only; zero fixture confirmations is not zero actual deliveries. There is no
-durable receipt store, resend, model call, native action, memory update, server
-endpoint, polling, environment configuration or production toggle.
+durable receipt store, resend, model call, native action or memory update.
+The optional Admin loader below adds no polling or production flag activation.
 
 ## Run the bounded offline checks and preview
 
@@ -117,6 +117,31 @@ The wording-conflict follow-up passes 15 focused tests, including reversed
 record order. Its seven-section preview SHA-256 is
 `3cba663047bd39fb42306b2755882d737bdd3be2db88f1d3f2672c42c3440e15`;
 conflicting publication wording/name is withheld. Native browser remains NOT RUN.
+
+## Optional Admin inspector loader
+
+`GET /api/delivery-capture` uses the existing Admin authentication and reads only
+the file selected by `DIT_DELIVERY_CAPTURE_FILE`, which defaults to unset. It
+passes **no verifier** to the correlator and has no simulation, confirmation,
+replay or write parameter. Thus the API cannot turn synthetic receipts into a
+native match, even if the file claims they are trusted. Records are loaded only
+when the user presses the delivery-evidence button, separately from roster
+selection. Errors clear old content; late responses after session reset are ignored.
+No running environment or service has been configured by this source change.
+
+The actual panel is embedded in `Context-Panel-Playtest.html` alongside the
+context inspector. Its fake responses select FFXI/SWTOR from the capture choice
+and exercise unavailable/invalid/delayed paths with network connections blocked.
+This is distinct from the static seven-case delivery preview, whose explicitly
+fabricated verifier demonstrates synthetic native matches. See [API details](API.md).
+
+The loader follow-up passes 20 focused Python checks (correlation, CLI, API and
+artifact), plus the context and delivery simulated-DOM checks. Both local
+artifacts were rebuilt; neither was opened in a native browser or copied to a
+device. Current SHA-256 values:
+
+- `Delivery-Evidence-Preview.html`: `42862f03933e1e816dda0182e9423d6d371166c884271518a3c07441fff75b1c`
+- `Context-Panel-Playtest.html`: `3ed54ec429571af1a6c9f78c6913c667e07db597f2f68f38f72bb93829d1deab`
 
 ## What a real integration still needs
 

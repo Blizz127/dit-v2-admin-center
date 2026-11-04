@@ -47,6 +47,13 @@ class ContextPanelPlaytestTests(unittest.TestCase):
         payload = script.split('const fixtures = ', 1)[1].split(';\nconst sessionStorage', 1)[0]
         data = json.loads(payload)
         self.assertEqual(len(data['captures']), 12)
+        self.assertEqual(set(data['delivery']), {'ffxi', 'swtor'})
+        for game, report in data['delivery'].items():
+            self.assertEqual(report['scope']['game'], game)
+            self.assertEqual(report['counts']['publicationMatched'], 2)
+            self.assertEqual(report['counts']['syntheticConfirmed'], 0)
+            self.assertFalse(report['nativeDeliveryVerified'])
+            self.assertIsNone(report['deliveredInGame'])
         for name, capture in data['captures'].items():
             folder = 'context-status-unavailable' if name in ('ffxi-missing', 'ffxi-error', 'ffxi-binding', 'ffxi-gap') else 'context-status-integration'
             if name.endswith('-empty-intent'):

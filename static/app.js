@@ -10,6 +10,7 @@ let healthVersion = 0;
 let interactionVersion = 0;
 let sessionVersion = 0;
 let contextCaptureVersion = 0;
+let deliveryCaptureVersion = 0;
 let selectedBotId = null;
 let rosterRecordIndex = null;
 let rosterGapDownloadUrl = null;
@@ -155,6 +156,7 @@ function renderWakeVerification(data) {
 }
 function resetPanelSession() {
   resetContextCapture();
+  resetDeliveryCapture();
   renderPresenceExamples(null);
   document.getElementById('wake-readiness-filter').value = 'all';
   renderWakeVerification(null);
@@ -262,6 +264,63 @@ async function loadContextCapture() {
   } finally { if (current()) button.disabled = false; }
 }
 document.querySelector('#context-capture-load')?.addEventListener('click', loadContextCapture);
+function resetDeliveryCapture() {
+  deliveryCaptureVersion++;
+  const panel = document.querySelector('#delivery-capture');
+  if (panel) { panel.replaceChildren(); panel.textContent = 'Not requested in this session.'; }
+  const button = document.querySelector('#delivery-capture-load');
+  if (button) button.disabled = false;
+}
+function renderDeliveryCapture(data) {
+  const panel = document.querySelector('#delivery-capture');
+  panel.replaceChildren();
+  if (data?.schema !== 'dit.delivery-correlation-report.v1' || data.evidenceKind !== 'synthetic'
+      || data.nativeDeliveryVerified !== false || data.deliveredInGame !== null || data.replayAuthorized !== false
+      || !Array.isArray(data.records) || data.records.length > 256) throw new Error('invalid delivery evidence');
+  if (['Not configured', 'Disabled'].includes(data.status) && data.records.length === 0 && data.counts === null) {
+    panel.textContent = 'No offline delivery evidence configured.'; return;
+  }
+  const counts = data.counts;
+  if (data.status !== 'Loaded' || !counts || !['ffxi', 'swtor'].includes(data.scope?.game)
+      || !['realm', 'instance', 'thread', 'channel', 'actorKey', 'nativeActorId', 'epoch'].every(key => typeof data.scope[key] === 'string' && data.scope[key])
+      || typeof data.coverage !== 'string' || counts.recordedAttempts !== data.records.length
+      || !['recordedAttempts', 'publicationMatched', 'syntheticConfirmed', 'conflicted', 'duplicateDecisionRecords', 'duplicateReceiptRecords'].every(key => Number.isSafeInteger(counts[key]) && counts[key] >= 0)) throw new Error('invalid delivery counts');
+  if (counts.publicationMatched !== data.records.filter(row => row?.publication === 'Matched').length
+      || counts.syntheticConfirmed !== data.records.filter(row => row?.fixtureConfirmation === 'Synthetic match').length
+      || counts.conflicted !== data.records.filter(row => row?.publication === 'Conflict' || row?.fixtureConfirmation === 'Conflict').length) throw new Error('delivery counts disagree');
+  item(panel, 'Synthetic delivery evidence · Actual game delivery: Unknown',
+    `${counts.recordedAttempts} recorded attempts · ${counts.publicationMatched} publication matches · ${counts.syntheticConfirmed} synthetic native matches · ${counts.conflicted} conflicts.`,
+    `${data.scope.game.toUpperCase()} · Independent of roster selection. ${data.coverage} No replay or native confirmation is performed.`);
+  item(panel, 'Captured scope', `${data.scope.realm} / ${data.scope.instance} / ${data.scope.thread} / ${data.scope.actorKey}`,
+    `Fixture body ${data.scope.nativeActorId} · epoch ${data.scope.epoch} · channel ${data.scope.channel}. Scope labels do not authenticate a producer.`);
+  for (const record of data.records) {
+    if (!record || record.actualDelivery !== 'Unknown'
+        || !['Matched', 'Uncorroborated', 'Not evidenced', 'Conflict'].includes(record.publication)
+        || !['Unknown', 'Conflict', 'Synthetic match'].includes(record.fixtureConfirmation)
+        || typeof record.reason !== 'string' || (record.text !== null && typeof record.text !== 'string')
+        || (record.inboxSeq !== null && (!Number.isSafeInteger(record.inboxSeq) || record.inboxSeq < 0))
+        || (record.publication === 'Conflict' && (record.text !== null || record.bot !== null))) throw new Error('invalid delivery record');
+    const wording = record.publication === 'Conflict' ? 'Wording withheld: publication conflict' : record.text ?? 'No final text';
+    item(panel, record.inboxSeq === null ? 'No publication identity' : `Inbox sequence ${record.inboxSeq}`,
+      wording, `Publication: ${record.publication} · Fixture confirmation: ${record.fixtureConfirmation} · Actual delivery: Unknown. ${record.reason}`);
+  }
+}
+async function loadDeliveryCapture() {
+  if (!token || workspace.hidden) return;
+  const id = ++deliveryCaptureVersion, requestToken = token, session = sessionVersion;
+  const panel = document.querySelector('#delivery-capture'), button = document.querySelector('#delivery-capture-load');
+  const current = () => id === deliveryCaptureVersion && panelSessionCurrent(requestToken, session);
+  panel.replaceChildren(); panel.textContent = 'Loading configured delivery evidence…'; button.disabled = true;
+  try {
+    const response = await fetch('/api/delivery-capture', {headers: {Authorization: `Bearer ${requestToken}`}, cache: 'no-store'});
+    if (!response.ok) throw new Error('unavailable');
+    const data = await readBoundedJson(response, 512 * 1024);
+    if (current()) renderDeliveryCapture(data);
+  } catch (_) {
+    if (current()) { panel.replaceChildren(); panel.textContent = 'Delivery evidence unavailable. Previous content has been cleared.'; }
+  } finally { if (current()) button.disabled = false; }
+}
+document.querySelector('#delivery-capture-load')?.addEventListener('click', loadDeliveryCapture);
 function renderInteraction(data, source) {
   const panel = document.querySelector('#interaction-status');
   panel.replaceChildren();

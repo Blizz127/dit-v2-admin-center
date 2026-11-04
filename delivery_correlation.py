@@ -5,6 +5,7 @@ here: even an injected fixture verifier cannot assert actual game delivery.
 """
 import hashlib
 import json
+import os
 import re
 from types import MappingProxyType
 
@@ -15,6 +16,7 @@ SCHEMA = 'dit.delivery-correlation-fixture.v1'
 SCOPE_KEYS = ('game', 'realm', 'instance', 'thread', 'channel', 'actorKey', 'nativeActorId', 'epoch')
 LIMIT = 262144
 MAX_ROWS = 256
+ENV = 'DIT_DELIVERY_CAPTURE_FILE'
 
 
 def text(value, maximum=128):
@@ -74,6 +76,12 @@ def from_file(path=None, *, enabled=False, native_verifier=None):
         return correlate(read_json(path, LIMIT), enabled=enabled, native_verifier=native_verifier)
     except (OSError, ValueError, TypeError, RecursionError):
         return base('Unavailable')
+
+
+def from_env():
+    path = os.environ.get(ENV)
+    # The Admin API has no injected verifier or simulation control.
+    return from_file(path, enabled=True) if path else base('Not configured')
 
 
 def _correlate(data, verifier):

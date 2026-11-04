@@ -37,6 +37,7 @@ from wake_verification import read as read_wake_verification
 from operation_sources import read as read_operation_sources
 from local_evidence import read_json
 from context_capture import from_env as context_capture
+from delivery_correlation import from_env as delivery_capture
 
 PROJECT = Path(__file__).resolve().parent
 ROOT = PROJECT / "static"
@@ -506,6 +507,11 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_content(400, "application/json", b'{"error":"context capture takes no parameters"}')
                     return
                 self.send_content(200, "application/json", json.dumps(context_capture()).encode())
+            elif path == "/api/delivery-capture":
+                if target.query:
+                    self.send_content(400, "application/json", b'{"error":"delivery capture takes no parameters"}')
+                    return
+                self.send_content(200, "application/json", json.dumps(delivery_capture()).encode())
             elif path == "/api/hub-health":
                 if target.query:
                     self.send_content(400, "application/json", b'{"error":"invalid query"}')

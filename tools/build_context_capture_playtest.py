@@ -8,6 +8,7 @@ from pathlib import Path
 
 from tools.build_inspector_playtest import ROOT, snapshot, fixture_json
 from tools.build_integrated_context_preview import validate
+from delivery_correlation import correlate
 
 
 def build():
@@ -23,10 +24,16 @@ def build():
         raise ValueError('Expected two empty-context captures')
     paths += empty
     captures = {p.stem: validate(fixture_json(p, dict)) for p in paths}
+    delivery_paths = sorted((ROOT / 'tests/fixtures/delivery-correlation').glob('*.json'))
+    if len(delivery_paths) != 2:
+        raise ValueError('Expected two synthetic delivery captures')
+    delivery = {p.stem: correlate(fixture_json(p, dict), enabled=True) for p in delivery_paths}
+    if any(report['status'] != 'Loaded' for report in delivery.values()):
+        raise ValueError('Invalid synthetic delivery capture')
     sources = [ROOT / name for name in ('static/index.html', 'static/app.js', 'static/style.css',
-                                       'tools/build_context_capture_playtest.py')]
-    hashes = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sources + paths}
-    payload = json.dumps({'overview': snapshot(), 'captures': captures}).replace('<', '\\u003c')
+                                       'tools/build_context_capture_playtest.py', 'delivery_correlation.py')]
+    hashes = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sources + paths + delivery_paths}
+    payload = json.dumps({'overview': snapshot(), 'captures': captures, 'delivery': delivery}).replace('<', '\\u003c')
     app = (ROOT / 'static/app.js').read_text()
     script = '''(function () {
 const fixtures = PAYLOAD;
@@ -38,12 +45,19 @@ const fetch = async (url, options = {}) => {
   if (url === '/api/overview?source=mock' || url === '/api/overview?source=hub')
     return {ok:true, json:async()=>structuredClone(fixtures.overview)};
   if (url === '/api/bridge-status') return {ok:true, json:async()=>({unit:'Unknown', source:'Synthetic fixture'})};
-  if (url !== '/api/context-capture') throw new Error('No fixture: network forbidden');
+  if (!['/api/context-capture', '/api/delivery-capture'].includes(url)) throw new Error('No fixture: network forbidden');
   const scenario = document.getElementById('fixture-scenario').value;
   let result;
-  if (scenario === 'unconfigured') result = {status:'Not configured', capture:null};
+  if (scenario === 'auth-error') return {ok:false, status:401};
+  if (url === '/api/delivery-capture') {
+    const game = document.getElementById('fixture-capture').value.split('-')[0];
+    result = structuredClone(fixtures.delivery[game]);
+    if (scenario === 'unconfigured' || scenario === 'unavailable')
+      Object.assign(result, {status:scenario === 'unconfigured' ? 'Not configured' : 'Unavailable', records:[], counts:null, scope:null});
+    if (scenario === 'invalid') result.nativeDeliveryVerified = true;
+  }
+  else if (scenario === 'unconfigured') result = {status:'Not configured', capture:null};
   else if (scenario === 'unavailable') result = {status:'Unavailable', capture:null};
-  else if (scenario === 'auth-error') return {ok:false, status:401};
   else {
     const selected = document.getElementById('fixture-capture').value;
     const capture = structuredClone(fixtures.captures[selected]);
@@ -79,7 +93,7 @@ document.querySelectorAll('a').forEach(a => { if (!a.getAttribute('href')?.start
                 '<option value="unconfigured">Not configured</option><option value="unavailable">Unavailable</option>'
                 '<option value="invalid">Invalid field</option><option value="auth-error">HTTP error fixture</option>'
                 '<option value="delayed">Delayed response</option></select></label>'
-                '<p>Choose a response, then use “Load configured offline capture” in Bots. '
+                '<p>Choose a response, then use either offline capture load button in Bots. Delivery evidence uses the selected game and never simulates native receipt authority. '
                 'Switching this selector alone does not reload.</p><button id="fixture-reset" type="button">Reset panel session</button>'
                 '<button id="fixture-release" type="button">Release delayed response</button>'
                 '<details><summary>Input SHA-256 fingerprints</summary><pre>' + html.escape(json.dumps(hashes, indent=2)) + '</pre></details></section>')

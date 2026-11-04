@@ -878,3 +878,27 @@ It renders text nodes, clears old content on errors and ignores late responses
 after a session reset. The existing no-store/nosniff headers and no-write routes
 apply. This is an offline inspector, not the live hub packet feed or evidence of
 game delivery. Native browser rendering remains untested.
+
+## GET /api/delivery-capture
+
+Optional authenticated, read-only synthetic delivery correlation. Requires the
+existing Admin bearer token before any file read; query parameters are refused
+with 400 and writes remain 405. `DIT_DELIVERY_CAPTURE_FILE` selects a single
+bounded synthetic bundle as described in [delivery correlation](DELIVERY-EVIDENCE-CORRELATION.md).
+The setting is unset by default; no read occurs when unset. The service never
+scans logs, contacts a producer or supplies a native-receipt verifier. There is
+no API parameter to simulate/confirm delivery or replay a message.
+
+Returns `dit.delivery-correlation-report.v1` with status `Not configured`,
+`Loaded`, or `Unavailable`; synthetic scope, recorded attempts, publication
+matches, conflicts and rejected receipt counts. Input errors clear records and
+counts. Every row's actual delivery remains `Unknown`; `deliveredInGame` is null,
+`nativeDeliveryVerified` and `replayAuthorized` are false. Self-declared trust
+fields and extra file metadata are not exported. Paths/tokens are not returned.
+
+The Bots panel loads this report only on its explicit button, independently of
+roster selection. It uses a 512 KiB response bound, renders text nodes, clears
+old content on errors, rejects contradictory real-delivery/replay claims and
+ignores late responses from an old session. Existing no-store/nosniff headers
+apply. This does not make the source native, authenticated or complete. Browser
+execution remains NOT RUN; authentication/file behavior is checked on localhost.

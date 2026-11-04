@@ -31,7 +31,8 @@ execution stays with the designated device lead and its existing holds.
   ```
 
   It embeds the unchanged current application plus six ordinary, four unavailable-status and two empty-context
-  captures from the actual hub prompt builder/serializer.
+  captures from the actual hub prompt builder/serializer, and two synthetic
+  delivery-correlation reports with no native verifier.
   Its fixture `fetch` cannot call the network, polling is disabled, and CSP
   explicitly blocks connections. Open this file only on the released device
   step. No server, token file or normal collector is needed. The generic older
@@ -86,12 +87,23 @@ execution stays with the designated device lead and its existing holds.
 7. Repeat keyboard, narrow viewport and zoom checks on the real panel. Verify
    loading/status text is announced as applicable; do not call screen-reader
    behavior passed without actually using one.
+8. Use **Load configured delivery evidence** with a FFXI capture selected, then
+   a SWTOR capture. Expect four recorded attempts, two publication matches,
+   zero synthetic native matches and actual delivery Unknown. Verify the exact
+   game/body/thread scope. Roster selection must not change the captured scope.
+9. Repeat Not configured, Unavailable, Invalid field, HTTP error and Delayed
+   response/Reset/Release for the delivery button. The invalid fixture falsely
+   claims native verification and must be refused. Every failed load clears old
+   wording; delayed results cannot reappear after reset. There is no confirm or
+   replay control. The separate API test is
+   `python3 -m unittest tests.test_delivery_capture_api -v`; this fixture does
+   not prove authentication, real file reads or native receipts.
 
 ## Receipt and remaining limits
 
 ### Prepared delivery-evidence preview
 
-This is a separate static read-only artifact, not a new live Admin endpoint.
+This is a separate static read-only artifact, not the interactive Admin loader.
 Build it locally with `python3 -m tools.build_delivery_correlation_preview` and
 record the SHA-256 of `build/context-slice/Delivery-Evidence-Preview.html`.
 No device copy or browser launch has been performed. The same device/namespace
