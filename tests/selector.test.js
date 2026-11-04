@@ -75,6 +75,11 @@ setImmediate(async () => {
   context.renderModelCalls();
   assert.equal(get('model-calls').children[1].children[0].textContent, 'Bake-off run: Not configured');
   assert.ok(get('model-calls').children[1].children[2].textContent.includes('Import is off.'));
+  data.bakeoffRun = {status: 'Unavailable', records: 0, omitted: null, reason: 'Run unreadable (attempts digest mismatch); nothing imported.'};
+  context.renderModelCalls();
+  assert.equal(get('model-calls').children[1].children[0].textContent, 'Bake-off run: Unavailable');
+  assert.match(get('model-calls').children[1].children[1].textContent, /Imported: 0 · Omitted: Unknown/);
+  assert.match(get('model-calls').children[1].children[2].textContent, /attempts digest mismatch/);
   data.bakeoffRun = unavailableBakeoff;
   context.renderModelCalls();
   assert.equal(get('model-calls').children[1].children[0].textContent, 'Bake-off run: Unavailable');

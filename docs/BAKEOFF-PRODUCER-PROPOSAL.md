@@ -188,7 +188,10 @@ the run, canonicalization, revision and coverage. Focused checks are in
 1. In the model-call panel, **Not configured** means the run directory switch is
    unset. **Unavailable** means the run as a whole could not be read or accepted;
    its omitted count is Unknown, not zero. A `shadow_live` manifest is refused
-   while its owner decision is open.
+   while its owner decision is open. A digest mismatch appears as **Bake-off run:
+   Unavailable** with **attempts digest mismatch** in the reason: no bake-off
+   rows are imported, and omitted remains Unknown. Obtain a matching complete
+   export before refreshing; do not change the digest to conceal a mismatch.
 2. For a loaded run, **Omitted** counts invalid and withheld attempt records.
    **Duplicate attempts withheld** counts every copy of a repeated case and
    candidate, not just the extra copy. **Hash mismatch withheld** counts other

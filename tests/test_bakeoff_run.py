@@ -312,6 +312,27 @@ class BakeoffRunTests(unittest.TestCase):
         self.assertEqual((len(rows), coverage['status'], coverage['omitted']), (4, 'Loaded', 0))
         self.assertIn('attempts file matches manifest digest', coverage['reason'])
 
+    def test_digest_mismatch_reaches_overview_as_unavailable_without_rows(self):
+        import server
+        from test_offline_inspector_handler import MemoryConnection
+        manifest = {**self.manifest, 'attemptsSha256': hashlib.sha256(b'different bytes').hexdigest()}
+        (self.root / 'manifest.json').write_text(json.dumps(manifest))
+        connection = MemoryConnection(b'GET /api/overview HTTP/1.1\r\nHost: fixture.invalid\r\n'
+                                      b'Authorization: Bearer fixture-token\r\nConnection: close\r\n\r\n')
+        with patch.dict('os.environ', {run.ENV: str(self.root)}, clear=True), \
+             patch.object(Path, 'home', return_value=Path(self.temp.name)), \
+             patch('server.LOCAL_DATA', Path(self.temp.name) / 'local'), \
+             patch('server.HubReader', side_effect=AssertionError('live hub access forbidden')):
+            server.Handler(connection, ('127.0.0.1', 0), SimpleNamespace(admin_token='fixture-token'))
+        head, body = bytes(connection.outgoing).split(b'\r\n\r\n', 1)
+        self.assertEqual(int(head.split()[1]), 200)
+        data = json.loads(body)
+        self.assertEqual((data['bakeoffRun']['status'], data['bakeoffRun']['records'], data['bakeoffRun']['omitted']),
+                         ('Unavailable', 0, None))
+        self.assertIn('attempts digest mismatch', data['bakeoffRun']['reason'])
+        self.assertFalse(any(row.get('id', '').startswith('bakeoff:') for row in data['modelCalls']))
+        self.assertNotIn(str(self.root), body.decode())
+
     def test_overview_switch(self):
         import server
         def overview(environ):
