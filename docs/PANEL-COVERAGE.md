@@ -157,6 +157,10 @@ overview API check exercises a loaded bake-off import, an unreadable manifest,
 and a corrected import. It checks that unavailable imports expose no old rows or
 file contents and that the corrected import is read on the next request. This is
 synthetic handler evidence, not a native-browser or live-hub check.
+The same offline follow-up covers a truncated attempts line: the incomplete line
+is omitted, valid lines remain, and the next request reads the repaired fixture.
+This simulates a partial file; it does not establish behavior for every concurrent
+writer interleaving or guarantee an atomic two-file snapshot.
 
 November 4 browser follow-up: the current bake-off panel's withholding, empty,
 unconfigured and unavailable states were exercised with a simulated DOM at

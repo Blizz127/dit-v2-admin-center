@@ -289,6 +289,37 @@ class BakeoffRunTests(unittest.TestCase):
             self.assertEqual((recovered['bakeoffRun']['status'], recovered['bakeoffRun']['omitted'],
                               len(bakeoff_rows(recovered))), ('Loaded', 0, 4))
 
+    def test_overview_api_partial_attempt_line_is_omitted_then_recovers(self):
+        import server
+        from test_offline_inspector_handler import MemoryConnection
+        wire = (b'GET /api/overview HTTP/1.1\r\nHost: fixture.invalid\r\n'
+                b'Authorization: Bearer fixture-token\r\nConnection: close\r\n\r\n')
+        original = (self.root / 'attempts.jsonl').read_bytes()
+        lines = original.splitlines()
+        (self.root / 'attempts.jsonl').write_bytes(b'\n'.join(lines[:3]) + b'\n{"PRIVATE_PARTIAL_MARKER":')
+
+        def request():
+            connection = MemoryConnection(wire)
+            server.Handler(connection, ('127.0.0.1', 0), SimpleNamespace(admin_token='fixture-token'))
+            head, body = bytes(connection.outgoing).split(b'\r\n\r\n', 1)
+            self.assertEqual(int(head.split()[1]), 200)
+            self.assertNotIn(b'PRIVATE_PARTIAL_MARKER', body)
+            return json.loads(body)
+
+        with patch.dict('os.environ', {run.ENV: str(self.root)}, clear=True), \
+             patch.object(Path, 'home', return_value=Path(self.temp.name)), \
+             patch('server.LOCAL_DATA', Path(self.temp.name) / 'local'), \
+             patch('server.HubReader', side_effect=AssertionError('live hub access forbidden')):
+            partial = request()
+            self.assertEqual((partial['bakeoffRun']['status'], partial['bakeoffRun']['records'],
+                              partial['bakeoffRun']['omitted']), ('Loaded', 3, 1))
+            self.assertIn('total case set size unknown', partial['bakeoffRun']['reason'])
+            self.assertEqual(sum(row.get('id', '').startswith('bakeoff:') for row in partial['modelCalls']), 3)
+            (self.root / 'attempts.jsonl').write_bytes(original)
+            recovered = request()
+            self.assertEqual((recovered['bakeoffRun']['records'], recovered['bakeoffRun']['omitted']), (4, 0))
+            self.assertEqual(sum(row.get('id', '').startswith('bakeoff:') for row in recovered['modelCalls']), 4)
+
 
 if __name__ == '__main__':
     unittest.main()
