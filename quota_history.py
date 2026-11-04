@@ -5,6 +5,7 @@ import hashlib
 import json
 import math
 import os
+import re
 from pathlib import Path
 import sqlite3
 
@@ -91,8 +92,18 @@ def history(root):
     try:
         with closing(sqlite3.connect(path.as_uri() + '?mode=ro', uri=True, timeout=2)) as db:
             rows = db.execute('SELECT account, observed, window, used FROM samples ORDER BY observed DESC LIMIT 100').fetchall()
-        return [{'account': account, 'observedAt': datetime.fromtimestamp(at, timezone.utc).isoformat(),
-                 'window': window, 'remainingPercent': round((1 - used) * 100, 1)}
-                for account, at, window, used in rows]
+        result = []
+        for account, at, window, used in rows:
+            if (not isinstance(account, str) or not re.fullmatch(r'[0-9a-f]{16}', account)
+                    or not finite_number(at) or at <= 0 or window not in WINDOWS
+                    or not finite_number(used) or not 0 <= used <= 1):
+                continue
+            try:
+                observed = datetime.fromtimestamp(at, timezone.utc).isoformat()
+            except (ValueError, OverflowError, OSError):
+                continue
+            result.append({'account': account, 'observedAt': observed, 'window': window,
+                           'remainingPercent': round((1 - used) * 100, 1)})
+        return result
     except (OSError, sqlite3.Error, ValueError, OverflowError):
         return []

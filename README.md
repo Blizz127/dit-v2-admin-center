@@ -96,6 +96,8 @@ labeled **manifest/attempts consistency unverified**: the app cannot establish
 that its two files belong together. A digest mismatch makes the run unavailable.
 The digest checks file bytes, not the producer's identity or the completeness of
 the results; see the [import and recovery note](docs/BAKEOFF-PRODUCER-PROPOSAL.md).
+Quota history omits malformed stored observations; visible rows are a partial
+local cache, not proof of complete history or current per-lead usage.
 
 To view the existing localhost instance from a laptop on the tailnet, use an already-authorized SSH login and run this on the laptop, replacing `<ssh-user>` with the normal login name:
 

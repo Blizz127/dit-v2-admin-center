@@ -1,4 +1,5 @@
 import json
+import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
@@ -31,6 +32,25 @@ class QuotaHistoryTests(unittest.TestCase):
             self.assertEqual(collect(root / 'missing', root / 'local'), 0)
             self.assertEqual(history(root / 'local'), [])
             self.assertFalse((root / 'local').exists())
+
+    def test_invalid_history_rows_are_omitted_without_hiding_valid_rows(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with sqlite3.connect(root / 'codex-quota.sqlite') as db:
+                db.execute('CREATE TABLE samples (account TEXT, observed REAL, window TEXT, used REAL)')
+                db.executemany('INSERT INTO samples VALUES (?, ?, ?, ?)', [
+                    ('0123456789abcdef', 1767225600, 'unified5h', .25),
+                    ('0123456789abcdef', 1767225601, 'unified5h', 'bad'),
+                    ('0123456789abcdef', 1767225602, 'unified7d', 1.5),
+                    ('0123456789abcdef', 1767225603, 'other', .5),
+                    ('0123456789abcdef', 1e100, 'unified5h', .5),
+                    ('PRIVATE_ACCOUNT_MARKER', 1767225604, 'unified5h', .5),
+                ])
+            rows = history(root)
+            self.assertEqual(len(rows), 1)
+            self.assertEqual((rows[0]['account'], rows[0]['window'], rows[0]['remainingPercent']),
+                             ('0123456789abcdef', 'unified5h', 75))
+            self.assertNotIn('PRIVATE_ACCOUNT_MARKER', str(rows))
 
 
 if __name__ == '__main__':
