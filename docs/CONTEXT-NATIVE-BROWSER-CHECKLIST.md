@@ -72,7 +72,7 @@ execution stays with the designated device lead and its existing holds.
    recovery. Changing the fixture selector alone must not reload the panel.
 4. The actual parser/authentication checks are reproduced separately with
    `python3 -m unittest tests.test_context_capture -v`: truncated/oversized JSON,
-   wrong shape, missing file, recovery, authentication-before-read, query and
+   wrong shape, contradictory native facts, missing file, recovery, authentication-before-read, query and
    write refusal. Attach that receipt separately. The browser fixture does not
    prove HTTP authentication or filesystem behavior.
 5. Select **Delayed response**, click load, then **Reset panel session**, then
@@ -97,8 +97,13 @@ a pass. A static review does not pass the interactive section.
 Existing evidence: the initial 12 focused Python capture/preview checks,
 simulated-DOM panel checks and authenticated localhost smoke passed at
 `dc52281`. The unavailable-source follow-up adds actual prompt-builder fixtures
-and the empty-intent follow-up bring this to 21 focused Python checks plus
-simulated-DOM and localhost coverage.
+and the empty-intent follow-up brought this to 21 focused Python checks plus
+simulated-DOM and localhost coverage. The exact-fact follow-up brings the current
+focused Python count to 25: duplicate/conflicting native facts and repeated
+prompt sections are refused even if their text digest matches, while chat that
+merely mentions a section heading stays dialogue. The authenticated localhost
+check verifies that a contradictory capture clears previous values and a
+corrected file reloads.
 Those checks do not establish native rendering, real producer
 authenticity, model understanding or chat delivery. The FFXI v1 producer lacks
 explicit presence; SWTOR native status wiring remains a producer dependency.

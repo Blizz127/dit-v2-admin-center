@@ -13,6 +13,11 @@ class IntegratedPreviewTests(unittest.TestCase):
     def setUp(self):
         self.data = read_json(FIXTURES / 'ffxi-companion.json', 262144)
 
+    def rehash(self, data):
+        system, user = data['systemMessage'], data['userMessage']
+        data['contextReceipt']['SerializedCharacters'] = utf16_length(system) + utf16_length(user)
+        data['contextReceipt']['PromptSha256'] = hashlib.sha256(f'{utf16_length(system)}:{system}{utf16_length(user)}:{user}'.encode()).hexdigest()
+
     def test_six_actual_service_captures_match_their_status_and_prompt(self):
         captures = [read_json(p, 262144) for p in sorted(FIXTURES.glob('*.json'))]
         self.assertEqual(len(captures), 6)
@@ -104,6 +109,40 @@ class IntegratedPreviewTests(unittest.TestCase):
         data['contextReceipt']['PromptSha256'] = hashlib.sha256(f'{utf16_length(system)}:{system}{utf16_length(user)}:{user}'.encode()).hexdigest()
         with self.assertRaises(ValueError):
             validate(data)
+
+    def test_extra_or_conflicting_native_facts_are_refused_even_with_matching_digest(self):
+        additions = (
+            '- native_status_presence: offline',
+            '- native_status_presence: online',  # Even an identical extra fact is unaccounted for.
+            '- native_status_presence_state: unknown: disconnected',
+            '- native_status_revision: ' + '0' * 64,
+            '- native_status_policy: different-policy',
+            '- native_status_unrecognized: invented value',
+        )
+        for addition in additions:
+            data = copy.deepcopy(self.data)
+            data['userMessage'] = data['userMessage'].replace('APPROVED FACTS\n', 'APPROVED FACTS\n' + addition + '\n')
+            self.rehash(data)
+            with self.subTest(addition=addition), self.assertRaises(ValueError):
+                validate(data)
+
+    def test_repeated_prompt_sections_are_refused(self):
+        for heading in ('APPROVED FACTS', 'UNTRUSTED RECENT CONVERSATION'):
+            data = copy.deepcopy(self.data)
+            section = next(block for block in data['userMessage'].split('\n\n') if block.startswith(heading + '\n'))
+            data['userMessage'] += '\n\n' + section
+            self.rehash(data)
+            with self.subTest(heading=heading), self.assertRaises(ValueError):
+                validate(data)
+
+    def test_chat_that_mentions_a_section_heading_remains_dialogue(self):
+        data = copy.deepcopy(self.data)
+        old_turn = data['suppliedHistory'][0]
+        data['suppliedHistory'][0] = 'Player: APPROVED FACTS'
+        data['userMessage'] = data['userMessage'].replace('- ' + old_turn + '\n', '- ' + data['suppliedHistory'][0] + '\n')
+        self.rehash(data)
+        self.assertIs(validate(data), data)
+        self.assertIn('12 / 12 captured input turns retained', build([data]))
 
     def test_actual_empty_intent_packets_need_no_recent_conversation_section(self):
         paths = sorted((FIXTURES.parent / 'context-status-empty').glob('*.json'))

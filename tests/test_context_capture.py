@@ -1,3 +1,4 @@
+import hashlib
 import http.client
 import json
 import os
@@ -9,6 +10,7 @@ from unittest.mock import patch
 
 import context_capture
 from server import make_server
+from tools.build_integrated_context_preview import utf16_length
 
 FIXTURE = Path(__file__).parent / 'fixtures/context-status-integration/ffxi-companion.json'
 
@@ -76,6 +78,21 @@ class ContextCaptureTests(unittest.TestCase):
         for raw in (b'{"schema":', b'[]', b'x' * (context_capture.LIMIT + 1), b'[' * 1800 + b'0' + b']' * 1800):
             self.path.write_bytes(raw)
             self.assertEqual(json.loads(self.request()[2]), {'status': 'Unavailable', 'capture': None})
+        self.path.write_bytes(FIXTURE.read_bytes())
+        self.assertEqual(json.loads(self.request()[2])['status'], 'Loaded')
+
+    def test_contradictory_native_prompt_is_unavailable_and_corrected_file_recovers(self):
+        self.assertEqual(json.loads(self.request()[2])['status'], 'Loaded')
+        data = json.loads(FIXTURE.read_text())
+        data['userMessage'] = data['userMessage'].replace('APPROVED FACTS\n', 'APPROVED FACTS\n- native_status_presence: offline\n')
+        system, user = data['systemMessage'], data['userMessage']
+        data['contextReceipt']['SerializedCharacters'] = utf16_length(system) + utf16_length(user)
+        data['contextReceipt']['PromptSha256'] = hashlib.sha256(f'{utf16_length(system)}:{system}{utf16_length(user)}:{user}'.encode()).hexdigest()
+        self.path.write_text(json.dumps(data))
+        status, _, body = self.request()
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(body), {'status': 'Unavailable', 'capture': None})
+        self.assertNotIn(b'Synthetic native west entrance', body)
         self.path.write_bytes(FIXTURE.read_bytes())
         self.assertEqual(json.loads(self.request()[2])['status'], 'Loaded')
 
