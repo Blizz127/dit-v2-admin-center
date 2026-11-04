@@ -54,6 +54,22 @@ is present. This field is implemented only as a local consumer extension; it is 
 part of the previously reviewed shape or an agreed hub contract. The hub lead and
 owner retain the existing decisions on any producer work.
 
+Hub-review decision requested for this proposed addition:
+
+1. Does the hub lead accept `attemptsSha256` with the exact-byte format above,
+   including the current absent, invalid and mismatch handling?
+2. If a producer is later authorized, should it always emit the field for new
+   exports while preserving legacy import, and can it publish complete files by
+   same-filesystem atomic replacement? Two separate replacements can temporarily
+   make the run unavailable; the digest does not make them a single transaction.
+3. Should a future schema version require a digest instead? That would need an
+   explicit compatibility decision; the current v0 reader does not require one.
+
+Hash-only interoperability example: the three bytes `7b 7d 0a` (`{}\n`) have
+SHA-256 `ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356`.
+This is a byte-level test vector, not a valid bake-off attempt record. Agreement on
+the field does not authorize a producer build, player-text export, live run or spend.
+
 ### Attempt: one per case × candidate (closes a–e)
 
 | Field | Gap | Meaning |
