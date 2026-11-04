@@ -70,7 +70,8 @@ class EvaluatorSnapshotTests(unittest.TestCase):
     def test_duplicates_and_unreadable_files_import_nothing_unsafe(self):
         rows, coverage = snap.load(self.write([self.records[1], self.records[1]]))
         self.assertEqual((len(rows), coverage['omitted']), (1, 1))
-        for raw in (b'{"a": 1}', b'[NaN]', b'[{"RequestId": "a", "RequestId": "b"}]', b'\xff', b'[' + b' ' * snap.LIMIT + b']'):
+        for raw in (b'{"a": 1}', b'[NaN]', b'[{"RequestId": "a", "RequestId": "b"}]', b'\xff',
+                    b'[' + b' ' * snap.LIMIT + b']'):
             rows, coverage = snap.load(self.write(None, raw))
             self.assertEqual((rows, coverage['status']), ([], 'Unavailable'))
             self.assertNotIn('RequestId', coverage['reason'])
@@ -81,6 +82,8 @@ class EvaluatorSnapshotTests(unittest.TestCase):
         link.symlink_to(FIXTURE)
         self.assertEqual(snap.load(link)[1]['status'], 'Unavailable')
         self.assertEqual(snap.load(Path(self.temp.name) / 'missing.json')[1]['status'], 'Unavailable')
+        with patch('evaluator_snapshot.json.loads', side_effect=RecursionError):
+            self.assertEqual(snap.load(FIXTURE)[1]['status'], 'Unavailable')
 
     def test_malformed_json_types_and_large_numbers_do_not_hide_valid_rows(self):
         bad = []

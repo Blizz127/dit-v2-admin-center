@@ -87,7 +87,17 @@ def _count(value, field):
 
 
 def _number(value, field):
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+    try:
+        valid = not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(value)
+    except OverflowError:
+        valid = False
+    if not valid:
+        raise RunError('invalid ' + field)
+    return value
+
+
+def _enum(value, choices, field):
+    if not isinstance(value, str) or value not in choices:
         raise RunError('invalid ' + field)
     return value
 
@@ -104,8 +114,7 @@ def manifest(data):
     environment = data.get('environment')
     if environment == 'shadow_live':
         raise RunError('shadow_live runs need an owner decision and are not imported')
-    if environment not in ENVIRONMENTS:
-        raise RunError('unsupported environment')
+    _enum(environment, ENVIRONMENTS, 'environment')
     started, completed = _time(data.get('startedAtUtc'), 'start'), _time(data.get('completedAtUtc'), 'end')
     if completed < started:
         raise RunError('run ends before it starts')
@@ -161,12 +170,9 @@ def attempt(data, run):
     if 'firstTokenAtUtc' in data:
         _time(data['firstTokenAtUtc'], 'first token')  # Validated, never shown: no streaming path exists.
     status = data['completionStatus']
-    if status not in COMPLETION:
-        raise RunError('invalid completion status')
-    if data.get('structuralValidation', 'not_run') not in VALIDATION:
-        raise RunError('invalid structural validation')
-    if data.get('semanticCompliance', 'not_evaluated') not in SEMANTIC:
-        raise RunError('invalid semantic compliance')
+    _enum(status, COMPLETION, 'completion status')
+    _enum(data.get('structuralValidation', 'not_run'), VALIDATION, 'structural validation')
+    _enum(data.get('semanticCompliance', 'not_evaluated'), SEMANTIC, 'semantic compliance')
     delivery = data.get('delivery')
     if delivery is not None:
         if not isinstance(delivery, dict) or not {'status'} <= set(delivery) <= {'status', 'evidence'}:
@@ -184,8 +190,7 @@ def attempt(data, run):
         rubric = (_token(score['rubric'], 'rubric'), _token(score['rubricVersion'], 'rubric version'))
         if rubric not in run['rubrics']:
             raise RunError('score for an undeclared rubric')
-        if score['evaluatorKind'] not in EVALUATOR_KINDS:
-            raise RunError('invalid evaluator kind')
+        _enum(score['evaluatorKind'], EVALUATOR_KINDS, 'evaluator kind')
         low, high, value = (_number(score[k], k) for k in ('scaleMin', 'scaleMax', 'score'))
         if not low < high or not low <= value <= high:
             raise RunError('score outside its scale')
@@ -196,6 +201,8 @@ def attempt(data, run):
         if field in data:
             _token(data[field], field)
     cost = _count(data.get('costNusd'), 'cost')
+    if cost is not None:
+        _number(cost, 'cost')
     for field in ('inputTokens', 'outputTokens', 'cacheHitTokens', 'queuedMs'):
         _count(data.get(field), field)
     _flag(data.get('fallbackEligible'), 'fallback eligibility')

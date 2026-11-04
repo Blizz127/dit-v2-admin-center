@@ -136,6 +136,22 @@ Malformed evaluator enum values and numeric values too large to represent are
 omitted and counted without preventing valid records from loading. This is
 import robustness, not evidence that any missing producer measurement exists.
 
+Dependency split for panel 4: run IDs and canonical input hashes, game/actor
+attribution, versioned rubrics and scores, delivery/fallback evidence, and real
+recorded runs require upstream producers or evidence. First-token timing also
+requires a streaming path; it is not available today. Owner decisions remain
+open on building the bake-off producer, what its rubric should reward, whether
+recorded player text may leave the hub host, and whether live bake-offs and their
+spending are allowed. Separately, live hub reads remain on hold for the owner's
+choice of a reader-only access change or exported snapshots. Offline import
+fixtures cannot settle these decisions or establish real measurements.
+
+Both offline evaluator and bake-off imports reject malformed enum values and
+oversized numeric values without losing valid records. An invalid bake-off
+manifest withholds the run; bad attempts are counted and omitted. Snapshot view
+projections retain unknown values or isolate invalid views. These checks do not
+establish live data quality or native browser behavior.
+
 A proposed bake-off run/attempt record that would close evaluator gaps (a)–(f) is in
 [the bake-off proposal](BAKEOFF-PRODUCER-PROPOSAL.md). The hub lead reviewed the shape on Nov 3, and the
 Admin Center importer is implemented offline behind `DIT_BAKEOFF_RUN_DIR`. Building

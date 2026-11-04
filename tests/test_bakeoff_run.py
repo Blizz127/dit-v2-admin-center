@@ -79,6 +79,19 @@ class BakeoffRunTests(unittest.TestCase):
         rows, coverage = self.write(attempts=bad + [missing] + self.attempts[1:])
         self.assertEqual((len(rows), coverage['omitted']), (3, len(changes) + 1))
 
+    def test_malformed_types_and_oversized_numbers_are_isolated(self):
+        bad_manifest = {**self.manifest, 'environment': []}
+        self.assertEqual(self.write(manifest=bad_manifest)[1]['status'], 'Unavailable')
+        base = self.attempts[0]
+        changes = [dict(completionStatus=[]), dict(structuralValidation={}),
+                   dict(semanticCompliance=[]), dict(costNusd=10**400),
+                   dict(scores=[{**base['scores'][0], 'evaluatorKind': []}]),
+                   dict(scores=[{**base['scores'][0], 'score': 10**400}])]
+        bad = [{**copy.deepcopy(base), **change} for change in changes]
+        rows, coverage = self.write(manifest=self.manifest, attempts=bad + self.attempts[1:])
+        self.assertEqual((coverage['status'], len(rows), coverage['omitted']), ('Loaded', 3, len(bad)))
+        self.assertIn('3 of 4', coverage['reason'])
+
     def test_first_token_time_is_validated_but_never_shown(self):
         attempts = copy.deepcopy(self.attempts)
         attempts[0]['firstTokenAtUtc'] = '2026-01-01T12:00:00.1Z'

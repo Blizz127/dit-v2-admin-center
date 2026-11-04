@@ -153,7 +153,7 @@ def load(path):
         data = json.loads(raw.decode('utf-8'), parse_constant=refuse_constant, object_pairs_hook=unique_object)
         if not isinstance(data, list) or len(data) > MAX_RECORDS:
             raise SnapshotError('snapshot must be a bounded JSON array')
-    except (OSError, UnicodeDecodeError, ValueError) as error:
+    except (OSError, UnicodeDecodeError, ValueError, RecursionError) as error:
         reason = str(error) if isinstance(error, SnapshotError) else type(error).__name__
         return [], {'status': 'Unavailable', 'records': 0, 'omitted': None,
                     'reason': f'Snapshot unreadable ({reason}); nothing imported.'}

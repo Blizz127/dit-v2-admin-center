@@ -56,6 +56,23 @@ class HubSnapshotTests(unittest.TestCase):
         with self.assertRaises(HubReadError):
             reader.trace('ffxi', 'any-correlation')
 
+    def test_malformed_snapshot_values_remain_unknown_or_isolated(self):
+        (self.root / 'ffxi/server-status.json').write_text(json.dumps({
+            'gameId': 'ffxi', 'status': {'xpRate': 10**400}}))
+        (self.root / 'health.json').write_text(json.dumps({
+            'services': [{'game': 'ffxi', 'label': 'Example', 'state': []}]}))
+        (self.root / 'interaction.json').write_text(json.dumps({
+            'switches': {'contract': True}, 'freshForSeconds': 10**400,
+            'scopes': [{'gameId': 'ffxi', 'caller': 'test', 'serverInstanceId': 'test',
+                        'bots': [{'actorKey': 'test', 'fresh': True, 'activity': [], 'source': {}}]}]}))
+        reader = SnapshotReader(self.root, NOW)
+        self.assertIsNone(read_views(reader)['gameStatus']['ffxi']['xpRate'])
+        self.assertEqual(project_hub_health(*reader.health())['services'][0]['state'], 'Unknown')
+        interaction = project_interaction(*reader.interaction())
+        self.assertIsNone(interaction['freshForSeconds'])
+        self.assertIsNone(interaction['bots'][0]['activity'])
+        self.assertIsNone(interaction['bots'][0]['source'])
+
     def test_invalid_manifest_withholds_every_view(self):
         cases = [dict(kind='other'), dict(version=2), dict(version=True), dict(exportedAtUtc='2026-01-01 12:00'),
                  dict(exportedAtUtc='2027-01-01T00:00:00Z'), dict(hubRevision='has space'), dict(extra='x')]
