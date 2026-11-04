@@ -132,6 +132,10 @@ import path that works under either open owner decision, not a choice between th
 out of the grouped comparison (counted as unattributed) because the export has no
 purpose; none is invented.
 
+Malformed evaluator enum values and numeric values too large to represent are
+omitted and counted without preventing valid records from loading. This is
+import robustness, not evidence that any missing producer measurement exists.
+
 A proposed bake-off run/attempt record that would close evaluator gaps (a)–(f) is in
 [the bake-off proposal](BAKEOFF-PRODUCER-PROPOSAL.md). The hub lead reviewed the shape on Nov 3, and the
 Admin Center importer is implemented offline behind `DIT_BAKEOFF_RUN_DIR`. Building

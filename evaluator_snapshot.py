@@ -69,7 +69,11 @@ def count(value, field):
 def number(value, field):
     if value is None:
         return None
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
+    try:
+        valid = not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(value) and value >= 0
+    except OverflowError:
+        valid = False
+    if not valid:
         raise SnapshotError('invalid ' + field)
     return value
 
@@ -78,12 +82,13 @@ def project(record):
     if not isinstance(record, dict) or set(record) != FIELDS:
         raise SnapshotError('unexpected record fields')
     status = record['CompletionStatus']
-    if status not in COMPLETION:
+    if not isinstance(status, str) or status not in COMPLETION:
         raise SnapshotError('invalid completion status')
-    if record['SemanticCompliance'] not in SEMANTIC:
+    if not isinstance(record['SemanticCompliance'], str) or record['SemanticCompliance'] not in SEMANTIC:
         raise SnapshotError('invalid semantic compliance')
     validation = record['StructuralValidation']
-    if not isinstance(validation, dict) or validation.get('Status') not in VALIDATION:
+    if (not isinstance(validation, dict) or not isinstance(validation.get('Status'), str)
+            or validation['Status'] not in VALIDATION):
         raise SnapshotError('invalid structural validation')
     usage = record['TokenUsage']
     if usage is not None and not isinstance(usage, dict):

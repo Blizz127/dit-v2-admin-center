@@ -82,6 +82,19 @@ class EvaluatorSnapshotTests(unittest.TestCase):
         self.assertEqual(snap.load(link)[1]['status'], 'Unavailable')
         self.assertEqual(snap.load(Path(self.temp.name) / 'missing.json')[1]['status'], 'Unavailable')
 
+    def test_malformed_json_types_and_large_numbers_do_not_hide_valid_rows(self):
+        bad = []
+        for field, value in (('CompletionStatus', []), ('SemanticCompliance', {}),
+                             ('StructuralValidation', {'Status': []}),
+                             ('EstimatedCost', 10**400),
+                             ('EvaluatorScores', [{'Evaluator': 'judge', 'Score': 10**400}])):
+            record = copy.deepcopy(self.records[1])
+            record[field] = value
+            bad.append(record)
+        rows, coverage = snap.load(self.write(bad + [self.records[0]]))
+        self.assertEqual((coverage['status'], coverage['records'], coverage['omitted']), ('Loaded', 1, len(bad)))
+        self.assertEqual(rows[0]['model'], 'deterministic / fixed-template')
+
     def test_overview_appends_rows_only_when_switched_on(self):
         import server
         with patch.dict('os.environ', {}, clear=True), \
@@ -96,6 +109,15 @@ class EvaluatorSnapshotTests(unittest.TestCase):
             on = server.overview()
         self.assertEqual(on['evaluatorSnapshot']['records'], 3)
         self.assertEqual(len(on['modelCalls']), len(off['modelCalls']) + 3)
+        malformed = copy.deepcopy(self.records[1])
+        malformed['CompletionStatus'] = []
+        path = self.write([malformed, self.records[0]])
+        with patch.dict('os.environ', {snap.ENV: str(path)}, clear=True), \
+             patch.object(Path, 'home', return_value=Path(self.temp.name)), \
+             patch('server.LOCAL_DATA', Path(self.temp.name) / 'local'):
+            partial = server.overview()
+        self.assertEqual((partial['evaluatorSnapshot']['records'], partial['evaluatorSnapshot']['omitted']), (1, 1))
+        self.assertEqual(len(partial['modelCalls']), len(off['modelCalls']) + 1)
 
 
 if __name__ == '__main__':
