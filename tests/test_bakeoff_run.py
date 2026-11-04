@@ -36,7 +36,7 @@ class BakeoffRunTests(unittest.TestCase):
     def test_fixture_projects_total_latency_cost_and_single_rubric_quality(self):
         rows, coverage = run.load(FIXTURE)
         self.assertEqual((coverage['status'], coverage['records'], coverage['omitted']), ('Loaded', 4, 0))
-        self.assertIn('4 of 4', coverage['reason'])
+        self.assertIn('4 retained of 4 candidate slots across 2 identifiable cases; total case set size unknown', coverage['reason'])
         self.assertIn('example-canonical-v1', coverage['reason'])
         self.assertEqual([r['latencyMs'] for r in rows], [250.0, 500.0, 300.0, 100.0])
         self.assertEqual([r['cost'] for r in rows], [0.00012, 0.00006, None, None])
@@ -90,7 +90,7 @@ class BakeoffRunTests(unittest.TestCase):
         bad = [{**copy.deepcopy(base), **change} for change in changes]
         rows, coverage = self.write(manifest=self.manifest, attempts=bad + self.attempts[1:])
         self.assertEqual((coverage['status'], len(rows), coverage['omitted']), ('Loaded', 3, len(bad)))
-        self.assertIn('3 of 4', coverage['reason'])
+        self.assertIn('3 retained of 4 candidate slots', coverage['reason'])
 
     def test_first_token_time_is_validated_but_never_shown(self):
         attempts = copy.deepcopy(self.attempts)
@@ -106,6 +106,17 @@ class BakeoffRunTests(unittest.TestCase):
         rows, coverage = self.write(attempts=attempts)
         self.assertEqual([r['id'].split(':')[2:] for r in rows], [['case-2', 'example-b/example-b-v1/subscription_chat']])
         self.assertEqual(coverage['omitted'], 4)
+        self.assertIn('1 retained of 4 candidate slots across 2 identifiable cases', coverage['reason'])
+
+    def test_unidentifiable_or_missing_cases_do_not_imply_complete_coverage(self):
+        rows, coverage = self.write(attempts=[])
+        self.assertEqual(rows, [])
+        self.assertIn('0 retained of 0 candidate slots across 0 identifiable cases; total case set size unknown', coverage['reason'])
+        malformed = copy.deepcopy(self.attempts[0])
+        malformed['completionStatus'] = []
+        rows, coverage = self.write(attempts=[malformed, self.attempts[2], self.attempts[3]])
+        self.assertEqual((len(rows), coverage['omitted']), (2, 1))
+        self.assertIn('2 retained of 2 candidate slots across 1 identifiable case; total case set size unknown', coverage['reason'])
 
     def test_multiple_rubrics_never_become_quality(self):
         manifest = {**self.manifest, 'rubrics': self.manifest['rubrics'] + [{'name': 'other', 'version': '1'}]}

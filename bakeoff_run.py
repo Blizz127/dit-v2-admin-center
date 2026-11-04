@@ -279,13 +279,18 @@ def load(directory):
     else:
         quality_note = ('no quality shown: scores are absent or mix rubrics, evaluators or scales.'
                         if scored else 'no quality shown: no attempt was scored.')
-    cases = {r['bakeoff']['caseId'] for r in kept}
-    expected = len(cases) * len(run['candidates'])
+    # The manifest identifies the case set by hash, but does not enumerate it.
+    # Count valid identifiable cases before ambiguity filtering; entirely missing
+    # or malformed cases are unknowable and must not imply complete coverage.
+    cases = {r['bakeoff']['caseId'] for r in rows}
+    slots = len(cases) * len(run['candidates'])
+    case_label = 'case' if len(cases) == 1 else 'cases'
     revision = f"reported hub revision {run['hubRevision']}" if run['hubRevision'] else 'hub revision not reported'
     return kept, {'status': 'Loaded', 'records': len(kept), 'omitted': omitted,
                   'reason': f"Run {run['runId']} ({run['environment']}, cases {run['caseSet']}, input hash "
-                            f"{run['canonicalization']}, {revision}). {len(kept)} of {expected} case × candidate "
-                            f'attempts present (means include partial cases; disclosed, not filtered). Total latency only; {quality_note} Offline runs have no delivery. '
+                            f"{run['canonicalization']}, {revision}). {len(kept)} retained of {slots} candidate slots "
+                            f'across {len(cases)} identifiable {case_label}; total case set size unknown. '
+                            f'Means include partial cases; disclosed, not filtered. Total latency only; {quality_note} Offline runs have no delivery. '
                             'Proposal shape, not an implemented hub contract.'}
 
 

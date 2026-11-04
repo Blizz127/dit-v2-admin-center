@@ -142,8 +142,9 @@ has been imported. The importer enforces the review defaults:
 - **Cost:** `costNusd` is converted to USD. A missing value stays unknown.
 - **Strictness:** attempts must belong to the run and a declared candidate, with
   the exact allowed fields and enums (snake_case). Malformed, duplicate or
-  undeclared attempts are counted and omitted. Coverage reports present versus
-  expected case × candidate attempts.
+  undeclared attempts are counted and omitted. Coverage reports retained attempts
+  against candidate slots for identifiable cases before ambiguity filtering. The
+  manifest does not enumerate cases, so the full case-set size remains unknown.
 - **File safety:** reads use the bounded non-blocking, no-symlink reader, with
   size and count limits.
 
