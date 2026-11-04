@@ -1,0 +1,127 @@
+diff --git a/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationProducerContextTests.cs b/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationProducerContextTests.cs
+index de72667..9caaf23 100644
+--- a/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationProducerContextTests.cs
++++ b/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationProducerContextTests.cs
+@@ -23,7 +23,7 @@ public sealed class ConversationProducerContextTests
+             return new(HttpStatusCode.OK) { Content = new StringContent(response, Encoding.UTF8, "application/json") };
+         }
+     }
+-    private static DialogueWordingRequest Request(string game, int turns, bool current, bool context = true)
++    internal static DialogueWordingRequest Request(string game, int turns, bool current, bool context = true)
+     {
+         var now = DateTimeOffset.UtcNow;
+         var history = Enumerable.Range(0, turns).Select(n => n is 4 or 5 ? "Fixture: repeated on purpose" : "Fixture: turn " + n).ToArray();
+diff --git a/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusIngressTests.cs b/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusIngressTests.cs
+index b794d5d..40d74ed 100644
+--- a/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusIngressTests.cs
++++ b/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusIngressTests.cs
+@@ -2,6 +2,7 @@ using System.Net;
+ using System.Net.Http.Headers;
+ using System.Text;
+ using Dit.HumanBehavior.DialogueWording;
++using Dit.HumanBehavior.Neuronetwork.Client;
+ using Dit.HumanBehavior.Neuronetwork.Conversation;
+ using Dit.HumanBehavior.Neuronetwork.Hub;
+ using Microsoft.AspNetCore.Builder;
+@@ -14,6 +15,7 @@ using Xunit;
+ 
+ namespace Dit.HumanBehavior.Neuronetwork.Tests;
+ 
++[Collection("Producer context environment")]
+ public sealed class ConversationStatusIngressTests : IAsyncLifetime
+ {
+     private readonly TempDirectory _temp = new();
+@@ -22,6 +24,7 @@ public sealed class ConversationStatusIngressTests : IAsyncLifetime
+     private string _adapter = "", _admin = "", _other = "";
+     private Uri _base = new("http://127.0.0.1/");
+     private readonly SpySource _source = new();
++    private readonly Provider _provider = new();
+     private sealed class SpySource : IConversationStatusSource
+     {
+         public List<ConversationStatusLookup> Reads = [];
+@@ -30,10 +33,14 @@ public sealed class ConversationStatusIngressTests : IAsyncLifetime
+     private sealed class Provider : IDialogueWordingProvider
+     {
+         public string ProviderName => "offline-status-ingress";
+-        public Task<DialogueWordingResult> GenerateAsync(DialogueWordingRequest request, CancellationToken ct) =>
+-            Task.FromResult(new DialogueWordingResult(request.RequestId, ProviderName, "fixture", null,
++        public List<DialogueWordingRequest> Requests = [];
++        public Task<DialogueWordingResult> GenerateAsync(DialogueWordingRequest request, CancellationToken ct)
++        {
++            Requests.Add(request);
++            return Task.FromResult(new DialogueWordingResult(request.RequestId, ProviderName, "fixture", null,
+                 DialogueWordingCompletionStatus.Unavailable, TimeSpan.Zero, null, null, false,
+                 DialogueProviderFailureClassification.Availability, request.GenerationPolicyVersion));
++        }
+     }
+     public async Task InitializeAsync()
+     {
+@@ -42,7 +49,10 @@ public sealed class ConversationStatusIngressTests : IAsyncLifetime
+         _adapter = HubTokens.Add(config.TokenFile, "synthetic-adapter", HubRole.Adapter, "ffxi");
+         _admin = HubTokens.Add(config.TokenFile, "synthetic-admin", HubRole.Admin, null);
+         _other = HubTokens.Add(config.TokenFile, "other-game", HubRole.Adapter, "swtor");
+-        _runtime = new HubRuntime(config, conversationProvider: new Provider());
++        _runtime = new HubRuntime(config, conversationProvider: _provider);
++        // No asynchronous memory-model route may escape this synthetic localhost fixture.
++        _runtime.Conversation.CompanionExtractor = null;
++        _runtime.Conversation.CompanionExtractorForGame = null;
+         Assert.Null(_runtime.Conversation.SharedStatusSource);
+         _runtime.Conversation.SharedStatusSource = _source;
+         _runtime.Conversation.StatusEnvironment = _ => "ffxi";
+@@ -105,4 +115,56 @@ public sealed class ConversationStatusIngressTests : IAsyncLifetime
+         Assert.Equal(HttpStatusCode.OK, await Post("reply", _adapter));
+         Assert.Empty(_source.Reads);
+     }
++
++    [Theory]
++    [InlineData("ffxi", 12)] [InlineData("swtor", 12)]
++    [InlineData("ffxi", 32)] [InlineData("swtor", 32)]
++    public async Task Shared_client_group_history_survives_authenticated_http_and_prompt_building(string game, int turns)
++    {
++        var env = new Dictionary<string, string?>
++        {
++            ["DIT_NEURONETWORK_CONSULT_TOKEN_DIRECTORY"] = _temp.Path,
++            ["DIT_" + game.ToUpperInvariant() + "_HUB_CONVERSATION"] = "only",
++            ["DIT_" + game.ToUpperInvariant() + "_GROUP"] = "live",
++            ["DIT_" + game.ToUpperInvariant() + "_GROUP_ACTORS"] = "",
++        };
++        var before = env.Keys.ToDictionary(k => k, Environment.GetEnvironmentVariable);
++        try
++        {
++            foreach (var (key, value) in env) Environment.SetEnvironmentVariable(key, value);
++            File.WriteAllText(Path.Combine(_temp.Path, game + ".token"), game == "ffxi" ? _adapter : _other);
++            _runtime!.Conversation.ContextEnvironment = _ => game;
++            _runtime.Conversation.StatusEnvironment = _ => game;
++            var input = ConversationProducerContextTests.Request(game, turns, current: true);
++            var reports = new List<string>();
++            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
++            var client = new NeuronetConversationClient(game, http, _base.ToString().TrimEnd('/'));
++            using var producer = NeuronetConversationWordingProvider.HubOnly(client, "fixture-instance", reports.Add);
++            producer.ContextEnvironment = _ => game;
++            await producer.GenerateAsync(input, default);
++            var request = Assert.Single(_provider.Requests);
++            var retained = input.ConversationContext!.History.TakeLast(16).ToArray();
++            Assert.Equal(retained, request.ConversationContext!.History);
++            Assert.Equal(input.ConversationContext.CurrentMessage, request.ConversationContext.CurrentMessage);
++            var prompt = DialogueWordingPromptText.Build(request);
++            Assert.Equal(retained.Length, prompt.ContextReceipt!.SuppliedHistoryTurns);
++            Assert.Equal(retained.Length, prompt.ContextReceipt.IncludedHistoryTurns);
++            Assert.Equal(0, prompt.ContextReceipt.OmittedHistoryTurns);
++            var section = prompt.UserMessage.Split("UNTRUSTED RECENT CONVERSATION\n")[1].Split("\n\n")[0].Split('\n');
++            Assert.Equal(retained.Select(turn => "- " + turn), section.Skip(1).Take(retained.Length));
++            Assert.Contains($"- LATEST LINE, the one you are answering: {input.ConversationContext.CurrentMessage}", section);
++            Assert.Contains(reports, report => report.Contains($"history supplied={turns}, prepared={retained.Length}, omitted={turns - retained.Length}"));
++            Assert.NotEmpty(_source.Reads);
++            Assert.All(_source.Reads, read =>
++            {
++                Assert.Equal(game, read.Game);
++                Assert.Equal(game == "ffxi" ? "synthetic-adapter" : "other-game", read.NativeScope!.Value.Caller);
++            });
++            var binding = _runtime.Conversation.StatusBindingFor(request);
++            Assert.Equal("source unavailable", binding!.State);
++            Assert.Null(binding.View);
++            Assert.DoesNotContain(request.ApprovedGameWorldFacts, fact => fact.Key == "native_status_location");
++        }
++        finally { foreach (var (key, value) in before) Environment.SetEnvironmentVariable(key, value); }
++    }
+ }

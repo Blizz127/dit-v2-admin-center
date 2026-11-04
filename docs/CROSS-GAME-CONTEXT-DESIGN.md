@@ -27,6 +27,20 @@ The [context limit audit](CONVERSATION-CONTEXT-LIMITS.md) separates producer,
 transport and prompt limits so a full captured-input count is not mistaken for
 a complete original conversation.
 
+Current readiness, after the local inspector consistency fix (`b7e3688`):
+
+| Part | What is ready locally | What is still unverified or missing |
+| --- | --- | --- |
+| Conversation context | Structured history reaches the candidate prompt separately from behavior facts; repeated turns remain ordered | History already discarded upstream is not recovered; real model understanding is untested |
+| Shared status | Scoped source adapter, expiry/revision checks, and explicit unknown values | Verified FFXI native identity/presence and an equivalent SWTOR producer; live status is not enabled |
+| Inspector | Exact captured context/status agreement, empty and unavailable packets, stale-clear/recovery; 25 focused Python checks plus simulated-DOM passed | Native browser rendering remains NOT RUN; this is a synthetic capture inspector, not live monitoring |
+| Conversation provenance | [Scoped producer proposal](CONVERSATION-TURN-PROVENANCE-PROPOSAL.md) separates drafts, publication, confirmed speech and ambiguous outcomes | Stable native turn identities and delivery evidence are not an agreed/implemented producer contract |
+| Owner overview | [Video and earlier preview deliveries](CROSS-GAME-CONTEXT-VIDEO-DELIVERY.md) are recorded on Alienware | Copy/hash receipts do not establish playback, browser validation or live game behavior |
+
+The live chat issue remains unresolved. All runtime changes are isolated
+candidates with default-off flags. The owning hub/game integrators retain the
+native evidence and rollout steps; this progress does not release those holds.
+
 ## What a reply should know
 
 Every game publishes its authoritative observations into DIT. DIT maintains a

@@ -87,3 +87,42 @@ python3 -m tools.build_context_capture_playtest
 Native browser execution remains **NOT RUN** under the recorded device/namespace
 restrictions. No artifact from this step was launched or deployed on Alienware.
 The earlier overview video and integrated preview deliveries remain unchanged.
+
+## Follow-up: client through authenticated HTTP to the prompt
+
+`producer-http-context-tests.patch` is a **test-only** follow-up to the runtime
+candidate above. Its base is in `HTTP_TEST_BASE_REVISION` (the same runtime
+revision as `ISOLATED_REVISION`); its isolated test revision is in
+`HTTP_TEST_REVISION`. It adds no runtime behavior and does not replace or require
+reapplying the combined runtime patch. Apply it after that candidate, if needed.
+
+Four focused FFXI/SWTOR cases exercise the actual shared C# client, synthetic
+adapter authentication, disposable localhost group route, conversation service
+and final prompt builder together. All 12 supplied turns survive in order,
+including two intentional identical turns. With 32 supplied turns, the existing
+transport keeps the newest 16; the producer report records 16 omitted and the
+hub receipt correctly reports only its 16 received turns. Current text and
+authenticated native scope also match. A missing source remains unavailable;
+the test cannot fabricate known location or native presence.
+
+All **11 focused ingress tests passed** (four new pipeline cases and the seven
+existing caller/authentication/flag checks). Wording is intercepted by a fake
+provider, memory extraction is explicitly disabled, and all stores and tokens
+are synthetic and temporary. No native game or real model is called. This run
+does not establish chat delivery, model understanding or the Python bridge's
+behavior, and it is not a full suite result.
+
+The first invocation selected the shell's .NET 9 SDK and stopped before build
+with NETSDK1045. The successful invocation used the already installed .NET 10
+SDK through `/usr/bin/dotnet`, with the same resource limits and incremental
+options above. No SDK was installed and no host setting changed. Local logs:
+`build/context-slice/producer-http-context-sdk-selection.log` (failed setup)
+and `build/context-slice/producer-http-context.log` (11 passed).
+
+The current Admin inspector follow-up (`b7e3688`) passes **25 focused Python
+checks plus simulated-DOM**, including authenticated localhost recovery from
+contradictory status facts. It handles twelve captures (ordinary, unavailable
+and empty context). Native browser remains NOT RUN. The
+[turn provenance proposal](../../docs/CONVERSATION-TURN-PROVENANCE-PROPOSAL.md)
+records why prepared/published wording is not confirmed speech; it is not an
+accepted producer contract or release permission.
