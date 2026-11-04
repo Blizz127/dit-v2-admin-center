@@ -649,3 +649,25 @@ revision. The [native-browser checklist](docs/CONTEXT-NATIVE-BROWSER-CHECKLIST.m
 and `python3 -m tools.build_context_capture_playtest` provide an offline preview
 of the panel using six ordinary, four unavailable-status and two empty-context captures. Native
 browser execution remains pending under the recorded device restrictions.
+
+### Inspect offline delivery evidence
+
+The Bots workspace also has **Load configured delivery evidence**. Its setting
+`DIT_DELIVERY_CAPTURE_FILE` is unset by default; for a local synthetic example,
+use `tests/fixtures/delivery-correlation/ffxi.json` or `swtor.json` relative to
+the development server's working directory. The existing Admin authentication
+protects `GET /api/delivery-capture` before file access. Nothing scans live logs,
+confirms native speech, updates conversation history or replays a message.
+
+The report matches decision/inbox publication records and withholds conflicting
+wording. Every actual-delivery value stays Unknown. The API has no native verifier
+or simulation control. See [source limits and focused checks](docs/DELIVERY-EVIDENCE-CORRELATION.md).
+Unset the setting to disable reads again; no migration or service change is
+performed by this feature.
+
+`python3 -m tools.build_context_capture_playtest` embeds the actual loader with
+two synthetic reports and network disabled. The separate
+`python3 -m tools.build_delivery_correlation_preview` produces a static preview
+of seven publication/receipt states, including explicitly fabricated native
+matches. Both remain local artifacts with native browser NOT RUN; the
+[checklist](docs/CONTEXT-NATIVE-BROWSER-CHECKLIST.md) preserves device and live-game holds.
