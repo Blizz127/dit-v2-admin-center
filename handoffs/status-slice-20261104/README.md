@@ -3,6 +3,11 @@
 Prepared for the DIT hub lead, 2026-11-04. This is an unwired source proposal,
 not a replacement producer contract, live store, or deployed status feed.
 
+Follow-up: the [offline integration candidate](../context-status-integration-20261104/README.md)
+binds this component to the conversation service behind a default-off flag.
+Use its combined patch instead of replaying this patch, or follow both original
+candidates with its delta patch. No production source has been registered.
+
 The existing FFXI `Interaction/ObservedStateStore.cs` remains the owner of native
 snapshot ordering and retired epochs. The generic `ObservationEnvelope` also
 already carries observation/validity times; this candidate does not redefine its

@@ -11,8 +11,11 @@ Four synthetic FFXI/SWTOR reply/rewrite captures retain all 12 supplied turns.
 The candidate remains default-off and unapplied to the shared hub; this is not
 evidence of improved live conversation. A separate [status read projection
 candidate](../handoffs/status-slice-20261104/README.md) defines the common scoped,
-freshness-aware read view. It is not wired to a producer, reply, or live Admin
-feed. Producer mappings, status integration and memory remain next.
+freshness-aware read view. The [offline integration candidate](../handoffs/context-status-integration-20261104/README.md)
+now binds that view into companion, heard and intent prompts through an injected
+source, with a status recheck after generation. No production source or live
+Admin feed is wired. Real producer mappings, native delivery and memory remain
+next; the integration fixtures do not establish live conversation quality.
 
 ## What a reply should know
 

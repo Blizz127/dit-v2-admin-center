@@ -4,6 +4,10 @@ Prepared for the DIT hub lead, 2026-11-04. This patch is an implementation
 proposal in an isolated source snapshot. It has **not** been applied to the
 shared hub worktree, deployed, or enabled. The hub lead remains the integrator.
 
+Follow-up: the [combined offline integration](../context-status-integration-20261104/README.md)
+includes this candidate and the status projection. Use its combined patch or
+apply its delta after both original candidates; do not apply both forms.
+
 ## Behavior
 
 With `DIT_CONVERSATION_CONTEXT_GAMES=ffxi,swtor`, the selected games carry
