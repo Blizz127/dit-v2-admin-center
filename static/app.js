@@ -284,6 +284,7 @@ function renderDeliveryCapture(data) {
   if (data.status !== 'Loaded' || !counts || !['ffxi', 'swtor'].includes(data.scope?.game)
       || !['realm', 'instance', 'thread', 'channel', 'actorKey', 'nativeActorId', 'epoch'].every(key => typeof data.scope[key] === 'string' && data.scope[key])
       || typeof data.coverage !== 'string' || counts.recordedAttempts !== data.records.length
+      || !Number.isSafeInteger(data.rejectedReceipts) || data.rejectedReceipts < 0 || data.rejectedReceipts > 256
       || !['recordedAttempts', 'publicationMatched', 'syntheticConfirmed', 'conflicted', 'duplicateDecisionRecords', 'duplicateReceiptRecords'].every(key => Number.isSafeInteger(counts[key]) && counts[key] >= 0)) throw new Error('invalid delivery counts');
   if (counts.publicationMatched !== data.records.filter(row => row?.publication === 'Matched').length
       || counts.syntheticConfirmed !== data.records.filter(row => row?.fixtureConfirmation === 'Synthetic match').length
@@ -291,6 +292,8 @@ function renderDeliveryCapture(data) {
   item(panel, 'Synthetic delivery evidence · Actual game delivery: Unknown',
     `${counts.recordedAttempts} recorded attempts · ${counts.publicationMatched} publication matches · ${counts.syntheticConfirmed} synthetic native matches · ${counts.conflicted} conflicts.`,
     `${data.scope.game.toUpperCase()} · Independent of roster selection. ${data.coverage} No replay or native confirmation is performed.`);
+  item(panel, 'Receipt evidence', `${data.rejectedReceipts} receipts rejected or unverified.`,
+    'This count includes fixture receipts with no configured verifier. It does not establish failed game delivery. The Admin loader never verifies native speech.');
   item(panel, 'Captured scope', `${data.scope.realm} / ${data.scope.instance} / ${data.scope.thread} / ${data.scope.actorKey}`,
     `Fixture body ${data.scope.nativeActorId} · epoch ${data.scope.epoch} · channel ${data.scope.channel}. Scope labels do not authenticate a producer.`);
   for (const record of data.records) {

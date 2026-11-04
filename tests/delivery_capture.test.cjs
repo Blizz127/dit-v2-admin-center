@@ -18,11 +18,19 @@ const report = JSON.parse(execFileSync('python3', ['-m', 'tools.correlate_delive
   await button.listeners.click();
   assert.match(panel.textContent, /Actual game delivery: Unknown/);
   assert.match(panel.textContent, /2 publication matches · 0 synthetic native matches/);
+  assert.match(panel.textContent, /2 receipts rejected or unverified/);
+  assert.match(panel.textContent, /does not establish failed game delivery/);
   assert.match(panel.textContent, /Inbox sequence 41/);
   assert.match(panel.textContent, /Inbox sequence 42/);
   assert.match(panel.textContent, /Independent of roster selection/);
   for (const property of ['nativeDeliveryVerified', 'replayAuthorized', 'deliveredInGame']) {
     response = structuredClone(report); response[property] = true;
+    await button.listeners.click();
+    assert.match(panel.textContent, /Delivery evidence unavailable/);
+    assert.ok(!panel.textContent.includes('yes, that same entrance'));
+  }
+  for (const rejected of [undefined, -1, 257, 1.5, true]) {
+    response = structuredClone(report); response.rejectedReceipts = rejected;
     await button.listeners.click();
     assert.match(panel.textContent, /Delivery evidence unavailable/);
     assert.ok(!panel.textContent.includes('yes, that same entrance'));

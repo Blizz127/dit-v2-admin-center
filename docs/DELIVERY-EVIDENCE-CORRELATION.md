@@ -153,10 +153,18 @@ simulated-DOM check. Six permutations keep the earliest supplied time stable;
 24 collision/duplicate permutations preserve unrelated evidence and consistent
 counts. The latter initially reproduced an order-dependent duplicate count;
 the corrected implementation passes every case. No full suite or native browser
-was run. Current rebuilt artifact SHA-256 values:
+was run. Rebuilt artifact SHA-256 values at `b900064`:
 
 - `Delivery-Evidence-Preview.html`: `ca25cb7351b37453a278b1ef9bb9a43d39e1bca398b911cadf0a0bb7d36a1fae`
 - `Context-Panel-Playtest.html`: `e3d6f497cc3bce906ff82e3705f1ac7b6b0c3d23a3bbb6d3507744cd3d0cb7a2`
+
+The inspector additionally displays the rejected/unverified receipt count,
+explicitly distinguishing missing verification from failed delivery. A missing,
+noninteger or out-of-range count clears the panel. Its simulated-DOM check and
+two artifact checks passed; the updated `Context-Panel-Playtest.html` SHA-256 is
+`b2e1a140e34a371df546ec4bde83dc17ac637b21f7b5302c307c456a2e90f49d`.
+The static delivery preview remains the `ca25cb...` artifact above. Native
+browser execution is still NOT RUN.
 
 ## What a real integration still needs
 

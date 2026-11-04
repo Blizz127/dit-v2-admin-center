@@ -91,6 +91,9 @@ execution stays with the designated device lead and its existing holds.
    a SWTOR capture. Expect four recorded attempts, two publication matches,
    zero synthetic native matches and actual delivery Unknown. Verify the exact
    game/body/thread scope. Roster selection must not change the captured scope.
+   The receipt-evidence card must show two rejected or unverified receipts and
+   explain that the Admin loader has no native verifier. This count does not
+   establish failed game delivery.
 9. Repeat Not configured, Unavailable, Invalid field, HTTP error and Delayed
    response/Reset/Release for the delivery button. The invalid fixture falsely
    claims native verification and must be refused. Every failed load clears old

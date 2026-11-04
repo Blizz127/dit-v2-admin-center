@@ -902,3 +902,9 @@ old content on errors, rejects contradictory real-delivery/replay claims and
 ignores late responses from an old session. Existing no-store/nosniff headers
 apply. This does not make the source native, authenticated or complete. Browser
 execution remains NOT RUN; authentication/file behavior is checked on localhost.
+
+The receipt-evidence card displays the supplied rejected/unverified receipt
+count (an integer from 0 through 256). Missing or malformed counts invalidate
+and clear the panel. The label distinguishes missing verification from failed
+delivery; the API has no native verifier, so plausible fixture receipts can
+still be unverified. No failure rate or actual speech count is inferred.
