@@ -1,0 +1,617 @@
+diff --git a/src/Dit.HumanBehavior.BehaviorPlanning/AiConsultation.cs b/src/Dit.HumanBehavior.BehaviorPlanning/AiConsultation.cs
+index 48b1189..1906089 100644
+--- a/src/Dit.HumanBehavior.BehaviorPlanning/AiConsultation.cs
++++ b/src/Dit.HumanBehavior.BehaviorPlanning/AiConsultation.cs
+@@ -4,6 +4,9 @@ namespace Dit.HumanBehavior.BehaviorPlanning;
+ public sealed record AiConsultationRequest(string GameId, string Question, DateTimeOffset CapturedAtUtc,
+     IReadOnlyList<string> Facts, int MaximumAnswerCharacters = 400, int ResearchWaitMilliseconds = 0)
+ {
++    // Only the new bounded wording section opts into a larger history window.
++    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
++    public bool StructuredConversation { get; init; }
+     public bool ResearchStatusOnly { get; init; }
+     public bool ResearchQueueOnly { get; init; }
+     public IReadOnlyList<string> ConversationHistory { get; init; } = [];
+diff --git a/src/Dit.HumanBehavior.DialogueWording.DeepSeek/AiConsultationProvider.cs b/src/Dit.HumanBehavior.DialogueWording.DeepSeek/AiConsultationProvider.cs
+index 90ce067..1ac4b0b 100644
+--- a/src/Dit.HumanBehavior.DialogueWording.DeepSeek/AiConsultationProvider.cs
++++ b/src/Dit.HumanBehavior.DialogueWording.DeepSeek/AiConsultationProvider.cs
+@@ -40,7 +40,7 @@ public sealed class AiConsultationProvider(HttpClient client, DeepSeekDialogueWo
+             or "Could you clarify what you need help with?";
+     public static void ValidateRequest(AiConsultationRequest context)
+     {
+-        if (context.ConversationHistory is null || context.ConversationHistory.Count > 8 ||
++        if (context.ConversationHistory is null || context.ConversationHistory.Count > (context.StructuredConversation ? DialogueConversationContext.MaximumTurns : 8) ||
+             context.ConversationHistory.Any(turn => turn is null || turn.Length > 512) ||
+             context.InteractionMemories is null || context.InteractionMemories.Count > 10 ||
+             context.InteractionMemories.Any(m => m is null || m.Length > 256) ||
+@@ -49,6 +49,8 @@ public sealed class AiConsultationProvider(HttpClient client, DeepSeekDialogueWo
+             context.MaximumAnswerCharacters is < 1 or > 400 || context.PersonaSummary is { Length: > 512 } ||
+             context.ConversationStyle is { Length: > 256 } || context.Facts is null || context.Facts.Count > 32 || context.Facts.Any(f => f is null || f.Length > 1024))
+             throw new ArgumentException("Invalid consultation context.");
++        if (context.StructuredConversation && JsonSerializer.Serialize(context).Length > DialogueWordingPromptText.MaximumSerializedPromptCharacters)
++            throw new ArgumentException("The structured consultation exceeds the bounded input limit.");
+     }
+     public async Task<AiConsultationResult> ConsultAsync(AiConsultationRequest context, CancellationToken cancellationToken = default)
+     {
+diff --git a/src/Dit.HumanBehavior.DialogueWording.DeepSeek/ConsultingDialogueWordingProvider.cs b/src/Dit.HumanBehavior.DialogueWording.DeepSeek/ConsultingDialogueWordingProvider.cs
+index 359e6bd..13077f6 100644
+--- a/src/Dit.HumanBehavior.DialogueWording.DeepSeek/ConsultingDialogueWordingProvider.cs
++++ b/src/Dit.HumanBehavior.DialogueWording.DeepSeek/ConsultingDialogueWordingProvider.cs
+@@ -47,7 +47,7 @@ public sealed class ConsultingDialogueWordingProvider : IDialogueWordingProvider
+     }
+     public async Task<DialogueWordingResult> GenerateAsync(DialogueWordingRequest request, CancellationToken cancellationToken)
+     {
+-        var question = request.TriggerFacts.FirstOrDefault(f => f.Key is "untrusted_player_message" or "untrusted_conversation_player_message")?.Value;
++        var question = request.ConversationContext?.CurrentMessage ?? request.TriggerFacts.FirstOrDefault(f => f.Key is "untrusted_player_message" or "untrusted_conversation_player_message")?.Value;
+         // Native action acknowledgements already contain the authoritative outcome.
+         // Keep them in the existing wording lane, including refused/stalled routes.
+         if (string.IsNullOrWhiteSpace(question) || request.ApprovedGameWorldFacts.Any(f => f.Key == "native_guide_action_result"))
+@@ -74,7 +74,10 @@ public sealed class ConsultingDialogueWordingProvider : IDialogueWordingProvider
+                 // A player waiting on a reply gets at most a few seconds of research; a slow lookup answers next time.
+                 ResearchWaitMilliseconds: Math.Clamp((int)(budget.TotalMilliseconds - 14000), 0, 3000))
+             {
+-                ConversationHistory = request.TriggerFacts
++                StructuredConversation = request.ConversationContext is not null,
++                ConversationHistory = request.ConversationContext is { } structured
++                    ? structured.History.TakeLast(DialogueWordingPromptText.Build(request).ContextReceipt!.IncludedHistoryTurns).ToArray()
++                    : request.TriggerFacts
+                     .Where(f => f.Key.StartsWith("untrusted_conversation_", StringComparison.Ordinal) &&
+                         f.Key != "untrusted_conversation_player_message")
+                     .TakeLast(8).Select(f => f.Value.Length > 512 ? f.Value[..512] : f.Value).ToArray(),
+diff --git a/src/Dit.HumanBehavior.DialogueWording/DialogueConversationContext.cs b/src/Dit.HumanBehavior.DialogueWording/DialogueConversationContext.cs
+new file mode 100644
+index 0000000..7f13619
+--- /dev/null
++++ b/src/Dit.HumanBehavior.DialogueWording/DialogueConversationContext.cs
+@@ -0,0 +1,29 @@
++using Dit.HumanBehavior.Contracts;
++
++namespace Dit.HumanBehavior.DialogueWording;
++
++/// <summary>
++/// Already-scoped conversation data, separate from behavior/grounding facts.
++/// Legacy callers supply speaker-labelled lines, not authenticated turn IDs or
++/// delivery receipts. This type does not upgrade those lines into observations.
++/// </summary>
++public sealed record DialogueConversationContext
++{
++    public const int MaximumTurns = 32;
++    public const int MaximumTurnCharacters = 512;
++
++    public DialogueConversationContext(ValueList<string>? history, string? currentMessage)
++    {
++        History = DialogueWordingGuard.TextList(history, nameof(history), MaximumTurns, MaximumTurnCharacters);
++        CurrentMessage = currentMessage is null ? null :
++            DialogueWordingGuard.Text(currentMessage, nameof(currentMessage), MaximumTurnCharacters, allowEmpty: false);
++    }
++
++    public ValueList<string> History { get; }
++    public string? CurrentMessage { get; }
++}
++
++/// <summary>Coverage of the exact provider-neutral prompt, not model comprehension or delivery.</summary>
++public sealed record DialogueContextReceipt(
++    string RequestId, int SuppliedHistoryTurns, int IncludedHistoryTurns, int OmittedHistoryTurns,
++    int SerializedCharacters, int MaximumSerializedCharacters, string PromptSha256);
+diff --git a/src/Dit.HumanBehavior.DialogueWording/DialoguePromptContentModel.cs b/src/Dit.HumanBehavior.DialogueWording/DialoguePromptContentModel.cs
+index 217499a..b27352b 100644
+--- a/src/Dit.HumanBehavior.DialogueWording/DialoguePromptContentModel.cs
++++ b/src/Dit.HumanBehavior.DialogueWording/DialoguePromptContentModel.cs
+@@ -16,7 +16,8 @@ public sealed record DialoguePromptContentModel(
+     SharedEventMemorySection SharedEventMemory,
+     SemanticIntentSection SemanticIntent,
+     StyleConstraintsSection StyleConstraints,
+-    OutputConstraintsSection OutputConstraints)
++    OutputConstraintsSection OutputConstraints,
++    DialogueConversationContext? ConversationContext = null)
+ {
+     public static DialoguePromptContentModel FromRequest(DialogueWordingRequest request)
+     {
+@@ -44,7 +45,7 @@ public sealed record DialoguePromptContentModel(
+                 request.OutputConstraints.AllowUrls,
+                 request.OutputConstraints.RequireAscii,
+                 request.OutputConstraints.AllowNarration,
+-                request.OutputConstraints.AllowWrappingQuotes));
++                request.OutputConstraints.AllowWrappingQuotes), request.ConversationContext);
+     }
+ 
+     private static string? AuthorizedRelationshipCategory(string summary)
+diff --git a/src/Dit.HumanBehavior.DialogueWording/DialogueWordingModels.cs b/src/Dit.HumanBehavior.DialogueWording/DialogueWordingModels.cs
+index b171d77..74d558a 100644
+--- a/src/Dit.HumanBehavior.DialogueWording/DialogueWordingModels.cs
++++ b/src/Dit.HumanBehavior.DialogueWording/DialogueWordingModels.cs
+@@ -189,7 +189,8 @@ public sealed record DialogueWordingRequest
+         DateTimeOffset expiresAtUtc,
+         string correlationId,
+         string? causationId = null,
+-        string? sharedEventMemorySummary = null)
++        string? sharedEventMemorySummary = null,
++        DialogueConversationContext? conversationContext = null)
+     {
+         IntentionId = DialogueWordingGuard.Identifier(intentionId, nameof(intentionId));
+         Game = game ?? throw new ArgumentNullException(nameof(game));
+@@ -233,6 +234,7 @@ public sealed record DialogueWordingRequest
+             throw new ArgumentException("The wording deadline must be strictly after the request time.", nameof(expiresAtUtc));
+         }
+ 
++        ConversationContext = conversationContext;
+         RequestId = DialogueWordingRequestIdentity.Create(this);
+     }
+ 
+@@ -266,6 +268,8 @@ public sealed record DialogueWordingRequest
+     public string CorrelationId { get; }
+     public string? CausationId { get; }
+     public string SharedEventMemorySummary { get; }
++    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
++    public DialogueConversationContext? ConversationContext { get; }
+ }
+ 
+ public sealed record DialogueTokenUsage
+diff --git a/src/Dit.HumanBehavior.DialogueWording/DialogueWordingPromptText.cs b/src/Dit.HumanBehavior.DialogueWording/DialogueWordingPromptText.cs
+index 64c16f5..6137d52 100644
+--- a/src/Dit.HumanBehavior.DialogueWording/DialogueWordingPromptText.cs
++++ b/src/Dit.HumanBehavior.DialogueWording/DialogueWordingPromptText.cs
+@@ -1,5 +1,7 @@
+ using Dit.HumanBehavior.Contracts;
+ using System.Text;
++using System.Security.Cryptography;
++using System.Globalization;
+ 
+ namespace Dit.HumanBehavior.DialogueWording;
+ 
+@@ -34,13 +36,28 @@ public static class DialogueWordingPromptText
+         var enabled = (voiceGames ?? "").Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+             .Any(game => string.Equals(request.Game.GameId, game, StringComparison.OrdinalIgnoreCase));
+         var system = BuildSystemMessage(content, enabled);
+-        var user = BuildUserMessage(content);
++        var omitted = 0;
++        var user = BuildUserMessage(content, omitted);
++        // Only whole, oldest history turns may be omitted. Current input,
++        // grounding and corrections never compete for these history slots.
++        while (system.Length + user.Length > MaximumSerializedPromptCharacters &&
++               omitted < (content.ConversationContext?.History.Count ?? 0))
++            user = BuildUserMessage(content, ++omitted);
+         if (system.Length + user.Length > MaximumSerializedPromptCharacters)
+         {
+             throw new InvalidOperationException("The bounded dialogue prompt exceeds the provider-neutral limit.");
+         }
+ 
+-        return new DialogueWordingPromptTextContent(system, user);
++        DialogueContextReceipt? receipt = null;
++        if (content.ConversationContext is { } conversation)
++        {
++            var digestInput = system.Length.ToString(CultureInfo.InvariantCulture) + ":" + system +
++                user.Length.ToString(CultureInfo.InvariantCulture) + ":" + user;
++            receipt = new(request.RequestId, conversation.History.Count, conversation.History.Count - omitted,
++                omitted, system.Length + user.Length, MaximumSerializedPromptCharacters,
++                Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(digestInput))));
++        }
++        return new DialogueWordingPromptTextContent(system, user) { ContextReceipt = receipt };
+     }
+ 
+     private static string BuildSystemMessage(DialoguePromptContentModel content, bool voiceEnabled)
+@@ -56,7 +73,7 @@ public static class DialogueWordingPromptText
+         return builder.ToString();
+     }
+ 
+-    private static string BuildUserMessage(DialoguePromptContentModel content)
++    private static string BuildUserMessage(DialoguePromptContentModel content, int omittedHistoryTurns)
+     {
+         var builder = new StringBuilder();
+         Section(builder, "ACTOR", content.ActorIdentity.DisplayName ?? content.ActorIdentity.ActorKey);
+@@ -72,7 +89,10 @@ public static class DialogueWordingPromptText
+         // answered whatever came last in the history instead (Marvel, 2026-09-23: "ugh don't want to work tomorrow"
+         // got "yeah that commercial cracked me up").
+         var conversationFacts = content.CurrentSituation.TriggerFacts.Where(IsUntrustedConversationFact).ToArray();
+-        var recentConversation = conversationFacts
++        var recentConversation = content.ConversationContext is { } conversation
++            ? conversation.History.Skip(omittedHistoryTurns).Concat(conversation.CurrentMessage is null ? [] :
++                new[] { "LATEST LINE, the one you are answering: " + conversation.CurrentMessage }).ToArray()
++            : conversationFacts
+             .Where(fact => fact.Key != "untrusted_conversation_player_message")
+             .Select(fact => fact.Value)
+             .Concat(conversationFacts
+@@ -173,4 +193,7 @@ public static class DialogueWordingPromptText
+     }
+ }
+ 
+-public sealed record DialogueWordingPromptTextContent(string SystemMessage, string UserMessage);
++public sealed record DialogueWordingPromptTextContent(string SystemMessage, string UserMessage)
++{
++    public DialogueContextReceipt? ContextReceipt { get; init; }
++}
+diff --git a/src/Dit.HumanBehavior.DialogueWording/DialogueWordingRequestIdentity.cs b/src/Dit.HumanBehavior.DialogueWording/DialogueWordingRequestIdentity.cs
+index 36fcef0..e38d16e 100644
+--- a/src/Dit.HumanBehavior.DialogueWording/DialogueWordingRequestIdentity.cs
++++ b/src/Dit.HumanBehavior.DialogueWording/DialogueWordingRequestIdentity.cs
+@@ -51,6 +51,14 @@ public static class DialogueWordingRequestIdentity
+         Append(canonical, "correlation", request.CorrelationId);
+         Append(canonical, "causation", request.CausationId);
+         Append(canonical, "shared_event_memory", request.SharedEventMemorySummary);
++        // Keep legacy identities byte-for-byte stable when the new section is absent.
++        if (request.ConversationContext is { } conversation)
++        {
++            Append(canonical, "conversation_version", "1");
++            Append(canonical, "conversation_current", conversation.CurrentMessage);
++            for (var index = 0; index < conversation.History.Count; index++)
++                Append(canonical, $"conversation_turn_{index}", conversation.History[index]);
++        }
+ 
+         return "dit-wording-" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(canonical.ToString())));
+     }
+diff --git a/src/Dit.HumanBehavior.Neuronetwork/Conversation/Arbitration/GroupChat.cs b/src/Dit.HumanBehavior.Neuronetwork/Conversation/Arbitration/GroupChat.cs
+index 6056244..3eacc9b 100644
+--- a/src/Dit.HumanBehavior.Neuronetwork/Conversation/Arbitration/GroupChat.cs
++++ b/src/Dit.HumanBehavior.Neuronetwork/Conversation/Arbitration/GroupChat.cs
+@@ -731,7 +731,10 @@ public sealed class GroupChat(ConversationService conversation, TimeProvider? ti
+             facts.Add(new ConversationFact("your_voice", voice));
+         facts.AddRange(line.Facts.Concat(hearer.Facts).Take(12 - facts.Count));
+         var pairTurns = conversation.Pairs.History(line.GameId, hearer.DisplayName, speaker);
+-        var history = line.History.Concat(pairTurns).Distinct().TakeLast(12).ToList();
++        // Legacy pair turns have no realm/thread identity. Do not relabel them
++        // as newer room turns or deduplicate legitimate repeated text.
++        var history = conversation.StructuredContextEnabled(line.GameId)
++            ? line.History.ToList() : line.History.Concat(pairTurns).Distinct().TakeLast(12).ToList();
+         var companion = new CompanionLine
+         {
+             GameId = line.GameId, ServerInstanceId = line.ServerInstanceId, Persona = hearer.Persona ?? hearer.DisplayName,
+diff --git a/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.Companion.cs b/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.Companion.cs
+index af0add1..6d8194e 100644
+--- a/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.Companion.cs
++++ b/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.Companion.cs
+@@ -575,7 +575,8 @@ public sealed partial class ConversationService
+         // Keep the newest context that fits after the current message and safety
+         // facts. Appending eight oldest-first before Take(16) discarded the newest
+         // turns when those facts occupied most slots. Scope this rollout to FFXI.
+-        var recentContext = line.GameId == "ffxi" && !line.Private && line.Channel is "party" or "linkshell"
++        var structured = ConversationFor(line.GameId, line.History, line.Text);
++        var recentContext = structured is not null || line.GameId == "ffxi" && !line.Private && line.Channel is "party" or "linkshell"
+             && RecentContextEnvironment("DIT_FFXI_RECENT_CONTEXT") == "1";
+         if (recentContext)
+         {
+@@ -587,7 +588,7 @@ public sealed partial class ConversationService
+                     trigger.RemoveAll(f => f.Key == optional);
+         }
+         var historySlots = recentContext ? Math.Clamp(16 - Distinct(trigger).Count(), 0, 8) : 8;
+-        foreach (var h in line.History.TakeLast(historySlots).Select((text, index) => (text, index)))
++        foreach (var h in line.History.TakeLast(structured is null ? historySlots : 0).Select((text, index) => (text, index)))
+             trigger.Add(new("untrusted_conversation_history_" + h.index, ConversationContext.Clamp(h.text)));
+         var approved = new List<DialogueContextFact>();
+         // current_place is always the HEARER's own real place, never the speaker's (2026-09-29 P0, owner:
+@@ -629,6 +630,7 @@ public sealed partial class ConversationService
+             "party_member", "A long-time guildmate and friend.", Activity(line.Bot.Situation),
+             ValueList<DialogueContextFact>.From(Distinct(approved).Take(32)), line.MaximumCharacters, line.MaximumCharacters * 2,
+             "en-US", ConversationContext.PolicyVersion, "neuronet_conversation", "...", DialogueFallbackPolicy.Silence,
+-            new DialogueOutputConstraints(requireAscii: true), now, now.AddSeconds(line.GameId == "ffxi" && !line.Private ? 35 : 25), "companion_" + SafeKey(line.Bot.ActorKey), null);
++            new DialogueOutputConstraints(requireAscii: true), now, now.AddSeconds(line.GameId == "ffxi" && !line.Private ? 35 : 25), "companion_" + SafeKey(line.Bot.ActorKey), null,
++            conversationContext: structured);
+     }
+ }
+diff --git a/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.Context.cs b/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.Context.cs
+new file mode 100644
+index 0000000..edda3f0
+--- /dev/null
++++ b/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.Context.cs
+@@ -0,0 +1,17 @@
++using Dit.HumanBehavior.Contracts;
++using Dit.HumanBehavior.DialogueWording;
++
++namespace Dit.HumanBehavior.Neuronetwork.Conversation;
++
++public sealed partial class ConversationService
++{
++    internal Func<string, string?> ContextEnvironment { get; set; } = System.Environment.GetEnvironmentVariable;
++
++    internal bool StructuredContextEnabled(string gameId) =>
++        (ContextEnvironment("DIT_CONVERSATION_CONTEXT_GAMES") ?? "")
++            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
++            .Any(game => string.Equals(game, gameId, StringComparison.OrdinalIgnoreCase));
++
++    private DialogueConversationContext? ConversationFor(string gameId, IReadOnlyList<string> history, string? current) =>
++        StructuredContextEnabled(gameId) ? new(ValueList<string>.From(history), current) : null;
++}
+diff --git a/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.cs b/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.cs
+index a4f9b7a..bcc4829 100644
+--- a/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.cs
++++ b/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.cs
+@@ -494,7 +494,8 @@ public sealed partial class ConversationService
+             new("moment", ConversationContext.Clamp(instruction)),
+             new("reply_focus", "Say one short thing a player would type in this moment, or very little. Not a greeter, not a host. Invent nothing."),
+         };
+-        foreach (var line in recentLines.TakeLast(8).Select((text, index) => (text, index)))
++        var structured = ConversationFor(gameId, recentLines, null);
++        foreach (var line in recentLines.TakeLast(structured is null ? 8 : 0).Select((text, index) => (text, index)))
+             trigger.Add(new("untrusted_conversation_history_" + line.index, ConversationContext.Clamp(line.text)));
+         var approved = new List<DialogueContextFact>();
+         if (!string.IsNullOrWhiteSpace(place)) approved.Add(new("current_place", ConversationContext.Clamp(place)));
+@@ -520,7 +521,8 @@ public sealed partial class ConversationService
+             memories.Count == 0 ? null : ValueList<string>.From(memories), publicChannel ? "stranger" : "party_member", publicChannel ? "Strangers reading the channel." : "In the same group right now.", Activity(bot.Situation),
+             ValueList<DialogueContextFact>.From(Distinct(approved).Take(32)), maximumCharacters, maximumCharacters * 2,
+             "en-US", ConversationContext.PolicyVersion, "neuronet_conversation", "...", DialogueFallbackPolicy.Silence,
+-            new DialogueOutputConstraints(requireAscii: true), now, now.AddSeconds(25), request_correlation(bot.ActorKey), null);
++            new DialogueOutputConstraints(requireAscii: true), now, now.AddSeconds(25), request_correlation(bot.ActorKey), null,
++            conversationContext: structured);
+         DialogueWordingResult? wording = null;
+         try
+         {
+@@ -745,7 +747,8 @@ public sealed partial class ConversationService
+             trigger.Add(new("do_not_offer", ConversationContext.Clamp("Your draft asked what they want you to do (\"" + offerToRewrite + "\"). A player would not ask; they act. Say the one short line a player who is already acting types, like 'on it' or 'lets go'.")));
+         if (claimToDrop is not null)
+             trigger.Add(new("do_not_claim", ConversationContext.Clamp("Your draft announced a server bonus or event that is not running (\"" + claimToDrop + "\"). Only operator_server_status is true. Answer again without inventing any bonus, event, sale or maintenance; a plain short line or a greeting is fine.")));
+-        foreach (var line in heard.History.TakeLast(8).Select((text, index) => (text, index)))
++        var structured = ConversationFor(heard.GameId, heard.History, heard.Text);
++        foreach (var line in heard.History.TakeLast(structured is null ? 8 : 0).Select((text, index) => (text, index)))
+             trigger.Add(new("untrusted_conversation_history_" + line.index, ConversationContext.Clamp(line.text)));
+         var approved = new List<DialogueContextFact>();
+         // current_place is always the HEARER's own real place, never the speaker's; a separate speaker_place
+@@ -804,7 +807,7 @@ public sealed partial class ConversationService
+             heard.MaximumCharacters, heard.MaximumCharacters * 2,
+             "en-US", ConversationContext.PolicyVersion, "neuronet_conversation",
+             "...", DialogueFallbackPolicy.Silence, new DialogueOutputConstraints(requireAscii: true),
+-            now, now.AddSeconds(25), SafeKey(heard.LineId), SafeKey(heard.LineId));
++            now, now.AddSeconds(25), SafeKey(heard.LineId), SafeKey(heard.LineId), conversationContext: structured);
+     }
+ 
+     private static readonly Regex NotSure = new(@"\?|^\s*(where|how|what|which|who|when|anyone know|any1 know|do you know|does anyone)\b.*\b(quest|mission|find|get|go|drop|npc|boss|item|level|zone|turn in|reward)",
+diff --git a/tests/Dit.HumanBehavior.DialogueWording.Tests/DialogueWordingRegistryEvaluationAndContractTests.cs b/tests/Dit.HumanBehavior.DialogueWording.Tests/DialogueWordingRegistryEvaluationAndContractTests.cs
+index d0a6cde..1b7338f 100644
+--- a/tests/Dit.HumanBehavior.DialogueWording.Tests/DialogueWordingRegistryEvaluationAndContractTests.cs
++++ b/tests/Dit.HumanBehavior.DialogueWording.Tests/DialogueWordingRegistryEvaluationAndContractTests.cs
+@@ -92,7 +92,7 @@ public sealed class DialogueWordingRegistryEvaluationAndContractTests
+     }
+ 
+     [Fact]
+-    public void PromptContentUsesTenNamedStructuredSections()
++    public void PromptContentKeepsLegacySectionsAndOptionalConversation()
+     {
+         var content = DialoguePromptContentModel.FromRequest(TestSupport.Request());
+         Assert.NotNull(content.SystemBehaviorPolicy);
+@@ -105,7 +105,8 @@ public sealed class DialogueWordingRegistryEvaluationAndContractTests
+         Assert.NotNull(content.SemanticIntent);
+         Assert.NotNull(content.StyleConstraints);
+         Assert.NotNull(content.OutputConstraints);
+-        Assert.Equal(10, typeof(DialoguePromptContentModel).GetProperties().Length);
++        Assert.Null(content.ConversationContext);
++        Assert.Equal(11, typeof(DialoguePromptContentModel).GetProperties().Length);
+     }
+ 
+     [Fact]
+diff --git a/tests/Dit.HumanBehavior.Neuronetwork.Tests/StructuredConversationTests.cs b/tests/Dit.HumanBehavior.Neuronetwork.Tests/StructuredConversationTests.cs
+new file mode 100644
+index 0000000..7ff2076
+--- /dev/null
++++ b/tests/Dit.HumanBehavior.Neuronetwork.Tests/StructuredConversationTests.cs
+@@ -0,0 +1,232 @@
++using System.Reflection;
++using System.Security.Cryptography;
++using System.Text;
++using System.Text.Json;
++using Dit.HumanBehavior.Contracts;
++using Dit.HumanBehavior.DialogueWording;
++using Dit.HumanBehavior.DialogueWording.DeepSeek;
++using Dit.HumanBehavior.Neuronetwork.Conversation;
++using Dit.HumanBehavior.Neuronetwork.Conversation.Arbitration;
++using Dit.HumanBehavior.Neuronetwork.Store;
++using Xunit;
++
++namespace Dit.HumanBehavior.Neuronetwork.Tests;
++
++public sealed class StructuredConversationTests
++{
++    private static readonly DateTimeOffset Now = new(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
++    private static readonly string[] Exchange = [
++        "Player: That area was rough.", "Bot A: The pulls got messy near the entrance.",
++        "Player: Was it the links?", "Bot A: Two groups arrived together.",
++        "Player: I meant the western entrance.", "Bot A: Right, the western one.",
++        "Player: Was it the links?", "Bot A: Yes, that was the problem there.",
++        "Player: Let us try a different route.", "Bot A: We can discuss it before moving.",
++        "Player: Which route were we talking about?", "Bot A: The western entrance route."
++    ];
++
++    private sealed class Capture : IDialogueWordingProvider
++    {
++        public string ProviderName => "offline-context-fixture";
++        public List<DialogueWordingRequest> Requests { get; } = [];
++        public Task<DialogueWordingResult> GenerateAsync(DialogueWordingRequest request, CancellationToken token)
++        {
++            Requests.Add(request);
++            return Task.FromResult(new DialogueWordingResult(request.RequestId, ProviderName, "fixture", "",
++                DialogueWordingCompletionStatus.Unavailable, TimeSpan.Zero, null, null, false,
++                DialogueProviderFailureClassification.Availability, request.GenerationPolicyVersion));
++        }
++    }
++
++    private static ConversationService Service(NeuronetworkStore store, Capture provider, string? games = "ffxi,swtor") =>
++        new(store, provider) { ContextEnvironment = _ => games, RecentContextEnvironment = _ => "1" };
++
++    private static DialogueWordingRequest Request(string game = "ffxi", bool rewrite = false, string? games = "ffxi,swtor",
++        IReadOnlyList<string>? history = null, string current = "What happened at that entrance?")
++    {
++        using var store = new NeuronetworkStore(":memory:");
++        var service = Service(store, new Capture(), games);
++        var line = new CompanionLine
++        {
++            GameId = game, ServerInstanceId = "synthetic-realm", Persona = "Fixture", Speaker = "Player", SpeakerIsOwner = true,
++            Text = current, Channel = game == "ffxi" ? "linkshell" : "party", History = history ?? Exchange,
++            Facts = [new("knowledge_lookup_ref1", "Synthetic reference for prompt construction only"),
++                new("live_state", "Synthetic idle observation"), new("world_fixture", "Synthetic world context")],
++            Bot = new ConversationHearer { ActorKey = "fixture", DisplayName = "Fixture" },
++        };
++        return (DialogueWordingRequest)typeof(ConversationService).GetMethod("CompanionRequest", BindingFlags.NonPublic | BindingFlags.Instance)!
++            .Invoke(service, [line, new ConversationContext.Actor("fixture", "Fixture", "casual", "brief", game),
++                Array.Empty<string>(), Now, rewrite ? "fixture unsupported location" : null])!;
++    }
++
++    [Theory]
++    [InlineData("ffxi", false)] [InlineData("ffxi", true)]
++    [InlineData("swtor", false)] [InlineData("swtor", true)]
++    public void Whole_exchange_survives_saturation_rewrite_and_actual_provider_serialization(string game, bool rewrite)
++    {
++        var request = Request(game, rewrite);
++        Assert.Equal(Exchange, request.ConversationContext!.History);
++        Assert.DoesNotContain(request.TriggerFacts, f => f.Key.StartsWith("untrusted_conversation_history_", StringComparison.Ordinal));
++        Assert.True(request.TriggerFacts.Count <= 16);
++        Assert.Equal(rewrite, request.TriggerFacts.Any(f => f.Key == "rewrite"));
++        Assert.Contains(request.TriggerFacts, f => f.Key == "only_your_own_live_state");
++        var prompt = DialogueWordingPromptText.Build(request, null);
++        var receipt = Assert.IsType<DialogueContextReceipt>(prompt.ContextReceipt);
++        Assert.Equal(Exchange.Length, receipt.IncludedHistoryTurns);
++        Assert.Equal(0, receipt.OmittedHistoryTurns);
++        var cursor = prompt.UserMessage.IndexOf("UNTRUSTED RECENT CONVERSATION", StringComparison.Ordinal);
++        foreach (var line in Exchange)
++        {
++            cursor = prompt.UserMessage.IndexOf(line, cursor, StringComparison.Ordinal);
++            Assert.True(cursor >= 0);
++            cursor += line.Length;
++        }
++        Assert.Contains("LATEST LINE, the one you are answering: What happened at that entrance?", prompt.UserMessage);
++        var serializer = typeof(DeepSeekDialogueWordingProvider).Assembly.GetType("Dit.HumanBehavior.DialogueWording.DeepSeek.DeepSeekPromptSerializer")!;
++        var wire = serializer.GetMethod("Serialize", BindingFlags.Static | BindingFlags.NonPublic)!
++            .Invoke(null, [request, new DeepSeekDialogueWordingOptions()])!;
++        var bytes = (byte[])wire.GetType().GetProperty("Utf8Json")!.GetValue(wire)!;
++        using var payload = JsonDocument.Parse(bytes);
++        var messages = payload.RootElement.GetProperty("messages");
++        // Environment-free comparison of the actual JSON adapter with its common builder.
++        var actual = DialogueWordingPromptText.Build(request);
++        Assert.Equal(actual.SystemMessage, messages[0].GetProperty("content").GetString());
++        Assert.Equal(actual.UserMessage, messages[1].GetProperty("content").GetString());
++        AssertReceipt(actual);
++        if (Environment.GetEnvironmentVariable("DIT_CONTEXT_FIXTURE_OUTPUT") is { Length: > 0 } output)
++        {
++            Directory.CreateDirectory(output);
++            File.WriteAllText(Path.Combine(output, $"{game}-{(rewrite ? "rewrite" : "reply")}.json"), JsonSerializer.Serialize(new
++            {
++                schema = "dit.context-preview.v1", synthetic = true, game, rewrite,
++                source = "Actual offline CompanionRequest and DeepSeek JSON serializer; no HTTP or model call",
++                suppliedHistory = Exchange, currentMessage = request.ConversationContext.CurrentMessage,
++                systemMessage = actual.SystemMessage, userMessage = actual.UserMessage,
++                receipt = actual.ContextReceipt, status = "not implemented", delivery = "not attempted", tokens = (int?)null
++            }, new JsonSerializerOptions { WriteIndented = true }));
++        }
++    }
++
++    [Theory]
++    [InlineData(null)] [InlineData("swtor")] [InlineData("ffxi_forever")]
++    public void Default_off_and_other_games_keep_legacy_path(string? games)
++    {
++        var request = Request(games: games);
++        Assert.Null(request.ConversationContext);
++        Assert.Null(DialogueWordingPromptText.Build(request).ContextReceipt);
++        Assert.Contains(request.TriggerFacts, f => f.Key.StartsWith("untrusted_conversation_history_", StringComparison.Ordinal));
++        Assert.DoesNotContain("ConversationContext", JsonSerializer.Serialize(request));
++    }
++
++    [Fact]
++    public void Current_message_and_history_are_not_cut_at_the_old_fact_width()
++    {
++        var message = "Player: " + new string('q', 400);
++        var request = Request(history: [message], current: message);
++        var prompt = DialogueWordingPromptText.Build(request);
++        Assert.Equal(message, request.ConversationContext!.CurrentMessage);
++        Assert.Contains("LATEST LINE, the one you are answering: " + message, prompt.UserMessage);
++        Assert.Contains("- " + message, prompt.UserMessage);
++    }
++
++    [Fact]
++    public void History_budget_omits_whole_oldest_turns_and_reports_actual_coverage()
++    {
++        var history = Enumerable.Range(0, 32).Select(i => $"Player {i:D2}: " + new string('x', 490)).ToArray();
++        var request = Request(history: history);
++        var facts = ValueList<DialogueContextFact>.From(Enumerable.Range(0, 32).Select(i => new DialogueContextFact("fixture_" + i, new string('v', 256))));
++        request = Copy(request, request.ConversationContext, facts);
++        var prompt = DialogueWordingPromptText.Build(request);
++        var receipt = prompt.ContextReceipt!;
++        Assert.InRange(receipt.OmittedHistoryTurns, 1, 31);
++        Assert.Equal(32, receipt.IncludedHistoryTurns + receipt.OmittedHistoryTurns);
++        Assert.DoesNotContain(history[0], prompt.UserMessage);
++        foreach (var turn in history.TakeLast(receipt.IncludedHistoryTurns)) Assert.Contains(turn, prompt.UserMessage);
++        Assert.Contains("LATEST LINE, the one you are answering:", prompt.UserMessage);
++        AssertReceipt(prompt);
++    }
++
++    [Fact]
++    public void Bounded_history_rejects_invalid_inputs_and_identity_binds_order_and_repeats()
++    {
++        Assert.Throws<ArgumentException>(() => new DialogueConversationContext(ValueList<string>.From(Enumerable.Repeat("x", 33)), "q"));
++        Assert.Throws<ArgumentException>(() => new DialogueConversationContext(ValueList<string>.From([new string('x', 513)]), "q"));
++        Assert.Throws<ArgumentException>(() => new DialogueConversationContext(null, new string('x', 513)));
++        Assert.Throws<ArgumentException>(() => new DialogueConversationContext(ValueList<string>.From([null!]), "q"));
++        var r = Request();
++        var a = Copy(r, new(ValueList<string>.From(["A: one", "B: two"]), "q"));
++        var b = Copy(r, new(ValueList<string>.From(["B: two", "A: one"]), "q"));
++        var c = Copy(r, new(ValueList<string>.From(["A: one", "B: two", "B: two"]), "q"));
++        Assert.NotEqual(a.RequestId, b.RequestId);
++        Assert.NotEqual(a.RequestId, c.RequestId);
++        Assert.Equal(a.RequestId, Copy(a, a.ConversationContext).RequestId);
++    }
++
++    [Theory]
++    [InlineData("ffxi")] [InlineData("swtor")]
++    public async Task Shared_heard_and_event_builders_pass_history_to_the_provider(string game)
++    {
++        using var store = new NeuronetworkStore(":memory:");
++        var capture = new Capture(); var service = Service(store, capture);
++        var who = new ConversationHearer { ActorKey = "fixture", DisplayName = "Fixture" };
++        var heard = new ConversationHeard { GameId = game, ServerInstanceId = "synthetic", LineId = "fixture-turn",
++            Speaker = new("Player", true), Text = "Which route?", Channel = "party", History = Exchange, Hearers = [who] };
++        var request = (DialogueWordingRequest)typeof(ConversationService).GetMethod("BuildRequest", BindingFlags.NonPublic | BindingFlags.Instance)!
++            .Invoke(service, [heard, who, new ConversationContext.Actor("fixture", "Fixture", "casual", "brief", game), "addressed", Now, null, null])!;
++        Assert.Equal(Exchange, request.ConversationContext!.History);
++        await service.WordIntentAsync(game, "synthetic", who, "Synthetic idle event", "party", Exchange, "", 100, CancellationToken.None);
++        Assert.Equal(Exchange, Assert.Single(capture.Requests).ConversationContext!.History);
++    }
++
++    [Fact]
++    public async Task Consultation_also_receives_the_whole_exchange_as_untrusted_history()
++    {
++        var request = Request(); var called = false;
++        using var provider = new ConsultingDialogueWordingProvider(new Capture(), (context, _) =>
++        {
++            called = true;
++            Assert.True(context.StructuredConversation);
++            Assert.Equal(Exchange, context.ConversationHistory);
++            Assert.DoesNotContain(context.Facts, f => f.Contains("Was it the links?", StringComparison.Ordinal));
++            AiConsultationProvider.ValidateRequest(context);
++            return Task.FromResult(new Dit.HumanBehavior.BehaviorPlanning.AiConsultationResult("advice", "Synthetic response.", []));
++        });
++        await provider.GenerateAsync(request, CancellationToken.None);
++        Assert.True(called);
++    }
++
++    [Fact]
++    public async Task Group_path_keeps_room_chronology_and_repeated_text_without_unscoped_pair_turns()
++    {
++        using var store = new NeuronetworkStore(":memory:");
++        var capture = new Capture(); var service = Service(store, capture);
++        service.Group.Environment = _ => null;
++        service.Pairs.Said("swtor", "Fixture", "Player", "Fixture", "Unscoped pair turn must not become a room turn.");
++        await service.Group.ReplyAsync(new GroupLine
++        {
++            GameId = "swtor", ServerInstanceId = "synthetic-realm", LineId = "synthetic-turn", Scope = "synthetic-room",
++            Channel = "party", Speaker = new("Player", true, true),
++            Text = "Fixture, which route?", History = Exchange,
++            Hearers = [new GroupHearer { ActorKey = "fixture", DisplayName = "Fixture", Persona = "Fixture", Addressed = true }],
++            Shadow = true
++        }, CancellationToken.None);
++        var request = Assert.Single(capture.Requests);
++        Assert.Equal(Exchange, request.ConversationContext!.History);
++        Assert.DoesNotContain("Unscoped pair turn", DialogueWordingPromptText.Build(request).UserMessage);
++    }
++
++    private static void AssertReceipt(DialogueWordingPromptTextContent prompt)
++    {
++        var receipt = prompt.ContextReceipt!;
++        Assert.Equal(prompt.SystemMessage.Length + prompt.UserMessage.Length, receipt.SerializedCharacters);
++        Assert.True(receipt.SerializedCharacters <= receipt.MaximumSerializedCharacters);
++        var encoded = prompt.SystemMessage.Length + ":" + prompt.SystemMessage + prompt.UserMessage.Length + ":" + prompt.UserMessage;
++        Assert.Equal(Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(encoded))), receipt.PromptSha256);
++    }
++
++    private static DialogueWordingRequest Copy(DialogueWordingRequest r, DialogueConversationContext? context, ValueList<DialogueContextFact>? facts = null) => new(
++        r.IntentionId, r.Game, r.Actor, r.SemanticTopic, r.SemanticIntent, r.TriggerType, r.TriggerFacts, r.Channel, r.AudienceType,
++        r.PersonalitySummary, r.CommunicationStyle, r.RelevantMemories, r.RelationshipRole, r.RelationshipSummary, r.CurrentHighLevelActivity,
++        facts ?? r.ApprovedGameWorldFacts, r.MaximumOutputCharacters, r.MaximumOutputUtf8Bytes, r.Locale, r.GenerationPolicyVersion,
++        r.TemplateFamily, r.DeterministicFallbackText, r.FallbackPolicy, r.OutputConstraints, r.RequestedAtUtc, r.ExpiresAtUtc,
++        r.CorrelationId, r.CausationId, r.SharedEventMemorySummary, context);
++}

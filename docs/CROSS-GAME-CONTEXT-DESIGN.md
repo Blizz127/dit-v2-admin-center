@@ -5,6 +5,12 @@ reply and bot maximum useful context, and make DIT the shared status source
 across games. This is a proposed design. No new runtime, model call, producer
 contract, deployment or live access has been enabled by this document.
 
+Implementation checkpoint: the [first offline hub candidate](../handoffs/context-slice-20261104/README.md)
+separates history from trigger facts and captures the exact wording prompt.
+Four synthetic FFXI/SWTOR reply/rewrite captures retain all 12 supplied turns.
+The candidate remains default-off and unapplied to the shared hub; this is not
+evidence of improved live conversation. Shared status and memory remain next.
+
 ## What a reply should know
 
 Every game publishes its authoritative observations into DIT. DIT maintains a
