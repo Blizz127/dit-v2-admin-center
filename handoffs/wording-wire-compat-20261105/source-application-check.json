@@ -1,0 +1,13 @@
+{
+  "schema": "dit.source-application-check.v1",
+  "isolatedBase": "2e063438b7f84c16c45e6fac58c1c6ff176fa1d2",
+  "isolatedResult": "e55c7dc75d01d88c8fbc6866ff9aca04eed52055",
+  "candidatePatchReconstructsExactTree": true,
+  "upstreamCommittedSource": "174ab3c031703455909b46a99ac3810751eb8ba0",
+  "upstreamFix": "4f02b95571b417853c9d5ce0bf171ad169852ced",
+  "earlierCombinedPatchThenTestOnlyAddendumApplies": true,
+  "wordingModelAndIntegrationTestMatchIsolatedCandidate": true,
+  "upstreamTreeBuiltOrTested": false,
+  "sharedWorktreeChanged": false,
+  "method": "temporary index in isolated repository; no shared worktree or index mutation"
+}

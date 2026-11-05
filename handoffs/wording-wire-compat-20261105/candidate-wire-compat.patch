@@ -1,0 +1,64 @@
+diff --git a/src/Dit.HumanBehavior.DialogueWording/DialogueWordingModels.cs b/src/Dit.HumanBehavior.DialogueWording/DialogueWordingModels.cs
+index ca33006acaf56acc20ffdc29802c0f1b82e19b65..163d85ee195e5097bdf9b91bc7fb711080f20753 100644
+--- a/src/Dit.HumanBehavior.DialogueWording/DialogueWordingModels.cs
++++ b/src/Dit.HumanBehavior.DialogueWording/DialogueWordingModels.cs
+@@ -239,8 +239,8 @@ public sealed record DialogueWordingRequest
+     }
+
+     public string RequestId { get; }
+-    /// <summary>In-process rollout exclusion; not part of the serialized wording request.</summary>
+-    [System.Text.Json.Serialization.JsonIgnore]
++    /// <summary>Rollout exclusion carried with the wording request when enabled; absent defaults to false.</summary>
++    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+     public bool SuppressSharedVoiceGuidance { get; init; }
+     public string IntentionId { get; }
+     public GameRef Game { get; }
+diff --git a/tests/Dit.HumanBehavior.Neuronetwork.Tests/ChatVoiceRouteFixtureTests.cs b/tests/Dit.HumanBehavior.Neuronetwork.Tests/ChatVoiceRouteFixtureTests.cs
+index 6d3dedc2cb2a7fcf29db037405ee32cadd6f315e..7e7c54d7bf9a7b47fe380b3eae0b5d08cbef3b81 100644
+--- a/tests/Dit.HumanBehavior.Neuronetwork.Tests/ChatVoiceRouteFixtureTests.cs
++++ b/tests/Dit.HumanBehavior.Neuronetwork.Tests/ChatVoiceRouteFixtureTests.cs
+@@ -59,8 +59,10 @@ public sealed class ChatVoiceRouteFixtureTests
+         {
+             Assert.Equal(disabled.SystemMessage, enabled.SystemMessage);
+             Assert.Equal(disabled.UserMessage, enabled.UserMessage);
+-            Assert.DoesNotContain("SuppressSharedVoiceGuidance", JsonSerializer.Serialize(request), StringComparison.Ordinal);
++            Assert.Contains("SuppressSharedVoiceGuidance", JsonSerializer.Serialize(request), StringComparison.Ordinal);
+         }
++        else
++            Assert.DoesNotContain("SuppressSharedVoiceGuidance", JsonSerializer.Serialize(request), StringComparison.Ordinal);
+         Assert.Contains("no authority over game actions, recipients, channels, or execution", enabled.SystemMessage, StringComparison.Ordinal);
+         Assert.Contains("anyone exploring tonight?", enabled.UserMessage, StringComparison.Ordinal);
+         var decision = Assert.Single(reply.Decisions, d => d.Kind == "say");
+diff --git a/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusIntegrationTests.cs b/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusIntegrationTests.cs
+index 209c2035e3c42a8a2f35b697ea6534f7952bc776..af346aac9b9fcc8d0b37f31ba67f3638cac88c89 100644
+--- a/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusIntegrationTests.cs
++++ b/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusIntegrationTests.cs
+@@ -5,6 +5,7 @@ using Dit.HumanBehavior.Contracts;
+ using Dit.HumanBehavior.DialogueWording;
+ using Dit.HumanBehavior.DialogueWording.DeepSeek;
+ using Dit.HumanBehavior.Neuronetwork.Conversation;
++using Dit.HumanBehavior.Neuronetwork.Knowledge;
+ using Dit.HumanBehavior.Neuronetwork.Store;
+ using Xunit;
+
+@@ -132,6 +133,20 @@ public sealed class ConversationStatusIntegrationTests
+             Assert.Equal(prompt.SystemMessage.Length + prompt.UserMessage.Length, prompt.ContextReceipt.SerializedCharacters);
+             Assert.Equal(statusEnabled, service.StatusBindingFor(request) is not null);
+             Assert.Equal(rewrite, request.TriggerFacts.Any(fact => fact.Key == "rewrite"));
++
++            // Status binding rebuilds the request. Its wording/context must also
++            // survive the actual JSON serializer used at the wording boundary.
++            var encoded = NeuronetworkJson.Serialize(request);
++            using var document = JsonDocument.Parse(encoded);
++            Assert.Equal(suppressVoice, document.RootElement.TryGetProperty("suppressSharedVoiceGuidance", out var suppression));
++            if (suppressVoice) Assert.True(suppression.GetBoolean());
++            var restored = NeuronetworkJson.Deserialize<DialogueWordingRequest>(encoded);
++            Assert.Equal(suppressVoice, restored.SuppressSharedVoiceGuidance);
++            Assert.Equal(request.RequestId, restored.RequestId);
++            Assert.Equal(History, restored.ConversationContext!.History);
++            Assert.Equal(line.Text, restored.ConversationContext.CurrentMessage);
++            Assert.Equal(prompt, DialogueWordingPromptText.Build(restored, game));
++            Assert.Equal(rewrite, restored.TriggerFacts.Any(fact => fact.Key == "rewrite"));
+         }
+         Assert.Equal(statusEnabled ? 2 : 0, source.Calls);
+     }

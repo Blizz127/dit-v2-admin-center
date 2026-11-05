@@ -72,12 +72,16 @@ silence or failed delivery.
 ## Verification and remaining dependencies
 
 Four focused C# candidate-export cases and eleven Python harness checks passed.
-The runtime source remains `67488a25`; the test-only exporter is `2e063438`.
+The saved exports use runtime `67488a25`; the test-only exporter is `2e063438`.
 The [handoff](../handoffs/candidate-delivery-harness-20261105/README.md) records
 the exact pins, test receipt and twelve-case CLI result. The harness verifies
 all four exports against its fixed manifest before starting any transport;
 changed content or unexpected file names are refused. These local hashes are
 not a native authentication mechanism.
+
+The later [wording serialization addendum](../handoffs/wording-wire-compat-20261105/README.md)
+has its own focused checks at isolated revision `e55c7dc7`. These saved exports
+were not regenerated for that revision and do not verify its delivery behavior.
 
 A follow-up replay regression initially failed: the fixed synthetic session ID
 allowed a previous run's identical receipt to pass. Fresh per-run session IDs

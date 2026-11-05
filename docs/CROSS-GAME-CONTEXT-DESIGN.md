@@ -30,8 +30,14 @@ a complete original conversation.
 The [context/voice compatibility follow-up](../handoffs/context-voice-compat-20261104/README.md)
 rebases the source candidate onto hub `3dd21dc7`, preserving newer channel and
 shout voice rules. It fixes a reproduced interaction in which status binding
-dropped shout protection; all 83 focused checks pass in the isolated checkout.
+dropped shout protection; 83 focused checks passed at isolated revision `67488a25`.
 The updated combined patch remains local and unapplied to the shared hub.
+
+A later [wording serialization addendum](../handoffs/wording-wire-compat-20261105/README.md)
+carries the hub lead's serialization fix into the isolated candidate. Three
+expanded shout regressions failed before the fix; afterward, 18 focused checks
+passed for status-bound requests, rewrites and voice routes. The saved synthetic
+delivery exports remain pinned to the earlier runtime and were not refreshed.
 
 Current readiness, after the local inspector consistency fix (`b7e3688`):
 
