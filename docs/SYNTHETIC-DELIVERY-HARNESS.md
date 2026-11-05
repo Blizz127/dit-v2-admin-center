@@ -36,6 +36,15 @@ hub connection. No receipt-ingress endpoint, persistent delivery ledger, native
 observer, automatic resend, conversation-history update or new credential is
 implemented. The Admin loader continues to supply no receipt verifier.
 
+Read-only inspection of runtime candidate `67488a25`,
+`Conversation/Arbitration/GroupChat.cs`, shows an additional history boundary:
+its legacy pair store is updated when wording is prepared, before native
+publication. With structured context enabled, the candidate takes history from
+the supplied room lines and excludes those unscoped legacy pair turns. Receipt
+reception in this harness does not alter either source. The caller must still
+supply properly scoped observed conversation; a synthetic receipt pass does
+not prove that subsequent live prompts contain only delivered speech.
+
 ## Run locally
 
 ```sh
