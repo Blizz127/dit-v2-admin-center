@@ -20,7 +20,9 @@ quality. Browser/device checks and all live flags remain held and unchanged.
 4. The fake observer issues a receipt for the exact synthetic body/session/text.
    Before the receipt is received, even an exact copy of that issued receipt
    fails the run-local verifier. Releasing the receipt sends serialized bytes
-   back through a separate bounded queue.
+   back through a separate bounded queue. Each observer run has a fresh
+   synthetic session identifier, so identical bytes from an earlier run cannot
+   certify a new publication. This identifier is not a native credential.
 5. The existing correlator accepts a synthetic match only when the receipt was
    both issued and received in this run and its publication bindings match.
    Duplicate receipt packets count once. Withheld, altered and wrong-session
@@ -57,13 +59,19 @@ silence or failed delivery.
 
 ## Verification and remaining dependencies
 
-Four focused C# candidate-export cases and ten Python harness checks passed.
+Four focused C# candidate-export cases and eleven Python harness checks passed.
 The runtime source remains `67488a25`; the test-only exporter is `2e063438`.
 The [handoff](../handoffs/candidate-delivery-harness-20261105/README.md) records
 the exact pins, test receipt and twelve-case CLI result. The harness verifies
 all four exports against its fixed manifest before starting any transport;
 changed content or unexpected file names are refused. These local hashes are
 not a native authentication mechanism.
+
+A follow-up replay regression initially failed: the fixed synthetic session ID
+allowed a previous run's identical receipt to pass. Fresh per-run session IDs
+correct that behavior; the regression now rejects the replay while retaining
+Unknown actual delivery. The candidate runtime and exported fixtures did not
+change for this harness-only fix.
 
 The owning native integrators must still supply authenticated body/session
 identity, explicit presence and native speech evidence. This harness cannot

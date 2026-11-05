@@ -16,7 +16,8 @@ captures, preserving twelve turns and an intentional repeated line.
 
 The Admin-side harness replays those pinned exports through bounded in-memory
 publication and receipt queues. A separate worker issues a synthetic receipt;
-the local verifier requires both issuance and receipt reception. A fabricated
+the local verifier requires both issuance and receipt reception in a fresh
+synthetic session for each run. A fabricated
 copy of the issued receipt cannot pass before the receiver gets it. Withheld,
 duplicate, altered and wrong-session receipts exercise the same correlator.
 Candidate-withheld output starts no publication worker. The Admin API itself
@@ -26,9 +27,13 @@ Verification on 2026-11-05:
 
 - Four focused C# candidate-export cases passed, zero skipped; the incremental
   test build succeeded without reported warnings/errors. See `candidate-tests.txt`.
-- Ten focused Python harness tests passed, including default-off/no-read,
+- Eleven focused Python harness tests passed, including default-off/no-read,
   malformed/scope-changed export refusal, changed content pins, path refusal,
   worker failure cleanup and CLI behavior.
+- The follow-up cross-run replay regression first reproduced acceptance of an
+  old identical receipt under the original fixed synthetic session. A fresh
+  per-run session now rejects it. This changes only the Python harness; the
+  runtime candidate, C# exporter and fixture content remain unchanged.
 - The opt-in CLI executes twelve synthetic cases with explicit assertions.
   Its saved receipt is `verification-summary.json`.
 - No full suite, model call, live HTTP request, native game, native browser or

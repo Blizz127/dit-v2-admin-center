@@ -17,6 +17,7 @@
       "emittedPackets": 1,
       "receivedPackets": 1,
       "exportContentSha256": "1ac3bdc84abbdb1dfcb13c111d65af02c447b687a8a364e38083609088b6096d",
+      "syntheticSession": "synthetic-harness-b663b255674c451583f46dec632436ac",
       "syntheticConfirmed": 1,
       "actualDelivery": "Unknown"
     },
@@ -29,6 +30,7 @@
       "emittedPackets": 1,
       "receivedPackets": 0,
       "exportContentSha256": "1ac3bdc84abbdb1dfcb13c111d65af02c447b687a8a364e38083609088b6096d",
+      "syntheticSession": "synthetic-harness-51c57a346e244a2482c1d0a19aa3c242",
       "syntheticConfirmed": 0,
       "actualDelivery": "Unknown"
     },
@@ -41,6 +43,7 @@
       "emittedPackets": 1,
       "receivedPackets": 2,
       "exportContentSha256": "1ac3bdc84abbdb1dfcb13c111d65af02c447b687a8a364e38083609088b6096d",
+      "syntheticSession": "synthetic-harness-4df19ef6f2d14b6c8f10b2cc7b7ab0f1",
       "syntheticConfirmed": 1,
       "actualDelivery": "Unknown"
     },
@@ -53,6 +56,7 @@
       "emittedPackets": 1,
       "receivedPackets": 1,
       "exportContentSha256": "1ac3bdc84abbdb1dfcb13c111d65af02c447b687a8a364e38083609088b6096d",
+      "syntheticSession": "synthetic-harness-0cb794691ad946248ceedbab9c7d08af",
       "syntheticConfirmed": 0,
       "actualDelivery": "Unknown"
     },
@@ -65,6 +69,7 @@
       "emittedPackets": 1,
       "receivedPackets": 1,
       "exportContentSha256": "1ac3bdc84abbdb1dfcb13c111d65af02c447b687a8a364e38083609088b6096d",
+      "syntheticSession": "synthetic-harness-d186696860e443d7bb8f91c3459cf84c",
       "syntheticConfirmed": 0,
       "actualDelivery": "Unknown"
     },
@@ -77,6 +82,7 @@
       "emittedPackets": 0,
       "receivedPackets": 0,
       "exportContentSha256": "7fdfc02e8ab0599223f2068573bb4ea0a70e6a2b3525008805e362909584a79b",
+      "syntheticSession": null,
       "syntheticConfirmed": 0,
       "actualDelivery": "Unknown"
     },
@@ -89,6 +95,7 @@
       "emittedPackets": 1,
       "receivedPackets": 1,
       "exportContentSha256": "a93721e460d451e48ec049f112ecb47475f08b3fd6a7601f01f5ba0ac7c11449",
+      "syntheticSession": "synthetic-harness-611434ebb47e4ec9a9c3ee218b4f7bbe",
       "syntheticConfirmed": 1,
       "actualDelivery": "Unknown"
     },
@@ -101,6 +108,7 @@
       "emittedPackets": 1,
       "receivedPackets": 0,
       "exportContentSha256": "a93721e460d451e48ec049f112ecb47475f08b3fd6a7601f01f5ba0ac7c11449",
+      "syntheticSession": "synthetic-harness-00e956ce74244dafb724a8bc5009f5c0",
       "syntheticConfirmed": 0,
       "actualDelivery": "Unknown"
     },
@@ -113,6 +121,7 @@
       "emittedPackets": 1,
       "receivedPackets": 2,
       "exportContentSha256": "a93721e460d451e48ec049f112ecb47475f08b3fd6a7601f01f5ba0ac7c11449",
+      "syntheticSession": "synthetic-harness-fb990283470b42b69d5dbb0076e5d7e8",
       "syntheticConfirmed": 1,
       "actualDelivery": "Unknown"
     },
@@ -125,6 +134,7 @@
       "emittedPackets": 1,
       "receivedPackets": 1,
       "exportContentSha256": "a93721e460d451e48ec049f112ecb47475f08b3fd6a7601f01f5ba0ac7c11449",
+      "syntheticSession": "synthetic-harness-aaa1e36a4fcc496d9d9ec3c81d257dab",
       "syntheticConfirmed": 0,
       "actualDelivery": "Unknown"
     },
@@ -137,6 +147,7 @@
       "emittedPackets": 1,
       "receivedPackets": 1,
       "exportContentSha256": "a93721e460d451e48ec049f112ecb47475f08b3fd6a7601f01f5ba0ac7c11449",
+      "syntheticSession": "synthetic-harness-28323a7f4f544ce2aa36ee16e33616cf",
       "syntheticConfirmed": 0,
       "actualDelivery": "Unknown"
     },
@@ -149,6 +160,7 @@
       "emittedPackets": 0,
       "receivedPackets": 0,
       "exportContentSha256": "56021d7d38f2ca02b6724347306a2637bee0909c5d10792668d7c60985440321",
+      "syntheticSession": null,
       "syntheticConfirmed": 0,
       "actualDelivery": "Unknown"
     }

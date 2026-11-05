@@ -12,6 +12,7 @@ from pathlib import Path
 from queue import Empty, Queue
 import re
 from threading import Event, Thread
+from uuid import uuid4
 
 from delivery_correlation import SCHEMA, correlate, fingerprint, text
 from local_evidence import read_json
@@ -122,11 +123,16 @@ def exercise(data, case='delivered', *, enabled=False):
     if case not in CASES:
         raise ValueError('Unknown synthetic transport case')
     bundle, capture = publication(data)
+    # A fresh observer run is a distinct synthetic session even when all source
+    # bytes and fictional timestamps repeat. Old receipts must not certify it.
+    if bundle['inbox']:
+        bundle['bridgeSession'] = 'synthetic-harness-' + uuid4().hex
     source_hash = hashlib.sha256(packet(data)).hexdigest()
     result = dict(game=data['game'], candidateScenario=data['scenario'], transportCase=case,
                   exportContentSha256=source_hash, requestId=capture['contextReceipt']['RequestId'],
                   promptSha256=capture['contextReceipt']['PromptSha256'],
                   retainedTurns=capture['contextReceipt']['IncludedHistoryTurns'],
+                  syntheticSession=bundle['bridgeSession'] if bundle['inbox'] else None,
                   publicationOrigin='synthetic harness', emittedPackets=0, receivedPackets=0)
     result['beforeReceipt'] = correlate(bundle, enabled=True)
     if not bundle['inbox']:

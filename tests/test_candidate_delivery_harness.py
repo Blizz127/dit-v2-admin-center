@@ -1,6 +1,7 @@
 import copy
 import json
 from pathlib import Path
+from queue import Queue
 import subprocess
 import sys
 import tempfile
@@ -92,6 +93,34 @@ class CandidateDeliveryHarnessTests(unittest.TestCase):
         result['afterReceipt']['counts']['syntheticConfirmed'] = 0
         with self.assertRaises(RuntimeError):
             harness.checked(result)
+
+    def test_receipt_replayed_from_an_earlier_harness_run_cannot_confirm(self):
+        previous = []
+        results = []
+        check = harness.checked
+
+        class ReplayReturnedQueue(Queue):
+            def put(self, item, *args, **kwargs):
+                if self.maxsize == 2:  # Receipt channel; leave publications untouched.
+                    if not previous:
+                        previous.append(item)
+                    else:
+                        item = previous[0]
+                return super().put(item, *args, **kwargs)
+
+        def record_check(result):
+            results.append(copy.deepcopy(result))
+            return check(result)
+
+        with patch.object(harness, 'Queue', ReplayReturnedQueue), patch.object(harness, 'checked', record_check):
+            self.assertEqual(harness.exercise(self.fixture(), enabled=True)['status'], 'Passed')
+            # The second observer issued a new receipt, but transport returns the old one.
+            with self.assertRaisesRegex(RuntimeError, 'invariant failed'):
+                harness.exercise(self.fixture(), enabled=True)
+        self.assertEqual(len(results), 2)
+        self.assertEqual(results[1]['afterReceipt']['counts']['syntheticConfirmed'], 0)
+        self.assertEqual(results[1]['afterReceipt']['rejectedReceipts'], 1)
+        self.assertEqual(results[1]['afterReceipt']['records'][0]['actualDelivery'], 'Unknown')
 
     def test_changed_export_is_refused_before_any_worker_starts(self):
         with tempfile.TemporaryDirectory() as temporary:
