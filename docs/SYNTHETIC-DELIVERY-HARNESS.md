@@ -59,6 +59,9 @@ status-refusal case for each game. `Passed` means its explicit local invariants
 held; it never means a game delivered a line. Failure to validate or complete
 the bounded transport returns Unavailable and exit status 2. It reads only the
 four named committed synthetic exports and writes no evidence or game state.
+It does not discover or consume later C# export directories. The handoff
+describes the separate candidate-export step and the deliberate repinning
+required before testing newly exported content.
 
 Every report retains `evidenceKind: synthetic`,
 `nativeDeliveryVerified: false`, `deliveredInGame: null` and

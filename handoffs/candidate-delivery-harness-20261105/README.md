@@ -57,6 +57,15 @@ python3 -m unittest tests.test_candidate_delivery_harness -v
 python3 -m tools.run_candidate_delivery_harness --enable-offline
 ```
 
+These are two separate verification steps. The Python command always replays
+the four committed, pinned exports; it does not discover the output directory
+of a later C# run. Re-exporting produces new request IDs, so those new files
+cannot silently replace this evidence. A future refresh must copy the four
+reviewed exports, update their canonical-content manifest and byte hashes, and
+record the exact exporter/runtime revisions before running the Python checks.
+The harness pins runtime `67488a25`; changed runtime source needs a new explicit
+candidate pin and corresponding verification, not just renamed fixture files.
+
 See the [harness guide](../../docs/SYNTHETIC-DELIVERY-HARNESS.md) for the exact
 claim boundary and default-off operation. `Passed` establishes local synthetic
 transport behavior only. Actual game delivery remains Unknown; verified native
