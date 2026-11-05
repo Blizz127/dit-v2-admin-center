@@ -168,6 +168,12 @@ browser execution is still NOT RUN.
 
 ## What a real integration still needs
 
+The [candidate-output harness](SYNTHETIC-DELIVERY-HARNESS.md) additionally connects
+actual captured candidate decisions to a synthetic observer and receipt queue.
+It checks that issuance alone does not confirm receipt, and that candidate
+status refusal prevents publication. Its local transport checks do not close
+the native evidence gap below.
+
 The owning integrators must supply authenticated native speech observations,
 verified body/session/thread identity, stable message/attempt references,
 receipt provenance and coverage/recovery rules. A successful inbox rename or

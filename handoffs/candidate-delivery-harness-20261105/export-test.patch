@@ -1,0 +1,136 @@
+diff --git a/tests/Dit.HumanBehavior.Neuronetwork.Tests/CandidateDeliveryFixtureTests.cs b/tests/Dit.HumanBehavior.Neuronetwork.Tests/CandidateDeliveryFixtureTests.cs
+new file mode 100644
+index 0000000000000000000000000000000000000000..d6b2e004889a117a3e0b0c0fc98154dd79a62d1e
+--- /dev/null
++++ b/tests/Dit.HumanBehavior.Neuronetwork.Tests/CandidateDeliveryFixtureTests.cs
+@@ -0,0 +1,130 @@
++using System.Text.Json;
++using System.Text.Json.Serialization;
++using Dit.HumanBehavior.Contracts;
++using Dit.HumanBehavior.DialogueWording;
++using Dit.HumanBehavior.Neuronetwork.Conversation;
++using Dit.HumanBehavior.Neuronetwork.Conversation.Arbitration;
++using Dit.HumanBehavior.Neuronetwork.Interaction;
++using Dit.HumanBehavior.Neuronetwork.Store;
++using Xunit;
++
++namespace Dit.HumanBehavior.Neuronetwork.Tests;
++
++/// <summary>Exports actual candidate decisions for a separate synthetic receipt harness. No native transport.</summary>
++public sealed class CandidateDeliveryFixtureTests
++{
++    private static readonly DateTimeOffset Start = new(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
++    private sealed class Clock : TimeProvider
++    {
++        public DateTimeOffset Now = Start;
++        public override DateTimeOffset GetUtcNow() => Now;
++    }
++    private sealed class Source : IConversationStatusSource
++    {
++        public readonly List<ConversationStatusLookup> Lookups = [];
++        public ConversationStatusCapture Capture(ConversationStatusLookup lookup)
++        {
++            Lookups.Add(lookup);
++            var body = new StatusBodyIdentity(lookup.Game, "synthetic-realm", lookup.ServerInstance, "synthetic-native-body");
++            var expected = new StatusExpectation(body, "synthetic-body-session", 7);
++            var fields = ValueList<StatusFieldObservation>.From([
++                new(StatusField.Presence, "online", Start, Start.AddMinutes(1)),
++                new(StatusField.Location, "Synthetic west entrance", Start, Start.AddSeconds(10)),
++                new(StatusField.Activity, "resting at the entrance", Start, Start.AddSeconds(10)),
++            ]);
++            var snapshot = new StatusSnapshot(body, expected.Epoch, expected.Sequence,
++                "fixture-native-adapter", StatusOrigin.NativeAdapter, true, Start, fields);
++            var policy = new ConversationStatusPolicy("fixture-native-adapter", "synthetic-policy-v1",
++                Enum.GetValues<StatusField>().ToDictionary(field => field,
++                    field => TimeSpan.FromSeconds(field == StatusField.Presence ? 60 : 10)));
++            return new(lookup, expected, snapshot, policy);
++        }
++    }
++    private sealed class Provider(Clock clock, bool expire) : IDialogueWordingProvider
++    {
++        public readonly List<DialogueWordingRequest> Requests = [];
++        public string ProviderName => "synthetic-delivery-fixture";
++        public Task<DialogueWordingResult> GenerateAsync(DialogueWordingRequest request, CancellationToken token)
++        {
++            Requests.Add(request);
++            if (expire) clock.Now = Start.AddSeconds(10);
++            return Task.FromResult(new DialogueWordingResult(request.RequestId, ProviderName, "fake", "sounds fun",
++                DialogueWordingCompletionStatus.Succeeded, TimeSpan.Zero, null, null, true,
++                DialogueProviderFailureClassification.None, request.GenerationPolicyVersion));
++        }
++    }
++
++    [Theory]
++    [InlineData("ffxi", false)] [InlineData("swtor", false)]
++    [InlineData("ffxi", true)] [InlineData("swtor", true)]
++    public async Task Candidate_output_and_final_status_check_bound_the_synthetic_publication(string game, bool expire)
++    {
++        using var store = new NeuronetworkStore(":memory:");
++        var clock = new Clock(); var source = new Source(); var provider = new Provider(clock, expire);
++        var service = new ConversationService(store, provider, clock)
++        {
++            ContextEnvironment = _ => game, StatusEnvironment = _ => game, ChatVoiceEnvironment = _ => game,
++            SharedStatusSource = source, QuickReplies = false, KnowledgeAnswers = false,
++            CompanionExtractor = null, CompanionExtractorForGame = null,
++        };
++        service.Group.Environment = _ => null;
++        service.Group.SingleModelReplyForGame = _ => true;
++        var history = Enumerable.Range(0, 12).Select(index => index is 3 or 4
++            ? "PlayerFixture: the same intentional line" : $"PlayerFixture: synthetic turn {index:D2}").ToArray();
++        var line = new GroupLine
++        {
++            GameId = game, ServerInstanceId = "synthetic-instance", LineId = "synthetic-input",
++            Scope = "synthetic-room", Channel = game == "ffxi" ? "linkshell" : "party",
++            Speaker = new GroupSpeaker("PlayerFixture"), Text = "anyone exploring tonight?", History = history,
++            Hearers = [new GroupHearer { ActorKey = "fixture-bot", DisplayName = "Fixture", Addressed = true }],
++            Guarantee = true,
++        };
++        var caller = new InteractionScope(game, "synthetic-adapter", line.ServerInstanceId);
++        var reply = await service.Group.ReplyAsync(line, default, caller);
++        var request = Assert.Single(provider.Requests);
++        var prompt = DialogueWordingPromptText.Build(request, game);
++        Assert.Equal(history, request.ConversationContext!.History);
++        Assert.Equal(12, prompt.ContextReceipt!.IncludedHistoryTurns);
++        Assert.True(source.Lookups.Count >= 2);
++        Assert.All(source.Lookups, lookup => Assert.Equal(caller, lookup.NativeScope));
++        var decision = Assert.Single(reply.Decisions);
++        Assert.Equal(expire ? "silence" : "say", decision.Kind);
++        Assert.Null(decision.Action);
++        if (expire)
++        {
++            Assert.Null(decision.Text);
++            Assert.Contains("shared status changed", decision.Note);
++        }
++        else
++        {
++            Assert.Equal("sounds fun", decision.Text);
++            Assert.Equal(line.Channel, decision.Channel);
++            Assert.Equal("fixture-bot", decision.ActorKey);
++        }
++        var binding = service.StatusBindingFor(request)!;
++        Assert.Equal("snapshot projected", binding.State);
++        Assert.Contains(binding.View!.Fields, field => field.Field == StatusField.Location && field.State == StatusKnowledge.Known);
++        if (Environment.GetEnvironmentVariable("DIT_CANDIDATE_DELIVERY_EXPORT") is { Length: > 0 } output)
++        {
++            Directory.CreateDirectory(output);
++            var capture = new
++            {
++                schema = "dit.context-status-integration.v1", synthetic = true, game, path = "companion",
++                suppliedHistory = history, systemMessage = prompt.SystemMessage, userMessage = prompt.UserMessage,
++                contextReceipt = prompt.ContextReceipt, statusBinding = binding,
++                modelCall = "not attempted", delivery = "not attempted",
++            };
++            var fixture = new
++            {
++                schema = "dit.candidate-delivery-export.v1", synthetic = true,
++                scenario = expire ? "expired-during-generation" : "fresh", game,
++                thread = line.Scope, channel = line.Channel, publishedAtUtc = clock.Now,
++                candidateStage = "response prepared or withheld; no native publication",
++                capture, reply,
++            };
++            File.WriteAllText(Path.Combine(output, game + (expire ? "-expired" : "-fresh") + ".json"),
++                JsonSerializer.Serialize(fixture, new JsonSerializerOptions
++                { WriteIndented = true, Converters = { new JsonStringEnumConverter() } }));
++        }
++    }
++}
