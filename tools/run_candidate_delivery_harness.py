@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / 'tests/fixtures/candidate-delivery'
 CASES = ('delivered', 'withheld', 'duplicate', 'tampered', 'wrong-session')
 DEADLINE = 5
-RUNTIME_BASE = '67488a257c1fdedc1fd078ac7f1cf5769728284c'
+RUNTIME_BASE = 'e55c7dc75d01d88c8fbc6866ff9aca04eed52055'
 
 
 def base(status):

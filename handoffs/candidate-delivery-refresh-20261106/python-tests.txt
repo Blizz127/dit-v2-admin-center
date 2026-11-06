@@ -1,0 +1,16 @@
+test_actual_candidate_exports_deliver_only_after_receipt_is_received (tests.test_candidate_delivery_harness.CandidateDeliveryHarnessTests.test_actual_candidate_exports_deliver_only_after_receipt_is_received) ... ok
+test_assertions_do_not_mark_missing_confirmation_as_passed (tests.test_candidate_delivery_harness.CandidateDeliveryHarnessTests.test_assertions_do_not_mark_missing_confirmation_as_passed) ... ok
+test_candidate_status_refusal_never_starts_a_publication_worker (tests.test_candidate_delivery_harness.CandidateDeliveryHarnessTests.test_candidate_status_refusal_never_starts_a_publication_worker) ... ok
+test_changed_export_is_refused_before_any_worker_starts (tests.test_candidate_delivery_harness.CandidateDeliveryHarnessTests.test_changed_export_is_refused_before_any_worker_starts) ... ok
+test_cli_runs_only_the_explicit_offline_suite (tests.test_candidate_delivery_harness.CandidateDeliveryHarnessTests.test_cli_runs_only_the_explicit_offline_suite) ... ok
+test_disabled_does_not_read_or_start_a_worker (tests.test_candidate_delivery_harness.CandidateDeliveryHarnessTests.test_disabled_does_not_read_or_start_a_worker) ... ok
+test_malformed_or_scope_changed_candidate_is_refused_before_transport (tests.test_candidate_delivery_harness.CandidateDeliveryHarnessTests.test_malformed_or_scope_changed_candidate_is_refused_before_transport) ... ok
+test_manifest_cannot_select_unlisted_input_files (tests.test_candidate_delivery_harness.CandidateDeliveryHarnessTests.test_manifest_cannot_select_unlisted_input_files) ... ok
+test_receipt_replayed_from_an_earlier_harness_run_cannot_confirm (tests.test_candidate_delivery_harness.CandidateDeliveryHarnessTests.test_receipt_replayed_from_an_earlier_harness_run_cannot_confirm) ... ok
+test_withheld_duplicate_and_corrupted_receipt_transports (tests.test_candidate_delivery_harness.CandidateDeliveryHarnessTests.test_withheld_duplicate_and_corrupted_receipt_transports) ... ok
+test_worker_error_cannot_be_a_pass_and_leaves_no_thread (tests.test_candidate_delivery_harness.CandidateDeliveryHarnessTests.test_worker_error_cannot_be_a_pass_and_leaves_no_thread) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.269s
+
+OK

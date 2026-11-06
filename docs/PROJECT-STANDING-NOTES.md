@@ -41,10 +41,12 @@ Latest completed local work:
   isolated source `e55c7dc7` passed 18 focused checks. Its
   [handoff](../handoffs/wording-wire-compat-20261105/README.md) records the earlier
   three failing shout regressions, source provenance and application checks.
-- The [synthetic delivery harness](SYNTHETIC-DELIVERY-HARNESS.md) remains pinned
-  to runtime `67488a25` and exporter `2e063438`. Its four C# export cases,
-  eleven Python tests and twelve synthetic scenarios passed. Those saved
-  exports were not regenerated for `e55c7dc7`.
+- The [synthetic delivery harness](SYNTHETIC-DELIVERY-HARNESS.md) was explicitly
+  [refreshed](../handoffs/candidate-delivery-refresh-20261106/README.md) to
+  runtime/exporter checkout `e55c7dc7` on 2026-11-06. Four C# export cases,
+  eleven Python tests and twelve synthetic scenarios passed at this pin.
+  Only request IDs changed in the captures; all real delivery remains Unknown.
+  Earlier dated receipts retain their original revision and results.
 - The overview video and earlier preview deliveries to Alienware are already
   recorded. Do not repeat them or restart the held native-browser attempt.
 

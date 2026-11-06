@@ -1,0 +1,38 @@
+{
+  "ffxi-fresh.json": {
+    "changedPaths": [
+      "/capture/contextReceipt/RequestId",
+      "/capture/statusBinding/RequestId"
+    ],
+    "previousRequestId": "dit-wording-6fa4efaff04f07e12e1857e7bb0b96826208b2c6bce35a738f37f724788673c0",
+    "currentRequestId": "dit-wording-d2a764c2798d2a5b87afede7feb3db343d3815864b4ded3d920a157ef8c2c342",
+    "otherContentUnchanged": true
+  },
+  "ffxi-expired.json": {
+    "changedPaths": [
+      "/capture/contextReceipt/RequestId",
+      "/capture/statusBinding/RequestId"
+    ],
+    "previousRequestId": "dit-wording-75de2e2dfd01ffbda720d1dcbb4230cff515a845db0f4961bc96b4798b4ec122",
+    "currentRequestId": "dit-wording-f1113afd1c0846aa016e75fd63cd4700e1cc7c1b69f9b835245342a82f2480f3",
+    "otherContentUnchanged": true
+  },
+  "swtor-fresh.json": {
+    "changedPaths": [
+      "/capture/contextReceipt/RequestId",
+      "/capture/statusBinding/RequestId"
+    ],
+    "previousRequestId": "dit-wording-a4e876e70f7aa1873c43d63a59663a578f547f0c67f2de87bf2a17622c82c97f",
+    "currentRequestId": "dit-wording-73320894f60a36291fb9b596cbd5d43930fb7623675c059854ee32b6728098a3",
+    "otherContentUnchanged": true
+  },
+  "swtor-expired.json": {
+    "changedPaths": [
+      "/capture/contextReceipt/RequestId",
+      "/capture/statusBinding/RequestId"
+    ],
+    "previousRequestId": "dit-wording-0c49e1f8ed0668fb30f2dadf812837e4f5c7a8e4f974731e23741ebbd0438868",
+    "currentRequestId": "dit-wording-647de88a612de607901231210b9be4953635c4b3cdabc7110caa528dc2b8768f",
+    "otherContentUnchanged": true
+  }
+}

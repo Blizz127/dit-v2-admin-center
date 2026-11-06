@@ -2,8 +2,12 @@
 
 Four files were exported by the actual isolated group-conversation service with
 a fake provider, fake status source, synthetic caller and in-memory store.
-The runtime source is `67488a257c1fdedc1fd078ac7f1cf5769728284c`; the test-only
-exporter revision is `2e063438b7f84c16c45e6fac58c1c6ff176fa1d2`.
+The runtime and exporter checkout is
+`e55c7dc75d01d88c8fbc6866ff9aca04eed52055`. The exporter test introduced at
+`2e063438` is unchanged; these files were regenerated on 2026-11-06 after the
+wording serialization fix. Only the two request-ID fields in each export
+changed from the previous captures. Prompts, history, status and decisions
+remain identical. See the [refresh receipt](../../../handoffs/candidate-delivery-refresh-20261106/README.md).
 
 For each of FFXI and SWTOR, `fresh` returns one `say` decision and `expired`
 returns silence after status expires during generation. The captured prompt

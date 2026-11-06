@@ -36,8 +36,11 @@ The updated combined patch remains local and unapplied to the shared hub.
 A later [wording serialization addendum](../handoffs/wording-wire-compat-20261105/README.md)
 carries the hub lead's serialization fix into the isolated candidate. Three
 expanded shout regressions failed before the fix; afterward, 18 focused checks
-passed for status-bound requests, rewrites and voice routes. The saved synthetic
-delivery exports remain pinned to the earlier runtime and were not refreshed.
+passed for status-bound requests, rewrites and voice routes. A separate
+[delivery-export refresh](../handoffs/candidate-delivery-refresh-20261106/README.md)
+now pins the synthetic harness to the same `e55c7dc7` candidate: four export
+cases, eleven Python checks and twelve synthetic transport scenarios passed.
+This does not establish native speech or real model behavior.
 
 Current readiness, after the local inspector consistency fix (`b7e3688`):
 
