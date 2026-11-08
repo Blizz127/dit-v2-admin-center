@@ -202,7 +202,7 @@ class OfflineOverviewCollectionTests(unittest.TestCase):
         self.assertIn('Simulated rejection', data['routingAudit'][2]['result'])
         # Redirected committed fixtures must load, not degrade silently to Unknown.
         self.assertEqual(data['presenceExamples']['kind'], 'synthetic')
-        self.assertEqual(data['baselineConformance']['games'][0]['cells']['forever-01']['status'], 'Sim-measured')
+        self.assertEqual(data['baselineConformance']['games'][0]['cells']['forever-01']['status'], 'Reference')
         self.assertTrue(data['modelCalls'])
         # Missing documents yield id-less Unknown cards with the same source label.
         sources = {issue.get('source') for issue in data['issues'] if issue.get('id')}

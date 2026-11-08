@@ -57,7 +57,7 @@ setImmediate(() => {
   // Loaded coverage line.
   setSnapshot(snapshot); render();
   assert.match(coverage(), /Coverage: Loaded · Imported log rows: 17 · Omitted malformed: 2 · Exported copy read\./);
-  assert.ok(coverage().includes('Exported WoW Forever bot log; not live, not DIT bots.'));
+  assert.ok(coverage().includes('Exported WoW Forever bot log (70450 predecessor Bots format); not live, not DIT bots, not PlayerbotV2.'));
   assert.match(get('bot-activity-count').textContent, /Showing 3 of 3 loaded bots/);
 
   // Bot rows: title, doing line, meta with top five counts only.

@@ -2,7 +2,7 @@
   "kind": "baseline-conformance",
   "version": 1,
   "asOf": "2026-11-08",
-  "source": "docs/FOREVER-BASELINE-PROPOSAL.md (Forever pinned at trinitycore-forever-production-70450 fb754788894)",
+  "source": "docs/FOREVER-BASELINE-PROPOSAL.md (Forever pinned at trinitycore-forever-production-70450 fb754788894); live reference corrected to PlayerbotV2 70790 on 2026-11-08",
   "rows": [
     {
       "id": "forever-01",
@@ -122,7 +122,17 @@
   ],
   "games": [
     {
-      "game": "WoW Forever (Classic 1.60)",
+      "game": "WoW Forever PlayerbotV2 (70790, live reference)",
+      "owner": "WoW Forever server lead",
+      "cells": {
+        "forever-01": {
+          "status": "Reference",
+          "evidence": "src-70790-0129 src/modules/PlayerbotV2 (HEAD c4ab28a47c7); botport CONTRACT-24e9fd68 behavior 1. Other rows not yet assessed against PlayerbotV2 docs."
+        }
+      }
+    },
+    {
+      "game": "WoW Forever Bots, 70450 predecessor (src/server/game/Bots)",
       "owner": "Forever server lead",
       "cells": {
         "forever-01": {

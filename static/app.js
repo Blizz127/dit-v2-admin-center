@@ -1413,7 +1413,7 @@ function renderModelCalls() {
     `${routingText(c.source, 'Source unknown')} · Observed: ${routingText(c.observedAt)}`));
 }
 const botActivityEngines = ['noncombat', 'combat', 'dead', 'Unknown'];
-const botActivityNote = 'Exported WoW Forever bot log; not live, not DIT bots.';
+const botActivityNote = 'Exported WoW Forever bot log (70450 predecessor Bots format); not live, not DIT bots, not PlayerbotV2.';
 const botActivityRowLimit = 200, botActivityListLimit = 50, botActivityAlternativeLimit = 20;
 function plainObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value);

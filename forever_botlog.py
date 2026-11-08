@@ -1,4 +1,6 @@
-"""Offline import of an exported copy of the WoW Forever bot log (forever_botlog.bot_event).
+"""Format: the 70450 predecessor Bots system's forever_botlog (bot, bot_event); PlayerbotV2 (70790) does not write it.
+
+Offline import of an exported copy of the WoW Forever bot log (forever_botlog.bot_event).
 
 Off unless DIT_FOREVER_BOTLOG_DIR names an absolute local directory holding
 manifest.json, bots.jsonl and events.jsonl. Never opens a live database, never uses

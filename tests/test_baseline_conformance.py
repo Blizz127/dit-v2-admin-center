@@ -31,10 +31,10 @@ class BaselineConformanceTests(unittest.TestCase):
         ids = [row['id'] for row in result['rows']]
         self.assertEqual(len(ids), 23)
         self.assertEqual([game['game'] for game in result['games']],
-                         ['WoW Forever (Classic 1.60)', 'FFXI', 'WotLK Forever', 'SWTOR'])
+                         ['WoW Forever PlayerbotV2 (70790, live reference)', 'WoW Forever Bots, 70450 predecessor (src/server/game/Bots)', 'FFXI', 'WotLK Forever', 'SWTOR'])
         for game in result['games']:
             self.assertEqual(set(game['cells']), set(ids))
-        swtor = result['games'][3]['cells']
+        swtor = result['games'][4]['cells']
         self.assertTrue(all(cell == {'status': 'Unknown', 'evidence': 'No documented evidence'}
                             for cell in swtor.values()))
 
@@ -43,11 +43,18 @@ class BaselineConformanceTests(unittest.TestCase):
         forever = [row['id'] for row in result['rows'] if row['group'] == 'forever']
         self.assertEqual(len(forever), 16)
         self.assertEqual(sum(row['group'] == 'dit' for row in result['rows']), 7)
-        cells = result['games'][0]['cells']
+        # The 70450 predecessor column carries the documented statuses.
+        cells = result['games'][1]['cells']
         for row_id in forever:
             self.assertNotEqual(cells[row_id]['status'], 'Unknown', row_id)
         self.assertEqual(cells['dit-01']['status'], 'Not started')
         self.assertEqual(cells['dit-02']['status'], 'Unknown')
+
+    def test_playerbotv2_is_the_reference_and_otherwise_unassessed(self):
+        cells = bc.read()['games'][0]['cells']
+        self.assertEqual(cells['forever-01']['status'], 'Reference')
+        self.assertIn('PlayerbotV2', cells['forever-01']['evidence'])
+        self.assertTrue(all(c['status'] == 'Unknown' for k, c in cells.items() if k != 'forever-01'))
 
     def test_ffxi_and_wotlk_body_cells_are_designed(self):
         games = {game['game']: game['cells'] for game in bc.read()['games']}

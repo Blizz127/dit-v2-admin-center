@@ -1,5 +1,25 @@
 # WoW Forever bots as the DIT v2 baseline: proposal
 
+
+> **Correction (2026-11-08, later the same day).** The WoW Forever bots the owner
+> plays with are **PlayerbotV2** on the 70790 server build:
+> `/home/blizz/build/tcf-local/src-70790-0129/src/modules/PlayerbotV2`, 671 files
+> and about 248k lines, read at HEAD `c4ab28a47c7`.
+> - The `production-70450` `src/server/game/Bots` system pinned below
+>   (`fb754788894`) is its **predecessor**. It still sits in the 70790 tree.
+>   Sections 1–3 describe that predecessor and are kept as background only.
+> - PlayerbotV2 uses a tick scheduler, snapshots, an intent queue and states,
+>   with model-worded chat and callouts (`BotChatModel`, `BotCallouts`,
+>   `CalloutRules`). It does not write `forever_botlog.bot_event`.
+> - The port already exists as the devbox-command-center botport contract
+>   (`/home/blizz/scratch/devbox-command-center/botport-contract/CONTRACT-24e9fd68.md`,
+>   pinned `0915dec`, FFXI task `5d4040ee3f83`). Its four required behaviors
+>   are: owned actor and party; follow and navigation; combat and healing;
+>   party coordination plus DIT personality.
+> - The owner's FFXI instruction (below) was routed to `ffxi-platform` (Forever
+>   Rust map bots), `ffxi` (legacy LSB C++/Lua bots) and devbox-command-center.
+> - The hub's draft amendment was told to re-pin.
+
 ## Owner direction (2026-11-08, Admin Center terminal)
 
 > lets port the wow forever bots over i like this to be the main baseline bot style
