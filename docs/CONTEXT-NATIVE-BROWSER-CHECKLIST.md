@@ -76,6 +76,10 @@ no native check is claimed by building or privately delivering a preview.
    with the fixture. Missing-source captures show the requested scope but no
    invented native body. A sequence-gap capture retains its expected body
    binding while all current field values remain Unknown.
+   Check **Captured prompt receipt** against the fixture's serialized character
+   count, maximum and supplied prompt SHA-256. Units must say UTF-16 characters
+   and token count must remain Unknown. Captured turn counts do not measure
+   history omitted earlier by the producer or the model's available token window.
 3. After a successful load, select **Unavailable**, **Invalid field**, then
    **HTTP error fixture**, pressing the panel load button each time. Every error
    must remove the previous prompt/body values. Return to **Loaded** and verify
@@ -91,6 +95,10 @@ no native check is claimed by building or privately delivering a preview.
    game (or requested game for an unbound capture). The context panel must
    clear and report unavailable for either game, while delivery evidence stays
    unchanged. Returning to **Loaded** must recover the original scope/history.
+   Repeat with **Synthetic coverage conflict**, including an empty-intent
+   capture. Its cloned retained count exceeds the supplied count, so the context
+   panel must clear and report unavailable. Loaded must recover the original
+   receipt; delivery evidence must stay unchanged.
 4. The actual parser/authentication checks are reproduced separately with
    `python3 -m unittest tests.test_context_capture -v`: truncated/oversized JSON,
    wrong shape, contradictory native facts, missing file, recovery, authentication-before-read, query and

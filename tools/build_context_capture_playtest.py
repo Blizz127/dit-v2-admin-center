@@ -80,6 +80,8 @@ const fetch = async (url, options = {}) => {
       if (capture.statusBinding.View) capture.statusBinding.View.Body.Game = otherGame;
       else capture.statusBinding.Lookup.Game = otherGame;
     }
+    if (scenario === 'coverage-conflict')
+      capture.contextReceipt.IncludedHistoryTurns = capture.contextReceipt.SuppliedHistoryTurns + 1;
     result = {status:'Loaded', capture};
   }
   if (scenario === 'delayed') return new Promise(resolve => { releaseResponse = () => resolve({ok:true, json:async()=>result}); });
@@ -109,10 +111,12 @@ document.querySelectorAll('a').forEach(a => { if (!a.getAttribute('href')?.start
                 '<option value="invalid">Invalid field</option><option value="auth-error">HTTP error fixture</option>'
                 '<option value="presence-conflict">Synthetic presence conflict</option>'
                 '<option value="scope-conflict">Synthetic scope conflict</option>'
+                '<option value="coverage-conflict">Synthetic coverage conflict</option>'
                 '<option value="delayed">Delayed response</option></select></label>'
                 '<p>Choose a response, then use either offline capture load button in Bots. Delivery evidence uses the selected game and never simulates native receipt authority. '
                 'Presence conflict should show the context capture as unavailable; it leaves delivery evidence unchanged. '
                 'Scope conflict should also show the context capture as unavailable without changing delivery evidence. '
+                'Coverage conflict overstates retained turns and should make the context capture unavailable. '
                 'Switching this selector alone does not reload.</p><button id="fixture-reset" type="button">Reset panel session</button>'
                 '<button id="fixture-release" type="button">Release delayed response</button>'
                 '<details><summary>Input SHA-256 fingerprints</summary><pre>' + html.escape(json.dumps(hashes, indent=2)) + '</pre></details></section>')

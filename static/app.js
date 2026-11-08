@@ -218,8 +218,18 @@ function renderContextCapture(data) {
       || capture.delivery !== 'not attempted' || capture.modelCall !== 'not attempted'
       || !receipt || binding?.RequestId !== receipt.RequestId
       || (!unbound && (!view || !Array.isArray(view.Fields) || view.Fields.length !== 6 || !['snapshot projected', 'snapshot unavailable'].includes(binding.State)))
-      || typeof capture.systemMessage !== 'string' || typeof capture.userMessage !== 'string'
-      || !Number.isInteger(receipt.IncludedHistoryTurns) || !Number.isInteger(receipt.SuppliedHistoryTurns)) throw new Error('invalid capture');
+      || typeof capture.systemMessage !== 'string' || typeof capture.userMessage !== 'string') throw new Error('invalid capture');
+  if (!Array.isArray(capture.suppliedHistory) || capture.suppliedHistory.length > 32
+      || capture.suppliedHistory.some(turn => typeof turn !== 'string' || !turn.trim() || turn.length > 512)
+      || !['SuppliedHistoryTurns', 'IncludedHistoryTurns', 'OmittedHistoryTurns', 'SerializedCharacters', 'MaximumSerializedCharacters']
+        .every(key => Number.isSafeInteger(receipt[key]) && receipt[key] >= 0)
+      || receipt.SuppliedHistoryTurns !== capture.suppliedHistory.length
+      || receipt.IncludedHistoryTurns + receipt.OmittedHistoryTurns !== receipt.SuppliedHistoryTurns) throw new Error('invalid captured coverage');
+  if (!capture.systemMessage.trim() || !capture.userMessage.trim()
+      || receipt.MaximumSerializedCharacters !== 24576
+      || receipt.SerializedCharacters !== capture.systemMessage.length + capture.userMessage.length
+      || receipt.SerializedCharacters > receipt.MaximumSerializedCharacters
+      || typeof receipt.PromptSha256 !== 'string' || !/^[0-9a-f]{64}$/.test(receipt.PromptSha256)) throw new Error('invalid prompt receipt');
   const lookup = binding.Lookup;
   const scopeText = value => typeof value === 'string' && value.trim().length > 0 && value.length <= 128;
   if (lookup?.Game !== capture.game || !scopeText(lookup.ServerInstance) || !scopeText(lookup.ActorKey)) throw new Error('invalid scope');
@@ -243,6 +253,8 @@ function renderContextCapture(data) {
   item(panel, `${capture.game.toUpperCase()} · ${capture.path} · Synthetic captured packet`,
     `${receipt.IncludedHistoryTurns} / ${receipt.SuppliedHistoryTurns} captured input turns retained; ${receipt.OmittedHistoryTurns} omitted.`,
     'No real model call or delivery attempted. Counts start at this captured input; earlier producer omissions are not measured. This packet is independent of roster selection.');
+  item(panel, 'Captured prompt receipt', `${receipt.SerializedCharacters} / ${receipt.MaximumSerializedCharacters} UTF-16 characters · Token count: Unknown`,
+    `Supplied prompt SHA-256: ${receipt.PromptSha256}`);
   item(panel, 'Requested bot scope', `Game ${lookup.Game} · instance ${lookup.ServerInstance} · actor key ${lookup.ActorKey}`,
     'Lookup recorded for this captured request. The native body has its own identity.');
   if (!unbound) item(panel, 'Native body in capture', `Game ${view.Body.Game} · realm ${view.Body.Realm} · instance ${view.Body.Instance} · native actor ${view.Body.NativeActorId}`,

@@ -28,6 +28,15 @@ prepared only 16. Without the producer's separate report, that earlier omission
 count is unknown. A missing native-status source does not erase this captured
 conversation; it makes the body's status unknown.
 
+The interactive inspector's **Captured prompt receipt** shows the serialized
+UTF-16 character count, its 24,576-unit application cap, and the supplied prompt
+SHA-256. Token count remains Unknown. It rejects inconsistent turn arithmetic,
+history bounds, blank prompts and size disagreements before displaying a packet.
+This browser check does not recompute the hash or establish upstream completeness;
+the existing Python reader separately checks the digest and retained prompt
+section. The displayed cap is the captured builder budget, not a measurement of
+the provider's token capacity or model understanding.
+
 ## Separate FFXI Python producer
 
 Read-only inspection of
