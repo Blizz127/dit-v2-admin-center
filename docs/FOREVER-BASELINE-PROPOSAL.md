@@ -247,3 +247,20 @@ Writers, revised by the review:
 **Gate:** P1/P2 may proceed offline. The P3 flag flip needs Codex or
 coordinator sign-off. The standard's §6.4 records the LSB/Forever split in
 hub commit `510b04bc`.
+
+## Canary 1 decisions (owner, 2026-11-08)
+
+`ffxi` P2 estimate: about 01:00Z 2026-11-09. Earliest live canary: about 06:00Z
+2026-11-09, then the owner's next play session. Owner answers:
+- **City and bots:** the owner wants a different pick from tozizozo, edaddan and
+  kelton in Southern San d'Oria / West Ronfaure. The choice is pending.
+- **Test character:** Blizz.
+- **Go-live:** "I approve; restart when ready". The owner's direct approval for
+  canary 1, standing in for the Codex/coordinator sign-off. The restart happens
+  only while CrazyAsian is offline, with notice and backup/rollback.
+- **Command authority:** the bot's owner, as in WoW Forever. Whoever invites it
+  can command it, and the GM override is kept.
+- **FFXI Forever:** "i'd like this implemented in ff11 forever also but rust".
+  Re-sent to `ffxi-platform`.
+
+The adversarial review of the P1 design is `docs/reviews/FFXI-BOTSV2-P1-REVIEW-20261108.md`.
