@@ -74,3 +74,40 @@ live flags, model calls, hub HTTP startup and native browser validation remain
 absent. The existing video is unchanged.
 
 Local delivery receipt: `build/context-slice/integrated-alienware-delivery.json`.
+
+## Interactive context and delivery preview, 2026-11-08
+
+After owner message `2c41e771389e7f0d` lifted discretionary policy pauses, the
+previously prepared, undelivered interactive panel and delivery-evidence preview
+were privately released to Alienware. Separate remote readback verified all six
+files at **2026-11-08T00:44:20.452381+00:00** over the existing strict-host-key,
+batch SSH route. No native prompt occurred. This is an owner-preview release,
+not a deployed hub/server or game-client build.
+
+Open **Downloads → DIT-Conversation-Overview-20261104-11735c60 →
+Conversation-Panel-4fa9e59 → Start-Here.html**.
+
+Source revision: `4fa9e59529ea011e17fc3c31edd1b90a98f1e174`.
+
+| Artifact | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `Context-Panel-Playtest.html` | 283035 | `b2e1a140e34a371df546ec4bde83dc17ac637b21f7b5302c307c456a2e90f49d` |
+| `Delivery-Evidence-Preview.html` | 38655 | `ca25cb7351b37453a278b1ef9bb9a43d39e1bca398b911cadf0a0bb7d36a1fae` |
+| `Start-Here.html` | 1441 | `9af1055c9935a40d2a61703eb8a3e3e04c9a8eb7b96770325164076c1b70b2b6` |
+| `READ-ME-FIRST.txt` | 1154 | `5b8f517a9a321074565a4e01aa1e4a6af1af954802c32cae2e9c82877fcba623` |
+| `RELEASE.json` | 941 | `b97aa7e3871bbca1f9548fc7c33a4a67a84f07b776c1adfd6fc81bdb35537fd4` |
+| `SHA256SUMS` | 436 | `3d9c8337a60b335a461da05bfa34f4b57978d08d49fb18a11b960e8b77dde8ca` |
+
+The interactive file embeds the actual Admin application, twelve existing
+synthetic context captures and two delivery examples; these are separate from
+the `e55c7dc7` candidate-delivery harness exports. The static delivery page
+compares eight evidence states. Four focused Python preview/CLI tests and both
+simulated-DOM panel scripts passed immediately before packaging. All actual
+delivery remains Unknown. Native rendering, playback, game behavior and real
+model calls were NOT RUN; copying and hashing do not establish those results.
+
+The exclusive destination has mode 0700 and each file mode 0600. Existing video,
+previews and game/server files were untouched; no viewer, collector or service
+was started. Rollback is to close the new files and optionally remove only this
+new folder. Local exact readback receipt:
+`build/releases/conversation-panel-4fa9e59-delivery.json`.

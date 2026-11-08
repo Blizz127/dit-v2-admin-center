@@ -79,6 +79,17 @@ quality. Native browser checks remain NOT RUN, not policy-paused.
 
 Latest completed local work:
 
+- Policy resume and private owner-preview release are recorded in the
+  [2026-11-08 handoff](../handoffs/release-resume-20261108/README.md).
+  Admin `4fa9e59` was delivered to Alienware at 00:44:20Z with six file hashes
+  verified; this is an offline preview, not a server/game-client deployment.
+- Isolated source `59ab778a` prevents unconfirmed structured group replies from
+  entering spoken memories/pair turns. Four focused regression cases are
+  written, but build/tests are NOT RUN: the single-job capacity guard refused
+  startup at load 64.67 against maximum 40. No job is pending. Next action is
+  the focused test filter in that handoff when capacity permits, followed by
+  integration through the existing hub owner. Do not relabel e55 fixture/test
+  evidence as a result for this newer source.
 - Admin `387104a` packages the wording serialization compatibility addendum;
   isolated source `e55c7dc7` passed 18 focused checks. Its
   [handoff](../handoffs/wording-wire-compat-20261105/README.md) records the earlier

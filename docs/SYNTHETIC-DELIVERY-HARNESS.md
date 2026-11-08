@@ -3,7 +3,9 @@
 This harness connects captured output from the isolated context/status candidate
 to an in-memory fake publisher, observer and receipt receiver. It does not
 establish native speech, native status authenticity, client display, or model
-quality. Browser/device checks and all live flags remain held and unchanged.
+quality. It changes no live flags. Native browser checks are NOT RUN; the
+[standing notes](PROJECT-STANDING-NOTES.md) distinguish the lifted policy holds
+from remaining concrete runtime, access and ownership limits.
 
 ## Boundaries exercised
 
@@ -44,6 +46,14 @@ the supplied room lines and excludes those unscoped legacy pair turns. Receipt
 reception in this harness does not alter either source. The caller must still
 supply properly scoped observed conversation; a synthetic receipt pass does
 not prove that subsequent live prompts contain only delivered speech.
+
+The newer isolated source candidate `59ab778a` addresses a separate prepared-
+speech memory leak: the selected structured group path no longer calls
+`CompanionSaid` or outgoing `Pairs.Said` before delivery. Its
+[handoff](../handoffs/release-resume-20261108/README.md) records four new regression
+cases, with build/tests NOT RUN because the capacity guard refused startup.
+This harness's captures and successful test evidence still pin `e55c7dc7`;
+they have not been regenerated or promoted to evidence for that newer source.
 
 ## Run locally
 

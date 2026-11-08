@@ -1,0 +1,25 @@
+{
+  "schema": "dit.source-candidate-verification.v1",
+  "recordedAt": "2026-11-08T00:48:44.451943+00:00",
+  "baseRevision": "e55c7dc75d01d88c8fbc6866ff9aca04eed52055",
+  "candidateRevision": "59ab778a2c424762e4064ac42b38730b227250cf",
+  "sourceDiffCheck": "passed",
+  "build": "NOT STARTED",
+  "focusedTests": "NOT RUN",
+  "reason": "Capacity guard refused startup: load64.67 > max40; available135.77GiB >= min40. No heavy job launched.",
+  "regressionCasesPrepared": 4,
+  "nativeDelivery": "Unknown",
+  "deployed": false,
+  "previousFixtureEvidence": {
+    "revision": "e55c7dc75d01d88c8fbc6866ff9aca04eed52055",
+    "adminCommit": "c301c99",
+    "unchanged": true
+  },
+  "nextCommand": "dotnet test tests/Dit.HumanBehavior.Neuronetwork.Tests/Dit.HumanBehavior.Neuronetwork.Tests.csproj --no-restore -m:2 -p:UseSharedCompilation=false --filter \"FullyQualifiedName~PreparedReplyMemoryTests|FullyQualifiedName~CandidateDeliveryFixtureTests\"",
+  "packagedPatchApplication": {
+    "result": "passed",
+    "method": "temporary index in own isolated repository; base plus packaged patch equals candidate tree",
+    "tree": "554447e7ba945d64e2cc500e16120447f5ec8f4d",
+    "checkedAt": "2026-11-08T00:49:46.607983+00:00"
+  }
+}

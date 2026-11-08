@@ -1,0 +1,135 @@
+diff --git a/src/Dit.HumanBehavior.Neuronetwork/Conversation/Arbitration/GroupChat.cs b/src/Dit.HumanBehavior.Neuronetwork/Conversation/Arbitration/GroupChat.cs
+index 8282d776..382ac08a 100644
+--- a/src/Dit.HumanBehavior.Neuronetwork/Conversation/Arbitration/GroupChat.cs
++++ b/src/Dit.HumanBehavior.Neuronetwork/Conversation/Arbitration/GroupChat.cs
+@@ -733,7 +733,8 @@ public sealed class GroupChat(ConversationService conversation, TimeProvider? ti
+         var pairTurns = conversation.Pairs.History(line.GameId, hearer.DisplayName, speaker);
+         // Legacy pair turns have no realm/thread identity. Do not relabel them
+         // as newer room turns or deduplicate legitimate repeated text.
+-        var history = conversation.StructuredContextEnabled(line.GameId)
++        var structuredContext = conversation.StructuredContextEnabled(line.GameId);
++        var history = structuredContext
+             ? line.History.ToList() : line.History.Concat(pairTurns).Distinct().TakeLast(12).ToList();
+         var companion = new CompanionLine
+         {
+@@ -773,9 +774,14 @@ public sealed class GroupChat(ConversationService conversation, TimeProvider? ti
+             return new(hearer.ActorKey, hearer.DisplayName, "silence", channel, null, null, joiningIn ? "chime" : "primary", note);
+         if (!line.Shadow)
+         {
+-            conversation.CompanionSaid(companion, reply);
++            // Selection still reserves the bot's turn, but a prepared decision is not
++            // native speech. The structured path gets observed turns from its producer;
++            // do not turn this unconfirmed draft into memories, claims or pair history.
++            if (!structuredContext)
++                conversation.CompanionSaid(companion, reply);
+             conversation.Arbiter.Spoke(line.GameId + ":" + line.Scope, speaker, hearer.DisplayName, now);
+-            conversation.Pairs.Said(line.GameId, hearer.DisplayName, speaker, hearer.DisplayName, text, now);
++            if (!structuredContext)
++                conversation.Pairs.Said(line.GameId, hearer.DisplayName, speaker, hearer.DisplayName, text, now);
+         }
+         return new(hearer.ActorKey, hearer.DisplayName, "say", channel, text, line.Private ? speaker : null, joiningIn ? "chime" : "primary", note);
+     }
+diff --git a/tests/Dit.HumanBehavior.Neuronetwork.Tests/PreparedReplyMemoryTests.cs b/tests/Dit.HumanBehavior.Neuronetwork.Tests/PreparedReplyMemoryTests.cs
+new file mode 100644
+index 00000000..194a8c97
+--- /dev/null
++++ b/tests/Dit.HumanBehavior.Neuronetwork.Tests/PreparedReplyMemoryTests.cs
+@@ -0,0 +1,98 @@
++using Dit.HumanBehavior.Contracts;
++using Dit.HumanBehavior.DialogueWording;
++using Dit.HumanBehavior.Neuronetwork.Conversation;
++using Dit.HumanBehavior.Neuronetwork.Conversation.Arbitration;
++using Dit.HumanBehavior.Neuronetwork.Store;
++using Xunit;
++
++namespace Dit.HumanBehavior.Neuronetwork.Tests;
++
++public sealed class PreparedReplyMemoryTests
++{
++    private static readonly DateTimeOffset Start = new(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
++
++    private sealed class Clock : TimeProvider
++    {
++        public DateTimeOffset Now = Start;
++        public override DateTimeOffset GetUtcNow() => Now;
++    }
++
++    private sealed class Provider : IDialogueWordingProvider
++    {
++        public readonly List<DialogueWordingRequest> Requests = [];
++        public string ProviderName => "synthetic-prepared-memory";
++        public Task<DialogueWordingResult> GenerateAsync(DialogueWordingRequest request, CancellationToken token)
++        {
++            Requests.Add(request);
++            return Task.FromResult(new DialogueWordingResult(request.RequestId, ProviderName, "fake",
++                Requests.Count == 1 ? "sounds fun" : "maybe tomorrow",
++                DialogueWordingCompletionStatus.Succeeded, TimeSpan.Zero, null, null, true,
++                DialogueProviderFailureClassification.None, request.GenerationPolicyVersion));
++        }
++    }
++
++    [Theory]
++    [InlineData("ffxi", true)] [InlineData("swtor", true)]
++    [InlineData("ffxi", false)] [InlineData("swtor", false)]
++    public async Task Prepared_reply_is_not_spoken_memory_in_structured_context(string game, bool selected)
++    {
++        using var store = new NeuronetworkStore(":memory:");
++        var clock = new Clock();
++        var provider = new Provider();
++        var service = new ConversationService(store, provider, clock)
++        {
++            ContextEnvironment = _ => selected ? game : null,
++            StatusEnvironment = _ => null, ChatVoiceEnvironment = _ => null,
++            QuickReplies = false, KnowledgeAnswers = false,
++            CompanionExtractor = null, CompanionExtractorForGame = null,
++        };
++        service.Group.Environment = _ => null;
++        service.Group.SingleModelReplyForGame = _ => true;
++        var memory = new BotMemory(store, clock);
++        memory.Note(game, "fixture-bot", "A supplied earlier observation", Start.AddSeconds(-1));
++        var observed = new[]
++        {
++            "PlayerFixture: an earlier question",
++            "Fixture: a supplied observed line",
++            "PlayerFixture: the same intentional line",
++            "PlayerFixture: the same intentional line",
++        };
++        var line = new GroupLine
++        {
++            GameId = game, ServerInstanceId = "synthetic-instance", LineId = "synthetic-first",
++            Scope = "synthetic-room", Channel = game == "ffxi" ? "linkshell" : "party",
++            Speaker = new GroupSpeaker("PlayerFixture"), Text = "anyone exploring tonight?", History = observed,
++            Hearers = [new GroupHearer { ActorKey = "fixture-bot", DisplayName = "Fixture", Addressed = true }],
++            Guarantee = true,
++        };
++
++        var first = Assert.Single((await service.Group.ReplyAsync(line, default)).Decisions);
++        Assert.Equal("say", first.Kind);
++        Assert.Equal("sounds fun", first.Text);
++        Assert.Single(provider.Requests);
++        // No inbox publication, native observation or receipt occurs in this test.
++        var journal = memory.Get(game, "fixture-bot")!.Journal;
++        Assert.Contains(journal, entry => entry.Text == "A supplied earlier observation");
++        Assert.Equal(!selected, journal.Any(entry => entry.Text.Contains("I said \"sounds fun\"", StringComparison.Ordinal)));
++        Assert.Equal(!selected, service.Pairs.History(game, "Fixture", "PlayerFixture")
++            .Contains("Fixture: sounds fun"));
++
++        clock.Now = Start.AddMinutes(1);
++        var second = await service.Group.ReplyAsync(line with
++        {
++            LineId = "synthetic-second", Text = "what about tomorrow?",
++        }, default);
++        Assert.Equal("say", Assert.Single(second.Decisions).Kind);
++        Assert.Equal(2, provider.Requests.Count);
++        var next = provider.Requests[1];
++        Assert.Contains(next.RelevantMemories, text => text.Contains("A supplied earlier observation", StringComparison.Ordinal));
++        Assert.Equal(!selected, next.RelevantMemories.Any(text => text.Contains("I said \"sounds fun\"", StringComparison.Ordinal)));
++        if (selected)
++        {
++            Assert.Equal(observed, next.ConversationContext!.History);
++            Assert.Equal("what about tomorrow?", next.ConversationContext.CurrentMessage);
++            Assert.DoesNotContain("sounds fun", DialogueWordingPromptText.Build(next, game).UserMessage);
++        }
++        else Assert.Null(next.ConversationContext);
++    }
++}

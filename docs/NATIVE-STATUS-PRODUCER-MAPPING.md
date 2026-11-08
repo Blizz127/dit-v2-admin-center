@@ -1,5 +1,11 @@
 # Native status producer mapping: integration candidate
 
+Authority update, 2026-11-08: owner message `2c41e771389e7f0d` lifts earlier
+discretionary policy holds. The [standing notes](PROJECT-STANDING-NOTES.md)
+supersede policy-stop wording at this older checkpoint. Missing authenticated
+producer inputs and the existing sole-writer boundaries remain concrete
+dependencies; do not infer native evidence from removal of a policy pause.
+
 This is local integration work for the shared cross-game conversation design,
 not a deployed producer contract. Both conversation allowlists remain unset.
 The shared hub, bridge, SWTOR source and game processes were not modified.
