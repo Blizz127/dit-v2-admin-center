@@ -1,0 +1,45 @@
+COMMAND ["python3", "-m", "unittest", "test_context_capture_playtest", "test_context_capture.ContextCaptureTests.test_authenticated_loopback_startup_and_exact_capture_smoke", "test_context_capture.ContextCaptureTests.test_authentication_precedes_file_reads_and_queries_are_refused", "test_context_capture.ContextCaptureTests.test_unconfirmed_presence_cannot_authorize_known_body_status", "-v"]
+test_artifact_binds_actual_application_and_all_twelve_validated_captures (test_context_capture_playtest.ContextPanelPlaytestTests.test_artifact_binds_actual_application_and_all_twelve_validated_captures) ... ok
+test_artifact_blocks_network_and_script_is_valid_without_launching_browser (test_context_capture_playtest.ContextPanelPlaytestTests.test_artifact_blocks_network_and_script_is_valid_without_launching_browser) ... ok
+test_presence_conflict_uses_response_copies_without_network_or_delivery_changes (test_context_capture_playtest.ContextPanelPlaytestTests.test_presence_conflict_uses_response_copies_without_network_or_delivery_changes) ... ok
+test_authenticated_loopback_startup_and_exact_capture_smoke (test_context_capture.ContextCaptureTests.test_authenticated_loopback_startup_and_exact_capture_smoke) ... ok
+test_authentication_precedes_file_reads_and_queries_are_refused (test_context_capture.ContextCaptureTests.test_authentication_precedes_file_reads_and_queries_are_refused) ... ok
+test_unconfirmed_presence_cannot_authorize_known_body_status (test_context_capture.ContextCaptureTests.test_unconfirmed_presence_cannot_authorize_known_body_status) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 2.576s
+
+OK
+EXIT 0
+COMMAND ["node", "tests/context_capture.test.cjs"]
+node:child_process:1029
+    throw err;
+    ^
+
+<ref *1> Error: spawnSync python3 ETIMEDOUT
+    at Object.spawnSync (node:internal/child_process:1175:20)
+    at spawnSync (node:child_process:976:24)
+    at execFileSync (node:child_process:1019:15)
+    at python (/home/blizz/dev/dit-v2-admin-center/tests/overview_snapshot_harness.cjs:6:29)
+    at Object.<anonymous> (/home/blizz/dev/dit-v2-admin-center/tests/overview_snapshot_harness.cjs:10:29)
+    at Module._compile (node:internal/modules/cjs/loader:1968:14)
+    at Object..js (node:internal/modules/cjs/loader:2108:10)
+    at Module.load (node:internal/modules/cjs/loader:1690:32)
+    at Module._load (node:internal/modules/cjs/loader:1480:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19) {
+  errno: -110,
+  code: 'ETIMEDOUT',
+  syscall: 'spawnSync python3',
+  path: 'python3',
+  spawnargs: [ 'tests/inspector_runtime_fixture.py', '--template' ],
+  error: [Circular *1],
+  status: null,
+  signal: 'SIGTERM',
+  output: [ null, '', '' ],
+  pid: 3299613,
+  stdout: '',
+  stderr: ''
+}
+
+Node.js v26.12.1
+EXIT 1

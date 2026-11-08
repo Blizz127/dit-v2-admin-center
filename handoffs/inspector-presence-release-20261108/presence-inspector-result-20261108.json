@@ -1,0 +1,28 @@
+{
+  "startedAt": "2026-11-08T05:11:31.159987+00:00",
+  "commands": [
+    {
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "test_context_capture_playtest",
+        "test_context_capture.ContextCaptureTests.test_authenticated_loopback_startup_and_exact_capture_smoke",
+        "test_context_capture.ContextCaptureTests.test_authentication_precedes_file_reads_and_queries_are_refused",
+        "test_context_capture.ContextCaptureTests.test_unconfirmed_presence_cannot_authorize_known_body_status",
+        "-v"
+      ],
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "node",
+        "tests/context_capture.test.cjs"
+      ],
+      "exitCode": 1
+    }
+  ],
+  "nativeBrowser": false,
+  "liveHubOrGame": false,
+  "finishedAt": "2026-11-08T05:11:42.111751+00:00"
+}

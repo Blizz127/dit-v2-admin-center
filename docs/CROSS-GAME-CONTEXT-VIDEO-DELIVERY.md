@@ -111,3 +111,28 @@ previews and game/server files were untouched; no viewer, collector or service
 was started. Rollback is to close the new files and optionally remove only this
 new folder. Local exact readback receipt:
 `build/releases/conversation-panel-4fa9e59-delivery.json`.
+
+## Presence-consistency preview, 2026-11-08 05:17Z
+
+A genuinely changed interactive preview, source `69ab75f`, was privately
+released through the same existing strict-host-key, batch SSH route. Separate
+remote readback verified five file hashes, byte counts and modes at
+**2026-11-08T05:17:02.451238Z**. Open **Downloads →
+DIT-Conversation-Overview-20261104-11735c60 → Conversation-Panel-69ab75f →
+Start-Here.html**.
+
+The inspector rejects known body facts without confirmed online presence,
+while valid unknown status retains conversation history. The new Synthetic
+presence conflict option exercises rejection and recovery for either game;
+original source captures and delivery examples remain unchanged. Six focused
+Python/API checks and two artifact-bound simulated-DOM scripts passed. Earlier
+fixture-startup timeouts are retained in the
+[release handoff](../handoffs/inspector-presence-release-20261108/README.md).
+
+The panel HTML is 284,250 bytes, SHA-256
+`d302c6043ce602e5b8e100851d2c615f9ed4f3b93271d64e02851fa3108e197f`.
+The handoff includes the full package receipt. Directory/file modes are
+0700/0600. No browser or game was launched; native validation remains NOT RUN.
+This is not a hub/server or game-client deployment. Earlier preview/video files
+remain intact; rollback is to close the new preview and optionally remove only
+its new folder. No new copy of the unchanged static delivery page was made.

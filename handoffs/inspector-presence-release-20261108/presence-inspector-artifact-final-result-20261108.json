@@ -1,0 +1,28 @@
+{
+  "startedAt": "2026-11-08T05:14:58.945031+00:00",
+  "sourceRevision": "69ab75f3d4153680c377c60d4ffd3377f295c5c2",
+  "verificationRevision": "72ea4282915edb5bdfeb9554eaa1a453a5dadaf3",
+  "artifactSha256": "d302c6043ce602e5b8e100851d2c615f9ed4f3b93271d64e02851fa3108e197f",
+  "artifact": "build/releases/conversation-panel-69ab75f/Context-Panel-Playtest.html",
+  "commands": [
+    {
+      "command": [
+        "node",
+        "tests/context_capture.test.cjs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "node",
+        "tests/delivery_capture.test.cjs"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "nativeBrowser": false,
+  "liveHubOrGame": false,
+  "fixtureHelperDeadlineSeconds": 30,
+  "note": "Only test helper startup budget changed after two five-second fixture-startup timeouts; no application deadline/assertion changed. Application and builder bytes match artifact source69ab75f.",
+  "finishedAt": "2026-11-08T05:15:04.567820+00:00"
+}

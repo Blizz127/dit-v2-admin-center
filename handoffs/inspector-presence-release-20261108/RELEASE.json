@@ -1,0 +1,29 @@
+{
+  "schema": "dit.private-preview-release.v1",
+  "sourceRevision": "69ab75f3d4153680c377c60d4ffd3377f295c5c2",
+  "verificationRevision": "72ea4282915edb5bdfeb9554eaa1a453a5dadaf3",
+  "builtAt": "2026-11-08T05:16:19.799837+00:00",
+  "releaseKind": "private-offline-owner-preview",
+  "nativeBrowser": "NOT RUN",
+  "gameDelivery": "Unknown",
+  "checks": {
+    "pythonPreviewAndApiTests": 6,
+    "artifactBoundSimulatedDomScripts": 2,
+    "fixtureHelperDeadlineSeconds": 30,
+    "previousIncompleteChecks": "Two five-second fixture-startup timeouts retained; no app deadline or assertion relaxed."
+  },
+  "files": {
+    "Context-Panel-Playtest.html": {
+      "sha256": "d302c6043ce602e5b8e100851d2c615f9ed4f3b93271d64e02851fa3108e197f",
+      "bytes": 284250
+    },
+    "READ-ME-FIRST.txt": {
+      "sha256": "1c8235caa2cda41c9515b33d64a5a86d1e8787bbd8d114f1c7955d637e18c20a",
+      "bytes": 960
+    },
+    "Start-Here.html": {
+      "sha256": "1a945d658f06fb5c9e732f11a47229d6bfca3533979c735d157549f5d0a370e7",
+      "bytes": 1641
+    }
+  }
+}

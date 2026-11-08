@@ -83,6 +83,17 @@ quality. Native browser checks remain NOT RUN, not policy-paused.
 
 Latest completed local work:
 
+- Private preview `69ab75f` was delivered to Alienware at 05:17:02Z on
+  2026-11-08; separate readback verified all five file hashes/sizes/modes.
+  Open `Conversation-Panel-69ab75f/Start-Here.html` under the existing
+  `DIT-Conversation-Overview-20261104-11735c60` Downloads folder. It fixes the
+  inspector's contradictory presence/body display and adds a synthetic conflict
+  scenario. Six Python/API checks and two artifact-bound simulated-DOM scripts
+  passed. Two fixture-startup timeouts and their bounded test-helper correction
+  are preserved in the [release handoff](../handoffs/inspector-presence-release-20261108/README.md).
+  This is an offline preview, not a hub/game-client deployment or native-browser
+  pass. Two existing helpers completed disjoint follow-up scopes; no job remains.
+  The `9c99e01a` hub intake below is already queued and was not repeated.
 - Current owner-clicked swarm: three native helpers completed disjoint source,
   test-design and review scopes; root remains the only integrator/build runner.
   Admin `a9971907` rejects impossible known body facts when presence is not

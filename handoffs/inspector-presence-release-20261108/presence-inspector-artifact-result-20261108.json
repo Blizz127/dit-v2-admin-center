@@ -1,0 +1,18 @@
+{
+  "startedAt": "2026-11-08T05:13:06.128589+00:00",
+  "sourceRevision": "69ab75f3d4153680c377c60d4ffd3377f295c5c2",
+  "artifact": "build/releases/conversation-panel-69ab75f/Context-Panel-Playtest.html",
+  "commands": [
+    {
+      "command": [
+        "node",
+        "tests/context_capture.test.cjs"
+      ],
+      "exitCode": 1
+    }
+  ],
+  "nativeBrowser": false,
+  "liveHubOrGame": false,
+  "note": "Final artifact-bound checks at inherited process priority. Earlier nice10 run hit the existing five-second Python fixture startup timeout; no timeout or test assertion was relaxed.",
+  "finishedAt": "2026-11-08T05:13:12.289250+00:00"
+}
