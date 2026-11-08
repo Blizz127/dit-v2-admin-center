@@ -34,6 +34,7 @@ from evaluator_snapshot import from_env as evaluator_snapshot
 from hub_snapshot import ENV as HUB_SNAPSHOT_ENV, SnapshotReader
 from bakeoff_run import from_env as bakeoff_run
 from baseline_conformance import read as baseline_conformance
+from forever_botlog import from_env as forever_botlog
 from wake_verification import read as read_wake_verification
 from operation_sources import read as read_operation_sources
 from local_evidence import read_json
@@ -267,6 +268,8 @@ def overview(source='mock'):
         "modelCalls": None if example_calls is None else example_calls + evaluator_rows + bakeoff_rows,
         "evaluatorSnapshot": evaluator_coverage,
         "bakeoffRun": bakeoff_coverage,
+        # Off unless DIT_FOREVER_BOTLOG_DIR names an exported WoW Forever bot log; never a live read.
+        "botActivity": dict(zip(("bots", "coverage"), forever_botlog())),
         # Committed tracker of the Forever-style baseline per game; None renders Unknown.
         "baselineConformance": baseline_conformance(),
         "audit": [

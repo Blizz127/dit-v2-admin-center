@@ -549,5 +549,27 @@ class ForeverBotlogTests(unittest.TestCase):
         self.assertNotIn(secret, coverage['reason'])
 
 
+
+
+class OverviewSwitchTests(unittest.TestCase):
+    def test_overview_bot_activity_only_when_switched_on(self):
+        import tempfile
+        from unittest.mock import patch
+        from pathlib import Path
+        import server
+        fixture = Path(__file__).resolve().parent / 'fixtures/forever-botlog'
+        with tempfile.TemporaryDirectory() as home:
+            def overview(environ):
+                with patch.dict('os.environ', environ, clear=True), \
+                     patch.object(Path, 'home', return_value=Path(home)), \
+                     patch('server.LOCAL_DATA', Path(home) / 'local'):
+                    return server.overview()
+            off = overview({})
+            on = overview({'DIT_FOREVER_BOTLOG_DIR': str(fixture)})
+        self.assertEqual((off['botActivity']['coverage']['status'], off['botActivity']['bots']), ('Not configured', []))
+        self.assertEqual(on['botActivity']['coverage']['status'], 'Loaded')
+        self.assertEqual(len(on['botActivity']['bots']), 3)
+
+
 if __name__ == '__main__':
     unittest.main()

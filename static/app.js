@@ -1479,7 +1479,7 @@ function renderBotActivity() {
     return;
   }
   const status = ['Not configured', 'Loaded', 'Unavailable'].includes(cov.status) ? cov.status : 'Unknown';
-  coverage.textContent = `Coverage: ${status} · Imported: ${metricNumber(cov.records) ? cov.records : 'Unknown'} · Omitted malformed: ${metricNumber(cov.omitted) ? cov.omitted : 'Unknown'} · ${routingText(cov.reason, 'Reason unknown')} · ${botActivityNote}`;
+  coverage.textContent = `Coverage: ${status} · Imported log rows: ${metricNumber(cov.records) ? cov.records : 'Unknown'} · Omitted malformed: ${metricNumber(cov.omitted) ? cov.omitted : 'Unknown'} · ${routingText(cov.reason, 'Reason unknown')} · ${botActivityNote}`;
   const bots = data.bots.filter(bot => plainObject(bot) && typeof bot.botGuid === 'string' && bot.botGuid.trim());
   const engineControl = document.getElementById('bot-activity-engine'), searchControl = document.getElementById('bot-activity-search');
   const engine = botActivityEngines.includes(engineControl.value) ? engineControl.value : '';

@@ -56,7 +56,7 @@ setImmediate(() => {
 
   // Loaded coverage line.
   setSnapshot(snapshot); render();
-  assert.match(coverage(), /Coverage: Loaded · Imported: 17 · Omitted malformed: 2 · Exported copy read\./);
+  assert.match(coverage(), /Coverage: Loaded · Imported log rows: 17 · Omitted malformed: 2 · Exported copy read\./);
   assert.ok(coverage().includes('Exported WoW Forever bot log; not live, not DIT bots.'));
   assert.match(get('bot-activity-count').textContent, /Showing 3 of 3 loaded bots/);
 
@@ -104,14 +104,14 @@ setImmediate(() => {
 
   // Loaded but empty; Not configured; Unavailable.
   setSnapshot({...snapshot, botActivity: {coverage: {status: 'Loaded', records: 0, omitted: 0, reason: 'Empty export.'}, bots: []}}); render();
-  assert.match(coverage(), /Coverage: Loaded · Imported: 0 · Omitted malformed: 0 · Empty export\./);
+  assert.match(coverage(), /Coverage: Loaded · Imported log rows: 0 · Omitted malformed: 0 · Empty export\./);
   assert.equal(titles(panel())[0], 'No bot activity in the export');
   assert.match(everything(panel()), /does not mean bots are idle/);
   setSnapshot({...snapshot, botActivity: {coverage: {status: 'Not configured', records: 0, omitted: 0, reason: 'Import is off.'}, bots: []}}); render();
-  assert.match(coverage(), /Coverage: Not configured · Imported: 0 · Omitted malformed: 0 · Import is off\. · Exported WoW Forever bot log/);
+  assert.match(coverage(), /Coverage: Not configured · Imported log rows: 0 · Omitted malformed: 0 · Import is off\. · Exported WoW Forever bot log/);
   assert.match(everything(panel()), /DIT_FOREVER_BOTLOG_DIR/);
   setSnapshot({...snapshot, botActivity: {coverage: {status: 'Unavailable', records: 0, omitted: null, reason: 'Directory unreadable.'}, bots: []}}); render();
-  assert.match(coverage(), /Coverage: Unavailable · Imported: 0 · Omitted malformed: Unknown · Directory unreadable\./);
+  assert.match(coverage(), /Coverage: Unavailable · Imported log rows: 0 · Omitted malformed: Unknown · Directory unreadable\./);
   assert.equal(titles(panel())[0], 'Forever bot log unavailable');
   assert.ok(!titles(panel()).includes('No bot activity in the export'));
 
@@ -143,7 +143,7 @@ setImmediate(() => {
   }
   // An unrecognized status is Unknown, never treated as Loaded.
   setSnapshot({...snapshot, botActivity: {coverage: {status: 'Fine', records: 1}, bots: []}}); render();
-  assert.match(coverage(), /^Coverage: Unknown · Imported: 1 · Omitted malformed: Unknown · Reason unknown/);
+  assert.match(coverage(), /^Coverage: Unknown · Imported log rows: 1 · Omitted malformed: Unknown · Reason unknown/);
 
   // Baseline conformance: supplied status plus evidence, missing cell Unknown, invalid status Unknown.
   setSnapshot(snapshot); render();
