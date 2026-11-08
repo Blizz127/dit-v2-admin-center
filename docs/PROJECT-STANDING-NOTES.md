@@ -83,6 +83,18 @@ quality. Native browser checks remain NOT RUN, not policy-paused.
 
 Latest completed local work:
 
+- The direct owner swarm reused `/root/native_boundary_review` for bounded
+  event/heard-path work while root consolidated source integration. The
+  [swarm handoff](../handoffs/swarm-speech-memory-20261108/README.md) replaces
+  multi-patch assembly with one reference patch for hub 6a0121d6, plus a
+  clearly separate pending increment. New isolated source `efbbf699` extends
+  prepared-speech memory isolation to ordinary event and heard-line paths;
+  eight new cases are written but NOT RUN. No build started: the 03:20:28Z
+  sample showed 0.4% idle CPU and CPU pressure avg10 34.97%. Next action is
+  the handoff's bounded 16-case filter when fresh capacity permits. No
+  background wait, duplicate worker/build or retired admission lock is used.
+  The previously verified 59ab778a reference remains independently available
+  to the existing hub integrator; the new pending increment is not its gate.
 - Policy resume and private owner-preview release are recorded in the
   [2026-11-08 handoff](../handoffs/release-resume-20261108/README.md).
   Admin `4fa9e59` was delivered to Alienware at 00:44:20Z with six file hashes

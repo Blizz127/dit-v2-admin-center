@@ -1,0 +1,20 @@
+{
+  "utc": "2026-11-08T03:20:28.908966+00:00",
+  "cpus": 48,
+  "load": [
+    110.90234375,
+    163.73828125,
+    143.0283203125
+  ],
+  "idlePct": 0.4,
+  "ioWaitPct": 0.1,
+  "availableGiB": 113.63,
+  "swapUsedGiB": 68.0,
+  "swapPagesIn2s": 3575,
+  "swapPagesOut2s": 0,
+  "pressure": {
+    "cpu": "some avg10=34.97 avg60=38.54 avg300=52.45 total=74743751853\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "memory": "some avg10=0.15 avg60=0.27 avg300=1.13 total=959964216\nfull avg10=0.09 avg60=0.14 avg300=0.65 total=750609935",
+    "io": "some avg10=2.46 avg60=2.55 avg300=4.63 total=6540971454\nfull avg10=0.51 avg60=0.38 avg300=0.14 total=3755954712"
+  }
+}

@@ -1,0 +1,321 @@
+diff --git a/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.cs b/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.cs
+index a149e0ad..f92de424 100644
+--- a/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.cs
++++ b/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.cs
+@@ -137,6 +137,7 @@ public sealed partial class ConversationService
+     private async Task<ConversationReply> ReplyCoreAsync(ConversationHeard heard, CancellationToken cancellationToken)
+     {
+         var now = _time.GetUtcNow();
++        var structuredContext = StructuredContextEnabled(heard.GameId);
+         var notes = new List<string>();
+         lock (_gate)
+         {
+@@ -208,7 +209,7 @@ public sealed partial class ConversationService
+         if (QuickReplies && QuickReply(heard, who, reason) is { } quick)
+         {
+             notes.Add("quick reply (no model): \"" + quick.Text + "\"");
+-            return Finish(heard, who, focusKey, quick, notes, now);
++            return Finish(heard, who, focusKey, quick, notes, now, structuredContext);
+         }
+         // An order ("show me where it is") stays with the command interpreter, which leads; a question is answered here.
+         if (KnowledgeAnswers && heard.Speaker.IsPlayer && ConversationContext.AsksWhere(heard.Text) && !Goals.CommandInterpreter.LooksLikeInstruction(heard.Text))
+@@ -222,7 +223,7 @@ public sealed partial class ConversationService
+                 {
+                     ActorKey = who.ActorKey, DisplayName = who.DisplayName, Kind = "say", Channel = on, Text = answer,
+                     Recipient = on is "tell" or "whisper" ? heard.Speaker.Name : null, Reason = reason, Origin = "knowledge",
+-                }, notes, now);
++                }, notes, now, structuredContext);
+             }
+             notes.Add("knowledge: nothing placed it; the model answers");
+             KnowledgeMiss?.Invoke(heard.GameId, heard.Text);
+@@ -304,7 +305,7 @@ public sealed partial class ConversationService
+             lock (_gate) ClaimsBlocked++;
+             decision = Silent(who, "claim_blocked: " + marvel.Claim);
+         }
+-        return Finish(heard, who, focusKey, decision, notes, now);
++        return Finish(heard, who, focusKey, decision, notes, now, structuredContext);
+     }
+
+     private static Games.MarvelHeroes.MarvelClaimGuard.Violation? MarvelClaimViolation(ConversationHeard heard, ConversationHearer who, string text)
+@@ -389,7 +390,7 @@ public sealed partial class ConversationService
+     }
+
+     /// <summary>Records a decided reply (spoken count, memory, relationships) and builds the reply for every hearer.</summary>
+-    private ConversationReply Finish(ConversationHeard heard, ConversationHearer who, string? focusKey, ConversationDecision decision, List<string> notes, DateTimeOffset now)
++    private ConversationReply Finish(ConversationHeard heard, ConversationHearer who, string? focusKey, ConversationDecision decision, List<string> notes, DateTimeOffset now, bool structuredContext)
+     {
+         // A shadow line is worded and returned but books nothing about the bot or the person: no repeat memory, no
+         // journal line, no relationship (tr-chat's FFXI comparison, 2026-09-28: shadow probes were read as repeats).
+@@ -401,11 +402,14 @@ public sealed partial class ConversationService
+         if (decision.Kind != "silence" && !shadow)
+         {
+             _recent.Remember(who.ActorKey, decision.Text!);
++            // The incoming line was heard; this decision has not established the bot's speech or emote.
+             _context.Memory.Note(heard.GameId, who.ActorKey, heard.Speaker.Name + " said \"" + ConversationContext.Clamp(heard.Text, 60) + "\"" +
+-                (string.IsNullOrWhiteSpace(heard.Place) ? "" : " in " + heard.Place) + "; I " + (decision.Kind == "emote" ? "did /" + decision.Text : "said \"" + ConversationContext.Clamp(decision.Text!, 60) + "\""), now);
++                (string.IsNullOrWhiteSpace(heard.Place) ? "" : " in " + heard.Place) + (structuredContext ? "" : "; I " +
++                    (decision.Kind == "emote" ? "did /" + decision.Text : "said \"" + ConversationContext.Clamp(decision.Text!, 60) + "\"")), now);
+         }
+         // A person talking with a bot is getting to know it: a continued exchange counts as answering the bot, a first line as chat.
+-        if (decision.Kind != "silence" && heard.Speaker.IsPlayer && !shadow)
++        // Selection/focus alone cannot establish a completed exchange on the structured path.
++        if (decision.Kind != "silence" && heard.Speaker.IsPlayer && !shadow && !structuredContext)
+             _context.Relationships.Apply([new(heard.GameId, who.DisplayName, heard.Speaker.Name, focusKey == who.ActorKey ? Social.RelationshipKinds.AnsweredBot : Social.RelationshipKinds.Chatted,
+                 ConversationContext.Clamp(heard.Text, 80), now)], now);
+         return new ConversationReply
+@@ -447,6 +451,7 @@ public sealed partial class ConversationService
+         // advice question), sent as kind "channel_<channel>": the players online are the channel's readers, not people
+         // beside the bot, and go unnamed. Opt-in by kind, so Marvel's idle lfg chatter keeps its own moment.
+         var channelStart = IsChannelStart(e);
++        var structuredContext = StructuredContextEnabled(e.GameId);
+         var moment = channelStart
+             ? ConversationContext.Clamp("You are typing in " + e.Channel + " chat, read by strangers across the " + (ConversationGate.IsZoneChannel(e.Channel) ? "zone" : "realm") + ". " +
+                 e.Detail.TrimEnd('.') + ". Type the one line a player would put there, or nothing. Terse; name nobody, invent nothing.", 360)
+@@ -458,9 +463,12 @@ public sealed partial class ConversationService
+         Record(new ConversationRecord(_time.GetUtcNow(), e.GameId, "event_" + e.Kind + "_" + now.ToUnixTimeMilliseconds(), "event", e.Channel, e.Bot.DisplayName,
+             ConversationContext.Clamp(e.Detail, 160), e.Place, e.NearbyPlayers.Count, text is null ? null : e.Bot.DisplayName, text is null ? "silence" : "say", text, note, [],
+             Math.Round(System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalSeconds, 2)));
+-        _context.Memory.Note(e.GameId, e.Bot.ActorKey, channelStart
+-            ? (text is null ? "I thought about posting in " + e.Channel + " but did not" : "I said in " + e.Channel + " chat \"" + ConversationContext.Clamp(text, 60) + "\"") + (string.IsNullOrWhiteSpace(e.Place) ? "" : " in " + e.Place)
+-            : "I " + e.Detail.TrimEnd('.') + (string.IsNullOrWhiteSpace(e.Place) ? "" : " in " + e.Place) + " with " + who + " there" + (text is null ? "" : "; I said \"" + ConversationContext.Clamp(text, 60) + "\""), now);
++        // Keep the supplied event, but wording alone does not establish speech.
++        // A channel-start request supplies a posting intent, not an observed event.
++        if (!channelStart || !structuredContext)
++            _context.Memory.Note(e.GameId, e.Bot.ActorKey, channelStart
++                ? (text is null ? "I thought about posting in " + e.Channel + " but did not" : "I said in " + e.Channel + " chat \"" + ConversationContext.Clamp(text, 60) + "\"") + (string.IsNullOrWhiteSpace(e.Place) ? "" : " in " + e.Place)
++                : "I " + e.Detail.TrimEnd('.') + (string.IsNullOrWhiteSpace(e.Place) ? "" : " in " + e.Place) + " with " + who + " there" + (text is null || structuredContext ? "" : "; I said \"" + ConversationContext.Clamp(text, 60) + "\""), now);
+         return new(e.Bot.ActorKey, e.Kind, text, note);
+     }
+
+diff --git a/tests/Dit.HumanBehavior.Neuronetwork.Tests/PreparedEventMemoryTests.cs b/tests/Dit.HumanBehavior.Neuronetwork.Tests/PreparedEventMemoryTests.cs
+new file mode 100644
+index 00000000..c88213b5
+--- /dev/null
++++ b/tests/Dit.HumanBehavior.Neuronetwork.Tests/PreparedEventMemoryTests.cs
+@@ -0,0 +1,100 @@
++using Dit.HumanBehavior.DialogueWording;
++using Dit.HumanBehavior.Neuronetwork.Conversation;
++using Dit.HumanBehavior.Neuronetwork.Store;
++using Xunit;
++
++namespace Dit.HumanBehavior.Neuronetwork.Tests;
++
++public sealed class PreparedEventMemoryTests
++{
++    private static readonly DateTimeOffset Start = new(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
++
++    private sealed class Clock : TimeProvider
++    {
++        public DateTimeOffset Now = Start;
++        public override DateTimeOffset GetUtcNow() => Now;
++    }
++
++    private sealed class Provider : IDialogueWordingProvider
++    {
++        public readonly List<DialogueWordingRequest> Requests = [];
++        public string ProviderName => "synthetic-prepared-event-memory";
++        public Task<DialogueWordingResult> GenerateAsync(DialogueWordingRequest request, CancellationToken token)
++        {
++            Requests.Add(request);
++            return Task.FromResult(new DialogueWordingResult(request.RequestId, ProviderName, "fake",
++                Requests.Count == 1 ? "nice find" : "anyone exploring?",
++                DialogueWordingCompletionStatus.Succeeded, TimeSpan.Zero, null, null, true,
++                DialogueProviderFailureClassification.None, request.GenerationPolicyVersion));
++        }
++    }
++
++    [Theory]
++    [InlineData("ffxi", true)] [InlineData("swtor", true)]
++    [InlineData("ffxi", false)] [InlineData("swtor", false)]
++    public async Task Prepared_event_wording_is_not_spoken_memory_in_structured_context(string game, bool selected)
++    {
++        using var store = new NeuronetworkStore(":memory:");
++        var clock = new Clock();
++        var provider = new Provider();
++        var service = new ConversationService(store, provider, clock)
++        {
++            ContextEnvironment = _ => selected ? game : null,
++            StatusEnvironment = _ => null, ChatVoiceEnvironment = _ => null,
++        };
++        var memory = service.Memory;
++        memory.Note(game, "fixture-bot", "A supplied earlier observation", Start.AddSeconds(-1));
++        var observed = new[]
++        {
++            "PlayerFixture: an earlier question",
++            "Fixture: a supplied observed line",
++            "PlayerFixture: the same intentional line",
++            "PlayerFixture: the same intentional line",
++        };
++        var e = new ConversationEvent
++        {
++            GameId = game, ServerInstanceId = "synthetic-instance",
++            Bot = new ConversationHearer { ActorKey = "fixture-bot", DisplayName = "Fixture" },
++            Kind = "loot", Detail = "found a smooth stone", Channel = "party", Place = "Synthetic Meadow",
++            NearbyPlayers = ["PlayerFixture"], RecentLines = observed, OccurredAtUtc = Start,
++        };
++
++        var first = await service.EventAsync(e, default);
++        Assert.Equal("nice find", first.Text);
++        Assert.Single(provider.Requests);
++        // The supplied event is fixture evidence; no speech publication or receipt occurs.
++        const string eventMemory = "I found a smooth stone in Synthetic Meadow with PlayerFixture there";
++        var journal = memory.Get(game, "fixture-bot")!.Journal;
++        Assert.Equal(2, journal.Count);
++        Assert.Contains(journal, entry => entry.Text == "A supplied earlier observation");
++        Assert.Equal(selected ? eventMemory : eventMemory + "; I said \"nice find\"", journal.Last().Text);
++
++        clock.Now = Start.AddSeconds(31);
++        var channel = game == "ffxi" ? "linkshell" : "general";
++        var second = await service.EventAsync(e with
++        {
++            Kind = "channel_" + channel, Channel = channel, Detail = "asking about an outing",
++            OccurredAtUtc = clock.Now,
++        }, default);
++        Assert.Equal("anyone exploring?", second.Text);
++        Assert.Equal(2, provider.Requests.Count);
++        Assert.Equal(2, service.Events);
++        var next = provider.Requests[1];
++        Assert.Contains(next.RelevantMemories, text => text.Contains("A supplied earlier observation", StringComparison.Ordinal));
++        Assert.Contains(next.RelevantMemories, text => text.Contains(eventMemory, StringComparison.Ordinal));
++        Assert.Equal(!selected, next.RelevantMemories.Any(text => text.Contains("I said \"nice find\"", StringComparison.Ordinal)));
++        if (selected)
++        {
++            Assert.Equal(observed, next.ConversationContext!.History);
++            Assert.Null(next.ConversationContext.CurrentMessage);
++            Assert.DoesNotContain("nice find", DialogueWordingPromptText.Build(next, game).UserMessage);
++        }
++        else Assert.Null(next.ConversationContext);
++
++        // A channel-start intent has no observed event to add to the selected journal.
++        journal = memory.Get(game, "fixture-bot")!.Journal;
++        Assert.Equal(selected ? 2 : 3, journal.Count);
++        Assert.Contains(journal, entry => entry.Text == "A supplied earlier observation");
++        Assert.Equal(!selected, journal.Any(entry => entry.Text.Contains("I said in " + channel + " chat \"anyone exploring?\"", StringComparison.Ordinal)));
++    }
++}
+diff --git a/tests/Dit.HumanBehavior.Neuronetwork.Tests/PreparedHeardMemoryTests.cs b/tests/Dit.HumanBehavior.Neuronetwork.Tests/PreparedHeardMemoryTests.cs
+new file mode 100644
+index 00000000..70d3a367
+--- /dev/null
++++ b/tests/Dit.HumanBehavior.Neuronetwork.Tests/PreparedHeardMemoryTests.cs
+@@ -0,0 +1,120 @@
++using Dit.HumanBehavior.DialogueWording;
++using Dit.HumanBehavior.Neuronetwork.Conversation;
++using Dit.HumanBehavior.Neuronetwork.Social;
++using Dit.HumanBehavior.Neuronetwork.Store;
++using Xunit;
++
++namespace Dit.HumanBehavior.Neuronetwork.Tests;
++
++public sealed class PreparedHeardMemoryTests
++{
++    private static readonly DateTimeOffset Start = new(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
++
++    private sealed class Clock : TimeProvider
++    {
++        public DateTimeOffset Now = Start;
++        public override DateTimeOffset GetUtcNow() => Now;
++    }
++
++    private sealed class Provider : IDialogueWordingProvider
++    {
++        public readonly List<DialogueWordingRequest> Requests = [];
++        public string ProviderName => "synthetic-prepared-heard-memory";
++        public Task<DialogueWordingResult> GenerateAsync(DialogueWordingRequest request, CancellationToken token)
++        {
++            Requests.Add(request);
++            return Task.FromResult(new DialogueWordingResult(request.RequestId, ProviderName, "fake",
++                Requests.Count == 1 ? "sounds fun" : "maybe tomorrow",
++                DialogueWordingCompletionStatus.Succeeded, TimeSpan.Zero, null, null, true,
++                DialogueProviderFailureClassification.None, request.GenerationPolicyVersion));
++        }
++    }
++
++    [Theory]
++    [InlineData("ffxi", true)] [InlineData("swtor", true)]
++    [InlineData("ffxi", false)] [InlineData("swtor", false)]
++    public async Task Prepared_heard_reply_preserves_input_without_spoken_memory_or_exchange_credit(string game, bool selected)
++    {
++        using var store = new NeuronetworkStore(":memory:");
++        var clock = new Clock();
++        var provider = new Provider();
++        // No envelope ingestor: relationship assertions isolate Finish from the independent incoming-chat feed.
++        var service = new ConversationService(store, provider, clock)
++        {
++            ContextEnvironment = _ => selected ? game : null,
++            StatusEnvironment = _ => null, ChatVoiceEnvironment = _ => null,
++            QuickReplies = false, KnowledgeAnswers = false,
++        };
++        var memory = service.Memory;
++        memory.Note(game, "fixture-bot", "A supplied earlier observation", Start.AddSeconds(-1));
++        var relationships = new Relationships(store);
++        relationships.Apply([new(game, "Fixture", "PlayerFixture", RelationshipKinds.HelpedInFight,
++            "A supplied earlier relationship observation", Start.AddSeconds(-1))], Start);
++        var observed = new[]
++        {
++            "PlayerFixture: an earlier question",
++            "Fixture: a supplied observed line",
++            "PlayerFixture: the same intentional line",
++            "PlayerFixture: the same intentional line",
++        };
++        var heard = new ConversationHeard
++        {
++            GameId = game, ServerInstanceId = "synthetic-instance", LineId = "synthetic-first",
++            Channel = "party", Speaker = new ConversationSpeaker("PlayerFixture", true),
++            Text = "anyone exploring tonight?", Place = "Synthetic Meadow", OccurredAtUtc = Start,
++            Hearers = [new ConversationHearer { ActorKey = "fixture-bot", DisplayName = "Fixture", Addressed = true, InPartyWithSpeaker = true }],
++            History = observed,
++        };
++
++        var first = Assert.Single((await service.ReplyAsync(heard, default)).Decisions);
++        Assert.Equal("say", first.Kind);
++        Assert.Equal("sounds fun", first.Text);
++        Assert.Single(provider.Requests);
++        // The incoming line is fixture evidence; neither prepared reply is published or confirmed.
++        const string heardMemory = "PlayerFixture said \"anyone exploring tonight?\" in Synthetic Meadow";
++        var journal = memory.Get(game, "fixture-bot")!.Journal;
++        Assert.Equal(2, journal.Count);
++        Assert.Contains(journal, entry => entry.Text == "A supplied earlier observation");
++        Assert.Equal(selected ? heardMemory : heardMemory + "; I said \"sounds fun\"", journal.Last().Text);
++        var standing = relationships.Standing(game, "Fixture", "PlayerFixture")!;
++        Assert.Equal(1, standing.Counts[RelationshipKinds.HelpedInFight]);
++        Assert.Equal(selected ? 1 : 2, standing.Events);
++        Assert.Equal(selected ? 0 : 1, standing.Counts.GetValueOrDefault(RelationshipKinds.Chatted));
++
++        // Prepared decisions still reserve the line; duplicate input does not generate or book a second reply.
++        Assert.Equal("silence", Assert.Single((await service.ReplyAsync(heard, default)).Decisions).Kind);
++        Assert.Single(provider.Requests);
++        Assert.Equal(2, memory.Get(game, "fixture-bot")!.Journal.Count);
++        Assert.Equal(standing.Events, relationships.Standing(game, "Fixture", "PlayerFixture")!.Events);
++
++        clock.Now = Start.AddSeconds(31); // Within the focus window: legacy mode credits an answer to the bot.
++        var second = await service.ReplyAsync(heard with
++        {
++            LineId = "synthetic-second", Text = "what about tomorrow?", OccurredAtUtc = clock.Now,
++        }, default);
++        var secondDecision = Assert.Single(second.Decisions);
++        Assert.Equal("say", secondDecision.Kind);
++        Assert.Equal("maybe tomorrow", secondDecision.Text);
++        Assert.Equal(2, provider.Requests.Count);
++        var next = provider.Requests[1];
++        Assert.Contains(next.RelevantMemories, text => text.Contains("A supplied earlier observation", StringComparison.Ordinal));
++        Assert.Contains(next.RelevantMemories, text => text.Contains(heardMemory, StringComparison.Ordinal));
++        Assert.Equal(!selected, next.RelevantMemories.Any(text => text.Contains("I said \"sounds fun\"", StringComparison.Ordinal)));
++        if (selected)
++        {
++            Assert.Equal(observed, next.ConversationContext!.History);
++            Assert.Equal("what about tomorrow?", next.ConversationContext.CurrentMessage);
++            Assert.DoesNotContain("sounds fun", DialogueWordingPromptText.Build(next, game).UserMessage);
++        }
++        else Assert.Null(next.ConversationContext);
++
++        journal = memory.Get(game, "fixture-bot")!.Journal;
++        Assert.Equal(3, journal.Count);
++        Assert.Contains(journal, entry => entry.Text.StartsWith("PlayerFixture said \"what about tomorrow?\"", StringComparison.Ordinal));
++        Assert.Equal(!selected, journal.Any(entry => entry.Text.Contains("I said \"maybe tomorrow\"", StringComparison.Ordinal)));
++        standing = relationships.Standing(game, "Fixture", "PlayerFixture")!;
++        Assert.Equal(1, standing.Counts[RelationshipKinds.HelpedInFight]);
++        Assert.Equal(selected ? 1 : 3, standing.Events);
++        Assert.Equal(selected ? 0 : 1, standing.Counts.GetValueOrDefault(RelationshipKinds.AnsweredBot));
++    }
++}
