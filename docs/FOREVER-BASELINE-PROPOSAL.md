@@ -165,3 +165,14 @@ What still applies:
 - no loss of player character, inventory or save data;
 - each removal is reversible;
 - single-writer ownership.
+
+Refinement (owner, minutes later):
+
+> keep the custom ff11 stuff though that we have but the behaviors and chat need to replace
+
+So the instruction is not a wholesale removal:
+- **Keep:** custom FFXI content, such as Banshee-specific content, bot characters
+  and identities, and existing custom systems.
+- **Replace:** bot **behavior**, meaning decision-making, activity, movement and
+  combat logic, and bot **chat**, meaning templates and canned lines. Both are
+  replaced by the Forever-style baseline, with chat as grounded AI or silence.
