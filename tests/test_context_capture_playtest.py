@@ -73,6 +73,68 @@ class ContextPanelPlaytestTests(unittest.TestCase):
             result = subprocess.run(['node', '--check', str(path)], capture_output=True, text=True, timeout=10)
             self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_presence_conflict_uses_response_copies_without_network_or_delivery_changes(self):
+        artifact = build()
+        page = Page(artifact)
+        self.assertIn('<option value="presence-conflict">Synthetic presence conflict</option>', artifact)
+        self.assertIn('Presence conflict should show the context capture as unavailable', artifact)
+        self.assertIn("connect-src 'none'", page.csp)
+        self.assertEqual(page.sources, [])
+        app = (ROOT / 'static/app.js').read_text()
+        self.assertIn(app, page.scripts[0])
+        # Exercise the exact embedded fetch wrapper, without running unrelated
+        # application startup or granting the VM a network-capable fetch.
+        driver = page.scripts[0].split(app, 1)[0] + '\nglobalThis.fixtureFetch = fetch; globalThis.originalFixtures = fixtures;})();'
+        check = '''const assert = require('node:assert/strict');
+const vm = require('node:vm');
+const controls = {'fixture-scenario':{value:'presence-conflict'}, 'fixture-capture':{value:'ffxi-companion'}};
+let networkCalls = 0;
+const context = vm.createContext({
+  document:{getElementById:id=>controls[id]}, structuredClone,
+  fetch:()=>{networkCalls++; throw new Error('Network forbidden');}
+});
+vm.runInContext(DRIVER, context);
+(async () => {
+  const original = JSON.stringify(context.originalFixtures);
+  const fetchFixture = async url => (await context.fixtureFetch(url)).json();
+  for (const game of ['ffxi', 'swtor']) {
+    controls['fixture-capture'].value = game + '-companion';
+    const conflict = await fetchFixture('/api/context-capture');
+    assert.equal(conflict.status, 'Loaded');
+    assert.equal(conflict.capture.game, game);
+    assert.equal(conflict.capture.statusBinding.View.Fields[0].State, 'Known');
+    assert.equal(conflict.capture.statusBinding.View.Fields[0].Value, 'offline');
+    assert.equal(conflict.capture.statusBinding.View.Fields[1].State, 'Known');
+    assert.equal(conflict.capture.statusBinding.View.Fields[1].Value, 'Synthetic native west entrance');
+    assert.equal(JSON.stringify(context.originalFixtures), original);
+    const delivery = await fetchFixture('/api/delivery-capture');
+    assert.equal(JSON.stringify(delivery), JSON.stringify(context.originalFixtures.delivery[game]));
+    assert.equal(delivery.nativeDeliveryVerified, false);
+    assert.equal(delivery.deliveredInGame, null);
+  }
+  for (const name of ['ffxi-missing', 'ffxi-gap', 'ffxi-empty-intent', 'swtor-empty-intent']) {
+    controls['fixture-capture'].value = name;
+    const rejected = (await fetchFixture('/api/context-capture')).capture;
+    assert.equal(rejected.statusBinding.State, 'synthetic conflict: no projected body');
+    assert.equal(JSON.stringify(rejected.statusBinding.View), JSON.stringify(context.originalFixtures.captures[name].statusBinding.View));
+  }
+  controls['fixture-capture'].value = 'ffxi-companion';
+  controls['fixture-scenario'].value = 'loaded';
+  assert.equal(JSON.stringify((await fetchFixture('/api/context-capture')).capture), JSON.stringify(context.originalFixtures.captures['ffxi-companion']));
+  controls['fixture-scenario'].value = 'invalid';
+  assert.equal((await fetchFixture('/api/delivery-capture')).nativeDeliveryVerified, true);
+  await assert.rejects(context.fixtureFetch('https://example.invalid'), /network forbidden/);
+  await assert.rejects(context.fixtureFetch('/api/context-capture', {method:'POST'}), /Only fixture GETs allowed/);
+  assert.equal(networkCalls, 0);
+  assert.equal(JSON.stringify(context.originalFixtures), original);
+})().catch(error=>{console.error(error);process.exitCode=1;});
+'''.replace('DRIVER', json.dumps(driver), 1)
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'fixture-fetch-check.cjs'
+            path.write_text(check)
+            result = subprocess.run(['node', str(path)], capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 0, result.stderr)
+
 
 if __name__ == '__main__':
     unittest.main()

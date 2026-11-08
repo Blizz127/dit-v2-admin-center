@@ -65,6 +65,16 @@ const fetch = async (url, options = {}) => {
       if (capture.statusBinding.View) { capture.statusBinding.View.Fields[0].State = 'Unknown'; capture.statusBinding.View.Fields[0].Value = 'BAD_WITHHELD_VALUE'; }
       else capture.statusBinding.State = 'snapshot projected';
     }
+    if (scenario === 'presence-conflict') {
+      const view = capture.statusBinding.View;
+      if (capture.statusBinding.State === 'snapshot projected' && view
+          && view.Fields.some(field => field.Field !== 'Presence' && field.State === 'Known')) {
+        // Deliberately contradict this cloned response only; source captures
+        // and their embedded provenance remain unchanged.
+        const presence = view.Fields.find(field => field.Field === 'Presence');
+        Object.assign(presence, {State:'Known', Value:'offline'});
+      } else capture.statusBinding.State = 'synthetic conflict: no projected body';
+    }
     result = {status:'Loaded', capture};
   }
   if (scenario === 'delayed') return new Promise(resolve => { releaseResponse = () => resolve({ok:true, json:async()=>result}); });
@@ -92,8 +102,10 @@ document.querySelectorAll('a').forEach(a => { if (!a.getAttribute('href')?.start
                 '<label>Response <select id="fixture-scenario"><option value="loaded">Loaded</option>'
                 '<option value="unconfigured">Not configured</option><option value="unavailable">Unavailable</option>'
                 '<option value="invalid">Invalid field</option><option value="auth-error">HTTP error fixture</option>'
+                '<option value="presence-conflict">Synthetic presence conflict</option>'
                 '<option value="delayed">Delayed response</option></select></label>'
                 '<p>Choose a response, then use either offline capture load button in Bots. Delivery evidence uses the selected game and never simulates native receipt authority. '
+                'Presence conflict should show the context capture as unavailable; it leaves delivery evidence unchanged. '
                 'Switching this selector alone does not reload.</p><button id="fixture-reset" type="button">Reset panel session</button>'
                 '<button id="fixture-release" type="button">Release delayed response</button>'
                 '<details><summary>Input SHA-256 fingerprints</summary><pre>' + html.escape(json.dumps(hashes, indent=2)) + '</pre></details></section>')

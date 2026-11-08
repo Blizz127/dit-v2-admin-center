@@ -74,6 +74,13 @@ no native check is claimed by building or privately delivering a preview.
    **HTTP error fixture**, pressing the panel load button each time. Every error
    must remove the previous prompt/body values. Return to **Loaded** and verify
    recovery. Changing the fixture selector alone must not reload the panel.
+   Also select **Synthetic presence conflict** for an ordinary FFXI capture,
+   then a SWTOR capture. This deliberately changes only a cloned response to
+   offline presence while retaining body facts; the context panel must clear
+   and report unavailable. Delivery evidence must remain unchanged. Missing
+   or unavailable captures use an explicitly invalid response shape, without
+   inventing a native source. Return to **Loaded** to recover the unchanged
+   original capture. This is an error-handling fixture, not a new native export.
 4. The actual parser/authentication checks are reproduced separately with
    `python3 -m unittest tests.test_context_capture -v`: truncated/oversized JSON,
    wrong shape, contradictory native facts, missing file, recovery, authentication-before-read, query and
@@ -176,6 +183,14 @@ corrected file reloads.
 Those checks do not establish native rendering, real producer
 authenticity, model understanding or chat delivery. The FFXI v1 producer lacks
 explicit presence; SWTOR native status wiring remains a producer dependency.
+
+The 2026-11-08 inspector follow-up applies the API's presence/body rule at the
+display boundary too. Only confirmed online presence may accompany non-Unknown
+body fields. Status fields must have their exact unique contract identities;
+duplicate, missing or reordered identities cannot bypass the presence check.
+Valid offline, stale or unknown presence with unknown body details still keeps
+the captured conversation inspectable. Focused simulated-DOM cases cover both
+games and recovery; they do not change this checklist's **NOT RUN** native status.
 
 Rollback for a future released interactive check: close only its disposable
 browser profile and retain the receipt. No capture environment variable is set

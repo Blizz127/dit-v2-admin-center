@@ -229,13 +229,19 @@ function renderContextCapture(data) {
     if (!approved || JSON.stringify(approved) !== JSON.stringify(expected)) throw new Error('unbound status has values');
   } else if (binding.State === 'snapshot unavailable' && (view.Source !== null || view.RevisionSha256 !== null
       || view.Fields.some(field => field?.State !== 'Unknown' || field.ObservedAtUtc !== null || field.ValidUntilUtc !== null))) throw new Error('invalid unavailable snapshot');
+  const fields = unbound ? fieldNames.map(Field => ({Field, State:'Unknown', Value:null, Reason:binding.State})) : view.Fields;
+  for (const [index, field] of fields.entries()) {
+    if (!field || !['Known', 'Stale', 'Unknown'].includes(field.State) || field.Field !== fieldNames[index]
+        || typeof field.Reason !== 'string' || (field.State === 'Known' ? typeof field.Value !== 'string' : field.Value !== null)) throw new Error('invalid field');
+  }
+  const presence = fields[0];
+  if (presence.State === 'Known' && !['online', 'offline'].includes(presence.Value)) throw new Error('invalid presence');
+  if ((presence.State !== 'Known' || presence.Value !== 'online') && fields.slice(1).some(field => field.State !== 'Unknown'))
+    throw new Error('body status requires confirmed online presence');
   item(panel, `${capture.game.toUpperCase()} · ${capture.path} · Synthetic captured packet`,
     `${receipt.IncludedHistoryTurns} / ${receipt.SuppliedHistoryTurns} captured input turns retained; ${receipt.OmittedHistoryTurns} omitted.`,
     'No real model call or delivery attempted. Counts start at this captured input; earlier producer omissions are not measured. This packet is independent of roster selection.');
-  const fields = unbound ? fieldNames.map(Field => ({Field, State:'Unknown', Value:null, Reason:binding.State})) : view.Fields;
   for (const field of fields) {
-    if (!field || !['Known', 'Stale', 'Unknown'].includes(field.State) || typeof field.Field !== 'string'
-        || typeof field.Reason !== 'string' || (field.State === 'Known' ? typeof field.Value !== 'string' : field.Value !== null)) throw new Error('invalid field');
     item(panel, field.Field, `${field.State} · ${field.Value ?? 'Value withheld'}`, field.Reason);
   }
   if (unbound) item(panel, 'Native status unavailable', binding.State,
