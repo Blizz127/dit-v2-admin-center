@@ -107,6 +107,43 @@ class ContextCaptureTests(unittest.TestCase):
         self.assertEqual(json.loads(body)['status'], 'Loaded')
         self.assertNotIn(b'OMIT_EXTRA_FILE_CONTENT', body)
 
+    def test_unconfirmed_presence_cannot_authorize_known_body_status(self):
+        self.assertEqual(json.loads(self.request()[2])['status'], 'Loaded')
+        for state, value, reason in (
+                ('Known', 'offline', 'native observation'),
+                ('Known', 'busy', 'native observation'),
+                ('Unknown', None, 'not observed'),
+                ('Stale', None, 'expired observation')):
+            data = json.loads(FIXTURE.read_text())
+            view = data['statusBinding']['View']
+            presence = view['Fields'][0]
+            presence.update(State=state, Value=value, Reason=reason)
+            old_lines = '- native_status_presence_state: known: native observation\n- native_status_presence: online'
+            new_lines = '- native_status_presence_state: ' + state.lower() + ': ' + reason
+            if state == 'Known':
+                view['ApprovedFacts'][0]['Value'] = value
+                new_lines += '\n- native_status_presence: ' + value
+            else:
+                view['ApprovedFacts'] = view['ApprovedFacts'][1:]
+                if state == 'Unknown':
+                    presence.update(ObservedAtUtc=None, ValidUntilUtc=None)
+                else:
+                    presence['ValidUntilUtc'] = view['ReadAtUtc']
+            data['userMessage'] = data['userMessage'].replace(old_lines, new_lines)
+            # Keep the prompt, approved facts and receipt mutually consistent;
+            # it is the presence/body contradiction that must reject the file.
+            system, user = data['systemMessage'], data['userMessage']
+            data['contextReceipt']['SerializedCharacters'] = utf16_length(system) + utf16_length(user)
+            data['contextReceipt']['PromptSha256'] = hashlib.sha256(f'{utf16_length(system)}:{system}{utf16_length(user)}:{user}'.encode()).hexdigest()
+            self.path.write_text(json.dumps(data))
+            with self.subTest(state=state, value=value):
+                status, _, body = self.request()
+                self.assertEqual(status, 200)
+                self.assertEqual(json.loads(body), {'status': 'Unavailable', 'capture': None})
+                self.assertNotIn(b'Synthetic native west entrance', body)
+        self.path.write_bytes(FIXTURE.read_bytes())
+        self.assertEqual(json.loads(self.request()[2])['status'], 'Loaded')
+
     def test_valid_unknown_packets_load_without_reusing_previous_native_values(self):
         self.assertEqual(json.loads(self.request()[2])['status'], 'Loaded')
         for fixture in sorted((FIXTURE.parent.parent / 'context-status-unavailable').glob('*.json')):

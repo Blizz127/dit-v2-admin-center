@@ -130,6 +130,15 @@ def validate(data):
             expected_facts.append({'Key': key, 'Value': value})
         elif field['Value'] is not None:
             raise ValueError('Unavailable status must not carry a value')
+    presence = fields[0]
+    if presence['State'] == 'Known' and presence['Value'] not in ('online', 'offline'):
+        raise ValueError('Invalid captured native presence')
+    # The native projection withholds all other body fields unless this read
+    # confirms online presence. Matching prompt/fact hashes alone cannot make
+    # a contradictory disconnected or unconfirmed body observation valid.
+    if (presence['State'] != 'Known' or presence['Value'] != 'online') and any(
+            field['State'] != 'Unknown' for field in fields[1:]):
+        raise ValueError('Body status requires confirmed online presence')
     if expected_facts != view['ApprovedFacts']:
         raise ValueError('Approved status facts disagree')
     for key, value in [('revision', view['RevisionSha256']), ('policy', view['FreshnessPolicyVersion'])]:

@@ -46,6 +46,55 @@ class IntegratedPreviewTests(unittest.TestCase):
             with self.subTest(changed=changed), self.assertRaises(ValueError):
                 validate(data)
 
+    def test_disconnected_capture_cannot_keep_known_location_even_with_matching_prompt(self):
+        data = copy.deepcopy(self.data)
+        view = data['statusBinding']['View']
+        view['Fields'][0]['Value'] = 'offline'
+        view['ApprovedFacts'][0]['Value'] = 'offline'
+        data['userMessage'] = data['userMessage'].replace('- native_status_presence: online', '- native_status_presence: offline')
+        self.rehash(data)
+        with self.assertRaises(ValueError):
+            build([data])
+
+    def test_valid_offline_and_unconfirmed_presence_keep_history_with_unknown_body_details(self):
+        for state, value, reason in (
+                ('Known', 'offline', 'native observation'),
+                ('Unknown', None, 'not observed'),
+                ('Stale', None, 'expired observation')):
+            data = copy.deepcopy(self.data)
+            view = data['statusBinding']['View']
+            presence = view['Fields'][0]
+            presence.update(State=state, Value=value, Reason=reason)
+            if state == 'Unknown':
+                presence.update(ObservedAtUtc=None, ValidUntilUtc=None)
+            elif state == 'Stale':
+                presence['ValidUntilUtc'] = view['ReadAtUtc']
+            for field in view['Fields'][1:]:
+                field.update(State='Unknown', Value=None,
+                             Reason='native disconnect' if state == 'Known' else 'presence unconfirmed')
+            view['ApprovedFacts'] = [{'Key': 'native_status_presence', 'Value': value}] if state == 'Known' else []
+            native_lines = []
+            for field in view['Fields']:
+                key = 'native_status_' + field['Field'].lower()
+                native_lines.append('- ' + key + '_state: ' + field['State'].lower() + ': ' + field['Reason'])
+                if field['State'] == 'Known':
+                    native_lines.append('- ' + key + ': ' + field['Value'])
+            native_lines += ['- native_status_revision: ' + view['RevisionSha256'],
+                             '- native_status_policy: ' + view['FreshnessPolicyVersion']]
+            blocks = data['userMessage'].split('\n\n')
+            for i, block in enumerate(blocks):
+                if block.startswith('APPROVED FACTS\n'):
+                    other_facts = [line for line in block.split('\n')[1:] if not line.startswith('- native_status_')]
+                    blocks[i] = '\n'.join(['APPROVED FACTS', *native_lines, *other_facts])
+            data['userMessage'] = '\n\n'.join(blocks)
+            self.rehash(data)
+            with self.subTest(state=state):
+                self.assertIs(validate(data), data)
+                page = build([data])
+                self.assertIn('12 / 12 captured input turns retained', page)
+                self.assertNotIn('Synthetic native west entrance', page)
+                self.assertNotIn('resting at the entrance', page)
+
     def test_live_claims_are_refused(self):
         for key, value in [('synthetic', False), ('modelCall', 'succeeded'), ('delivery', 'delivered')]:
             data = copy.deepcopy(self.data); data[key] = value
