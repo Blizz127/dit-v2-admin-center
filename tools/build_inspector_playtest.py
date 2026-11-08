@@ -16,6 +16,8 @@ from tools.review_party_greeting import decode_metadata, review
 from project_issues import read as read_project_issues
 from routing_audit import examples as routing_audit_examples
 from presence_examples import examples as presence_examples
+from baseline_conformance import read as baseline_conformance
+from forever_botlog import load as forever_botlog
 from local_evidence import read_bytes, read_json
 
 
@@ -44,6 +46,9 @@ def snapshot():
                   hubFeeds=[dict(game='All', view='hub', status='Not configured',
                                  note='Offline harness; no hub access', at=None)],
                   ownerAttention=dict(coverage='Synthetic empty fixture', items=[]),
+                  # Synthetic exported Forever bot log and the committed baseline tracker.
+                  botActivity=dict(zip(('bots', 'coverage'), forever_botlog(ROOT / 'tests/fixtures/forever-botlog'))),
+                  baselineConformance=baseline_conformance(),
                   spendExample=dict(month=None, settledUsd=None, reservedOpenUsd=None,
                                     budgetUsd=None, source='Synthetic fixture', attribution='Unknown'))
     return result
@@ -55,7 +60,9 @@ def source_fingerprints():
              'r10_projection.py', 'tests/fixtures/learning-evidence-e8c81be.json',
              'tests/fixtures/assignment-pages.json',
              'tests/fixtures/party-greeting-review.json', 'tools/review_party_greeting.py',
-             'tools/inspector_playtest.js', 'tools/preview_progress.js', 'tools/assignment_keyboard_playtest.js', 'tools/build_inspector_playtest.py')
+             'tools/inspector_playtest.js', 'tools/preview_progress.js', 'tools/assignment_keyboard_playtest.js', 'tools/build_inspector_playtest.py',
+             'forever_botlog.py', 'tests/fixtures/forever-botlog/manifest.json', 'tests/fixtures/forever-botlog/bots.jsonl',
+             'tests/fixtures/forever-botlog/events.jsonl', 'baseline_conformance.py', 'data/fixtures/baseline-conformance.json')
     return {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in paths}
 
 
