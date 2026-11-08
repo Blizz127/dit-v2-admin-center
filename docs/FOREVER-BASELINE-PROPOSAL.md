@@ -148,3 +148,20 @@ The hub Claude session wrote a **proposed** amendment to `BOT_BRAIN_STANDARD` §
     behind default-off switches, then the owner's OK for LSB changes while
     players are online, with the existing player guard.
   - After FFXI comes WotLK Forever, then the rest via the conformance tracker.
+
+## Owner instruction: FFXI first (2026-11-08, Admin Center terminal)
+
+> ok for chagnes thef irst thing i want done is to strip ff11 of all the old bot stuff and replaec it with the new
+
+The owner approves FFXI changes for this work. The first deliverable is FFXI with
+its old bot systems removed and replaced by the Forever-style baseline. The
+Admin Center lane routes this and does not write FFXI code:
+- the FFXI bot work belongs to `ffxi-platform`;
+- `claude-ffxi` remains the only live FFXI server integrator;
+- DIT/hub glue belongs to the DIT lead (Codex) and the hub session.
+
+What still applies:
+- protection of occupied players;
+- no loss of player character, inventory or save data;
+- each removal is reversible;
+- single-writer ownership.
