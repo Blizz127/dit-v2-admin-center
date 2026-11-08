@@ -1,0 +1,122 @@
+# WoW Forever bots as the DIT v2 baseline: proposal
+
+## Owner direction (2026-11-08, Admin Center terminal)
+
+> lets port the wow forever bots over i like this to be the main baseline bot style
+
+> no the wow forever bots are for the trinitycore wow forever server for world of warcraft froever
+
+> i want the bots to operate the way as the wow forever bots do
+
+> plus with DIT improvements
+
+## What this document is
+
+It proposes adopting the WoW Forever player-bot system as the **reference
+implementation** for the body layers of the hub's `docs/architecture/BOT_BRAIN_STANDARD.md`.
+DIT's own improvements are layered on top. That standard already uses AzerothCore
+mod-playerbots as its reference. Forever's engine follows the same structure,
+but it is our own server, measured at scale, and the owner's chosen style.
+This document is a delta, not a second standard. The DIT hub lead owns the
+standard and decides how it is amended.
+
+**Source pinned:** `~/dev/trinitycore-forever-production-70450` at `fb754788894`.
+That covers `src/server/game/Bots/` (162 files, about 45,700 lines) and
+`docs/playerbots/` (90 docs, read from git because they are not checked out).
+`sql/bots/forever-botlog-setup.sql` defines the bot log. Forever is GPLv2
+TrinityCore code. **Design reuse only, no code copied.** Each game's bots are
+built natively in that game's server.
+
+**Who builds what.** In this model the bot brain runs inside each game server,
+and the hub is the slow brain (chat, goals, knowledge, learning). So:
+- The bodies are built by the game-server leads. FFXI goes first, per the brief;
+  `FFXI_PLAYERBOTS_V0` ("same as wow bots", 2026-09-04) is already that design.
+- The hub lead owns the standard, the slow-brain contracts and the conversation path.
+- The Admin Center defines the baseline view and the observability contract (below).
+
+FFXI server changes still need the owner's OK while players are online.
+
+## 1. The Forever operating model (what "operate the way the Forever bots do" means)
+
+**Status key** (from Forever's own docs):
+- **Sim-measured:** ran in Forever's 180–1,000-bot simulation realm with
+  analysed results.
+- **Unit-tested:** pure decision code tested, built, and stated as not run on a
+  sim server.
+- **Design:** proposal only.
+
+| # | Behavior | How Forever does it | Status |
+| --- | --- | --- | --- |
+| 1 | Bodies are real player characters | Socketless sessions; normal login, save and logout; bots are visible as players | Sim-measured |
+| 2 | One decision engine | Strategy → trigger → action, plus values and multipliers. Three engines: out of combat, combat, dead. Named relevance bands (5–107). One action per tick. Triggers O(1). No database access on map threads | Sim-measured |
+| 3 | Everything is a switchable strategy | Per-bot `+strategy/-strategy` at runtime. Every feature behind an off-by-default config switch | Unit-tested and sim-measured, per feature |
+| 4 | Pure plans plus thin glue | Each feature's decisions are a pure `…Plan` function over plain data with unit tests. World-thread glue applies them | Practice |
+| 5 | The log is part of the engine | `bot_event` rows: `decision` (trigger, action, relevance, rejected alternatives with reasons), `state_change`, `death` (killer, last 8 decisions), `quest` steps, `stuck`, `path_fail`, refusal codes. Per-bot trace switch | Sim-measured |
+| 6 | Questing, combat, recovery, rest | Quest accept/progress/reward; class rotations by role; release/corpse run/spirit healer; eat/drink; stuck re-pathing | Sim-measured (XP, deaths, stuck per bot-hour) |
+| 7 | Roles | Tank/healer/melee/ranged/caster picked from talents, with per-bot override | Design plus partial |
+| 8 | Travel and leveling progression | Zone table by level and faction, route planner (walk, flight, boat), hearth and rebind | Unit-tested |
+| 9 | Bots form their own parties | On shared quests within a level spread. Seek a group after repeated deaths or failures on a quest | Unit-tested |
+| 10 | Dungeons | Bot-led runs; player-led runs (enter, catch up, raise after the fight, ready notices) | Unit-tested |
+| 11 | Town life | Gather at inns, banks and vendors; linger; emote; sit | Unit-tested |
+| 12 | Population follows load | Target = (base + per real player) × hour curve, stepped with hysteresis. Never logs out a bot grouped with a real player | Unit-tested |
+| 13 | Player control | Group-leader chat orders (`stop`, `pull`, `heal`, `summon`, `revive`…) with selectors, role gates and refusal codes. Control: role, stance, focus, follow distance, "what are you doing?" | Unit-tested |
+| 14 | Conversation | Six personalities. Topic templates. Pacing (one in flight, cooldown, typing delay). Command-shaped messages are never treated as conversation | Unit-tested; templates only, no model |
+| 15 | Watchdog and loop guards | No progress for `StallSec` → clear goal → hearth → teleport home → stop, with a per-hour cap. XP-stall ladder | Design and rules |
+| 16 | Economy and social | Auction house, bank and mail, crafting orders, guilds, duels, battlegrounds | Mixed, per feature |
+
+**The improvement loop is part of the model.** An isolated sim realm (own
+databases, shared world data read-only) runs 180–1,000 bots in real time.
+- **Protocol:** freeze the build and seed; drop the first 30 minutes. Arms A
+  (control) and B (rules on) are split by GUID, `Bot.Rules.ArmPct = 50`.
+- **Metrics** per arm, class, hour and level band:
+  - XP per bot-hour;
+  - deaths per bot-hour and by level gap;
+  - stuck and path failures per 1,000 bot-minutes;
+  - quest accept versus reward, and quest blockers;
+  - level by cohort.
+- **Rules:** findings become proposed rules (condition, action, evidence,
+  expected effect, risk, rollback). The owner approves, a switch ships, and the
+  next run measures it. "A rule that never fired is untested, not good."
+- **Example run:** 800 bots, 3.9 h — 2.4k XP and 2.50 deaths per bot-hour,
+  mean level 5.1.
+
+## 2. DIT improvements on top
+
+These fill gaps Forever's own docs list ("ideas not done") and carry the brief's
+requirements. Existing DIT gates still apply.
+
+| Improvement | Over Forever | Gate that still applies |
+| --- | --- | --- |
+| Grounded conversation | Model wording grounded in current observations, replacing templates. Keep Forever's personalities, pacing and command-shape exclusion | ADR-0006: wording has no execution authority. Grounding contract. AI budget ($25/month pay-per-use cap). Failure stays silent |
+| Memory of people | Per-bot memory of players (relationship ledger); bots never claim fictional progress | Grounding; player-text privacy |
+| Hub slow brain | Goals, knowledge sync and learning from the hub; the body keeps the fast loop | Platform boundaries |
+| Evidence ledger | Every action is request → result → verify, joined to `bot_event` by correlation | — |
+| Per-game learning | Forever's sim/rules loop generalized: each game publishes its metrics; rules and policies are versioned and verified before adoption | Owner approves each rule |
+| Model routing and bake-off | Cheap model for moment-to-moment, strong model for planning, rules where enough | Bake-off producer is an open owner decision |
+| Kill switches, gates, audit | Forever's off-by-default switches plus DIT kill switches and admin audit | Gates off by default |
+
+## 3. What the Admin Center does
+
+The Admin Center adopts Forever's log as its observability contract. The
+`bot_event` columns are id, ts, bot_guid, event_type, severity, reason, summary,
+level, map_id, zone_id, position, quest_id, target_entry, details JSON and
+session_seq. Each game's bots are asked to emit this shape, so the console works
+the same across games. Planned Admin Center increments, offline and off by
+default:
+
+1. An importer for exported `bot_event` rows (no direct access to Forever's
+   database: another lead's data, and an access change).
+2. A bot inspector showing engine state, active strategies, recent decisions
+   with rejected alternatives and reason codes, and the "what are you doing?"
+   line (current activity plus non-default role, stance, focus and follow).
+3. Baseline conformance per game: which of rows 1–16 and which DIT
+   improvements each game's bots have, with the status key above.
+
+## 4. Per-game starting point
+
+| Game | Body owner | Against this baseline |
+| --- | --- | --- |
+| WoW Forever (Classic 1.60, TrinityCore) | Forever server lead | Reference implementation |
+| FFXI | FFXI server lead (to confirm) | `FFXI_PLAYERBOTS_V0` designed, not built. **First port**, needs the owner's OK while players are online |
+| WotLK Forever (AzerothCore) | WotLK lead | mod-playerbots companions; compare after FFXI |
+| SWTOR, others | Respective leads | Assess against rows 1–16 |
