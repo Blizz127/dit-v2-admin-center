@@ -395,6 +395,19 @@ class ForeverBotlogTests(unittest.TestCase):
                 self.assertEqual(bot['doing'], 'Does a thing')
                 self.assertEqual(bot['counts'], {'decision': 1})
 
+    def test_huge_integers_omit_or_unknown_the_part_never_crash_the_load(self):
+        huge = 10 ** 400
+        activity, coverage = self.write(events=[self.event(1), self.event(2, pos_x=huge)])
+        self.assertEqual((coverage['status'], coverage['records'], coverage['omitted']), ('Loaded', 1, 1))
+        good = self.row(3)['details']
+        for name, details in (('relevance', {**good, 'relevance': huge}), ('effective', {**good, 'effective': huge}),
+                              ('alternative', {**good, 'alternatives': [{'action': 'a', 'relevance': huge, 'result': 'NOT_USEFUL'}]})):
+            with self.subTest(name):
+                activity, coverage = self.write(events=[self.decision_row(details)])
+                self.assertEqual((coverage['status'], coverage['records'], coverage['omitted']), ('Loaded', 1, 0))
+                bot = self.bot(activity, 1001)
+                self.assertEqual((bot['decisions'][0]['action'], bot['doing']), ('Unknown', 'Does a thing'))
+
     def test_unknown_decision_without_summary_has_unknown_doing(self):
         row = self.decision_row({'engine': 'nope'})
         row['summary'] = None

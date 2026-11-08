@@ -92,7 +92,10 @@ def _int(value, low=0, high=MAX_ID):
 
 
 def _number(value):
-    return not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(value)
+    try:
+        return not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(value)
+    except OverflowError:  # An integer too large for a float is not a usable number.
+        return False
 
 
 def _text(value, limit, minimum=0):
