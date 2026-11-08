@@ -1406,6 +1406,145 @@ function renderModelCalls() {
     `Latency: ${metricNumber(c.latencyMs) ? c.latencyMs + ' ms' : 'Unknown'} · Cost: ${metricNumber(c.cost) ? c.cost : 'Unknown'} · Quality: ${metricNumber(c.quality) ? c.quality : 'Unknown'}`,
     `${routingText(c.source, 'Source unknown')} · Observed: ${routingText(c.observedAt)}`));
 }
+const botActivityEngines = ['noncombat', 'combat', 'dead', 'Unknown'];
+const botActivityNote = 'Exported WoW Forever bot log; not live, not DIT bots.';
+const botActivityRowLimit = 200, botActivityListLimit = 50, botActivityAlternativeLimit = 20;
+function plainObject(value) {
+  return value && typeof value === 'object' && !Array.isArray(value);
+}
+function shown(value) {
+  if (typeof value === 'string' && value.trim()) return value.slice(0, 500);
+  return typeof value === 'number' && Number.isFinite(value) ? String(value) : 'Unknown';
+}
+function botActivityList(parent, label, list, limit, describe) {
+  if (!Array.isArray(list) || !list.length) return;
+  const details = document.createElement('details');
+  const summary = document.createElement('summary');
+  summary.textContent = `${label} (${list.length})`;
+  const ul = document.createElement('ul');
+  list.slice(0, limit).forEach(entry => {
+    const li = document.createElement('li');
+    if (!plainObject(entry)) { li.textContent = 'Unreadable entry; Unknown'; ul.append(li); return; }
+    const nested = describe(entry, li);
+    if (nested) li.append(nested);
+    ul.append(li);
+  });
+  if (list.length > limit) {
+    const more = document.createElement('li');
+    more.textContent = `${list.length - limit} more entries not shown.`;
+    ul.append(more);
+  }
+  details.append(summary, ul); parent.append(details);
+}
+function botActivityRow(panel, bot) {
+  const engine = botActivityEngines.includes(bot.engine) ? bot.engine : 'Unknown';
+  const counts = plainObject(bot.counts) ? Object.entries(bot.counts).filter(([, n]) => metricNumber(n)).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).slice(0, 5) : [];
+  item(panel, `${routingText(bot.name, 'Unnamed')} (${bot.botGuid}) · ${engine}`,
+    `Doing: ${shown(bot.doing)} · Level: ${shown(bot.level)} · Zone ID: ${shown(bot.zoneId)} · Faction: ${shown(bot.faction)}`,
+    `Last event: ${shown(bot.lastEventAt)} · Top events: ${counts.length ? counts.map(([type, n]) => `${type} ${n}`).join(', ') : 'Unknown'}`);
+  const row = panel.lastElementChild;
+  botActivityList(row, 'Recent decisions', bot.decisions, botActivityListLimit, (d, li) => {
+    li.textContent = `${shown(d.ts)} · ${shown(d.action)} via ${shown(d.trigger)} · ${shown(d.reason)} · relevance ${shown(d.relevance)} ${shown(d.band)} (effective ${shown(d.effective)}) · ${shown(d.engine)}`;
+    if (!Array.isArray(d.alternatives) || !d.alternatives.length) return null;
+    const ul = document.createElement('ul');
+    d.alternatives.slice(0, botActivityAlternativeLimit).forEach(a => {
+      const alt = document.createElement('li');
+      alt.textContent = plainObject(a) ? `${shown(a.action)} — ${shown(a.result)} (${shown(a.relevance)})` : 'Unreadable alternative; Unknown';
+      ul.append(alt);
+    });
+    return ul;
+  });
+  botActivityList(row, 'Deaths', bot.deaths, botActivityListLimit, (d, li) => {
+    li.textContent = `${shown(d.ts)} · ${shown(d.reason)} · ${shown(d.summary)} · Killer entry: ${shown(d.killerEntry)} · Killer level: ${shown(d.killerLevel)} · Level gap: ${shown(d.levelGap)}`;
+    if (!Array.isArray(d.recentDecisions) || !d.recentDecisions.length) return null;
+    const ul = document.createElement('ul');
+    d.recentDecisions.slice(0, botActivityAlternativeLimit).forEach(r => {
+      const prior = document.createElement('li');
+      prior.textContent = plainObject(r) ? `${shown(r.msAgo)} ms before death · ${shown(r.action)} · ${shown(r.reason)}` : 'Unreadable decision; Unknown';
+      ul.append(prior);
+    });
+    return ul;
+  });
+  botActivityList(row, 'Quests', bot.quests, botActivityListLimit, (q, li) => {
+    li.textContent = `${shown(q.ts)} · ${shown(q.reason)} · Quest ${shown(q.questId)} · ${shown(q.summary)}`;
+    return null;
+  });
+}
+function renderBotActivity() {
+  const panel = document.getElementById('bot-activity'), coverage = document.getElementById('bot-activity-coverage'), count = document.getElementById('bot-activity-count');
+  panel.replaceChildren();
+  const data = currentSnapshot?.botActivity;
+  const cov = plainObject(data) && plainObject(data.coverage) && Array.isArray(data.bots) ? data.coverage : null;
+  if (!cov) {
+    coverage.textContent = `Coverage: Unknown · No usable botActivity in this snapshot. ${botActivityNote}`;
+    count.textContent = '';
+    item(panel, 'Forever-style bot activity coverage', 'Unknown', 'Missing or malformed data does not mean the bots are idle or that the log is empty.');
+    return;
+  }
+  const status = ['Not configured', 'Loaded', 'Unavailable'].includes(cov.status) ? cov.status : 'Unknown';
+  coverage.textContent = `Coverage: ${status} · Imported: ${metricNumber(cov.records) ? cov.records : 'Unknown'} · Omitted malformed: ${metricNumber(cov.omitted) ? cov.omitted : 'Unknown'} · ${routingText(cov.reason, 'Reason unknown')} · ${botActivityNote}`;
+  const bots = data.bots.filter(bot => plainObject(bot) && typeof bot.botGuid === 'string' && bot.botGuid.trim());
+  const engineControl = document.getElementById('bot-activity-engine'), searchControl = document.getElementById('bot-activity-search');
+  const engine = botActivityEngines.includes(engineControl.value) ? engineControl.value : '';
+  const needle = typeof searchControl.value === 'string' ? searchControl.value.trim().toLowerCase() : '';
+  const matches = bots.filter(bot => (!engine || (botActivityEngines.includes(bot.engine) ? bot.engine : 'Unknown') === engine)
+    && (!needle || (typeof bot.name === 'string' && bot.name.toLowerCase().includes(needle)) || bot.botGuid.toLowerCase().includes(needle)));
+  count.textContent = `Showing ${matches.length} of ${bots.length} loaded bots. Local filter only; no request is made.`;
+  if (status === 'Not configured') item(panel, 'Forever bot log import is off', 'The DIT_FOREVER_BOTLOG_DIR switch is not set, so no exported bot log is read.', 'Off by default. Nothing here describes DIT bots or live activity.');
+  else if (status === 'Unavailable') item(panel, 'Forever bot log unavailable', routingText(cov.reason, 'Reason unknown'), 'Nothing was imported; this does not mean the bots are idle.');
+  else if (status !== 'Loaded') item(panel, 'Forever bot log status Unknown', 'Coverage status was not recognized.', 'No conclusion about bot activity can be drawn.');
+  if (data.bots.length !== bots.length) item(panel, 'Bot coverage Unknown for omitted malformed rows', `${data.bots.length - bots.length} rows without a usable bot GUID are not shown.`, 'Valid rows are shown below; coverage is incomplete.');
+  if (status === 'Loaded' && !bots.length) item(panel, 'No bot activity in the export', 'The export contained no usable bot rows (does not mean bots are idle).', botActivityNote);
+  else if (bots.length && !matches.length) item(panel, 'No bots match the local filter', 'Change the engine filter or search to see other loaded bots.', 'This does not mean a bot is idle.');
+  matches.slice(0, botActivityRowLimit).forEach(bot => botActivityRow(panel, bot));
+  if (matches.length > botActivityRowLimit) item(panel, 'More bots not shown', `${matches.length - botActivityRowLimit} matching bots exceed the ${botActivityRowLimit}-row display limit.`, 'Narrow the filter to see them.');
+}
+const baselineStatuses = ['Reference', 'Sim-measured', 'Unit-tested', 'Designed', 'Not started', 'Unknown'];
+function renderBaselineConformance() {
+  const panel = document.getElementById('baseline-conformance');
+  panel.replaceChildren();
+  const data = currentSnapshot?.baselineConformance;
+  if (!plainObject(data) || !Array.isArray(data.rows) || !Array.isArray(data.games)) {
+    item(panel, 'Baseline conformance', 'Unknown', 'Missing or malformed baselineConformance; no behavior is shown as present.');
+    return;
+  }
+  const rows = data.rows.filter(row => plainObject(row) && typeof row.id === 'string' && row.id.trim() && typeof row.behavior === 'string' && row.behavior.trim()).slice(0, 40);
+  const games = data.games.filter(g => plainObject(g) && typeof g.game === 'string' && g.game.trim()).slice(0, 20);
+  const ids = new Map();
+  rows.forEach(row => ids.set(row.id, (ids.get(row.id) || 0) + 1));
+  item(panel, 'Baseline conformance source', routingText(data.source, 'Source unknown'),
+    `${rows.length} behaviors · ${games.length} games${rows.length !== data.rows.length || games.length !== data.games.length ? ' · Malformed entries omitted; coverage incomplete' : ''}`);
+  if (!rows.length || !games.length) item(panel, 'No usable conformance rows or games', 'Unknown', 'An empty table does not mean no bot has these behaviors.');
+  for (const [group, label] of [['forever', 'WoW Forever operating model'], ['dit', 'DIT improvements'], [null, 'Group unknown']]) {
+    const groupRows = rows.filter(row => group ? row.group === group : !['forever', 'dit'].includes(row.group));
+    if (!groupRows.length || !games.length) continue;
+    const region = document.createElement('div'); region.className = 'model-samples';
+    region.setAttribute('role', 'region'); region.setAttribute('aria-label', label); region.setAttribute('tabindex', '0');
+    const table = document.createElement('table'), caption = document.createElement('caption');
+    caption.textContent = `${label}. Status reflects documented evidence, not live verification.`;
+    const head = document.createElement('thead'), headings = document.createElement('tr');
+    for (const text of ['Behavior', ...games.map(g => `${g.game} · ${routingText(g.owner, 'Owner unknown')}`)]) {
+      const cell = document.createElement('th'); cell.setAttribute('scope', 'col'); cell.textContent = text; headings.append(cell);
+    }
+    head.append(headings);
+    const body = document.createElement('tbody');
+    for (const row of groupRows) {
+      const tr = document.createElement('tr'), name = document.createElement('th');
+      name.setAttribute('scope', 'row'); name.textContent = row.behavior.slice(0, 500); tr.append(name);
+      for (const g of games) {
+        const cells = plainObject(g.cells) ? g.cells : {};
+        const cell = Object.hasOwn(cells, row.id) && plainObject(cells[row.id]) && ids.get(row.id) === 1 ? cells[row.id] : null;
+        const status = cell && baselineStatuses.includes(cell.status) ? cell.status : 'Unknown';
+        const evidence = cell ? routingText(cell.evidence, 'No evidence supplied').slice(0, 500) : 'No evidence supplied';
+        const td = document.createElement('td'), strong = document.createElement('strong'), small = document.createElement('small');
+        strong.textContent = status; small.textContent = evidence;
+        td.setAttribute('title', evidence); td.append(strong, small); tr.append(td);
+      }
+      body.append(tr);
+    }
+    table.append(caption, head, body); region.append(table); panel.append(region);
+  }
+}
 function renderSpendExample() {
   const panel = document.querySelector('#spend-example');
   panel.replaceChildren();
@@ -1483,7 +1622,7 @@ async function load() {
     const data = await readBoundedJson(response);
     if (!current()) return;
     rendering = true;
-    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'model-comparison', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage', 'bot-coverage', 'learning-plan', 'learning-evidence', 'game-status', 'spend-example', 'learning-artifacts', 'safety-records', 'ffxi-focus', 'ffxi-feeds']) document.getElementById(id).replaceChildren();
+    for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'model-comparison', 'bot-activity', 'baseline-conformance', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage', 'bot-coverage', 'learning-plan', 'learning-evidence', 'game-status', 'spend-example', 'learning-artifacts', 'safety-records', 'ffxi-focus', 'ffxi-feeds']) document.getElementById(id).replaceChildren();
     if (ledgerBotId !== null && loadedSource && loadedSource !== source) {
       ledgerBotId = null; correlationFilter = ''; document.querySelector('#correlation').value = '';
     }
@@ -1548,6 +1687,8 @@ async function load() {
     renderLearning();
     renderDataCoverage();
     renderRosterGaps();
+    renderBotActivity();
+    renderBaselineConformance();
     document.querySelector('#updated').textContent = `Snapshot generated ${data.generatedAt} · Sources are labeled per view; lead task state comes from the coordinator board.`;
     loadedSource = source; sourceLoading = false;
     resetBotDraft();
@@ -1573,6 +1714,8 @@ async function load() {
 form.addEventListener('submit', e => { e.preventDefault(); resetPanelSession(); token = document.querySelector('#token').value; document.querySelector('#token').value = ''; load(); });
 document.querySelector('#refresh').addEventListener('click', load);
 document.querySelector('#model-call-availability').addEventListener('change', () => { if (currentSnapshot) renderModelCalls(); });
+document.querySelector('#bot-activity-engine').addEventListener('change', () => { if (currentSnapshot) renderBotActivity(); });
+document.querySelector('#bot-activity-search').addEventListener('input', () => { if (currentSnapshot) renderBotActivity(); });
 document.querySelector('#reply-correlation').addEventListener('input', () => { if (currentSnapshot) renderReplySource(); });
 document.querySelector('#reply-reset').addEventListener('click', () => {
   document.querySelector('#reply-correlation').value = '';
