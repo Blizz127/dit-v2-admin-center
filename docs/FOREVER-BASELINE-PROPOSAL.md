@@ -222,3 +222,28 @@ The owner then answered four questions, verbatim where quoted:
 4. **First cutover:** field play, party companions and chat. Crafting, economy,
    missions and pastimes stay on their current modules, with old chat off,
    until V2 covers them.
+
+**DIT hub review of the FFXI P0 table (2026-11-08, conditional).** The hub
+session reviewed `REPLACE-KEEP.md` (sha256 `2cc5363a`). This is not the DIT
+lead's sign-off.
+
+Conditions:
+- **C1:** V2 keeps the `chat/outbox.jsonl` records that the replaced modules
+  emit today (`gm_seen`, `order_ack`, `say_open`, grounding appends), or ships
+  a paired bridge version. AI or silence, human-listener gating and the test
+  skip all stay.
+- **C2:** the owner's `party_reserve.json` lv89 party and the planner crowd
+  channel survive.
+- **C3:** V2 has its own per-bot chat cooldowns.
+- **C4:** the KEEP-listed DIT services keep their callers.
+- **C5:** deleting canned modules at P4 is approved.
+
+Writers, revised by the review:
+- `ffxi` writes all LSB source, including `src/map/dit/`, under DIT contract
+  review.
+- DIT keeps the bridge and hub, with Codex as sole bridge integrator.
+- No new hub wording endpoint: chat keeps the existing outbox → bridge → hub route.
+
+**Gate:** P1/P2 may proceed offline. The P3 flag flip needs Codex or
+coordinator sign-off. The standard's §6.4 records the LSB/Forever split in
+hub commit `510b04bc`.
