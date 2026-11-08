@@ -264,3 +264,7 @@ hub commit `510b04bc`.
   Re-sent to `ffxi-platform`.
 
 The adversarial review of the P1 design is `docs/reviews/FFXI-BOTSV2-P1-REVIEW-20261108.md`.
+- **City and bots (decided):** the owner chose option C, 3 starter bots in Bastok or
+  Windurst, over A (3 of the lv89 reserve) and B (3 Adoulin crowd adventurers).
+  `ffxi` picks the city and the non-reserved, non-crafting bots. Canary 1 mainly
+  tests autonomous low-level field play.
