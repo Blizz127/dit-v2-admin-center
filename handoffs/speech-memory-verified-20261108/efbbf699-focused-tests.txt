@@ -1,0 +1,49 @@
+Started: 2026-11-08T03:36:56.012170+00:00
+Candidate: efbbf699735e99f09c09af7348db224ee09d7c5d
+Fresh pressure: {"utc": "2026-11-08T03:35:25.559091+00:00", "cpus": 48, "load": [89.27880859375, 99.3837890625, 113.78466796875], "idlePct": 0.4, "ioWaitPct": 0.0, "availableGiB": 97.49, "swapUsedGiB": 61.34, "swapPagesIn2s": 924, "swapPagesOut2s": 0, "pressure": {"cpu": "some avg10=34.17 avg60=39.00 avg300=38.60 total=75052159832\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0", "memory": "some avg10=0.18 avg60=0.27 avg300=0.21 total=962768822\nfull avg10=0.16 avg60=0.24 avg300=0.16 total=752710102", "io": "some avg10=0.14 avg60=1.06 avg300=2.00 total=6561242884\nfull avg10=0.00 avg60=0.00 avg300=0.19 total=3760137220"}}
+One low-priority CPU; MSBuild one node; GC6GiB; overall600s; no restore/fanout. Only runtime library and tests rebuild. Unchanged project dependencies reuse prior verified59ab778a outputs. DIT_ variables cleared; no exports.
+Command: ['timeout', '--kill-after=5s', '599s', 'nice', '-n', '19', 'ionice', '-c', '2', '-n', '7', '/usr/bin/dotnet', 'build', 'src/Dit.HumanBehavior.Neuronetwork/Dit.HumanBehavior.Neuronetwork.csproj', '--no-restore', '-m:1', '-p:BuildProjectReferences=false', '-p:BuildInParallel=false', '-p:UseSharedCompilation=false']
+  Dit.HumanBehavior.Neuronetwork -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.Neuronetwork/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:33.06
+Command exit: 0
+Command: ['timeout', '--kill-after=5s', '566s', 'nice', '-n', '19', 'ionice', '-c', '2', '-n', '7', '/usr/bin/dotnet', 'test', 'tests/Dit.HumanBehavior.Neuronetwork.Tests/Dit.HumanBehavior.Neuronetwork.Tests.csproj', '--no-restore', '-m:1', '-p:BuildProjectReferences=false', '-p:BuildInParallel=false', '-p:UseSharedCompilation=false', '--filter', 'FullyQualifiedName~PreparedEventMemoryTests|FullyQualifiedName~PreparedHeardMemoryTests|FullyQualifiedName~PreparedReplyMemoryTests|FullyQualifiedName~CandidateDeliveryFixtureTests', '--logger', 'console;verbosity=normal']
+  Dit.HumanBehavior.Neuronetwork.Tests -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Tests.dll
+Test run for /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Tests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.2 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 10.0.14)
+[xUnit.net 00:00:00.44]   Discovering: Dit.HumanBehavior.Neuronetwork.Tests
+[xUnit.net 00:00:01.40]   Discovered:  Dit.HumanBehavior.Neuronetwork.Tests
+[xUnit.net 00:00:01.45]   Starting:    Dit.HumanBehavior.Neuronetwork.Tests
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedReplyMemoryTests.Prepared_reply_is_not_spoken_memory_in_structured_context(game: "ffxi", selected: False) [1 s]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedReplyMemoryTests.Prepared_reply_is_not_spoken_memory_in_structured_context(game: "swtor", selected: False) [22 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedReplyMemoryTests.Prepared_reply_is_not_spoken_memory_in_structured_context(game: "swtor", selected: True) [70 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedReplyMemoryTests.Prepared_reply_is_not_spoken_memory_in_structured_context(game: "ffxi", selected: True) [19 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedHeardMemoryTests.Prepared_heard_reply_preserves_input_without_spoken_memory_or_exchange_credit(game: "swtor", selected: False) [309 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedHeardMemoryTests.Prepared_heard_reply_preserves_input_without_spoken_memory_or_exchange_credit(game: "swtor", selected: True) [24 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedHeardMemoryTests.Prepared_heard_reply_preserves_input_without_spoken_memory_or_exchange_credit(game: "ffxi", selected: True) [15 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedHeardMemoryTests.Prepared_heard_reply_preserves_input_without_spoken_memory_or_exchange_credit(game: "ffxi", selected: False) [18 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedEventMemoryTests.Prepared_event_wording_is_not_spoken_memory_in_structured_context(game: "ffxi", selected: False) [37 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedEventMemoryTests.Prepared_event_wording_is_not_spoken_memory_in_structured_context(game: "ffxi", selected: True) [11 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedEventMemoryTests.Prepared_event_wording_is_not_spoken_memory_in_structured_context(game: "swtor", selected: True) [10 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedEventMemoryTests.Prepared_event_wording_is_not_spoken_memory_in_structured_context(game: "swtor", selected: False) [13 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.CandidateDeliveryFixtureTests.Candidate_output_and_final_status_check_bound_the_synthetic_publication(game: "ffxi", expire: False) [148 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.CandidateDeliveryFixtureTests.Candidate_output_and_final_status_check_bound_the_synthetic_publication(game: "ffxi", expire: True) [11 ms]
+[xUnit.net 00:00:03.60]   Finished:    Dit.HumanBehavior.Neuronetwork.Tests
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.CandidateDeliveryFixtureTests.Candidate_output_and_final_status_check_bound_the_synthetic_publication(game: "swtor", expire: True) [12 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.CandidateDeliveryFixtureTests.Candidate_output_and_final_status_check_bound_the_synthetic_publication(game: "swtor", expire: False) [12 ms]
+
+Test Run Successful.
+Total tests: 16
+     Passed: 16
+ Total time: 4.8896 Seconds
+Command exit: 0
+Finished: 2026-11-08T03:38:12.223031+00:00
+Exit: 0

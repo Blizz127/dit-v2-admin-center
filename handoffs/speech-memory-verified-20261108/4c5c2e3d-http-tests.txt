@@ -1,0 +1,7 @@
+Source 4c5c2e3d522133b79b63eeb671c41413c565190c; started 2026-11-08T03:52:18.553323+00:00
+Tests rebuilt; verified runtime artifacts reused unchanged.
+COMMAND ["timeout", "--kill-after=5s", "600", "nice", "-n", "19", "ionice", "-c", "2", "-n", "7", "/usr/bin/dotnet", "test", "tests/Dit.HumanBehavior.Neuronetwork.Tests/Dit.HumanBehavior.Neuronetwork.Tests.csproj", "--no-restore", "-m:1", "-p:BuildProjectReferences=false", "-p:BuildInParallel=false", "-p:UseSharedCompilation=false", "--filter", "FullyQualifiedName~ConversationStatusIngressTests|FullyQualifiedName~ShoutOriginEndpointTests", "--logger", "console;verbosity=normal"]
+/home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusIngressTests.cs(148,27): error xUnit2031: Do not use a Where clause to filter before calling Assert.Single. Use the overload of Assert.Single that accepts a filtering function. (https://xunit.net/xunit.analyzers/rules/xUnit2031) [/home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/Dit.HumanBehavior.Neuronetwork.Tests.csproj]
+
+EXIT 1
+Finished 2026-11-08T03:53:59.818641+00:00

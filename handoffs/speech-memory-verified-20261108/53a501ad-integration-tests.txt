@@ -1,0 +1,134 @@
+Source 53a501ad5e835deb850f073dffdf23b1ba78e254; started 2026-11-08T03:44:54.165773+00:00
+Only Hub and tests rebuilt; unchanged dependencies reused, 1 CPU/MSBuild node, nice19, ionice2/7, GC6GiB, total600s, no restore.
+COMMAND ["timeout", "--kill-after=5s", "599", "nice", "-n", "19", "ionice", "-c", "2", "-n", "7", "/usr/bin/dotnet", "build", "src/Dit.HumanBehavior.Neuronetwork.Hub/Dit.HumanBehavior.Neuronetwork.Hub.csproj", "--no-restore", "-m:1", "-p:BuildProjectReferences=false", "-p:BuildInParallel=false", "-p:UseSharedCompilation=false"]
+  Dit.HumanBehavior.Neuronetwork.Hub -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.Neuronetwork.Hub/bin/Debug/net10.0/dit-neuronetwork.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:01:02.56
+EXIT 0
+COMMAND ["timeout", "--kill-after=5s", "536", "nice", "-n", "19", "ionice", "-c", "2", "-n", "7", "/usr/bin/dotnet", "test", "tests/Dit.HumanBehavior.Neuronetwork.Tests/Dit.HumanBehavior.Neuronetwork.Tests.csproj", "--no-restore", "-m:1", "-p:BuildProjectReferences=false", "-p:BuildInParallel=false", "-p:UseSharedCompilation=false", "--filter", "FullyQualifiedName~PreparedEventMemoryTests|FullyQualifiedName~PreparedHeardMemoryTests|FullyQualifiedName~PreparedReplyMemoryTests|FullyQualifiedName~CandidateDeliveryFixtureTests|FullyQualifiedName~ShoutOriginEndpointTests|FullyQualifiedName~Shared_client_group_history_survives_authenticated_http_and_prompt_building", "--logger", "console;verbosity=normal"]
+  Dit.HumanBehavior.Neuronetwork.Tests -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Tests.dll
+Test run for /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Tests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.2 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.01] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 10.0.14)
+[xUnit.net 00:00:01.51]   Discovering: Dit.HumanBehavior.Neuronetwork.Tests
+[xUnit.net 00:00:03.61]   Discovered:  Dit.HumanBehavior.Neuronetwork.Tests
+[xUnit.net 00:00:03.66]   Starting:    Dit.HumanBehavior.Neuronetwork.Tests
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedEventMemoryTests.Prepared_event_wording_is_not_spoken_memory_in_structured_context(game: "ffxi", selected: False) [2 s]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedEventMemoryTests.Prepared_event_wording_is_not_spoken_memory_in_structured_context(game: "ffxi", selected: True) [478 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedEventMemoryTests.Prepared_event_wording_is_not_spoken_memory_in_structured_context(game: "swtor", selected: True) [18 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedEventMemoryTests.Prepared_event_wording_is_not_spoken_memory_in_structured_context(game: "swtor", selected: False) [13 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedReplyMemoryTests.Prepared_reply_is_not_spoken_memory_in_structured_context(game: "ffxi", selected: False) [2 s]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedReplyMemoryTests.Prepared_reply_is_not_spoken_memory_in_structured_context(game: "swtor", selected: False) [52 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedReplyMemoryTests.Prepared_reply_is_not_spoken_memory_in_structured_context(game: "swtor", selected: True) [23 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedReplyMemoryTests.Prepared_reply_is_not_spoken_memory_in_structured_context(game: "ffxi", selected: True) [22 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.CandidateDeliveryFixtureTests.Candidate_output_and_final_status_check_bound_the_synthetic_publication(game: "ffxi", expire: False) [146 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.CandidateDeliveryFixtureTests.Candidate_output_and_final_status_check_bound_the_synthetic_publication(game: "ffxi", expire: True) [15 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.CandidateDeliveryFixtureTests.Candidate_output_and_final_status_check_bound_the_synthetic_publication(game: "swtor", expire: True) [12 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.CandidateDeliveryFixtureTests.Candidate_output_and_final_status_check_bound_the_synthetic_publication(game: "swtor", expire: False) [21 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedHeardMemoryTests.Prepared_heard_reply_preserves_input_without_spoken_memory_or_exchange_credit(game: "swtor", selected: False) [2 s]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedHeardMemoryTests.Prepared_heard_reply_preserves_input_without_spoken_memory_or_exchange_credit(game: "swtor", selected: True) [20 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedHeardMemoryTests.Prepared_heard_reply_preserves_input_without_spoken_memory_or_exchange_credit(game: "ffxi", selected: True) [21 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedHeardMemoryTests.Prepared_heard_reply_preserves_input_without_spoken_memory_or_exchange_credit(game: "ffxi", selected: False) [135 ms]
+companion chat warm-up Unavailable in 0.1 s (facts 0.1 s: catalog 0.0 s, 0 research 0.1 s, offline-status-ingress)
+[xUnit.net 00:00:20.85]     Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Shared_client_group_history_survives_authenticated_http_and_prompt_building(game: "ffxi", turns: 12) [FAIL]
+[xUnit.net 00:00:20.86]       Assert.Single() Failure: The collection contained 2 items
+[xUnit.net 00:00:20.86]       Collection: [DialogueWordingRequest { RequestId = dit-wording-32e1988b76df06804cd0d1d67713dddabace5b8a87158f00316df2cf6809f54d, SuppressSharedVoiceGuidance = False, IntentionId = companion_72f1f52718fe_warmup, Game = GameRef { GameId = warhammer_online, ServerInstanceId = warmup, Environment = Production }, Actor = ActorRef { IdentityKind = GameNativeActor, ActorKind = player_bot, ActorKey = warmup, PersonaId = , DisplayName = Warmup }, SemanticTopic = respond_to_party, SemanticIntent = Write the guild-chat line a long-time guildmate types back: answer, react, joke or ask, like a friend. Terse, lowercase is fine., TriggerType = conversation.companion, TriggerFacts = Dit.HumanBehavior.Contracts.ValueList`1[Dit.HumanBehavior.DialogueWording.DialogueContextFact], Channel = party, AudienceType = party_members, PersonalitySummary = a regular player. Never gushes, lectures, narrates, or sounds like customer support., CommunicationStyle = short, RelevantMemories = Dit.HumanBehavior.Contracts.ValueList`1[System.String], RelationshipRole = party_member, RelationshipSummary = A long-time guildmate and friend., CurrentHighLevelActivity = idle, ApprovedGameWorldFacts = Dit.HumanBehavior.Contracts.ValueList`1[Dit.HumanBehavior.DialogueWording.DialogueContextFact], MaximumOutputCharacters = 100, MaximumOutputUtf8Bytes = 200, Locale = en-US, GenerationPolicyVersion = neuronet-conversation-v1, TemplateFamily = neuronet_conversation, DeterministicFallbackText = ..., FallbackPolicy = Silence, OutputConstraints = DialogueOutputConstraints { AllowUrls = False, RequireAscii = True, AllowNarration = False, AllowWrappingQuotes = False, MaximumPunctuationRun = 3 }, RequestedAtUtc = 11/08/2026 03:48:55 +00:00, ExpiresAtUtc = 11/08/2026 03:49:20 +00:00, CorrelationId = companion_warmup, CausationId = , SharedEventMemorySummary = , ConversationContext =  }, DialogueWordingRequest { RequestId = dit-wording-229cc87256b15327b31331814d5fb34538df20172ebd3c69ae1384b9d2053c31, SuppressSharedVoiceGuidance = False, IntentionId = companion_20a15ad8f46e_fixture, Game = GameRef { GameId = ffxi, ServerInstanceId = fixture-instance, Environment = Production }, Actor = ActorRef { IdentityKind = GameNativeActor, ActorKind = player_bot, ActorKey = fixture, PersonaId = , DisplayName = Fixture }, SemanticTopic = respond_to_tell, SemanticIntent = Answer first. Prefer current own zone/weather/game-time/nearby-player/travel facts; missing is unknown. Never infer observations from persona, clock, old chat or LS membership. Avoid unsolicited KO/exp-loss talk; answer direct KO/help and safety needs., TriggerType = conversation.companion, TriggerFacts = Dit.HumanBehavior.Contracts.ValueList`1[Dit.HumanBehavior.DialogueWording.DialogueContextFact], Channel = tell, AudienceType = single_player, PersonalitySummary = a regular player of this game. Never gushes, lectures, narrates, or sounds like customer support., CommunicationStyle = casual, short, lower-case, a bit dry, RelevantMemories = Dit.HumanBehavior.Contracts.ValueList`1[System.String], RelationshipRole = party_member, RelationshipSummary = A long-time guildmate and friend., CurrentHighLevelActivity = unknown, ApprovedGameWorldFacts = Dit.HumanBehavior.Contracts.ValueList`1[Dit.HumanBehavior.DialogueWording.DialogueContextFact], MaximumOutputCharacters = 100, MaximumOutputUtf8Bytes = 200, Locale = en-US, GenerationPolicyVersion = neuronet-conversation-v1, TemplateFamily = neuronet_conversation, DeterministicFallbackText = ..., FallbackPolicy = Silence, OutputConstraints = DialogueOutputConstraints { AllowUrls = False, RequireAscii = True, AllowNarration = False, AllowWrappingQuotes = False, MaximumPunctuationRun = 3 }, RequestedAtUtc = 11/08/2026 03:48:57 +00:00, ExpiresAtUtc = 11/08/2026 03:49:22 +00:00, CorrelationId = companion_fixture, CausationId = , SharedEventMemorySummary = , ConversationContext = DialogueConversationContext { History = Dit.HumanBehavior.Contracts.ValueList`1[System.String], CurrentMessage = Structured current message } }]
+[xUnit.net 00:00:20.86]       Stack Trace:
+[xUnit.net 00:00:20.86]         /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusIngressTests.cs(145,0): at Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Shared_client_group_history_survives_authenticated_http_and_prompt_building(String game, Int32 turns)
+[xUnit.net 00:00:20.87]         --- End of stack trace from previous location ---
+  Failed Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Shared_client_group_history_survives_authenticated_http_and_prompt_building(game: "ffxi", turns: 12) [6 s]
+  Error Message:
+   Assert.Single() Failure: The collection contained 2 items
+Collection: [DialogueWordingRequest { RequestId = dit-wording-32e1988b76df06804cd0d1d67713dddabace5b8a87158f00316df2cf6809f54d, SuppressSharedVoiceGuidance = False, IntentionId = companion_72f1f52718fe_warmup, Game = GameRef { GameId = warhammer_online, ServerInstanceId = warmup, Environment = Production }, Actor = ActorRef { IdentityKind = GameNativeActor, ActorKind = player_bot, ActorKey = warmup, PersonaId = , DisplayName = Warmup }, SemanticTopic = respond_to_party, SemanticIntent = Write the guild-chat line a long-time guildmate types back: answer, react, joke or ask, like a friend. Terse, lowercase is fine., TriggerType = conversation.companion, TriggerFacts = Dit.HumanBehavior.Contracts.ValueList`1[Dit.HumanBehavior.DialogueWording.DialogueContextFact], Channel = party, AudienceType = party_members, PersonalitySummary = a regular player. Never gushes, lectures, narrates, or sounds like customer support., CommunicationStyle = short, RelevantMemories = Dit.HumanBehavior.Contracts.ValueList`1[System.String], RelationshipRole = party_member, RelationshipSummary = A long-time guildmate and friend., CurrentHighLevelActivity = idle, ApprovedGameWorldFacts = Dit.HumanBehavior.Contracts.ValueList`1[Dit.HumanBehavior.DialogueWording.DialogueContextFact], MaximumOutputCharacters = 100, MaximumOutputUtf8Bytes = 200, Locale = en-US, GenerationPolicyVersion = neuronet-conversation-v1, TemplateFamily = neuronet_conversation, DeterministicFallbackText = ..., FallbackPolicy = Silence, OutputConstraints = DialogueOutputConstraints { AllowUrls = False, RequireAscii = True, AllowNarration = False, AllowWrappingQuotes = False, MaximumPunctuationRun = 3 }, RequestedAtUtc = 11/08/2026 03:48:55 +00:00, ExpiresAtUtc = 11/08/2026 03:49:20 +00:00, CorrelationId = companion_warmup, CausationId = , SharedEventMemorySummary = , ConversationContext =  }, DialogueWordingRequest { RequestId = dit-wording-229cc87256b15327b31331814d5fb34538df20172ebd3c69ae1384b9d2053c31, SuppressSharedVoiceGuidance = False, IntentionId = companion_20a15ad8f46e_fixture, Game = GameRef { GameId = ffxi, ServerInstanceId = fixture-instance, Environment = Production }, Actor = ActorRef { IdentityKind = GameNativeActor, ActorKind = player_bot, ActorKey = fixture, PersonaId = , DisplayName = Fixture }, SemanticTopic = respond_to_tell, SemanticIntent = Answer first. Prefer current own zone/weather/game-time/nearby-player/travel facts; missing is unknown. Never infer observations from persona, clock, old chat or LS membership. Avoid unsolicited KO/exp-loss talk; answer direct KO/help and safety needs., TriggerType = conversation.companion, TriggerFacts = Dit.HumanBehavior.Contracts.ValueList`1[Dit.HumanBehavior.DialogueWording.DialogueContextFact], Channel = tell, AudienceType = single_player, PersonalitySummary = a regular player of this game. Never gushes, lectures, narrates, or sounds like customer support., CommunicationStyle = casual, short, lower-case, a bit dry, RelevantMemories = Dit.HumanBehavior.Contracts.ValueList`1[System.String], RelationshipRole = party_member, RelationshipSummary = A long-time guildmate and friend., CurrentHighLevelActivity = unknown, ApprovedGameWorldFacts = Dit.HumanBehavior.Contracts.ValueList`1[Dit.HumanBehavior.DialogueWording.DialogueContextFact], MaximumOutputCharacters = 100, MaximumOutputUtf8Bytes = 200, Locale = en-US, GenerationPolicyVersion = neuronet-conversation-v1, TemplateFamily = neuronet_conversation, DeterministicFallbackText = ..., FallbackPolicy = Silence, OutputConstraints = DialogueOutputConstraints { AllowUrls = False, RequireAscii = True, AllowNarration = False, AllowWrappingQuotes = False, MaximumPunctuationRun = 3 }, RequestedAtUtc = 11/08/2026 03:48:57 +00:00, ExpiresAtUtc = 11/08/2026 03:49:22 +00:00, CorrelationId = companion_fixture, CausationId = , SharedEventMemorySummary = , ConversationContext = DialogueConversationContext { History = Dit.HumanBehavior.Contracts.ValueList`1[System.String], CurrentMessage = Structured current message } }]
+  Stack Trace:
+     at Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Shared_client_group_history_survives_authenticated_http_and_prompt_building(String game, Int32 turns) in /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/ConversationStatusIngressTests.cs:line 145
+--- End of stack trace from previous location ---
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Shared_client_group_history_survives_authenticated_http_and_prompt_building(game: "swtor", turns: 12) [577 ms]
+[xUnit.net 00:00:23.62]     Dit.HumanBehavior.Neuronetwork.Tests.ShoutOriginEndpointTests.Fake_shout_returns_same_group_tag_as_log_but_no_native_or_model_attribution(game: "ffxi") [FAIL]
+[xUnit.net 00:00:23.62]       System.IO.IOException : The configured user limit (128) on the number of inotify instances has been reached, or the per-process limit on the number of open file descriptors has been reached.
+[xUnit.net 00:00:23.62]       Stack Trace:
+[xUnit.net 00:00:23.62]            at System.IO.FileSystemWatcher.StartRaisingEvents()
+[xUnit.net 00:00:23.62]            at Microsoft.Extensions.FileProviders.Physical.PhysicalFilesWatcher.TryEnableFileSystemWatcher()
+[xUnit.net 00:00:23.62]            at Microsoft.Extensions.FileProviders.Physical.PhysicalFilesWatcher.CreateFileChangeToken(String filter)
+[xUnit.net 00:00:23.62]            at Microsoft.Extensions.Primitives.ChangeToken.ChangeTokenRegistration`1..ctor(Func`1 changeTokenProducer, Action`1 changeTokenConsumer, TState state)
+[xUnit.net 00:00:23.62]            at Microsoft.Extensions.Primitives.ChangeToken.OnChange(Func`1 changeTokenProducer, Action changeTokenConsumer)
+[xUnit.net 00:00:23.62]            at Microsoft.Extensions.Configuration.FileConfigurationProvider..ctor(FileConfigurationSource source)
+[xUnit.net 00:00:23.62]            at Microsoft.Extensions.Configuration.Json.JsonConfigurationSource.Build(IConfigurationBuilder builder)
+[xUnit.net 00:00:23.62]            at Microsoft.Extensions.Configuration.ConfigurationManager.AddSource(IConfigurationSource source)
+[xUnit.net 00:00:23.62]            at Microsoft.Extensions.Configuration.ConfigurationManager.Microsoft.Extensions.Configuration.IConfigurationBuilder.Add(IConfigurationSource source)
+[xUnit.net 00:00:23.62]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.ApplyDefaultAppConfigurationSlim(IHostEnvironment env, ConfigurationManager configuration, String[] args)
+[xUnit.net 00:00:23.62]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Boolean slim, Action`1 configureDefaults)
+[xUnit.net 00:00:23.62]            at Microsoft.AspNetCore.Builder.WebApplication.CreateSlimBuilder()
+[xUnit.net 00:00:23.62]         /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/ShoutOriginEndpointTests.cs(70,0): at Dit.HumanBehavior.Neuronetwork.Tests.ShoutOriginEndpointTests.Fake_shout_returns_same_group_tag_as_log_but_no_native_or_model_attribution(String game)
+[xUnit.net 00:00:23.62]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:23.69]     Dit.HumanBehavior.Neuronetwork.Tests.ShoutOriginEndpointTests.Fake_shout_returns_same_group_tag_as_log_but_no_native_or_model_attribution(game: "ffxi_forever") [FAIL]
+[xUnit.net 00:00:23.69]       System.IO.IOException : The configured user limit (128) on the number of inotify instances has been reached, or the per-process limit on the number of open file descriptors has been reached.
+[xUnit.net 00:00:23.69]       Stack Trace:
+[xUnit.net 00:00:23.69]            at System.IO.FileSystemWatcher.StartRaisingEvents()
+[xUnit.net 00:00:23.69]            at Microsoft.Extensions.FileProviders.Physical.PhysicalFilesWatcher.TryEnableFileSystemWatcher()
+[xUnit.net 00:00:23.69]            at Microsoft.Extensions.FileProviders.Physical.PhysicalFilesWatcher.CreateFileChangeToken(String filter)
+[xUnit.net 00:00:23.71]            at Microsoft.Extensions.Primitives.ChangeToken.ChangeTokenRegistration`1..ctor(Func`1 changeTokenProducer, Action`1 changeTokenConsumer, TState state)
+[xUnit.net 00:00:23.71]            at Microsoft.Extensions.Primitives.ChangeToken.OnChange(Func`1 changeTokenProducer, Action changeTokenConsumer)
+[xUnit.net 00:00:23.71]            at Microsoft.Extensions.Configuration.FileConfigurationProvider..ctor(FileConfigurationSource source)
+[xUnit.net 00:00:23.72]            at Microsoft.Extensions.Configuration.Json.JsonConfigurationSource.Build(IConfigurationBuilder builder)
+[xUnit.net 00:00:23.72]            at Microsoft.Extensions.Configuration.ConfigurationManager.AddSource(IConfigurationSource source)
+[xUnit.net 00:00:23.72]            at Microsoft.Extensions.Configuration.ConfigurationManager.Microsoft.Extensions.Configuration.IConfigurationBuilder.Add(IConfigurationSource source)
+[xUnit.net 00:00:23.72]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.ApplyDefaultAppConfigurationSlim(IHostEnvironment env, ConfigurationManager configuration, String[] args)
+[xUnit.net 00:00:23.72]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Boolean slim, Action`1 configureDefaults)
+[xUnit.net 00:00:23.72]            at Microsoft.AspNetCore.Builder.WebApplication.CreateSlimBuilder()
+[xUnit.net 00:00:23.73]         /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/ShoutOriginEndpointTests.cs(70,0): at Dit.HumanBehavior.Neuronetwork.Tests.ShoutOriginEndpointTests.Fake_shout_returns_same_group_tag_as_log_but_no_native_or_model_attribution(String game)
+[xUnit.net 00:00:23.73]         --- End of stack trace from previous location ---
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Shared_client_group_history_survives_authenticated_http_and_prompt_building(game: "swtor", turns: 32) [1 s]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Shared_client_group_history_survives_authenticated_http_and_prompt_building(game: "ffxi", turns: 32) [695 ms]
+  Failed Dit.HumanBehavior.Neuronetwork.Tests.ShoutOriginEndpointTests.Fake_shout_returns_same_group_tag_as_log_but_no_native_or_model_attribution(game: "ffxi") [98 ms]
+  Error Message:
+   System.IO.IOException : The configured user limit (128) on the number of inotify instances has been reached, or the per-process limit on the number of open file descriptors has been reached.
+  Stack Trace:
+     at System.IO.FileSystemWatcher.StartRaisingEvents()
+   at Microsoft.Extensions.FileProviders.Physical.PhysicalFilesWatcher.TryEnableFileSystemWatcher()
+   at Microsoft.Extensions.FileProviders.Physical.PhysicalFilesWatcher.CreateFileChangeToken(String filter)
+   at Microsoft.Extensions.Primitives.ChangeToken.ChangeTokenRegistration`1..ctor(Func`1 changeTokenProducer, Action`1 changeTokenConsumer, TState state)
+   at Microsoft.Extensions.Primitives.ChangeToken.OnChange(Func`1 changeTokenProducer, Action changeTokenConsumer)
+   at Microsoft.Extensions.Configuration.FileConfigurationProvider..ctor(FileConfigurationSource source)
+   at Microsoft.Extensions.Configuration.Json.JsonConfigurationSource.Build(IConfigurationBuilder builder)
+   at Microsoft.Extensions.Configuration.ConfigurationManager.AddSource(IConfigurationSource source)
+   at Microsoft.Extensions.Configuration.ConfigurationManager.Microsoft.Extensions.Configuration.IConfigurationBuilder.Add(IConfigurationSource source)
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.ApplyDefaultAppConfigurationSlim(IHostEnvironment env, ConfigurationManager configuration, String[] args)
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Boolean slim, Action`1 configureDefaults)
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateSlimBuilder()
+   at Dit.HumanBehavior.Neuronetwork.Tests.ShoutOriginEndpointTests.Fake_shout_returns_same_group_tag_as_log_but_no_native_or_model_attribution(String game) in /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/ShoutOriginEndpointTests.cs:line 70
+--- End of stack trace from previous location ---
+  Failed Dit.HumanBehavior.Neuronetwork.Tests.ShoutOriginEndpointTests.Fake_shout_returns_same_group_tag_as_log_but_no_native_or_model_attribution(game: "ffxi_forever") [60 ms]
+  Error Message:
+   System.IO.IOException : The configured user limit (128) on the number of inotify instances has been reached, or the per-process limit on the number of open file descriptors has been reached.
+  Stack Trace:
+     at System.IO.FileSystemWatcher.StartRaisingEvents()
+   at Microsoft.Extensions.FileProviders.Physical.PhysicalFilesWatcher.TryEnableFileSystemWatcher()
+   at Microsoft.Extensions.FileProviders.Physical.PhysicalFilesWatcher.CreateFileChangeToken(String filter)
+   at Microsoft.Extensions.Primitives.ChangeToken.ChangeTokenRegistration`1..ctor(Func`1 changeTokenProducer, Action`1 changeTokenConsumer, TState state)
+   at Microsoft.Extensions.Primitives.ChangeToken.OnChange(Func`1 changeTokenProducer, Action changeTokenConsumer)
+   at Microsoft.Extensions.Configuration.FileConfigurationProvider..ctor(FileConfigurationSource source)
+   at Microsoft.Extensions.Configuration.Json.JsonConfigurationSource.Build(IConfigurationBuilder builder)
+   at Microsoft.Extensions.Configuration.ConfigurationManager.AddSource(IConfigurationSource source)
+   at Microsoft.Extensions.Configuration.ConfigurationManager.Microsoft.Extensions.Configuration.IConfigurationBuilder.Add(IConfigurationSource source)
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.ApplyDefaultAppConfigurationSlim(IHostEnvironment env, ConfigurationManager configuration, String[] args)
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Boolean slim, Action`1 configureDefaults)
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateSlimBuilder()
+   at Dit.HumanBehavior.Neuronetwork.Tests.ShoutOriginEndpointTests.Fake_shout_returns_same_group_tag_as_log_but_no_native_or_model_attribution(String game) in /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/ShoutOriginEndpointTests.cs:line 70
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:23.89]   Finished:    Dit.HumanBehavior.Neuronetwork.Tests
+
+Test Run Failed.
+Total tests: 22
+     Passed: 19
+     Failed: 3
+ Total time: 35.0429 Seconds
+EXIT 1
+Finished 2026-11-08T03:49:02.473923+00:00

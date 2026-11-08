@@ -1,0 +1,38 @@
+Source a315564614bc14853e00ea45d8c650ff68021e2a; started 2026-11-08T03:54:44.266151+00:00
+Tests rebuilt; verified runtime artifacts reused unchanged.
+COMMAND ["timeout", "--kill-after=5s", "600", "nice", "-n", "19", "ionice", "-c", "2", "-n", "7", "/usr/bin/dotnet", "test", "tests/Dit.HumanBehavior.Neuronetwork.Tests/Dit.HumanBehavior.Neuronetwork.Tests.csproj", "--no-restore", "-m:1", "-p:BuildProjectReferences=false", "-p:BuildInParallel=false", "-p:UseSharedCompilation=false", "--filter", "FullyQualifiedName~ConversationStatusIngressTests|FullyQualifiedName~ShoutOriginEndpointTests", "--logger", "console;verbosity=normal"]
+  Dit.HumanBehavior.Neuronetwork.Tests -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Tests.dll
+Test run for /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Tests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.2 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.01] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 10.0.14)
+[xUnit.net 00:00:00.38]   Discovering: Dit.HumanBehavior.Neuronetwork.Tests
+[xUnit.net 00:00:01.37]   Discovered:  Dit.HumanBehavior.Neuronetwork.Tests
+[xUnit.net 00:00:01.39]   Starting:    Dit.HumanBehavior.Neuronetwork.Tests
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ShoutOriginEndpointTests.Fake_shout_returns_same_group_tag_as_log_but_no_native_or_model_attribution(game: "ffxi") [2 s]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ShoutOriginEndpointTests.Fake_shout_returns_same_group_tag_as_log_but_no_native_or_model_attribution(game: "ffxi_forever") [698 ms]
+companion chat warm-up Succeeded in 0.0 s (facts 0.0 s: catalog 0.0 s, 0 research 0.0 s, synthetic-provider)
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Shared_client_group_history_survives_authenticated_http_and_prompt_building(game: "ffxi", turns: 12) [794 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Shared_client_group_history_survives_authenticated_http_and_prompt_building(game: "swtor", turns: 12) [316 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Shared_client_group_history_survives_authenticated_http_and_prompt_building(game: "swtor", turns: 32) [357 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Shared_client_group_history_survives_authenticated_http_and_prompt_building(game: "ffxi", turns: 32) [328 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Only_authenticated_owning_adapter_supplies_native_caller(route: "event", adapter: True) [360 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Only_authenticated_owning_adapter_supplies_native_caller(route: "group", adapter: False) [325 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Only_authenticated_owning_adapter_supplies_native_caller(route: "reply", adapter: True) [866 ms]
+companion chat warm-up Succeeded in 0.0 s (facts 0.0 s: catalog 0.0 s, 0 research 0.0 s, synthetic-provider)
+companion chat warm-up Unavailable in 0.0 s (facts 0.0 s: catalog 0.0 s, 0 research 0.0 s, offline-status-ingress)
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Only_authenticated_owning_adapter_supplies_native_caller(route: "reply", adapter: False) [279 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Only_authenticated_owning_adapter_supplies_native_caller(route: "event", adapter: False) [352 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Only_authenticated_owning_adapter_supplies_native_caller(route: "group", adapter: True) [315 ms]
+[xUnit.net 00:00:10.51]   Finished:    Dit.HumanBehavior.Neuronetwork.Tests
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Denied_callers_and_disabled_status_do_not_read_status [760 ms]
+
+Test Run Successful.
+Total tests: 13
+     Passed: 13
+ Total time: 12.4389 Seconds
+
+EXIT 0
+Finished 2026-11-08T03:56:40.223894+00:00

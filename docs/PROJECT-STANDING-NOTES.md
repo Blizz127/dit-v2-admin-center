@@ -83,18 +83,24 @@ quality. Native browser checks remain NOT RUN, not policy-paused.
 
 Latest completed local work:
 
-- The direct owner swarm reused `/root/native_boundary_review` for bounded
-  event/heard-path work while root consolidated source integration. The
-  [swarm handoff](../handoffs/swarm-speech-memory-20261108/README.md) replaces
-  multi-patch assembly with one reference patch for hub 6a0121d6, plus a
-  clearly separate pending increment. New isolated source `efbbf699` extends
-  prepared-speech memory isolation to ordinary event and heard-line paths;
-  eight new cases are written but NOT RUN. No build started: the 03:20:28Z
-  sample showed 0.4% idle CPU and CPU pressure avg10 34.97%. Next action is
-  the handoff's bounded 16-case filter when fresh capacity permits. No
-  background wait, duplicate worker/build or retired admission lock is used.
-  The previously verified 59ab778a reference remains independently available
-  to the existing hub integrator; the new pending increment is not its gate.
+- The [current-hub verification handoff](../handoffs/speech-memory-verified-20261108/README.md)
+  supplies one replacement source patch on hub `6a0121d6`. Candidate `a3155646`
+  includes all three prepared-speech memory fixes and preserves the hub's newer
+  diagnostics. The changed runtime/library and Hub built; 16 memory/status
+  cases passed, followed by 13/13 authenticated localhost HTTP checks at
+  03:56:40Z on 2026-11-08. Runtime DLL hashes match across the Hub and tests;
+  unchanged dependency outputs were reused, not rebuilt from scratch.
+  The first HTTP run had three failures (warmup counted as conversation, and
+  shared inotify exhaustion); test-only fixes isolated warmup and disabled
+  unnecessary fixture config watching. An intermediate xUnit analyzer failure
+  is also retained. No host limits or production config were changed.
+  This supersedes the swarm handoff's NOT RUN status and scattered source
+  intake. Root reused `/root/native_boundary_review` for the event/heard fixes
+  and one bounded ingress-test follow-up; that worker is completed. All bounded
+  jobs are finished. No new worker, duplicate publisher, full suite or retired
+  admission lock was used. Next action is publication through the existing hub
+  integrator/publisher, with its actual player/data/native-permission safeguards;
+  there is no routine acknowledgement gate and no runtime deployment receipt.
 - Policy resume and private owner-preview release are recorded in the
   [2026-11-08 handoff](../handoffs/release-resume-20261108/README.md).
   Admin `4fa9e59` was delivered to Alienware at 00:44:20Z with six file hashes
@@ -104,8 +110,8 @@ Latest completed local work:
   checks passed at 02:53:27Z on 2026-11-08 under fresh CPU/memory/swap/I/O sizing;
   see the [verification handoff](../handoffs/prepared-memory-verification-20261108/README.md).
   This supersedes the earlier fixed-load guard refusal. No job is pending.
-  Next action is integration and brief startup smoke through the existing hub
-  owner/publisher. These are local Debug artifacts, not a deployed version;
+  This reference is included in the current-hub candidate above. These are
+  local Debug artifacts, not a deployed version;
   the separate e55 delivery fixtures were not repinned or relabeled.
 - Admin `387104a` packages the wording serialization compatibility addendum;
   isolated source `e55c7dc7` passed 18 focused checks. Its

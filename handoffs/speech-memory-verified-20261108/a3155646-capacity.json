@@ -1,0 +1,17 @@
+{
+  "sampledAt": "2026-11-08T03:54:44.265477+00:00",
+  "load": [
+    126.6884765625,
+    160.7783203125,
+    130.07275390625
+  ],
+  "memory": {
+    "MemAvailable": "115592772 kB",
+    "SwapFree": "73945340 kB"
+  },
+  "pressure": {
+    "cpu": "some avg10=28.90 avg60=41.49 avg300=52.01 total=75480606889\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "memory": "some avg10=0.04 avg60=0.27 avg300=0.61 total=970583787\nfull avg10=0.04 avg60=0.23 avg300=0.36 total=758175709",
+    "io": "some avg10=3.53 avg60=2.84 avg300=2.91 total=6590686406\nfull avg10=0.14 avg60=0.13 avg300=0.08 total=3763847914"
+  }
+}

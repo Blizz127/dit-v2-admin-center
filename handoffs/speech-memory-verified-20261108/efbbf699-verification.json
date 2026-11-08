@@ -1,0 +1,40 @@
+{
+  "sourceRevision": "efbbf699735e99f09c09af7348db224ee09d7c5d",
+  "startedAt": "2026-11-08T03:36:56.012170+00:00",
+  "finishedAt": "2026-11-08T03:38:12.223031+00:00",
+  "buildExit": 0,
+  "passed": 16,
+  "failed": 0,
+  "skipped": 0,
+  "scope": "Changed Neuronetwork library and tests rebuilt; unchanged referenced projects reused from verified59ab778a",
+  "limits": {
+    "logicalProcessors": 1,
+    "msbuildNodes": 1,
+    "nice": 19,
+    "ioClass": 2,
+    "ioPriority": 7,
+    "gcGiB": 6,
+    "overallDeadlineSeconds": 600,
+    "restore": false,
+    "buildProjectReferences": false
+  },
+  "artifacts": {
+    "src/Dit.HumanBehavior.Neuronetwork/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.dll": {
+      "sha256": "273db7fda278723b5696302e3dbc07c679cfe4ec5d03a4ce08df5eb07b303693",
+      "bytes": 4813312
+    },
+    "tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.dll": {
+      "sha256": "273db7fda278723b5696302e3dbc07c679cfe4ec5d03a4ce08df5eb07b303693",
+      "bytes": 4813312
+    },
+    "tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Tests.dll": {
+      "sha256": "a4a0df807b4dca0b4158d4328d49b7771860d3e7e3f04e4a9b497e228b8a6a8c",
+      "bytes": 3380224
+    }
+  },
+  "testRuntimeCopyMatchesRebuiltLibrary": true,
+  "hubHttpStartupChecked": false,
+  "deployed": false,
+  "nativeDeliveryVerified": false,
+  "fixtureExportsRepinned": false
+}
