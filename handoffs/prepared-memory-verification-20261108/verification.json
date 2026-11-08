@@ -1,0 +1,50 @@
+{
+  "schema": "dit.prepared-memory-verification.v1",
+  "sourceRevision": "59ab778a2c424762e4064ac42b38730b227250cf",
+  "sourceClean": true,
+  "startedAt": "2026-11-08T02:49:18.633510+00:00",
+  "finishedAt": "2026-11-08T02:53:27.748955+00:00",
+  "buildExit": 0,
+  "focusedPassed": 8,
+  "focusedFailed": 0,
+  "focusedSkipped": 0,
+  "cases": [
+    "FFXI/SWTOR prepared-memory isolation with context selected/unselected (4)",
+    "FFXI/SWTOR synthetic candidate output with fresh/expired status (4)"
+  ],
+  "resourcePolicy": "fresh CPU/memory/swap/I/O sizing; no retired temporary-heavy.lock admission",
+  "limits": {
+    "logicalProcessors": 2,
+    "msbuildNodes": 1,
+    "gcLimitGiB": 8,
+    "timeoutSeconds": 300,
+    "nice": 10,
+    "ioClass": 2,
+    "ioPriority": 7,
+    "restore": false
+  },
+  "artifacts": {
+    "src/Dit.HumanBehavior.Neuronetwork/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.dll": {
+      "sha256": "82a397a093977a88170b2128afa90e616feb48121bc670f647bc727abba04074",
+      "bytes": 4813312
+    },
+    "src/Dit.HumanBehavior.Neuronetwork.Hub/bin/Debug/net10.0/dit-neuronetwork.dll": {
+      "sha256": "e3476820d98813b5a4655023138046240ab4aadf0bc8a2fa43f8fddb6c459505",
+      "bytes": 2223104
+    },
+    "src/Dit.HumanBehavior.Neuronetwork.Client/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Client.dll": {
+      "sha256": "4ad8b3aa20f8b0d9c510ffc5b58db41fcfcbe26d2a308b2d8af1af492f88a7aa",
+      "bytes": 122368
+    },
+    "tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Tests.dll": {
+      "sha256": "7bed6612ab9f5481dcc419e374678bbcce30c132d611ca6473b838e2c91c4e16",
+      "bytes": 3367936
+    }
+  },
+  "artifactKind": "local Debug build; not a published/deployed package",
+  "nativeGameChecked": false,
+  "nativeBrowserChecked": false,
+  "liveModelCalled": false,
+  "hubHttpStartupChecked": false,
+  "candidateDeliveryFixturesRepinned": false
+}

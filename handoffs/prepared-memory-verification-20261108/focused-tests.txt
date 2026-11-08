@@ -1,0 +1,50 @@
+Started: 2026-11-08T02:49:18.633510+00:00
+Source: 59ab778a2c424762e4064ac42b38730b227250cf
+Fresh metrics: {"observedAt": "2026-11-08T02:48:51.397356+00:00", "cpus": 48, "load1": 41.68, "cpuIdlePct": 17.4, "cpuIoWaitPct": 8.2, "memAvailableGiB": 152.6, "swapPagesIn2s": 396, "swapPagesOut2s": 0, "pressureAvg10": {"cpuSome": 12.79, "memorySome": 0.64, "ioSome": 20.04, "ioFull": 12.49}}
+Command: ['timeout', '--kill-after=10s', '300s', 'nice', '-n', '10', 'ionice', '-c', '2', '-n', '7', '/usr/bin/dotnet', 'test', 'tests/Dit.HumanBehavior.Neuronetwork.Tests/Dit.HumanBehavior.Neuronetwork.Tests.csproj', '--no-restore', '-m:1', '-p:UseSharedCompilation=false', '-p:BuildInParallel=false', '--filter', 'FullyQualifiedName~PreparedReplyMemoryTests|FullyQualifiedName~CandidateDeliveryFixtureTests', '--logger', 'console;verbosity=normal']
+Synthetic inputs only; DIT_ environment cleared; no export requested; CPU count2, one MSBuild node, GC cap8GiB.
+  Dit.HumanBehavior.Contracts -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.Contracts/bin/Debug/net10.0/Dit.HumanBehavior.Contracts.dll
+  Dit.HumanBehavior.BehaviorPlanning -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.BehaviorPlanning/bin/Debug/net10.0/Dit.HumanBehavior.BehaviorPlanning.dll
+  Dit.HumanBehavior.ObservationBridge -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.ObservationBridge/bin/Debug/net10.0/Dit.HumanBehavior.ObservationBridge.dll
+  Dit.HumanBehavior.AiSpend -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.AiSpend/bin/Debug/net10.0/Dit.HumanBehavior.AiSpend.dll
+  Dit.HumanBehavior.WowRotationAuthoring -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.WowRotationAuthoring/bin/Debug/net10.0/Dit.HumanBehavior.WowRotationAuthoring.dll
+  Dit.HumanBehavior.WowWotlkLearning -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.WowWotlkLearning/bin/Debug/net10.0/Dit.HumanBehavior.WowWotlkLearning.dll
+  Dit.HumanBehavior.PolicyAuthoring.OpenAiCompatible -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.PolicyAuthoring.OpenAiCompatible/bin/Debug/net10.0/Dit.HumanBehavior.PolicyAuthoring.OpenAiCompatible.dll
+  Dit.HumanBehavior.ExecutionTransport -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.ExecutionTransport/bin/Debug/net10.0/Dit.HumanBehavior.ExecutionTransport.dll
+  Dit.HumanBehavior.DialogueWording -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.DialogueWording/bin/Debug/net10.0/Dit.HumanBehavior.DialogueWording.dll
+  Dit.HumanBehavior.DialogueWording.DeepSeek -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.DialogueWording.DeepSeek/bin/Debug/net10.0/Dit.HumanBehavior.DialogueWording.DeepSeek.dll
+  Dit.HumanBehavior.WowWotlkAdapter -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.WowWotlkAdapter/bin/Debug/net10.0/Dit.HumanBehavior.WowWotlkAdapter.dll
+  Dit.HumanBehavior.EarthAndBeyondAdapter -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.EarthAndBeyondAdapter/bin/Debug/net10.0/Dit.HumanBehavior.EarthAndBeyondAdapter.dll
+  Dit.HumanBehavior.FfxiWordingExecution -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.FfxiWordingExecution/bin/Debug/net10.0/Dit.HumanBehavior.FfxiWordingExecution.dll
+  Dit.HumanBehavior.FfxiContextualChatter -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.FfxiContextualChatter/bin/Debug/net10.0/Dit.HumanBehavior.FfxiContextualChatter.dll
+  Dit.HumanBehavior.MarvelHeroesAdapter -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.MarvelHeroesAdapter/bin/Debug/net10.0/Dit.HumanBehavior.MarvelHeroesAdapter.dll
+  Dit.HumanBehavior.Neuronetwork -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.Neuronetwork/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.dll
+  Dit.HumanBehavior.Neuronetwork.Hub -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.Neuronetwork.Hub/bin/Debug/net10.0/dit-neuronetwork.dll
+  Dit.HumanBehavior.Neuronetwork.Client -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.Neuronetwork.Client/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Client.dll
+  Dit.HumanBehavior.Neuronetwork.Tests -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Tests.dll
+Test run for /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Tests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.2 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 10.0.14)
+[xUnit.net 00:00:00.37]   Discovering: Dit.HumanBehavior.Neuronetwork.Tests
+[xUnit.net 00:00:01.18]   Discovered:  Dit.HumanBehavior.Neuronetwork.Tests
+[xUnit.net 00:00:01.20]   Starting:    Dit.HumanBehavior.Neuronetwork.Tests
+[xUnit.net 00:00:02.41]   Finished:    Dit.HumanBehavior.Neuronetwork.Tests
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedReplyMemoryTests.Prepared_reply_is_not_spoken_memory_in_structured_context(game: "ffxi", selected: False) [995 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.CandidateDeliveryFixtureTests.Candidate_output_and_final_status_check_bound_the_synthetic_publication(game: "ffxi", expire: False) [995 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.CandidateDeliveryFixtureTests.Candidate_output_and_final_status_check_bound_the_synthetic_publication(game: "ffxi", expire: True) [19 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.CandidateDeliveryFixtureTests.Candidate_output_and_final_status_check_bound_the_synthetic_publication(game: "swtor", expire: True) [10 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedReplyMemoryTests.Prepared_reply_is_not_spoken_memory_in_structured_context(game: "swtor", selected: False) [32 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.CandidateDeliveryFixtureTests.Candidate_output_and_final_status_check_bound_the_synthetic_publication(game: "swtor", expire: False) [23 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedReplyMemoryTests.Prepared_reply_is_not_spoken_memory_in_structured_context(game: "swtor", selected: True) [38 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedReplyMemoryTests.Prepared_reply_is_not_spoken_memory_in_structured_context(game: "ffxi", selected: True) [26 ms]
+
+Test Run Successful.
+Total tests: 8
+     Passed: 8
+ Total time: 3.7017 Seconds
+
+Finished: 2026-11-08T02:53:27.748955+00:00
+Exit: 0

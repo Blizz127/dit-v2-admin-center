@@ -50,8 +50,11 @@ not prove that subsequent live prompts contain only delivered speech.
 The newer isolated source candidate `59ab778a` addresses a separate prepared-
 speech memory leak: the selected structured group path no longer calls
 `CompanionSaid` or outgoing `Pairs.Said` before delivery. Its
-[handoff](../handoffs/release-resume-20261108/README.md) records four new regression
-cases, with build/tests NOT RUN because the capacity guard refused startup.
+[source handoff](../handoffs/release-resume-20261108/README.md) records the patch
+and initial resource refusal. A later
+[verification receipt](../handoffs/prepared-memory-verification-20261108/README.md)
+records a successful incremental build and eight focused tests, including all
+four new memory cases, under the owner's fresh-resource sizing policy.
 This harness's captures and successful test evidence still pin `e55c7dc7`;
 they have not been regenerated or promoted to evidence for that newer source.
 

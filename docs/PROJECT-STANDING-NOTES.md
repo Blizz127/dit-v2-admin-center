@@ -16,11 +16,15 @@ brief startup/crash smoke; broader suites are very low priority. If unable,
 report the concrete technical, safety, native-approval or no-new-artifact reason
 and the next useful action. This lane installs no release-watch routine.
 
-The shared heavy-work budget remains a capacity constraint, not a project pause.
-The one allocated inference-only worker can review an independent current task;
-do not add compiler/test fanout. Keep the existing sole integrators and
-publishers. Do not restart servers riskily, kill jobs, switch agents/models,
-answer native approval prompts, or create new public/private access.
+The owner's 2026-11-08 resource update retires the shared
+`temporary-heavy.lock` admission budget. Size already-authorized builds to
+fresh CPU, available memory, swap activity and I/O pressure; do not retain the
+old fixed load threshold as a replacement pause. Keep real correctness and
+serialization locks. Use bounded jobs and avoid duplicate builds or compiler
+fanout. The existing inference-only worker allocation does not change sole
+integrator/publisher ownership. Do not restart servers riskily, kill jobs,
+switch agents/models, answer native approval prompts, or create new
+public/private access.
 
 Do not hold a turn open sleeping or polling another lane. Check once, report
 status to the coordinator, then continue independent work or end the turn.
@@ -84,12 +88,13 @@ Latest completed local work:
   Admin `4fa9e59` was delivered to Alienware at 00:44:20Z with six file hashes
   verified; this is an offline preview, not a server/game-client deployment.
 - Isolated source `59ab778a` prevents unconfirmed structured group replies from
-  entering spoken memories/pair turns. Four focused regression cases are
-  written, but build/tests are NOT RUN: the single-job capacity guard refused
-  startup at load 64.67 against maximum 40. No job is pending. Next action is
-  the focused test filter in that handoff when capacity permits, followed by
-  integration through the existing hub owner. Do not relabel e55 fixture/test
-  evidence as a result for this newer source.
+  entering spoken memories/pair turns. Its incremental build and eight focused
+  checks passed at 02:53:27Z on 2026-11-08 under fresh CPU/memory/swap/I/O sizing;
+  see the [verification handoff](../handoffs/prepared-memory-verification-20261108/README.md).
+  This supersedes the earlier fixed-load guard refusal. No job is pending.
+  Next action is integration and brief startup smoke through the existing hub
+  owner/publisher. These are local Debug artifacts, not a deployed version;
+  the separate e55 delivery fixtures were not repinned or relabeled.
 - Admin `387104a` packages the wording serialization compatibility addendum;
   isolated source `e55c7dc7` passed 18 focused checks. Its
   [handoff](../handoffs/wording-wire-compat-20261105/README.md) records the earlier
