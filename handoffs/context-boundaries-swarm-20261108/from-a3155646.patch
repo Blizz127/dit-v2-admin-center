@@ -1,0 +1,938 @@
+diff --git a/src/Dit.HumanBehavior.Neuronetwork.Client/NeuronetConversationWordingProvider.cs b/src/Dit.HumanBehavior.Neuronetwork.Client/NeuronetConversationWordingProvider.cs
+index 0abcb540c47df78264fa2c470365d8877c485ce4..0ea02b3904a31899cf0b59dd35fed88c2ccb8963 100644
+--- a/src/Dit.HumanBehavior.Neuronetwork.Client/NeuronetConversationWordingProvider.cs
++++ b/src/Dit.HumanBehavior.Neuronetwork.Client/NeuronetConversationWordingProvider.cs
+@@ -58,6 +58,8 @@ public sealed class NeuronetConversationWordingProvider(IDialogueWordingProvider
+                     var (status, answer) = await hub.GroupAsync(group, cancellationToken).ConfigureAwait(false);
+                     if (status is not (400 or 404))
+                     {
++                        if (context is not null && answer is not null && !MatchesGroup(request, answer))
++                            return Mismatched(request);
+                         ReportGroup(request, line, answer, null);
+                         return answer is null ? Silent(request, "hub_unreachable") : AnswerGroup(request, answer);
+                     }
+@@ -69,12 +71,23 @@ public sealed class NeuronetConversationWordingProvider(IDialogueWordingProvider
+                     var shadowTask = hub.GroupAsync(group, cancellationToken);
+                     var spoken = await hub.ReplyAsync(heard, cancellationToken).ConfigureAwait(false);
+                     var (_, shadow) = await shadowTask.ConfigureAwait(false);
+-                    ReportGroup(request, line, shadow, spoken);
++                    var rejectedShadow = false;
++                    if (context is not null)
++                    {
++                        if (spoken is not null && !MatchesReply(request, spoken)) return Mismatched(request);
++                        if (shadow is not null && !MatchesGroup(request, shadow))
++                        {
++                            ReportMismatch(request, "group shadow");
++                            rejectedShadow = true;
++                        }
++                    }
++                    if (!rejectedShadow) ReportGroup(request, line, shadow, spoken);
+                     if (spoken is null) { HubSilences++; return Quiet(request, "hub_unreachable", "hub"); }
+                     return Answer(request, spoken);
+                 }
+             }
+             var only = await hub.ReplyAsync(heard, cancellationToken).ConfigureAwait(false);
++            if (context is not null && only is not null && !MatchesReply(request, only)) return Mismatched(request);
+             Report(request, line, only, null);
+             if (only is null) { HubSilences++; return Quiet(request, "hub_unreachable", "hub"); }
+             return Answer(request, only);
+@@ -85,11 +98,17 @@ public sealed class NeuronetConversationWordingProvider(IDialogueWordingProvider
+         {
+             var local = await inner.GenerateAsync(request, cancellationToken).ConfigureAwait(false);
+             var shadow = await hubTask.ConfigureAwait(false);
++            if (context is not null && shadow is not null && !MatchesReply(request, shadow))
++            {
++                ReportMismatch(request, "reply shadow");
++                return local;
++            }
+             Report(request, line, shadow, local.CandidateText);
+             return local;
+         }
+         var reply = await hubTask.ConfigureAwait(false);
+         if (reply is null) return await inner.GenerateAsync(request, cancellationToken).ConfigureAwait(false);
++        if (context is not null && !MatchesReply(request, reply)) return Mismatched(request);
+         Report(request, line, reply, null);
+         return Answer(request, reply);
+     }
+@@ -105,6 +124,32 @@ public sealed class NeuronetConversationWordingProvider(IDialogueWordingProvider
+ 
+     private DialogueWordingResult Silent(DialogueWordingRequest request, string why) { HubSilences++; return Quiet(request, why, "hub"); }
+ 
++    // A prepared response belongs to one request and actor. The selected context
++    // path must not promote stale or ambiguous responses into that bot's wording.
++    private static bool MatchesLine(DialogueWordingRequest request, string? lineId) =>
++        string.Equals(lineId, string.IsNullOrWhiteSpace(request.CorrelationId) ? request.RequestId : request.CorrelationId, StringComparison.Ordinal);
++
++    private static bool MatchesReply(DialogueWordingRequest request, NeuronetConversationClient.Reply reply) =>
++        MatchesLine(request, reply.LineId) && reply.Decisions is not null && reply.Decisions.Count <= 1 &&
++        reply.Decisions.All(d => d is not null && string.Equals(d.ActorKey, request.Actor.ActorKey, StringComparison.Ordinal));
++
++    private static bool MatchesGroup(DialogueWordingRequest request, NeuronetConversationClient.GroupReply reply) =>
++        MatchesLine(request, reply.LineId) && reply.Decisions is not null && reply.Decisions.All(d => d is not null) &&
++        // ActorRef keys are already normalized. Reject case aliases before the
++        // legacy group selectors can mistake one for this exact actor.
++        reply.Decisions.All(d => !string.Equals(d.ActorKey, request.Actor.ActorKey, StringComparison.OrdinalIgnoreCase) ||
++            string.Equals(d.ActorKey, request.Actor.ActorKey, StringComparison.Ordinal)) &&
++        reply.Decisions.Count(d => string.Equals(d.ActorKey, request.Actor.ActorKey, StringComparison.Ordinal)) <= 1;
++
++    private void ReportMismatch(DialogueWordingRequest request, string path) =>
++        report?.Invoke($"hub-context {request.Game.GameId}: {path} response scope mismatch; wording withheld");
++
++    private DialogueWordingResult Mismatched(DialogueWordingRequest request)
++    {
++        ReportMismatch(request, "conversation");
++        return Silent(request, "hub_response_mismatch");
++    }
++
+     private DialogueWordingResult AnswerGroup(DialogueWordingRequest request, NeuronetConversationClient.GroupReply reply)
+     {
+         var mine = reply.Decisions.FirstOrDefault(d => string.Equals(d.ActorKey, request.Actor.ActorKey, StringComparison.OrdinalIgnoreCase));
+@@ -177,6 +222,8 @@ public sealed class NeuronetConversationWordingProvider(IDialogueWordingProvider
+         var reply = await hub.EventAsync(new NeuronetConversationClient.Event(request.Game.GameId, serverInstanceId, bot, kind, Clamp(detail, 300),
+             request.Channel, LivePlace(Fact("current_place") ?? Fact("location")), near, history, Math.Clamp(request.MaximumOutputCharacters, 20, 400),
+             request.RequestedAtUtc), cancellationToken).ConfigureAwait(false);
++        if (context is not null && reply is not null && !string.Equals(reply.ActorKey, request.Actor.ActorKey, StringComparison.Ordinal))
++            return Mismatched(request);
+         report?.Invoke($"hub-only event {request.Actor.DisplayName} {kind}: " + (reply is null ? "(hub unreachable)" : reply.Text is null ? "(quiet: " + reply.Note + ")" : "say \"" + reply.Text + "\""));
+         if (string.IsNullOrWhiteSpace(reply?.Text)) { HubSilences++; return Quiet(request, reply is null ? "hub_unreachable" : "silence", "hub"); }
+         HubAnswers++;
+diff --git a/src/Dit.HumanBehavior.Neuronetwork/Conversation/Arbitration/GroupChat.cs b/src/Dit.HumanBehavior.Neuronetwork/Conversation/Arbitration/GroupChat.cs
+index 382ac08a7a986fe31b8a00b35f522b29989554bb..43ad4620a0a5d091ee28a36ab3df789cbe02d63b 100644
+--- a/src/Dit.HumanBehavior.Neuronetwork/Conversation/Arbitration/GroupChat.cs
++++ b/src/Dit.HumanBehavior.Neuronetwork/Conversation/Arbitration/GroupChat.cs
+@@ -552,7 +552,7 @@ public sealed class GroupChat(ConversationService conversation, TimeProvider? ti
+             return new(line.LineId, Mode(line), [], [$"{pick.Primary} has no live facts of its own right now - refused rather than risk an invented claim"]);
+         notes.Add($"{pick.Primary} answers ({pick.Reason})" + (pick.Chime is null ? "" : $", {pick.Chime} chimes in"));
+         // TR quest leading: his stop, his yes to an offer, or "take me to X" with a real target is answered by the lead itself.
+-        if (conversation.TrGuide is { } guide && line.Speaker.IsOwner && Lead(guide, line, pick.Primary, now, notes) is { } lead)
++        if (line.GameId == Games.TabulaRasa.TrLeadExecutor.Game && conversation.TrGuide is { } guide && line.Speaker.IsOwner && Lead(guide, line, pick.Primary, now, notes) is { } lead)
+         {
+             if (!line.Shadow) conversation.Pairs.Said(line.GameId, lead.DisplayName, speaker, lead.DisplayName, lead.Text!, now);
+             RecordClaim(line, lead, now, AdmittedOf, CurrentOf);
+@@ -577,7 +577,7 @@ public sealed class GroupChat(ConversationService conversation, TimeProvider? ti
+             primary = await AnswerAsync(line, Hearer(line, next), false, liveFactsExpected, now, cancellationToken, knowledgeNote, interaction, contractOn).ConfigureAwait(false);
+         }
+         // His squadmate offered to lead ("want me to show you?") and can: the offer waits for his yes (two minutes).
+-        if (conversation.TrGuide is { } offering && line.Speaker.IsOwner && primary.Text is not null && !line.Shadow && Games.TabulaRasa.TrLeadExecutor.IsLeadOffer(primary.Text)
++        if (line.GameId == Games.TabulaRasa.TrLeadExecutor.Game && conversation.TrGuide is { } offering && line.Speaker.IsOwner && primary.Text is not null && !line.Shadow && Games.TabulaRasa.TrLeadExecutor.IsLeadOffer(primary.Text)
+             && offering.Executor.ResolveTarget(line.Text + " " + primary.Text, "tr") is { } offerTarget
+             && offering.CannotOffer(Actor(Hearer(line, primary.DisplayName)), OwnerActor(speaker)) is null)
+         {
+@@ -767,7 +767,7 @@ public sealed class GroupChat(ConversationService conversation, TimeProvider? ti
+         }
+         // What this game's bots cannot do, they do not promise (the companion refusal knows no game).
+         // TR with quest leading on: an offer to lead is kept (FollowThrough) when this bot can lead now, so it may be said.
+-        var canLead = conversation.TrGuide is { } g && line.Speaker.IsOwner && g.CannotOffer(Actor(hearer), OwnerActor(speaker)) is null;
++        var canLead = line.GameId == Games.TabulaRasa.TrLeadExecutor.Game && conversation.TrGuide is { } g && line.Speaker.IsOwner && g.CannotOffer(Actor(hearer), OwnerActor(speaker)) is null;
+         if (text is not null && GroundingContract.Unkeepable(line.GameId, text) is { } intent && !(canLead && intent == "lead")) { note = $"unkeepable promise ({intent}): \"{ConversationContext.Clamp(text, 80)}\""; text = null; }
+         var channel = line.Private ? "tell" : line.Channel;
+         if (text is null)
+diff --git a/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.Companion.cs b/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.Companion.cs
+index cd471ed576c5b02f349848291034e31e3bae2061..582f4df8298df67736e476aae0c92b582de8f804 100644
+--- a/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.Companion.cs
++++ b/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.Companion.cs
+@@ -221,7 +221,7 @@ public sealed partial class ConversationService
+         // the list fact of every place is the exception, or it would allow them all.
+         var allowedPlaces = string.Join(" | ", allFacts.Where(f => f.Key != "place_continents").Select(f => f.Value).Append(line.Text).Append(line.Place).Concat(line.History)); // the bot's own place is always its to say
+         string? refused = null;
+-        (string Text, string? Place, string? Direction, string Note)? lastPlaceDraft = null;
++        (string Text, string? Place, string? Direction, string Note, DialogueWordingRequest Request)? lastPlaceDraft = null;
+         var repeats = new List<string>();
+         // The owner and a tell are never left unanswered for repeating: a third try names every line not to say again.
+         var mustAnswer = line.SpeakerIsOwner || line.Private || line.Guarantee;
+@@ -280,7 +280,7 @@ public sealed partial class ConversationService
+             if (gameFacts.Count > 0 && CompanionChat.UnknownPlaceName(text, knownPlaces, allowedPlaces) is { } place)
+             {
+                 refused = "names a place (" + place + ") no fact gives; leave " + place + " out entirely: \"" + ConversationContext.Clamp(text, 100) + "\"";
+-                lastPlaceDraft = (text, place, null, $"model {wording.ProviderName}/{wording.ModelName}");
++                lastPlaceDraft = (text, place, null, $"model {wording.ProviderName}/{wording.ModelName}", request);
+                 continue;
+             }
+             lastPlaceDraft = null;
+@@ -298,7 +298,7 @@ public sealed partial class ConversationService
+             if (gameFacts.Count > 0 && CompanionChat.UnsupportedDirection(text, allowedPlaces) is { } direction)
+             {
+                 refused = "gives a direction (\"" + direction + "\") no fact gives; say only where the facts put it, with no compass direction or \"past\"/\"behind\": \"" + ConversationContext.Clamp(text, 100) + "\"";
+-                lastPlaceDraft = (text, null, direction, $"model {wording.ProviderName}/{wording.ModelName}");
++                lastPlaceDraft = (text, null, direction, $"model {wording.ProviderName}/{wording.ModelName}", request);
+                 continue;
+             }
+             if (_recent.Repeats(line.Bot.ActorKey, text))
+@@ -318,6 +318,10 @@ public sealed partial class ConversationService
+             && CompanionChat.UnknownPlaceName(trimmed, knownPlaces, allowedPlaces) is null && CompanionChat.Refuse(trimmed, line.GameId) is null
+             && CompanionChat.Ungrounded(trimmed, gameFacts) is null && ChatSafety.Unsafe(trimmed, ChatSafety.AudienceFor(line.GameId)) is null)
+         {
++            // A later rewrite has its own status read. It cannot validate the
++            // older draft retained here after a different refusal.
++            if (!SharedStatusStillCurrent(draft.Request))
++                return new(null, "shared status changed before fallback", recall, false);
+             if (!line.Shadow) _recent.Remember(line.Bot.ActorKey, trimmed);
+             return new(trimmed, draft.Note + (draft.Place is not null ? " (dropped the clause naming " + draft.Place + ")" : " (dropped the direction " + draft.Direction + ")"), recall, recall.FollowUpId is not null && trimmed.Contains('?'));
+         }
+diff --git a/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.cs b/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.cs
+index f92de424d67f86f0a1e43e81bf7d9cf7b9a426e2..1532130138df669f619a09f5a1496673f3ce05de 100644
+--- a/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.cs
++++ b/src/Dit.HumanBehavior.Neuronetwork/Conversation/ConversationService.cs
+@@ -273,9 +273,9 @@ public sealed partial class ConversationService
+                 if (heard.Mode != "shadow")
+                 {
+                     _recent.Remember(who.ActorKey, pick.Reply);
+-                    // A canary command was only asked for here: nothing has confirmed that the body carried it out.
++                    // Selection has not confirmed completion; selected games retain the existing canary request-only memory.
+                     _context.Memory.Note(heard.GameId, who.ActorKey, heard.Speaker.Name + " told us \"" + ConversationContext.Clamp(heard.Text, 60) + "\"; " +
+-                        (pick.FromCanary ? "requested " + pick.Name + "; completion unconfirmed" : "I did " + pick.Name), now);
++                        (pick.FromCanary || structuredContext ? "requested " + pick.Name + "; completion unconfirmed" : "I did " + pick.Name), now);
+                 }
+                 return new ConversationReply
+                 {
+@@ -288,6 +288,14 @@ public sealed partial class ConversationService
+         var (wording, wordingFailure) = await wordingTask.ConfigureAwait(false);
+         cancellationToken.ThrowIfCancellationRequested();
+         if (wordingFailure is not null) notes.Add("wording failed: " + wordingFailure);
++        // Wording can finish while the command interpreter is still deciding.
++        // Its earlier status check does not cover that wait; do not consume an
++        // old body's wording after the interpreter declines or fails.
++        if (wording?.CompletionStatus == DialogueWordingCompletionStatus.Succeeded && !SharedStatusStillCurrent(request))
++        {
++            notes.Add("shared status changed before reply selection");
++            return Finish(heard, who, focusKey, Silent(who, "shared status changed before reply selection"), notes, now, structuredContext);
++        }
+         var decision = Decide(heard, who, reason, wording, notes, request);
+         if (decision.Kind == "say" && ServerClaims.Unsupported(decision.Text, _context.ServerStatus(heard.GameId)) is { } claim)
+             decision = await ReplaceClaimAsync(heard, who, actor, reason, decision, claim, notes, now, cancellationToken).ConfigureAwait(false);
+diff --git a/tests/Dit.HumanBehavior.Neuronetwork.Tests/CrossGameLeadIsolationTests.cs b/tests/Dit.HumanBehavior.Neuronetwork.Tests/CrossGameLeadIsolationTests.cs
+new file mode 100644
+index 0000000000000000000000000000000000000000..27409b248ce7bbd327debd6d3909046b844be7d9
+--- /dev/null
++++ b/tests/Dit.HumanBehavior.Neuronetwork.Tests/CrossGameLeadIsolationTests.cs
+@@ -0,0 +1,101 @@
++using Dit.HumanBehavior.DialogueWording;
++using Dit.HumanBehavior.Neuronetwork.Conversation;
++using Dit.HumanBehavior.Neuronetwork.Conversation.Arbitration;
++using Dit.HumanBehavior.Neuronetwork.Conversation.Companionship;
++using Dit.HumanBehavior.Neuronetwork.Games.TabulaRasa;
++using Dit.HumanBehavior.Neuronetwork.Store;
++using Xunit;
++
++namespace Dit.HumanBehavior.Neuronetwork.Tests;
++
++public sealed class CrossGameLeadIsolationTests
++{
++    private const string Draft = "want me to show you?";
++
++    private sealed class Clock : TimeProvider
++    {
++        public override DateTimeOffset GetUtcNow() => new(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
++    }
++
++    private sealed class Provider : IDialogueWordingProvider
++    {
++        public readonly List<DialogueWordingRequest> Requests = [];
++        public string ProviderName => "synthetic-cross-game-lead";
++        public Task<DialogueWordingResult> GenerateAsync(DialogueWordingRequest request, CancellationToken token)
++        {
++            Requests.Add(request);
++            return Task.FromResult(new DialogueWordingResult(request.RequestId, ProviderName, "fake", Draft,
++                DialogueWordingCompletionStatus.Succeeded, TimeSpan.Zero, null, null, true,
++                DialogueProviderFailureClassification.None, request.GenerationPolicyVersion));
++        }
++    }
++
++    // A preinstalled guide must stay untouched for another game. No native executor is installed.
++    private sealed class RecordingExecutor : ICompanionActionExecutor
++    {
++        public string GameId => TrLeadExecutor.Game;
++        public readonly List<string> Calls = [];
++        public string? ExtraCannotOffer(FollowThrough.Actor bot, FollowThrough.Actor owner)
++        {
++            Calls.Add("eligibility");
++            return null;
++        }
++        public string? ResolveTarget(string text, string place)
++        {
++            Calls.Add("target");
++            return "synthetic-target";
++        }
++        public void Send(FollowThrough.Active order, string name) => Calls.Add("send:" + name);
++    }
++
++    [Theory]
++    [InlineData("ffxi", true)] [InlineData("swtor", true)]
++    [InlineData("ffxi", false)] [InlineData("swtor", false)]
++    public async Task Installed_TR_guide_does_not_handle_another_games_request_or_offer(string game, bool selected)
++    {
++        using var store = new NeuronetworkStore(":memory:");
++        var clock = new Clock();
++        var provider = new Provider();
++        var executor = new RecordingExecutor();
++        var guide = new FollowThrough(executor);
++        var service = new ConversationService(store, provider, clock)
++        {
++            TrGuide = guide,
++            ContextEnvironment = _ => selected ? game : null,
++            StatusEnvironment = _ => null, ChatVoiceEnvironment = _ => null,
++            QuickReplies = false, KnowledgeAnswers = false,
++            CompanionExtractor = null, CompanionExtractorForGame = null,
++        };
++        service.Group.Environment = _ => null;
++        service.Group.SingleModelReplyForGame = _ => true;
++        var line = new GroupLine
++        {
++            GameId = game, ServerInstanceId = "synthetic-instance", LineId = "synthetic-guide-request",
++            Scope = "synthetic-room", Channel = game == "ffxi" ? "linkshell" : "party",
++            Speaker = new GroupSpeaker("PlayerFixture", IsOwner: true),
++            Text = "can you take me to the fixture marker?",
++            History = ["PlayerFixture: a supplied earlier observation"],
++            Hearers = [new GroupHearer { ActorKey = "fixture-bot", DisplayName = "Fixture", Addressed = true, InPartyWithSpeaker = true }],
++            Guarantee = true,
++        };
++        // Exercise request, eligibility, and offer-shaped output in the same ordinary reply.
++        Assert.True(TrLeadExecutor.IsLeadRequest(line.Text));
++        Assert.True(TrLeadExecutor.IsLeadOffer(Draft));
++        Assert.Null(GroundingContract.Unkeepable(game, Draft));
++
++        var decision = Assert.Single((await service.Group.ReplyAsync(line, default)).Decisions);
++
++        Assert.Equal("say", decision.Kind);
++        Assert.Equal(Draft, decision.Text);
++        Assert.Null(decision.Action);
++        Assert.Empty(executor.Calls);
++        Assert.Null(guide.CurrentFor(line.Speaker.Name));
++        Assert.Null(guide.Accepts(line.Speaker.Name, "yes please", [], clock.GetUtcNow()));
++        var request = Assert.Single(provider.Requests);
++        Assert.Equal(game, request.Game.GameId);
++        if (selected) Assert.Equal(line.History, request.ConversationContext!.History);
++        else Assert.Null(request.ConversationContext);
++        // The ordinary route retains its existing selected/legacy memory behavior.
++        Assert.Equal(!selected, service.Pairs.History(game, "Fixture", line.Speaker.Name).Contains("Fixture: " + Draft));
++    }
++}
+diff --git a/tests/Dit.HumanBehavior.Neuronetwork.Tests/PreparedActionMemoryTests.cs b/tests/Dit.HumanBehavior.Neuronetwork.Tests/PreparedActionMemoryTests.cs
+new file mode 100644
+index 0000000000000000000000000000000000000000..1091daef896a4cab9baae362ba8812121d23f04d
+--- /dev/null
++++ b/tests/Dit.HumanBehavior.Neuronetwork.Tests/PreparedActionMemoryTests.cs
+@@ -0,0 +1,168 @@
++using System.Text.Json;
++using Dit.HumanBehavior.DialogueWording;
++using Dit.HumanBehavior.Neuronetwork.Conversation;
++using Dit.HumanBehavior.Neuronetwork.Goals;
++using Dit.HumanBehavior.Neuronetwork.Store;
++using Xunit;
++
++namespace Dit.HumanBehavior.Neuronetwork.Tests;
++
++public sealed class PreparedActionMemoryTests
++{
++    private static readonly DateTimeOffset Start = new(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
++    private static readonly string[] Observed =
++    [
++        "PlayerFixture: an earlier question",
++        "Fixture: a supplied observed line",
++        "PlayerFixture: the same intentional line",
++        "PlayerFixture: the same intentional line",
++    ];
++
++    private sealed class Clock : TimeProvider
++    {
++        public DateTimeOffset Now = Start;
++        public override DateTimeOffset GetUtcNow() => Now;
++    }
++
++    private sealed class Provider(params string[] replies) : IDialogueWordingProvider
++    {
++        public readonly List<DialogueWordingRequest> Requests = [];
++        public string ProviderName => "synthetic-prepared-action-memory";
++        public Task<DialogueWordingResult> GenerateAsync(DialogueWordingRequest request, CancellationToken token)
++        {
++            Requests.Add(request);
++            return Task.FromResult(new DialogueWordingResult(request.RequestId, ProviderName, "fake",
++                replies[Math.Min(Requests.Count - 1, replies.Length - 1)],
++                DialogueWordingCompletionStatus.Succeeded, TimeSpan.Zero, null, null, true,
++                DialogueProviderFailureClassification.None, request.GenerationPolicyVersion));
++        }
++    }
++
++    private static ConversationService Service(NeuronetworkStore store, Provider provider, Clock clock, string game, bool selected) =>
++        new(store, provider, clock)
++        {
++            ContextEnvironment = _ => selected ? game : null,
++            StatusEnvironment = _ => null, ChatVoiceEnvironment = _ => null,
++            QuickReplies = false, KnowledgeAnswers = false,
++        };
++
++    private static ConversationHeard Heard(string game, string id, string text) => new()
++    {
++        GameId = game, ServerInstanceId = "synthetic-instance", LineId = id,
++        Channel = "party", Speaker = new ConversationSpeaker("PlayerFixture", true),
++        Text = text, OccurredAtUtc = Start, AcceptsCommands = true,
++        Hearers = [new ConversationHearer { ActorKey = "fixture-bot", DisplayName = "Fixture", Addressed = true, InPartyWithSpeaker = true }],
++        History = Observed,
++    };
++
++    [Theory]
++    [InlineData("ffxi", true, false)] [InlineData("swtor", true, false)]
++    [InlineData("ffxi", false, false)] [InlineData("swtor", false, false)]
++    [InlineData("ffxi", true, true)] [InlineData("swtor", true, true)]
++    [InlineData("ffxi", false, true)] [InlineData("swtor", false, true)]
++    public async Task Prepared_command_is_remembered_as_a_request_without_native_completion(string game, bool selected, bool fromCanary)
++    {
++        using var store = new NeuronetworkStore(":memory:");
++        var clock = new Clock();
++        var provider = new Provider("unused command wording", "maybe tomorrow");
++        var service = Service(store, provider, clock, game, selected);
++        // This test catalog asserts no native capability; no body or goal executor is installed.
++        var catalog = new CommandCatalog(game,
++            [new BotCommand("stay", "Synthetic fixture request", [new("seconds", "int", "Synthetic duration")], "synthetic-only")],
++            "Offline memory test only");
++        var command = JsonSerializer.SerializeToElement(new { command = "stay", args = new { seconds = 7 }, bots = new[] { "Fixture" }, reply = "on it" });
++        var ordinaryCalls = 0;
++        var routedCalls = 0;
++        service.Interpreter = new CommandInterpreter(_ => catalog, (_, _, _) =>
++        {
++            ordinaryCalls++;
++            return Task.FromResult((command, "synthetic-command"));
++        })
++        {
++            Routed = fromCanary ? (_, _, _, _) =>
++            {
++                routedCalls++;
++                return Task.FromResult<(JsonElement Json, string Provider)?>((command, "synthetic-canary-route"));
++            } : null,
++        };
++        service.Memory.Note(game, "fixture-bot", "A supplied earlier observation", Start.AddSeconds(-1));
++        var heard = Heard(game, "synthetic-command", "stay here");
++
++        var decision = Assert.Single((await service.ReplyAsync(heard, default)).Decisions);
++        Assert.Equal("command", decision.Kind);
++        Assert.Equal("stay", decision.Command);
++        Assert.Equal(7, decision.Arguments!.Value.GetProperty("seconds").GetInt32());
++        Assert.Equal(new[] { "Fixture" }, decision.Bots);
++        Assert.Equal("on it", decision.Text);
++        Assert.Equal("command", decision.Origin);
++        Assert.Equal(fromCanary ? 0 : 1, ordinaryCalls);
++        Assert.Equal(fromCanary ? 1 : 0, routedCalls);
++        Assert.Single(provider.Requests); // Parallel wording was prepared and discarded.
++        var requestOnly = selected || fromCanary;
++        var expectedMemory = "PlayerFixture told us \"stay here\"; " +
++            (requestOnly ? "requested stay; completion unconfirmed" : "I did stay");
++        var journal = service.Memory.Get(game, "fixture-bot")!.Journal;
++        Assert.Equal(2, journal.Count);
++        Assert.Equal(expectedMemory, journal.Last().Text);
++        Assert.Contains(journal, entry => entry.Text == "A supplied earlier observation");
++
++        // Returning the prepared command still reserves its line without executing or completing it.
++        Assert.Equal("silence", Assert.Single((await service.ReplyAsync(heard, default)).Decisions).Kind);
++        Assert.Single(provider.Requests);
++        Assert.Equal(1, ordinaryCalls + routedCalls);
++        Assert.Equal(2, service.Memory.Get(game, "fixture-bot")!.Journal.Count);
++
++        clock.Now = Start.AddSeconds(31);
++        var nextHeard = Heard(game, "synthetic-next", "what about tomorrow?") with { OccurredAtUtc = clock.Now };
++        var nextDecision = Assert.Single((await service.ReplyAsync(nextHeard, default)).Decisions);
++        Assert.Equal("say", nextDecision.Kind);
++        Assert.Equal("maybe tomorrow", nextDecision.Text);
++        Assert.Equal(2, provider.Requests.Count);
++        Assert.Equal(1, ordinaryCalls + routedCalls);
++        var next = provider.Requests[1];
++        Assert.Contains(next.RelevantMemories, text => text.Contains(expectedMemory, StringComparison.Ordinal));
++        Assert.Contains(next.RelevantMemories, text => text.Contains("A supplied earlier observation", StringComparison.Ordinal));
++        Assert.Equal(!requestOnly, next.RelevantMemories.Any(text => text.Contains("I did stay", StringComparison.Ordinal)));
++        Assert.DoesNotContain(next.RelevantMemories, text => text.Contains("unused command wording", StringComparison.Ordinal));
++        if (selected)
++        {
++            Assert.Equal(Observed, next.ConversationContext!.History);
++            Assert.Equal(nextHeard.Text, next.ConversationContext.CurrentMessage);
++        }
++        else Assert.Null(next.ConversationContext);
++        if (requestOnly)
++            Assert.DoesNotContain("I did stay", DialogueWordingPromptText.Build(next, game).UserMessage);
++    }
++
++    [Theory]
++    [InlineData("ffxi", true)] [InlineData("swtor", true)]
++    [InlineData("ffxi", false)] [InlineData("swtor", false)]
++    public async Task Requested_emote_returns_an_instruction_without_booking_performed_action_memory(string game, bool selected)
++    {
++        using var store = new NeuronetworkStore(":memory:");
++        var clock = new Clock();
++        var provider = new Provider("maybe tomorrow");
++        var service = Service(store, provider, clock, game, selected);
++        service.Memory.Note(game, "fixture-bot", "A supplied earlier observation", Start.AddSeconds(-1));
++        var heard = Heard(game, "synthetic-emote", "please wave") with { Emotes = ["wave"] };
++
++        var decision = Assert.Single((await service.ReplyAsync(heard, default)).Decisions);
++        Assert.Equal("emote", decision.Kind);
++        Assert.Equal("emote", decision.Channel);
++        Assert.Equal("wave", decision.Text);
++        Assert.Empty(provider.Requests);
++        Assert.Equal("A supplied earlier observation", Assert.Single(service.Memory.Get(game, "fixture-bot")!.Journal).Text);
++        Assert.Equal("silence", Assert.Single((await service.ReplyAsync(heard, default)).Decisions).Kind);
++        Assert.Empty(provider.Requests);
++
++        clock.Now = Start.AddSeconds(31);
++        var nextDecision = Assert.Single((await service.ReplyAsync(
++            Heard(game, "synthetic-next", "what about tomorrow?") with { OccurredAtUtc = clock.Now }, default)).Decisions);
++        Assert.Equal("say", nextDecision.Kind);
++        var next = Assert.Single(provider.Requests);
++        Assert.Contains(next.RelevantMemories, text => text.Contains("A supplied earlier observation", StringComparison.Ordinal));
++        Assert.DoesNotContain(next.RelevantMemories, text => text.Contains("did /wave", StringComparison.Ordinal));
++        Assert.DoesNotContain("did /wave", DialogueWordingPromptText.Build(next, game).UserMessage);
++        Assert.DoesNotContain(service.Memory.Get(game, "fixture-bot")!.Journal, entry => entry.Text.Contains("did /wave", StringComparison.Ordinal));
++    }
++}
+diff --git a/tests/Dit.HumanBehavior.Neuronetwork.Tests/ProducerContextBoundaryTests.cs b/tests/Dit.HumanBehavior.Neuronetwork.Tests/ProducerContextBoundaryTests.cs
+new file mode 100644
+index 0000000000000000000000000000000000000000..a8d0046ba7e3ecc91ddfc55f2d4cb67565f84512
+--- /dev/null
++++ b/tests/Dit.HumanBehavior.Neuronetwork.Tests/ProducerContextBoundaryTests.cs
+@@ -0,0 +1,172 @@
++using System.Net;
++using System.Text;
++using System.Text.Json;
++using Dit.HumanBehavior.Contracts;
++using Dit.HumanBehavior.DialogueWording;
++using Dit.HumanBehavior.Neuronetwork.Client;
++using Xunit;
++
++namespace Dit.HumanBehavior.Neuronetwork.Tests;
++
++[Collection("Producer context environment")]
++public sealed class ProducerContextBoundaryTests
++{
++    private const string MatchingText = "fixture response";
++    private const string WrongText = "unrelated prepared wording";
++    private const string LocalText = "fixture local response";
++
++    private sealed class Local : IDialogueWordingProvider
++    {
++        public string ProviderName => "fixture-local";
++        public int Calls;
++        public Task<DialogueWordingResult> GenerateAsync(DialogueWordingRequest request, CancellationToken ct)
++        {
++            Calls++;
++            return Task.FromResult(new DialogueWordingResult(request.RequestId, ProviderName, "fixture", LocalText,
++                DialogueWordingCompletionStatus.Succeeded, TimeSpan.Zero, null, null, false,
++                DialogueProviderFailureClassification.None, request.GenerationPolicyVersion));
++        }
++    }
++
++    private sealed class Hub(string fault, bool groupShadow) : HttpMessageHandler
++    {
++        private int _calls;
++        public int Calls => _calls;
++        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
++        {
++            Interlocked.Increment(ref _calls);
++            using var body = JsonDocument.Parse(await request.Content!.ReadAsStringAsync(ct));
++            var path = request.RequestUri!.AbsolutePath;
++            var applies = fault != "none" && (!groupShadow || path.EndsWith("/group", StringComparison.Ordinal));
++            var text = applies ? WrongText : MatchingText;
++            object response;
++            if (path.EndsWith("/event", StringComparison.Ordinal))
++            {
++                var actor = body.RootElement.GetProperty("bot").GetProperty("actorKey").GetString();
++                response = new { actorKey = applies && fault == "actor" ? "another-fixture" : applies && fault == "actor-case" ? actor!.ToUpperInvariant() : actor, kind = "say", text, note = "fixture" };
++            }
++            else
++            {
++                var actor = body.RootElement.GetProperty("hearers")[0].GetProperty("actorKey").GetString();
++                var lineId = body.RootElement.GetProperty("lineId").GetString();
++                var decision = new
++                {
++                    actorKey = applies && fault == "actor" ? "another-fixture" : applies && fault == "actor-case" ? actor!.ToUpperInvariant() : actor,
++                    displayName = "Fixture", kind = "say", channel = "tell", text,
++                    reason = "fixture", origin = "fixture", model = "fixture", note = "fixture",
++                };
++                response = new
++                {
++                    lineId = applies && fault == "line" ? "another-line" : lineId, mode = "live",
++                    decisions = applies && fault == "duplicate" ? new[] { decision, decision with { text = "conflicting second draft" } } :
++                        applies && fault == "case-first" ? new[] { decision with { actorKey = actor!.ToUpperInvariant() }, decision } :
++                        applies && fault == "case-last" ? new[] { decision, decision with { actorKey = actor!.ToUpperInvariant() } } : new[] { decision },
++                    notes = Array.Empty<string>(),
++                };
++            }
++            return new(HttpStatusCode.OK) { Content = new StringContent(JsonSerializer.Serialize(response), Encoding.UTF8, "application/json") };
++        }
++    }
++
++    private sealed record Forwarded(DialogueWordingResult Result, IReadOnlyList<string> Reports, int LocalCalls, int HubCalls,
++        int HubAnswers, int HubSilences);
++
++    private static async Task<Forwarded> Forward(string game, string route, string fault, bool selected, string mode = "only")
++    {
++        using var temp = new TempDirectory();
++        var groupShadow = route == "group-shadow";
++        var env = new Dictionary<string, string?>
++        {
++            ["DIT_NEURONETWORK_CONSULT_TOKEN_DIRECTORY"] = temp.Path,
++            ["DIT_" + game.ToUpperInvariant() + "_HUB_CONVERSATION"] = mode,
++            ["DIT_" + game.ToUpperInvariant() + "_GROUP"] = groupShadow ? "shadow" : route == "group" ? "live" : "off",
++            ["DIT_" + game.ToUpperInvariant() + "_GROUP_ACTORS"] = "",
++        };
++        var before = env.Keys.ToDictionary(key => key, Environment.GetEnvironmentVariable);
++        try
++        {
++            foreach (var (key, value) in env) Environment.SetEnvironmentVariable(key, value);
++            File.WriteAllText(Path.Combine(temp.Path, game + ".token"), "synthetic-token");
++            var handler = new Hub(fault, groupShadow);
++            using var http = new HttpClient(handler);
++            var hub = new NeuronetConversationClient(game, http, "http://fixture.invalid");
++            var local = new Local();
++            var reports = new List<string>();
++            using var provider = new NeuronetConversationWordingProvider(local, hub, "fixture-instance", reports.Add);
++            provider.ContextEnvironment = _ => selected ? game : null;
++            var now = DateTimeOffset.UtcNow;
++            var current = route == "event" ? null : "Fixture current message";
++            var trigger = current is null ? ValueList<DialogueContextFact>.Empty :
++                ValueList<DialogueContextFact>.From([new("untrusted_player_message", "Legacy current message")]);
++            var request = new DialogueWordingRequest("fixture-intent", new(game, "fixture-instance", GameEnvironment.IsolatedTest),
++                new(ActorIdentityKind.GameNativeActor, "player_bot", "fixture", null, "Fixture"), "social_nearby", "Say something brief",
++                "fixture.turn", trigger, "tell", "single_player", "Friendly", "Brief", null, "stranger", "Synthetic conversation",
++                "unknown", null, 100, 200, "en-US", "fixture-v1", "neuronet_conversation", "...", DialogueFallbackPolicy.Silence,
++                new DialogueOutputConstraints(), now, now.AddSeconds(30), "fixture-line",
++                conversationContext: new(ValueList<string>.From(["Player: earlier line"]), current));
++            var result = await provider.GenerateAsync(request, default);
++            return new(result, reports, local.Calls, handler.Calls, provider.HubAnswers, provider.HubSilences);
++        }
++        finally { foreach (var (key, value) in before) Environment.SetEnvironmentVariable(key, value); }
++    }
++
++    [Theory]
++    [InlineData("ffxi", "reply", "line")] [InlineData("swtor", "reply", "line")]
++    [InlineData("ffxi", "reply", "actor")] [InlineData("swtor", "reply", "actor")]
++    [InlineData("ffxi", "reply", "duplicate")] [InlineData("swtor", "reply", "duplicate")]
++    [InlineData("ffxi", "group", "line")] [InlineData("swtor", "group", "line")]
++    [InlineData("ffxi", "group", "duplicate")] [InlineData("swtor", "group", "duplicate")]
++    [InlineData("ffxi", "event", "actor")] [InlineData("swtor", "event", "actor")]
++    [InlineData("ffxi", "reply", "actor-case")] [InlineData("swtor", "reply", "actor-case")]
++    [InlineData("ffxi", "group", "actor-case")] [InlineData("swtor", "group", "actor-case")]
++    [InlineData("ffxi", "group", "case-first")] [InlineData("swtor", "group", "case-first")]
++    [InlineData("ffxi", "group", "case-last")] [InlineData("swtor", "group", "case-last")]
++    [InlineData("ffxi", "event", "actor-case")] [InlineData("swtor", "event", "actor-case")]
++    public async Task Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(string game, string route, string fault)
++    {
++        var rejected = await Forward(game, route, fault, selected: true);
++        Assert.Null(rejected.Result.CandidateText);
++        Assert.Equal("hub_response_mismatch", rejected.Result.SafeTelemetryMetadata["hub_decision"]);
++        Assert.Equal(0, rejected.HubAnswers);
++        Assert.Equal(1, rejected.HubSilences);
++        Assert.Equal(0, rejected.LocalCalls);
++        Assert.Equal(1, rejected.HubCalls);
++        Assert.Contains(rejected.Reports, report => report.Contains("response scope mismatch", StringComparison.Ordinal));
++        Assert.DoesNotContain(rejected.Reports, report => report.Contains(WrongText, StringComparison.Ordinal));
++
++        var matching = await Forward(game, route, "none", selected: true);
++        Assert.Equal(MatchingText, matching.Result.CandidateText);
++        Assert.Equal(1, matching.HubAnswers);
++        Assert.Equal(0, matching.HubSilences);
++
++        var legacy = await Forward(game, route, fault, selected: false);
++        Assert.Equal(WrongText, legacy.Result.CandidateText);
++        Assert.Equal(1, legacy.HubAnswers);
++        Assert.Equal(0, legacy.HubSilences);
++    }
++
++    [Theory]
++    [InlineData("ffxi")] [InlineData("swtor")]
++    public async Task Selected_live_mismatch_does_not_invoke_local_fallback(string game)
++    {
++        var rejected = await Forward(game, "reply", "actor", selected: true, mode: "live");
++        Assert.Null(rejected.Result.CandidateText);
++        Assert.Equal("hub_response_mismatch", rejected.Result.SafeTelemetryMetadata["hub_decision"]);
++        Assert.Equal(0, rejected.LocalCalls);
++        Assert.Equal(1, rejected.HubCalls);
++    }
++
++    [Theory]
++    [InlineData("ffxi", false)] [InlineData("swtor", false)]
++    [InlineData("ffxi", true)] [InlineData("swtor", true)]
++    public async Task Rejected_shadow_text_is_not_reported_and_does_not_replace_authoritative_wording(string game, bool group)
++    {
++        var result = await Forward(game, group ? "group-shadow" : "reply", "line", selected: true, mode: group ? "only" : "shadow");
++        Assert.Equal(group ? MatchingText : LocalText, result.Result.CandidateText);
++        Assert.Equal(group ? 0 : 1, result.LocalCalls);
++        Assert.Equal(group ? 2 : 1, result.HubCalls);
++        Assert.Contains(result.Reports, report => report.Contains("response scope mismatch", StringComparison.Ordinal));
++        Assert.DoesNotContain(result.Reports, report => report.Contains(WrongText, StringComparison.Ordinal));
++        Assert.DoesNotContain(result.Reports, report => report.Contains("hub unreachable", StringComparison.Ordinal));
++    }
++}
+diff --git a/tests/Dit.HumanBehavior.Neuronetwork.Tests/StatusCommandDelayTests.cs b/tests/Dit.HumanBehavior.Neuronetwork.Tests/StatusCommandDelayTests.cs
+new file mode 100644
+index 0000000000000000000000000000000000000000..eeca5493151cc06e906c4116889f88a29a3c2b1b
+--- /dev/null
++++ b/tests/Dit.HumanBehavior.Neuronetwork.Tests/StatusCommandDelayTests.cs
+@@ -0,0 +1,150 @@
++using System.Text.Json;
++using Dit.HumanBehavior.Contracts;
++using Dit.HumanBehavior.DialogueWording;
++using Dit.HumanBehavior.Neuronetwork.Conversation;
++using Dit.HumanBehavior.Neuronetwork.Goals;
++using Dit.HumanBehavior.Neuronetwork.Store;
++using Xunit;
++
++namespace Dit.HumanBehavior.Neuronetwork.Tests;
++
++public sealed class StatusCommandDelayTests
++{
++    private static readonly DateTimeOffset Start = new(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
++    private const string PreparedText = "waiting by the west entrance";
++
++    private sealed class Clock : TimeProvider
++    {
++        public DateTimeOffset Now = Start;
++        public override DateTimeOffset GetUtcNow() => Now;
++    }
++
++    private sealed class Provider : IDialogueWordingProvider
++    {
++        public string ProviderName => "synthetic-status-command-delay";
++        public readonly List<DialogueWordingRequest> Requests = [];
++        public Task<DialogueWordingResult> GenerateAsync(DialogueWordingRequest request, CancellationToken ct)
++        {
++            Requests.Add(request);
++            return Task.FromResult(new DialogueWordingResult(request.RequestId, ProviderName, "fixture", PreparedText,
++                DialogueWordingCompletionStatus.Succeeded, TimeSpan.Zero, null, null, false,
++                DialogueProviderFailureClassification.None, request.GenerationPolicyVersion));
++        }
++    }
++
++    private sealed class Source : IConversationStatusSource
++    {
++        public int Calls;
++        public string Location = "Synthetic west entrance";
++        public long Sequence = 7;
++        public ConversationStatusCapture Capture(ConversationStatusLookup lookup)
++        {
++            Calls++;
++            var body = new StatusBodyIdentity(lookup.Game, "synthetic-realm", lookup.ServerInstance, "native-fixture");
++            var expectation = new StatusExpectation(body, "synthetic-epoch", Sequence);
++            var fields = ValueList<StatusFieldObservation>.From([
++                new(StatusField.Presence, "online", Start, Start.AddMinutes(1)),
++                new(StatusField.Location, Location, Start, Start.AddMinutes(1)),
++                new(StatusField.Activity, "waiting at the entrance", Start, Start.AddMinutes(1)),
++            ]);
++            var snapshot = new StatusSnapshot(body, expectation.Epoch, Sequence, "synthetic-adapter", StatusOrigin.NativeAdapter,
++                true, Start, fields);
++            var policy = new ConversationStatusPolicy("synthetic-adapter", "synthetic-expiry-v1",
++                Enum.GetValues<StatusField>().ToDictionary(field => field, field => TimeSpan.FromSeconds(field == StatusField.Presence ? 60 : 10)));
++            return new(lookup, expectation, snapshot, policy);
++        }
++    }
++
++    private static ConversationHeard Heard(string game) => new()
++    {
++        GameId = game, ServerInstanceId = "synthetic-instance", LineId = "synthetic-command-delay", Channel = "party",
++        Speaker = new("PlayerFixture", true), Text = "stay here", OccurredAtUtc = Start, AcceptsCommands = true,
++        Hearers = [new() { ActorKey = "fixture-bot", DisplayName = "Fixture", Addressed = true, InPartyWithSpeaker = true }],
++        History = ["PlayerFixture: an earlier supplied line"], Mode = "live",
++    };
++
++    private static ConversationService Service(NeuronetworkStore store, Provider provider, Clock clock, Source source,
++        string game, bool selected) => new(store, provider, clock)
++    {
++        ContextEnvironment = _ => game, StatusEnvironment = _ => selected ? game : null,
++        SharedStatusSource = source, ChatVoiceEnvironment = _ => null,
++        QuickReplies = false, KnowledgeAnswers = false,
++    };
++
++    private static CommandCatalog Catalog(string game) => new(game,
++        [new BotCommand("stay", "Synthetic fixture instruction", [new("seconds", "int", "Synthetic duration")], "synthetic-only")],
++        "No native executor is installed");
++
++    [Theory]
++    [InlineData("ffxi", "expired", true, false)] [InlineData("swtor", "expired", true, false)]
++    [InlineData("ffxi", "changed", true, false)] [InlineData("swtor", "changed", true, false)]
++    [InlineData("ffxi", "expired", true, true)] [InlineData("swtor", "expired", true, true)]
++    [InlineData("ffxi", "unchanged", true, false)] [InlineData("swtor", "unchanged", true, false)]
++    [InlineData("ffxi", "expired", false, false)] [InlineData("swtor", "expired", false, false)]
++    public async Task Completed_wording_is_rechecked_after_a_later_command_decline_or_failure(
++        string game, string change, bool selected, bool interpreterFails)
++    {
++        using var store = new NeuronetworkStore(":memory:");
++        var provider = new Provider(); var clock = new Clock(); var source = new Source();
++        var service = Service(store, provider, clock, source, game, selected);
++        var commands = 0;
++        service.Interpreter = new CommandInterpreter(_ => Catalog(game), (_, _, _) =>
++        {
++            commands++;
++            Assert.Single(provider.Requests);
++            // Task.FromResult wording has already completed WordAsync's own
++            // status recheck before this simulated interpreter delay begins.
++            Assert.Equal(selected ? 2 : 0, source.Calls);
++            clock.Now = Start.AddSeconds(change == "expired" ? 10 : 1);
++            if (change == "changed") { source.Location = "Synthetic east entrance"; source.Sequence++; }
++            if (interpreterFails) throw new HttpRequestException("synthetic interpreter failure");
++            return Task.FromResult((JsonSerializer.SerializeToElement(new { command = "none" }), "synthetic-interpreter"));
++        });
++
++        var reply = await service.ReplyAsync(Heard(game), default);
++        var decision = Assert.Single(reply.Decisions);
++        var accepted = !selected || change == "unchanged";
++        Assert.Equal(accepted ? "say" : "silence", decision.Kind);
++        Assert.Equal(accepted ? PreparedText : null, decision.Text);
++        Assert.Equal(1, commands);
++        var request = Assert.Single(provider.Requests);
++        Assert.Equal(selected, service.StatusBindingFor(request) is not null);
++        Assert.Equal(selected ? 3 : 0, source.Calls);
++        if (selected)
++            Assert.Contains(request.ApprovedGameWorldFacts, fact => fact.Key == "native_status_location" && fact.Value == "Synthetic west entrance");
++        if (!accepted)
++        {
++            Assert.Equal("shared status changed before reply selection", decision.Reason);
++            Assert.Contains("shared status changed before reply selection", reply.Notes);
++            Assert.DoesNotContain(reply.Notes, note => note.Contains(PreparedText, StringComparison.Ordinal));
++            Assert.Equal(0, service.Spoken);
++        }
++        if (interpreterFails) Assert.Contains("command interpreter failed: HttpRequestException", reply.Notes);
++    }
++
++    [Theory]
++    [InlineData("ffxi")] [InlineData("swtor")]
++    public async Task A_successful_command_still_returns_its_instruction_without_reusing_discarded_wording(string game)
++    {
++        using var store = new NeuronetworkStore(":memory:");
++        var provider = new Provider(); var clock = new Clock(); var source = new Source();
++        var service = Service(store, provider, clock, source, game, selected: true);
++        service.Interpreter = new CommandInterpreter(_ => Catalog(game), (_, _, _) =>
++        {
++            Assert.Single(provider.Requests);
++            Assert.Equal(2, source.Calls);
++            clock.Now = Start.AddSeconds(10);
++            var command = JsonSerializer.SerializeToElement(new { command = "stay", args = new { seconds = 7 }, bots = new[] { "Fixture" }, reply = "on it" });
++            return Task.FromResult((command, "synthetic-interpreter"));
++        });
++
++        var decision = Assert.Single((await service.ReplyAsync(Heard(game), default)).Decisions);
++        Assert.Equal("command", decision.Kind);
++        Assert.Equal("stay", decision.Command);
++        Assert.Equal("on it", decision.Text);
++        Assert.Equal(7, decision.Arguments!.Value.GetProperty("seconds").GetInt32());
++        Assert.Equal(new[] { "Fixture" }, decision.Bots);
++        Assert.Single(provider.Requests);
++        Assert.Equal(2, source.Calls);
++    }
++}
+diff --git a/tests/Dit.HumanBehavior.Neuronetwork.Tests/StatusFallbackBindingTests.cs b/tests/Dit.HumanBehavior.Neuronetwork.Tests/StatusFallbackBindingTests.cs
+new file mode 100644
+index 0000000000000000000000000000000000000000..8e3388f42e157c29e94cccf89c15eda09017e409
+--- /dev/null
++++ b/tests/Dit.HumanBehavior.Neuronetwork.Tests/StatusFallbackBindingTests.cs
+@@ -0,0 +1,115 @@
++using Dit.HumanBehavior.Contracts;
++using Dit.HumanBehavior.DialogueWording;
++using Dit.HumanBehavior.Neuronetwork.Conversation;
++using Dit.HumanBehavior.Neuronetwork.Store;
++using Xunit;
++
++namespace Dit.HumanBehavior.Neuronetwork.Tests;
++
++public sealed class StatusFallbackBindingTests
++{
++    private static readonly DateTimeOffset Start = new(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
++
++    private sealed class Clock : TimeProvider
++    {
++        public DateTimeOffset Now = Start;
++        public override DateTimeOffset GetUtcNow() => Now;
++    }
++
++    private sealed class Source(Clock clock, string change) : IConversationStatusSource
++    {
++        public int Calls;
++        public ConversationStatusCapture Capture(ConversationStatusLookup lookup)
++        {
++            Calls++;
++            // The first draft passes its own post-generation check. Change the
++            // status only when the next rewrite captures a new request binding.
++            if (Calls == 3 && change == "expired") clock.Now = Start.AddSeconds(10);
++            if (Calls == 3 && change == "location") clock.Now = Start.AddSeconds(1);
++            var moved = Calls >= 3 && change == "location";
++            var body = new StatusBodyIdentity(lookup.Game, "synthetic-realm", lookup.ServerInstance, "synthetic-native-id");
++            var expected = new StatusExpectation(body, "synthetic-epoch", moved ? 8 : 7);
++            var fields = ValueList<StatusFieldObservation>.From([
++                new(StatusField.Presence, "online", Start, Start.AddMinutes(1)),
++                new(StatusField.Location, moved ? "Synthetic east entrance" : "Synthetic west entrance", Start, Start.AddMinutes(1)),
++                new(StatusField.Activity, "resting at the entrance", Start, Start.AddMinutes(1)),
++            ]);
++            var snapshot = new StatusSnapshot(body, expected.Epoch, expected.Sequence, "synthetic-adapter",
++                StatusOrigin.NativeAdapter, true, moved ? Start.AddSeconds(1) : Start, fields);
++            var policy = new ConversationStatusPolicy("synthetic-adapter", "synthetic-policy-v1",
++                Enum.GetValues<StatusField>().ToDictionary(field => field,
++                    field => TimeSpan.FromSeconds(field == StatusField.Presence ? 60 : 10)));
++            return new(lookup, expected, snapshot, policy);
++        }
++    }
++
++    private sealed class Provider : IDialogueWordingProvider
++    {
++        public readonly List<DialogueWordingRequest> Requests = [];
++        public string ProviderName => "synthetic-fallback-status";
++        public Task<DialogueWordingResult> GenerateAsync(DialogueWordingRequest request, CancellationToken token)
++        {
++            Requests.Add(request);
++            // The first draft is retained for direction trimming. The rewrite
++            // is refused before clearing that draft, so fallback uses draft one.
++            var text = Requests.Count == 1 ? "that npc was south of foreas base" : "I'm here for you if you need to talk";
++            return Task.FromResult(new DialogueWordingResult(request.RequestId, ProviderName, "fixture", text,
++                DialogueWordingCompletionStatus.Succeeded, TimeSpan.Zero, null, null, false,
++                DialogueProviderFailureClassification.None, request.GenerationPolicyVersion));
++        }
++    }
++
++    [Theory]
++    [InlineData("ffxi", "expired", false)] [InlineData("swtor", "expired", false)]
++    [InlineData("ffxi", "location", false)] [InlineData("swtor", "location", false)]
++    [InlineData("ffxi", "unchanged", true)] [InlineData("swtor", "unchanged", true)]
++    [InlineData("ffxi", "disabled", true)] [InlineData("swtor", "disabled", true)]
++    public async Task Retained_draft_rechecks_its_own_status_after_rewrite(string game, string change, bool accepted)
++    {
++        using var store = new NeuronetworkStore(":memory:");
++        var clock = new Clock();
++        var source = new Source(clock, change);
++        var provider = new Provider();
++        var service = new ConversationService(store, provider, clock)
++        {
++            ContextEnvironment = _ => game, StatusEnvironment = _ => change == "disabled" ? null : game,
++            ChatVoiceEnvironment = _ => null, RecentContextEnvironment = _ => null,
++            SharedStatusSource = source, CompanionExtractor = null, CompanionExtractorForGame = null,
++        };
++        var history = new[] { "Player: the same intentional line", "Player: the same intentional line" };
++        var reply = await service.CompanionReplyAsync(new CompanionLine
++        {
++            GameId = game, ServerInstanceId = "synthetic-instance", Persona = "Fixture", Speaker = "Player",
++            Text = "where is that npc?", Channel = "party", Shadow = true, History = history,
++            Facts = [new("quest_fixture", "Synthetic NPC: at Foreas Base")],
++            Bot = new ConversationHearer { ActorKey = "fixture", DisplayName = "Fixture" },
++        }, default);
++
++        Assert.Equal(2, provider.Requests.Count);
++        Assert.All(provider.Requests, request => Assert.Equal(history, request.ConversationContext!.History));
++        Assert.Contains(provider.Requests[1].TriggerFacts, fact => fact.Key == "rewrite" && fact.Value.Contains("south of", StringComparison.Ordinal));
++        Assert.Equal(change == "disabled" ? 0 : 5, source.Calls);
++        Assert.Equal(accepted, reply.Text is not null);
++        if (accepted)
++        {
++            Assert.Equal("that npc was by foreas base", reply.Text);
++            Assert.Contains("dropped the direction south of", reply.Note);
++        }
++        else Assert.Equal("shared status changed before fallback", reply.Note);
++
++        if (change == "expired")
++        {
++            Assert.Contains(service.StatusBindingFor(provider.Requests[0])!.View!.Fields,
++                field => field.Field == StatusField.Location && field.State == StatusKnowledge.Known);
++            Assert.Contains(service.StatusBindingFor(provider.Requests[1])!.View!.Fields,
++                field => field.Field == StatusField.Location && field.State == StatusKnowledge.Stale);
++        }
++        if (change == "location")
++        {
++            Assert.Contains(service.StatusBindingFor(provider.Requests[0])!.View!.Fields,
++                field => field.Field == StatusField.Location && field.Value == "Synthetic west entrance");
++            Assert.Contains(service.StatusBindingFor(provider.Requests[1])!.View!.Fields,
++                field => field.Field == StatusField.Location && field.Value == "Synthetic east entrance");
++        }
++    }
++}

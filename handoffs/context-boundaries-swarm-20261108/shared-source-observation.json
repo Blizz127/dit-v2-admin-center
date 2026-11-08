@@ -1,0 +1,8 @@
+{
+  "observedAt": "2026-11-08T04:48:00.213563+00:00",
+  "sharedHubSource": "6a0121d6cf243957d44cd3e1533cdbd1f1540513",
+  "inspection": "read-only git rev-parse HEAD and git status --short, once; no tracked source changes reported; existing untracked publication/work outputs untouched",
+  "sharedWorktreeMutated": false,
+  "publicationChecked": false,
+  "candidate": "9c99e01ab1121b230773f3610f72f21673433920"
+}

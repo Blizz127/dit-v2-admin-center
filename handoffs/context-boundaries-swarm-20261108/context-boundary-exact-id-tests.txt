@@ -1,0 +1,125 @@
+{"sourceRevision": "9c99e01ab1121b230773f3610f72f21673433920", "startedAt": "2026-11-08T04:45:34.682437+00:00", "commands": [], "reusedCoreAndHubFrom": "ad872d36ada8651abfa85b941136315c5b6f0b79", "expectedFocusedTests": 81, "nativeModelOrGameChecked": false, "nativeBrowserChecked": false, "deployed": false, "limits": {"logicalProcessors": 1, "msbuildNodes": 1, "nice": 10, "ioClass": 2, "ioPriority": 7, "gcGiB": 3, "restore": false, "buildProjectReferences": false}}
+
+COMMAND ["timeout", "--kill-after=5s", "300", "nice", "-n", "10", "ionice", "-c", "2", "-n", "7", "/usr/bin/dotnet", "build", "src/Dit.HumanBehavior.Neuronetwork.Client/Dit.HumanBehavior.Neuronetwork.Client.csproj", "--no-restore", "-m:1", "-p:BuildProjectReferences=false", "-p:BuildInParallel=false", "-p:UseSharedCompilation=false"]
+  Dit.HumanBehavior.Neuronetwork.Client -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.Neuronetwork.Client/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Client.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:01:35.35
+
+EXIT 0
+
+COMMAND ["timeout", "--kill-after=5s", "480", "nice", "-n", "10", "ionice", "-c", "2", "-n", "7", "/usr/bin/dotnet", "build", "tests/Dit.HumanBehavior.Neuronetwork.Tests/Dit.HumanBehavior.Neuronetwork.Tests.csproj", "--no-restore", "-m:1", "-p:BuildProjectReferences=false", "-p:BuildInParallel=false", "-p:UseSharedCompilation=false"]
+  Dit.HumanBehavior.Neuronetwork.Tests -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:04:34.41
+
+EXIT 0
+
+COMMAND ["timeout", "--kill-after=5s", "300", "nice", "-n", "10", "ionice", "-c", "2", "-n", "7", "/usr/bin/dotnet", "test", "tests/Dit.HumanBehavior.Neuronetwork.Tests/Dit.HumanBehavior.Neuronetwork.Tests.csproj", "--no-build", "--no-restore", "-m:1", "--filter", "FullyQualifiedName~PreparedActionMemoryTests|FullyQualifiedName~ProducerContextBoundaryTests|FullyQualifiedName~CrossGameLeadIsolationTests|FullyQualifiedName~StatusFallbackBindingTests|FullyQualifiedName~StatusCommandDelayTests|FullyQualifiedName~ConversationProducerContextTests|FullyQualifiedName~Shared_client_group_history_survives_authenticated_http_and_prompt_building", "--logger", "console;verbosity=normal"]
+Test run for /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Tests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.2 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 10.0.14)
+[xUnit.net 00:00:00.38]   Discovering: Dit.HumanBehavior.Neuronetwork.Tests
+[xUnit.net 00:00:01.86]   Discovered:  Dit.HumanBehavior.Neuronetwork.Tests
+[xUnit.net 00:00:01.91]   Starting:    Dit.HumanBehavior.Neuronetwork.Tests
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedActionMemoryTests.Requested_emote_returns_an_instruction_without_booking_performed_action_memory(game: "swtor", selected: False) [1 s]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedActionMemoryTests.Requested_emote_returns_an_instruction_without_booking_performed_action_memory(game: "ffxi", selected: False) [166 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedActionMemoryTests.Requested_emote_returns_an_instruction_without_booking_performed_action_memory(game: "ffxi", selected: True) [26 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedActionMemoryTests.Requested_emote_returns_an_instruction_without_booking_performed_action_memory(game: "swtor", selected: True) [18 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedActionMemoryTests.Prepared_command_is_remembered_as_a_request_without_native_completion(game: "swtor", selected: False, fromCanary: False) [122 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedActionMemoryTests.Prepared_command_is_remembered_as_a_request_without_native_completion(game: "swtor", selected: True, fromCanary: False) [18 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedActionMemoryTests.Prepared_command_is_remembered_as_a_request_without_native_completion(game: "swtor", selected: True, fromCanary: True) [105 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedActionMemoryTests.Prepared_command_is_remembered_as_a_request_without_native_completion(game: "ffxi", selected: False, fromCanary: True) [62 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedActionMemoryTests.Prepared_command_is_remembered_as_a_request_without_native_completion(game: "swtor", selected: False, fromCanary: True) [22 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedActionMemoryTests.Prepared_command_is_remembered_as_a_request_without_native_completion(game: "ffxi", selected: True, fromCanary: True) [15 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedActionMemoryTests.Prepared_command_is_remembered_as_a_request_without_native_completion(game: "ffxi", selected: False, fromCanary: False) [29 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedActionMemoryTests.Prepared_command_is_remembered_as_a_request_without_native_completion(game: "ffxi", selected: True, fromCanary: False) [20 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.CrossGameLeadIsolationTests.Installed_TR_guide_does_not_handle_another_games_request_or_offer(game: "ffxi", selected: True) [770 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.CrossGameLeadIsolationTests.Installed_TR_guide_does_not_handle_another_games_request_or_offer(game: "swtor", selected: False) [36 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.CrossGameLeadIsolationTests.Installed_TR_guide_does_not_handle_another_games_request_or_offer(game: "ffxi", selected: False) [13 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.CrossGameLeadIsolationTests.Installed_TR_guide_does_not_handle_another_games_request_or_offer(game: "swtor", selected: True) [11 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.StatusFallbackBindingTests.Retained_draft_rechecks_its_own_status_after_rewrite(game: "swtor", change: "location", accepted: False) [373 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.StatusFallbackBindingTests.Retained_draft_rechecks_its_own_status_after_rewrite(game: "swtor", change: "disabled", accepted: True) [14 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.StatusFallbackBindingTests.Retained_draft_rechecks_its_own_status_after_rewrite(game: "swtor", change: "unchanged", accepted: True) [12 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.StatusFallbackBindingTests.Retained_draft_rechecks_its_own_status_after_rewrite(game: "swtor", change: "expired", accepted: False) [22 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.StatusFallbackBindingTests.Retained_draft_rechecks_its_own_status_after_rewrite(game: "ffxi", change: "unchanged", accepted: True) [27 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.StatusFallbackBindingTests.Retained_draft_rechecks_its_own_status_after_rewrite(game: "ffxi", change: "expired", accepted: False) [11 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.StatusFallbackBindingTests.Retained_draft_rechecks_its_own_status_after_rewrite(game: "ffxi", change: "location", accepted: False) [14 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.StatusFallbackBindingTests.Retained_draft_rechecks_its_own_status_after_rewrite(game: "ffxi", change: "disabled", accepted: True) [41 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.StatusCommandDelayTests.Completed_wording_is_rechecked_after_a_later_command_decline_or_failure(game: "ffxi", change: "unchanged", selected: True, interpreterFails: False) [23 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.StatusCommandDelayTests.Completed_wording_is_rechecked_after_a_later_command_decline_or_failure(game: "swtor", change: "changed", selected: True, interpreterFails: False) [11 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.StatusCommandDelayTests.Completed_wording_is_rechecked_after_a_later_command_decline_or_failure(game: "swtor", change: "expired", selected: False, interpreterFails: False) [9 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.StatusCommandDelayTests.Completed_wording_is_rechecked_after_a_later_command_decline_or_failure(game: "swtor", change: "expired", selected: True, interpreterFails: False) [8 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.StatusCommandDelayTests.Completed_wording_is_rechecked_after_a_later_command_decline_or_failure(game: "swtor", change: "unchanged", selected: True, interpreterFails: False) [8 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.StatusCommandDelayTests.Completed_wording_is_rechecked_after_a_later_command_decline_or_failure(game: "swtor", change: "expired", selected: True, interpreterFails: True) [8 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.StatusCommandDelayTests.Completed_wording_is_rechecked_after_a_later_command_decline_or_failure(game: "ffxi", change: "expired", selected: False, interpreterFails: False) [8 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.StatusCommandDelayTests.Completed_wording_is_rechecked_after_a_later_command_decline_or_failure(game: "ffxi", change: "changed", selected: True, interpreterFails: False) [8 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.StatusCommandDelayTests.Completed_wording_is_rechecked_after_a_later_command_decline_or_failure(game: "ffxi", change: "expired", selected: True, interpreterFails: True) [7 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.StatusCommandDelayTests.Completed_wording_is_rechecked_after_a_later_command_decline_or_failure(game: "ffxi", change: "expired", selected: True, interpreterFails: False) [9 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.StatusCommandDelayTests.A_successful_command_still_returns_its_instruction_without_reusing_discarded_wording(game: "swtor") [12 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.StatusCommandDelayTests.A_successful_command_still_returns_its_instruction_without_reusing_discarded_wording(game: "ffxi") [11 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationProducerContextTests.Selected_game_without_structured_context_retains_legacy_input [1 s]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationProducerContextTests.Actual_client_forwards_structured_turns_and_current_message(game: "ffxi", path: "event") [38 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationProducerContextTests.Actual_client_forwards_structured_turns_and_current_message(game: "ffxi", path: "group") [940 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationProducerContextTests.Actual_client_forwards_structured_turns_and_current_message(game: "swtor", path: "event") [682 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationProducerContextTests.Actual_client_forwards_structured_turns_and_current_message(game: "swtor", path: "reply") [147 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationProducerContextTests.Actual_client_forwards_structured_turns_and_current_message(game: "ffxi", path: "reply") [8 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationProducerContextTests.Actual_client_forwards_structured_turns_and_current_message(game: "swtor", path: "group") [8 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationProducerContextTests.Default_off_and_unselected_game_preserve_legacy_behavior(flag: null) [378 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationProducerContextTests.Default_off_and_unselected_game_preserve_legacy_behavior(flag: "swtor") [56 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationProducerContextTests.Default_off_and_unselected_game_preserve_legacy_behavior(flag: "") [48 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationProducerContextTests.Default_off_and_unselected_game_preserve_legacy_behavior(flag: "ffxi_extra") [40 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationProducerContextTests.Existing_wire_cap_keeps_newest_whole_turns_and_reports_omission(game: "swtor") [34 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationProducerContextTests.Existing_wire_cap_keeps_newest_whole_turns_and_reports_omission(game: "ffxi") [50 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Shared_client_group_history_survives_authenticated_http_and_prompt_building(game: "ffxi", turns: 12) [4 s]
+companion chat warm-up Unavailable in 0.2 s (facts 0.0 s: catalog 0.0 s, 0 research 0.0 s, offline-status-ingress)
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Shared_client_group_history_survives_authenticated_http_and_prompt_building(game: "swtor", turns: 12) [759 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Shared_client_group_history_survives_authenticated_http_and_prompt_building(game: "swtor", turns: 32) [1 s]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ConversationStatusIngressTests.Shared_client_group_history_survives_authenticated_http_and_prompt_building(game: "ffxi", turns: 32) [1 s]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "swtor", route: "group", fault: "case-first") [379 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "swtor", route: "group", fault: "case-last") [60 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "ffxi", route: "event", fault: "actor-case") [25 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "ffxi", route: "group", fault: "duplicate") [20 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "ffxi", route: "reply", fault: "line") [38 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "swtor", route: "event", fault: "actor") [13 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "ffxi", route: "reply", fault: "actor") [16 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "swtor", route: "reply", fault: "actor-case") [10 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "swtor", route: "group", fault: "actor-case") [8 ms]
+companion chat warm-up Unavailable in 0.0 s (facts 0.0 s: catalog 0.0 s, 0 research 0.0 s, offline-status-ingress)
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "ffxi", route: "reply", fault: "duplicate") [16 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "swtor", route: "group", fault: "line") [13 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "swtor", route: "reply", fault: "line") [9 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "ffxi", route: "reply", fault: "actor-case") [14 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "ffxi", route: "group", fault: "actor-case") [10 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "swtor", route: "group", fault: "duplicate") [18 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "ffxi", route: "group", fault: "case-first") [11 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "ffxi", route: "group", fault: "line") [10 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "ffxi", route: "event", fault: "actor") [9 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "swtor", route: "event", fault: "actor-case") [11 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "ffxi", route: "group", fault: "case-last") [10 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "swtor", route: "reply", fault: "actor") [67 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_context_withholds_wrong_or_ambiguous_response_without_changing_legacy(game: "swtor", route: "reply", fault: "duplicate") [31 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Rejected_shadow_text_is_not_reported_and_does_not_replace_authoritative_wording(game: "ffxi", group: True) [11 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Rejected_shadow_text_is_not_reported_and_does_not_replace_authoritative_wording(game: "swtor", group: True) [50 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Rejected_shadow_text_is_not_reported_and_does_not_replace_authoritative_wording(game: "swtor", group: False) [11 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Rejected_shadow_text_is_not_reported_and_does_not_replace_authoritative_wording(game: "ffxi", group: False) [7 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_live_mismatch_does_not_invoke_local_fallback(game: "swtor") [175 ms]
+[xUnit.net 00:00:23.58]   Finished:    Dit.HumanBehavior.Neuronetwork.Tests
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.ProducerContextBoundaryTests.Selected_live_mismatch_does_not_invoke_local_fallback(game: "ffxi") [15 ms]
+
+Test Run Successful.
+Total tests: 81
+     Passed: 81
+ Total time: 26.9943 Seconds
+
+EXIT 0

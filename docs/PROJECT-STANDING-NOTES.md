@@ -83,6 +83,24 @@ quality. Native browser checks remain NOT RUN, not policy-paused.
 
 Latest completed local work:
 
+- Current owner-clicked swarm: three native helpers completed disjoint source,
+  test-design and review scopes; root remains the only integrator/build runner.
+  Admin `a9971907` rejects impossible known body facts when presence is not
+  confirmed online, with 26 focused Python/API checks passing. The isolated
+  candidate `9c99e01a` adds exact response identity, requested-not-completed
+  command memory, cross-game guide isolation and status checks at both retained
+  fallback and late-interpreter boundaries. All 81 focused C# cases passed at
+  04:52:28Z, including authenticated localhost history flow. Changed builds
+  passed and the runtime DLL hashes match their test copies. Earlier incomplete
+  bounded runs are retained honestly; no build/test job is still running. Use the
+  [current boundary handoff](../handoffs/context-boundaries-swarm-20261108/README.md)
+  for exact results and replacement patches. The previous `a3155646` receipt
+  below remains historical and does not certify the new source. No shared
+  publisher/worktree or native game/device state was changed. One superseding
+  intake is queued through the coordinator for the existing hub publisher;
+  do not repeat it or treat acknowledgement as a gate. No new deployment
+  receipt exists. Native browser, presence feeds and delivery remain unverified; source
+  readiness does not certify live chat.
 - The [current-hub verification handoff](../handoffs/speech-memory-verified-20261108/README.md)
   supplies one replacement source patch on hub `6a0121d6`. Candidate `a3155646`
   includes all three prepared-speech memory fixes and preserves the hub's newer

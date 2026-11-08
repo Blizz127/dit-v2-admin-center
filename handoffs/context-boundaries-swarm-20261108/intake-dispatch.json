@@ -1,0 +1,15 @@
+{
+  "recordedAt": "2026-11-08T04:54:23.730081+00:00",
+  "candidate": "9c99e01ab1121b230773f3610f72f21673433920",
+  "via": "Devbox Coordinator reply",
+  "message": "2c41e771389e7f0d",
+  "cliExitCode": 0,
+  "notification": "queued for Codex coordinator; awaiting acknowledgement",
+  "supersedes": "handoffs/speech-memory-verified-20261108/current-hub-candidate.patch",
+  "target": "existing shared hub integrator/publisher",
+  "actualHubDeliveryConfirmed": false,
+  "appliedConfirmed": false,
+  "deployedConfirmed": false,
+  "acknowledgementIsAGate": false,
+  "duplicateDispatchAuthorized": false
+}

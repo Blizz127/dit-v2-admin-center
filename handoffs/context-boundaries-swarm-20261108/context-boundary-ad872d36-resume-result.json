@@ -1,0 +1,89 @@
+{
+  "sourceRevision": "ad872d36ada8651abfa85b941136315c5b6f0b79",
+  "startedAt": "2026-11-08T04:33:45.598932+00:00",
+  "finishedAt": "2026-11-08T04:43:51.037257+00:00",
+  "commands": [
+    {
+      "command": [
+        "/usr/bin/dotnet",
+        "build",
+        "src/Dit.HumanBehavior.Neuronetwork.Hub/Dit.HumanBehavior.Neuronetwork.Hub.csproj",
+        "--no-restore",
+        "-m:1",
+        "-p:BuildProjectReferences=false",
+        "-p:BuildInParallel=false",
+        "-p:UseSharedCompilation=false"
+      ],
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "/usr/bin/dotnet",
+        "test",
+        "tests/Dit.HumanBehavior.Neuronetwork.Tests/Dit.HumanBehavior.Neuronetwork.Tests.csproj",
+        "--no-restore",
+        "-m:1",
+        "-p:BuildProjectReferences=false",
+        "-p:BuildInParallel=false",
+        "-p:UseSharedCompilation=false",
+        "--filter",
+        "FullyQualifiedName~PreparedActionMemoryTests|FullyQualifiedName~ProducerContextBoundaryTests|FullyQualifiedName~CrossGameLeadIsolationTests|FullyQualifiedName~StatusFallbackBindingTests|FullyQualifiedName~StatusCommandDelayTests|FullyQualifiedName~ConversationProducerContextTests|FullyQualifiedName~Shared_client_group_history_survives_authenticated_http_and_prompt_building",
+        "--logger",
+        "console;verbosity=normal"
+      ],
+      "exitCode": 137
+    }
+  ],
+  "artifacts": {
+    "src/Dit.HumanBehavior.Neuronetwork/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.dll": {
+      "sha256": "51a094fb512680b030d03dca1bd624e8fa372dbf3f381c2f5e6e51c506d8c60c",
+      "bytes": 4813824
+    },
+    "src/Dit.HumanBehavior.Neuronetwork.Client/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Client.dll": {
+      "sha256": "c9cd49528bee8c9a70ab768633c922529d4d6528413e6ccfaee72b96f4d88685",
+      "bytes": 124416
+    },
+    "src/Dit.HumanBehavior.Neuronetwork.Hub/bin/Debug/net10.0/dit-neuronetwork.dll": {
+      "sha256": "5b7102606cceb66e4ca50cae8be613357aba1ae3854810893d3b9c9946e74cb2",
+      "bytes": 2227712
+    },
+    "src/Dit.HumanBehavior.Neuronetwork.Hub/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.dll": {
+      "sha256": "51a094fb512680b030d03dca1bd624e8fa372dbf3f381c2f5e6e51c506d8c60c",
+      "bytes": 4813824
+    },
+    "tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.dll": {
+      "sha256": "51a094fb512680b030d03dca1bd624e8fa372dbf3f381c2f5e6e51c506d8c60c",
+      "bytes": 4813824
+    },
+    "tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Client.dll": {
+      "sha256": "c9cd49528bee8c9a70ab768633c922529d4d6528413e6ccfaee72b96f4d88685",
+      "bytes": 124416
+    },
+    "tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/dit-neuronetwork.dll": {
+      "sha256": "5b7102606cceb66e4ca50cae8be613357aba1ae3854810893d3b9c9946e74cb2",
+      "bytes": 2227712
+    },
+    "tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Tests.dll": {
+      "sha256": "ce545a7e0351063eee7fe0b3fd87d102ca80ca056733d6b924326623c9a3053f",
+      "bytes": 3448320
+    }
+  },
+  "limits": {
+    "logicalProcessors": 1,
+    "msbuildNodes": 1,
+    "nice": 10,
+    "ioClass": 2,
+    "ioPriority": 7,
+    "gcGiB": 3,
+    "overallDeadlineSeconds": 600,
+    "restore": false,
+    "buildProjectReferences": false
+  },
+  "nativeModelOrGameChecked": false,
+  "deployed": false,
+  "nativeBrowserChecked": false,
+  "fixtureExportsRepinned": false,
+  "testsComplete": false,
+  "reportedPassingTests": 7,
+  "interruption": "600-second stage budget expired after compilation and seven reported test passes; timeout escalated to SIGKILL after its 5-second grace (exit137). No completed test-set result."
+}

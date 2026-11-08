@@ -1,0 +1,31 @@
+Source ad872d36ada8651abfa85b941136315c5b6f0b79; started 2026-11-08T04:33:45.598932+00:00
+Resume only unfinished Hub and tests; successful Core/Client hashes verified and reused.1 CPU/node, nice10, ionice2/7, GC3GiB, total600s, no restore or reference rebuild.
+COMMAND ["timeout", "--kill-after=5s", "599", "nice", "-n", "10", "ionice", "-c", "2", "-n", "7", "/usr/bin/dotnet", "build", "src/Dit.HumanBehavior.Neuronetwork.Hub/Dit.HumanBehavior.Neuronetwork.Hub.csproj", "--no-restore", "-m:1", "-p:BuildProjectReferences=false", "-p:BuildInParallel=false", "-p:UseSharedCompilation=false"]
+  Dit.HumanBehavior.Neuronetwork.Hub -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.Neuronetwork.Hub/bin/Debug/net10.0/dit-neuronetwork.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:03:31.52
+EXIT 0
+COMMAND ["timeout", "--kill-after=5s", "387", "nice", "-n", "10", "ionice", "-c", "2", "-n", "7", "/usr/bin/dotnet", "test", "tests/Dit.HumanBehavior.Neuronetwork.Tests/Dit.HumanBehavior.Neuronetwork.Tests.csproj", "--no-restore", "-m:1", "-p:BuildProjectReferences=false", "-p:BuildInParallel=false", "-p:UseSharedCompilation=false", "--filter", "FullyQualifiedName~PreparedActionMemoryTests|FullyQualifiedName~ProducerContextBoundaryTests|FullyQualifiedName~CrossGameLeadIsolationTests|FullyQualifiedName~StatusFallbackBindingTests|FullyQualifiedName~StatusCommandDelayTests|FullyQualifiedName~ConversationProducerContextTests|FullyQualifiedName~Shared_client_group_history_survives_authenticated_http_and_prompt_building", "--logger", "console;verbosity=normal"]
+  Dit.HumanBehavior.Neuronetwork.Tests -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Tests.dll
+Test run for /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/tests/Dit.HumanBehavior.Neuronetwork.Tests/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Tests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.2 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:01.11] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 10.0.14)
+[xUnit.net 00:00:08.34]   Discovering: Dit.HumanBehavior.Neuronetwork.Tests
+[xUnit.net 00:00:15.34]   Discovered:  Dit.HumanBehavior.Neuronetwork.Tests
+[xUnit.net 00:00:15.39]   Starting:    Dit.HumanBehavior.Neuronetwork.Tests
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedActionMemoryTests.Requested_emote_returns_an_instruction_without_booking_performed_action_memory(game: "swtor", selected: False) [14 s]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedActionMemoryTests.Requested_emote_returns_an_instruction_without_booking_performed_action_memory(game: "ffxi", selected: False) [41 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedActionMemoryTests.Requested_emote_returns_an_instruction_without_booking_performed_action_memory(game: "ffxi", selected: True) [424 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedActionMemoryTests.Requested_emote_returns_an_instruction_without_booking_performed_action_memory(game: "swtor", selected: True) [9 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedActionMemoryTests.Prepared_command_is_remembered_as_a_request_without_native_completion(game: "swtor", selected: False, fromCanary: False) [103 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedActionMemoryTests.Prepared_command_is_remembered_as_a_request_without_native_completion(game: "swtor", selected: True, fromCanary: False) [15 ms]
+  Passed Dit.HumanBehavior.Neuronetwork.Tests.PreparedActionMemoryTests.Prepared_command_is_remembered_as_a_request_without_native_completion(game: "swtor", selected: True, fromCanary: True) [335 ms]
+EXIT 137
+Finished 2026-11-08T04:43:50.858415+00:00

@@ -1,0 +1,40 @@
+{
+  "recordedAt": "2026-11-08T04:49:45.554777+00:00",
+  "project": "DIT v2 Admin Center",
+  "ownerRequest": "Swarm it; current conversation context/status goal",
+  "integrator": "/root",
+  "nativeConcurrentSlotsIncludingRoot": 4,
+  "newHelpersThisTurn": 2,
+  "existingHelpersReused": 1,
+  "workers": [
+    {
+      "id": "/root/native_boundary_review",
+      "state": "completed",
+      "scopes": [
+        "command/emote memory audit and regression cases",
+        "cross-game optional guide isolation and memory-boundary doc"
+      ]
+    },
+    {
+      "id": "/root/producer_context_boundary",
+      "state": "completed",
+      "scopes": [
+        "client reply/group/event response identity guards",
+        "post-interpreter status recheck",
+        "read-only actor-key case-sensitivity review"
+      ]
+    },
+    {
+      "id": "/root/admin_context_truth",
+      "state": "completed",
+      "scopes": [
+        "Admin shared presence validator and API fixtures",
+        "retained fallback status binding and fixtures"
+      ]
+    }
+  ],
+  "workerBuildsOrTests": false,
+  "buildRunner": "/root, sequential one-node jobs",
+  "otherLaneStartedOrResumed": false,
+  "sharedHubMutated": false
+}

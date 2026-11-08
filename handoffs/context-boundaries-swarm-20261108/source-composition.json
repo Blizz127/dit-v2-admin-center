@@ -1,0 +1,18 @@
+[
+  {
+    "file": "from-a3155646.patch",
+    "base": "a315564614bc14853e00ea45d8c650ff68021e2a",
+    "candidate": "9c99e01ab1121b230773f3610f72f21673433920",
+    "tree": "983c800d446ed05b4a90cec71d69a8e5f1f80909",
+    "sha256": "517a2222e3f0347d4e2385c3d2a4e0541cff4b6eace60d1ca3205749e0ad9a35",
+    "exactTreeReconstructed": true
+  },
+  {
+    "file": "current-hub-candidate.patch",
+    "base": "6a0121d6cf243957d44cd3e1533cdbd1f1540513",
+    "candidate": "9c99e01ab1121b230773f3610f72f21673433920",
+    "tree": "983c800d446ed05b4a90cec71d69a8e5f1f80909",
+    "sha256": "7428d45cfe165acf2344fa7c842b814e3e625cc392df644efbe7de31283f2590",
+    "exactTreeReconstructed": true
+  }
+]

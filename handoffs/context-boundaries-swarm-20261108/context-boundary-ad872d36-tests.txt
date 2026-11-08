@@ -1,0 +1,23 @@
+Source ad872d36ada8651abfa85b941136315c5b6f0b79; started 2026-11-08T04:21:26.165786+00:00
+Core, Client, Hub and tests rebuilt sequentially; unchanged references reused.1 CPU/node, nice19, ionice2/7, GC6GiB, total600s, no restore.
+COMMAND ["timeout", "--kill-after=5s", "599", "nice", "-n", "19", "ionice", "-c", "2", "-n", "7", "/usr/bin/dotnet", "build", "src/Dit.HumanBehavior.Neuronetwork/Dit.HumanBehavior.Neuronetwork.csproj", "--no-restore", "-m:1", "-p:BuildProjectReferences=false", "-p:BuildInParallel=false", "-p:UseSharedCompilation=false"]
+  Dit.HumanBehavior.Neuronetwork -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.Neuronetwork/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:05:52.12
+EXIT 0
+COMMAND ["timeout", "--kill-after=5s", "244", "nice", "-n", "19", "ionice", "-c", "2", "-n", "7", "/usr/bin/dotnet", "build", "src/Dit.HumanBehavior.Neuronetwork.Client/Dit.HumanBehavior.Neuronetwork.Client.csproj", "--no-restore", "-m:1", "-p:BuildProjectReferences=false", "-p:BuildInParallel=false", "-p:UseSharedCompilation=false"]
+  Dit.HumanBehavior.Neuronetwork.Client -> /home/blizz/dev/dit-v2-admin-center/build/context-slice/hub-compat-3dd21dc/src/Dit.HumanBehavior.Neuronetwork.Client/bin/Debug/net10.0/Dit.HumanBehavior.Neuronetwork.Client.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:01:46.01
+EXIT 0
+COMMAND ["timeout", "--kill-after=5s", "129", "nice", "-n", "19", "ionice", "-c", "2", "-n", "7", "/usr/bin/dotnet", "build", "src/Dit.HumanBehavior.Neuronetwork.Hub/Dit.HumanBehavior.Neuronetwork.Hub.csproj", "--no-restore", "-m:1", "-p:BuildProjectReferences=false", "-p:BuildInParallel=false", "-p:UseSharedCompilation=false"]
+EXIT 124
+Finished 2026-11-08T04:31:26.952247+00:00
