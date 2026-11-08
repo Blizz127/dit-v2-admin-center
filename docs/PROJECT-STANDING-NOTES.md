@@ -194,3 +194,14 @@ Latest completed local work:
 Keep these evidence boundaries during any later integration. No full suite,
 real model, native game or browser verification should be inferred from these
 focused local results.
+
+## Forever bot baseline, 2026-11-08 (owner direction in this terminal)
+
+The owner directed that DIT v2 bots operate the way the TrinityCore WoW Forever
+bots do, plus DIT improvements; see `docs/FOREVER-BASELINE-PROPOSAL.md`. This lane
+built the Admin views (`forever_botlog.py`, `baseline_conformance.py`, two panels)
+and released preview `8db3abe5` (`docs/FOREVER-BASELINE-PREVIEW-20261108.md`).
+The standard amendment is proposed by the hub Claude session and awaits Codex or
+coordinator acceptance. Bot bodies are built by `ffxi-platform` first, behind the
+owner's FFXI gate. Do not rebuild these views; extend them only when real exports
+or the accepted `dit.bot_event.v1` envelope arrive.
