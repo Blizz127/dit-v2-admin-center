@@ -117,6 +117,34 @@ default:
 | Game | Body owner | Against this baseline |
 | --- | --- | --- |
 | WoW Forever (Classic 1.60, TrinityCore) | Forever server lead | Reference implementation |
-| FFXI | FFXI server lead (to confirm) | `FFXI_PLAYERBOTS_V0` designed, not built. **First port**, needs the owner's OK while players are online |
+| FFXI | `ffxi-platform` | `FFXI_PLAYERBOTS_V0` phase 1 (socketless PC) landed in `b2a7953396` per the hub lead; the Forever rows fold into `FFXI_FOREVER_POPULATION_PLAN`. **First port**, needs the owner's OK while players are online |
 | WotLK Forever (AzerothCore) | WotLK lead | mod-playerbots companions; compare after FFXI |
 | SWTOR, others | Respective leads | Assess against rows 1–16 |
+
+## Hub lead response (2026-11-08)
+
+The hub Claude session wrote a **proposed** amendment to `BOT_BRAIN_STANDARD` §6
+(branch `docs/forever-baseline-amendment-20261108`, commits `d100c15c` and
+`e73692bc`, docs only). It takes effect only when Codex (the DIT lead since
+11-04) or the coordinator accepts it.
+
+- **Adopted:** §6.1 names WoW Forever at `fb754788894` as the reference for L0–L2
+  and the command catalog. That covers the three engines, relevance bands, one
+  action per tick, pure plans with glue, off-by-default strategies, the sim/rules
+  A/B loop, the watchdog ladder, leader orders with refusal codes and "what are
+  you doing?".
+- **Not adopted:** row 14's conversation templates. The owner's 11-02 order is AI
+  or silence; only the personalities, pacing and command-shape exclusion carry
+  over. Population (row 12) is adopted under each game's ramp gates.
+- **Observability (§6.3):** a proposed game-neutral export envelope
+  `dit.bot_event.v1` (JSONL per game per day), with a Forever mapping. Correction
+  sent back to the hub: at `fb754788894`, `recent_decisions` and the killer are on
+  the `death` row. `BotAI.cpp:469` says the engine `state_change` row is "slim, the
+  enriched payload lives on the death row". The table in `engine-design.md` is
+  older than the code.
+- **FFXI first:**
+  - Body owner is `ffxi-platform`; there is no new track.
+  - Order: pure plans and v1 emission offline or in a paper run, then live
+    behind default-off switches, then the owner's OK for LSB changes while
+    players are online, with the existing player guard.
+  - After FFXI comes WotLK Forever, then the rest via the conformance tracker.
