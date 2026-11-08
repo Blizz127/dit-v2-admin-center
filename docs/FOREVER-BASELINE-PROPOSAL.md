@@ -196,3 +196,29 @@ So the instruction is not a wholesale removal:
 - **Replace:** bot **behavior**, meaning decision-making, activity, movement and
   combat logic, and bot **chat**, meaning templates and canned lines. Both are
   replaced by the Forever-style baseline, with chat as grounded AI or silence.
+
+## Owner decisions on the FFXI replacement (2026-11-08)
+
+`ffxi` accepted the work and planned it in phases:
+- **P0:** read-only inventory, `~/dev/ffxi/handoffs/2026-11-08-botsv2-p0/REPLACE-KEEP.md`
+  (71 bot Lua modules, 395 live bot settings).
+- **P1:** design of a native `BANSHEE_BOTS_V2` layer.
+- **P2:** offline and devbox tests.
+- **P3:** one reversible flag cutover.
+- **P4:** old code deleted only after the owner accepts.
+
+The owner then answered four questions, verbatim where quoted:
+
+1. **Writers:** "i need it spit between ff11 forever and ff11 original so whatever
+   works but ff11 forever is in rust now".
+   - FFXI Forever (Rust xi-map) goes to `ffxi-platform`.
+   - FFXI original (LSB) goes to `ffxi`: map-side behavior, Lua strip and flags.
+     DIT writes the hub wording endpoint and `src/map/dit/` session code.
+     DIT's OK on the table and roles is pending.
+2. **License:** "re-implement with rust in f11 forever and lsb's native". No
+   PlayerbotV2 files are copied.
+3. **Adoulin crowd:** keep the crowd's presence and auction-house stocking; give
+   it the new behavior and chat.
+4. **First cutover:** field play, party companions and chat. Crafting, economy,
+   missions and pastimes stay on their current modules, with old chat off,
+   until V2 covers them.
