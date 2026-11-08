@@ -15,6 +15,7 @@ import unittest
 from unittest.mock import patch
 
 import server
+import baseline_conformance
 import presence_examples
 import project_issues
 import routing_audit
@@ -38,6 +39,8 @@ class OfflineOverviewCollectionTests(unittest.TestCase):
         self.routing_fixture.write_bytes(routing_audit.FIXTURE.read_bytes())
         self.presence_fixture = self.home / 'presence-examples-fixture.json'
         self.presence_fixture.write_bytes(presence_examples.FIXTURE.read_bytes())
+        self.conformance_fixture = self.home / 'baseline-conformance-fixture.json'
+        self.conformance_fixture.write_bytes(baseline_conformance.FIXTURE.read_bytes())
         # server.PROJECT is redirected below; seed its committed model-call fixture.
         models = self.home / 'dev/admin/data/fixtures/model-comparison.json'
         models.parent.mkdir(parents=True)
@@ -103,6 +106,7 @@ class OfflineOverviewCollectionTests(unittest.TestCase):
         with ExitStack() as stack:
             stack.enter_context(patch('routing_audit.FIXTURE', self.routing_fixture))
             stack.enter_context(patch('presence_examples.FIXTURE', self.presence_fixture))
+            stack.enter_context(patch('baseline_conformance.FIXTURE', self.conformance_fixture))
             stack.enter_context(patch('server.read_project_issues',
                                       lambda: project_issues.read(self.home / 'dev/admin')))
             for target in ('socket.socket', 'socket.create_connection', 'subprocess.Popen',
@@ -198,6 +202,7 @@ class OfflineOverviewCollectionTests(unittest.TestCase):
         self.assertIn('Simulated rejection', data['routingAudit'][2]['result'])
         # Redirected committed fixtures must load, not degrade silently to Unknown.
         self.assertEqual(data['presenceExamples']['kind'], 'synthetic')
+        self.assertEqual(data['baselineConformance']['games'][0]['cells']['forever-01']['status'], 'Sim-measured')
         self.assertTrue(data['modelCalls'])
         # Missing documents yield id-less Unknown cards with the same source label.
         sources = {issue.get('source') for issue in data['issues'] if issue.get('id')}

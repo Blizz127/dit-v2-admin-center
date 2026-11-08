@@ -33,6 +33,7 @@ from presence_examples import examples as presence_examples
 from evaluator_snapshot import from_env as evaluator_snapshot
 from hub_snapshot import ENV as HUB_SNAPSHOT_ENV, SnapshotReader
 from bakeoff_run import from_env as bakeoff_run
+from baseline_conformance import read as baseline_conformance
 from wake_verification import read as read_wake_verification
 from operation_sources import read as read_operation_sources
 from local_evidence import read_json
@@ -266,6 +267,8 @@ def overview(source='mock'):
         "modelCalls": None if example_calls is None else example_calls + evaluator_rows + bakeoff_rows,
         "evaluatorSnapshot": evaluator_coverage,
         "bakeoffRun": bakeoff_coverage,
+        # Committed tracker of the Forever-style baseline per game; None renders Unknown.
+        "baselineConformance": baseline_conformance(),
         "audit": [
             {"actor": "Example operator", "action": "Simulated model selection", "scope": "Example FFXI bot",
              "result": "Example only; no change applied", "at": "2026-01-01T12:00:00Z", "source": "Synthetic audit fixture"},
