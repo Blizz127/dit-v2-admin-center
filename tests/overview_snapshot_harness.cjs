@@ -3,7 +3,9 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const {execFileSync} = require('node:child_process');
-const python = (...args) => execFileSync('python3', args, {encoding:'utf8',timeout:5000});
+// These helpers parse local fixtures, not a latency-sensitive application path.
+// Keep them bounded while allowing startup on the shared, contended host.
+const python = (...args) => execFileSync('python3', args, {encoding:'utf8',timeout:30000});
 const artifactPath = process.env.DIT_TEST_ARTIFACT;
 const application = fs.readFileSync('static/app.js','utf8');
 if (artifactPath) assert.ok(fs.readFileSync(artifactPath, 'utf8').includes(application), 'Artifact does not embed the current application source');
