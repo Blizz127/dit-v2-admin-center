@@ -1,0 +1,25 @@
+{
+  "phase": "one read-only preflight",
+  "sourceRevision": "8166a4a8150b5c4667f5f6c239bce4dc667c5335",
+  "localPackageMatchesSeal": true,
+  "exitCode": 0,
+  "status": "Readback obtained",
+  "remote": {
+    "destination": "/home/blizz/Downloads/DIT-Conversation-Overview-20261104-11735c60/Conversation-Panel-8166a4a",
+    "observedAt": "2026-11-08T07:30:32.069137+00:00",
+    "exists": false,
+    "files": {},
+    "parentDirectory": true,
+    "parentWritable": true,
+    "uid": 1000
+  },
+  "fileActions": {
+    "Context-Panel-Playtest.html": "missing",
+    "READ-ME-FIRST.txt": "missing",
+    "RELEASE.json": "missing",
+    "SHA256SUMS": "missing",
+    "Start-Here.html": "missing"
+  },
+  "allFilesAlreadyMatch": false,
+  "recordedAt": "2026-11-08T07:30:32.096588+00:00"
+}

@@ -87,9 +87,12 @@ Latest completed local work:
   observation/deadline clocks and keeps live native status Unknown. Four Python
   checks plus the artifact-bound simulated-DOM check passed; retained captures
   and native/shared hub source are unchanged. Private preview publication is
-  **UNCONFIRMED**: the 45-second transfer timed out, then one read-only follow-up
-  failed to connect to Alienware port 22 at 06:36:15Z on 2026-11-08. No blind retry
-  or native/browser/game action occurred. `bd3a4f9` remains the latest verified
+  **UNCONFIRMED**. After the original 06:36:15Z failure, an explicitly authorized
+  bounded continuation on 2026-11-08 reached Alienware at 07:30:32Z and found the
+  exact destination absent. Its one completion-transfer connection then timed
+  out on port 22 (exit 255) at 07:31:04Z. The attempt stopped as instructed;
+  final remote hash readback was NOT RUN. No blind retry or native/browser/game
+  action occurred. `bd3a4f9` remains the latest verified
   preview. The [handoff](../handoffs/native-clock-diagnostic-20261108/README.md)
   records the package, hash, checks and exact next safe readback step. Both reused
   read-only helpers completed; no job remains. This scoped local item is done;

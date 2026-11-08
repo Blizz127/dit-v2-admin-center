@@ -194,3 +194,14 @@ file presence, native browser rendering or runtime deployment were verified on
 Alienware. The previous `bd3a4f9` remains the latest verified delivery. Inspect the
 new destination before any later write. See the
 [timing diagnostic handoff](../handoffs/native-clock-diagnostic-20261108/README.md).
+
+### Bounded continuation at 07:30Z
+
+New retained reachability evidence authorized one fresh preflight of the same
+sealed `8166a4a` preview. The read-only SSH check at 07:30:32Z succeeded and found
+the exact destination absent, with the existing parent writable. The one
+completion-transfer connection then timed out on Alienware port 22 (exit 255),
+recorded at 07:31:04.784948Z. No write completion was observed. The attempt stopped
+without another connection or final hash readback, as explicitly instructed.
+Delivery remains UNCONFIRMED; the five-file package and prior `bd3a4f9` preview
+are unchanged. Continuation receipts are in the existing diagnostic handoff.

@@ -1,0 +1,9 @@
+{
+  "phase": "single bounded completion transfer",
+  "sourceRevision": "8166a4a8150b5c4667f5f6c239bce4dc667c5335",
+  "preflightObservedAt": "2026-11-08T07:30:32.069137+00:00",
+  "exitCode": 255,
+  "status": "Blocked",
+  "error": "ssh: connect to host alienware-bazzite port 22: Connection timed out",
+  "recordedAt": "2026-11-08T07:31:04.784948+00:00"
+}

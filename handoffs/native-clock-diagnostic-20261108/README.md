@@ -38,7 +38,9 @@ HTML SHA-256: `92470858811d06ccc59ba493db786046e17f41f0a0050e3122d9c9b26a84aad3`
 (287,362 bytes). Package contains five files. Transfer timed out after 45 seconds without a completion receipt. The single
 read-only follow-up failed with `ssh: connect to host alienware-bazzite port 22:
 Connection timed out` (exit 255), recorded at 2026-11-08T06:36:15.629133Z.
-Delivery is UNCONFIRMED; no remote hashes or destination presence were observed.
+At that original attempt, delivery was UNCONFIRMED; no remote hashes or
+destination presence were observed. The bounded continuation below records the
+newer read-only destination evidence, but still no completed delivery.
 The earlier bd3a4f9 remains the latest verified private preview. No blind write
 retry was performed. See owner-preview-attempt.json.
 The prior bd3a4f9 preview is retained for rollback. The existing 9c99e01a hub
@@ -56,3 +58,28 @@ the timed-out attempt may have left no, partial or complete files. Verify exact
 hashes before claiming release; do not duplicate the version or blindly overwrite.
 No build/test/transfer job remains. Existing native integration and device
 validation still belong to their respective owners. No new publisher or intake.
+
+## Bounded delivery continuation, 2026-11-08 07:30Z
+
+The owner-authorized continuation supplied retained evidence of a later
+successful SSH retrieval by the Forever lead and authorized one fresh preflight
+through the same strict-host-key/BatchMode route. No trust, credential or route
+was changed. All five local package hashes and sizes still matched the seal;
+no candidate, capture, build or test run was repeated.
+
+The single read-only preflight succeeded at **07:30:32.069137Z**. The exact
+`Conversation-Panel-8166a4a` directory was **absent**; its existing parent was a
+writable directory. Therefore no matching remote file was rewritten. One
+bounded completion transfer was attempted, using exclusive directory/file
+creation for the same five-file package. Its SSH connection failed with:
+
+`ssh: connect to host alienware-bazzite port 22: Connection timed out`
+
+Exit **255**, recorded **07:31:04.784948Z**. No remote write completion was
+observed. Per the explicit stop-on-unreachable instruction, no further SSH
+preflight, transfer or readback was attempted. The final five-file readback was
+**NOT RUN**, and delivery remains **UNCONFIRMED**. `bd3a4f9` remains the latest
+verified private delivery; its files were untouched. No browser/client launch,
+Arena diagnostic interaction, native/game action, new publisher or hub intake
+occurred. This attempt is stopped on the actual endpoint failure, with no job
+remaining. The two continuation receipts are attached.
