@@ -1,0 +1,224 @@
+{
+ "kind": "baseline-conformance",
+ "version": 1,
+ "asOf": "2026-11-08",
+ "source": "docs/FOREVER-BASELINE-PROPOSAL.md (Forever pinned at trinitycore-forever-production-70450 fb754788894)",
+ "rows": [
+  {
+   "id": "forever-01",
+   "group": "forever",
+   "behavior": "Bodies are real player characters"
+  },
+  {
+   "id": "forever-02",
+   "group": "forever",
+   "behavior": "One decision engine"
+  },
+  {
+   "id": "forever-03",
+   "group": "forever",
+   "behavior": "Everything is a switchable strategy"
+  },
+  {
+   "id": "forever-04",
+   "group": "forever",
+   "behavior": "Pure plans plus thin glue"
+  },
+  {
+   "id": "forever-05",
+   "group": "forever",
+   "behavior": "The log is part of the engine"
+  },
+  {
+   "id": "forever-06",
+   "group": "forever",
+   "behavior": "Questing, combat, recovery, rest"
+  },
+  {
+   "id": "forever-07",
+   "group": "forever",
+   "behavior": "Roles"
+  },
+  {
+   "id": "forever-08",
+   "group": "forever",
+   "behavior": "Travel and leveling progression"
+  },
+  {
+   "id": "forever-09",
+   "group": "forever",
+   "behavior": "Bots form their own parties"
+  },
+  {
+   "id": "forever-10",
+   "group": "forever",
+   "behavior": "Dungeons"
+  },
+  {
+   "id": "forever-11",
+   "group": "forever",
+   "behavior": "Town life"
+  },
+  {
+   "id": "forever-12",
+   "group": "forever",
+   "behavior": "Population follows load"
+  },
+  {
+   "id": "forever-13",
+   "group": "forever",
+   "behavior": "Player control"
+  },
+  {
+   "id": "forever-14",
+   "group": "forever",
+   "behavior": "Conversation"
+  },
+  {
+   "id": "forever-15",
+   "group": "forever",
+   "behavior": "Watchdog and loop guards"
+  },
+  {
+   "id": "forever-16",
+   "group": "forever",
+   "behavior": "Economy and social"
+  },
+  {
+   "id": "dit-01",
+   "group": "dit",
+   "behavior": "Grounded conversation"
+  },
+  {
+   "id": "dit-02",
+   "group": "dit",
+   "behavior": "Memory of people"
+  },
+  {
+   "id": "dit-03",
+   "group": "dit",
+   "behavior": "Hub slow brain"
+  },
+  {
+   "id": "dit-04",
+   "group": "dit",
+   "behavior": "Evidence ledger"
+  },
+  {
+   "id": "dit-05",
+   "group": "dit",
+   "behavior": "Per-game learning"
+  },
+  {
+   "id": "dit-06",
+   "group": "dit",
+   "behavior": "Model routing and bake-off"
+  },
+  {
+   "id": "dit-07",
+   "group": "dit",
+   "behavior": "Kill switches, gates, audit"
+  }
+ ],
+ "games": [
+  {
+   "game": "WoW Forever (Classic 1.60)",
+   "owner": "Forever server lead",
+   "cells": {
+    "forever-01": {
+     "status": "Sim-measured",
+     "evidence": "docs/FOREVER-BASELINE-PROPOSAL.md section 1 row 1 (Forever docs status: Sim-measured)"
+    },
+    "forever-02": {
+     "status": "Sim-measured",
+     "evidence": "docs/FOREVER-BASELINE-PROPOSAL.md section 1 row 2 (Forever docs status: Sim-measured)"
+    },
+    "forever-03": {
+     "status": "Unit-tested",
+     "evidence": "docs/FOREVER-BASELINE-PROPOSAL.md section 1 row 3 (Forever docs status: Unit-tested); proposal says 'Unit-tested and sim-measured, per feature'; mixed per feature"
+    },
+    "forever-04": {
+     "status": "Reference",
+     "evidence": "docs/FOREVER-BASELINE-PROPOSAL.md section 1 row 4 (Forever docs status: Reference); proposal status 'Practice'"
+    },
+    "forever-05": {
+     "status": "Sim-measured",
+     "evidence": "docs/FOREVER-BASELINE-PROPOSAL.md section 1 row 5 (Forever docs status: Sim-measured)"
+    },
+    "forever-06": {
+     "status": "Sim-measured",
+     "evidence": "docs/FOREVER-BASELINE-PROPOSAL.md section 1 row 6 (Forever docs status: Sim-measured); XP, deaths, stuck per bot-hour"
+    },
+    "forever-07": {
+     "status": "Designed",
+     "evidence": "docs/FOREVER-BASELINE-PROPOSAL.md section 1 row 7 (Forever docs status: Designed); proposal says 'Design plus partial'; partial implementation not itemized"
+    },
+    "forever-08": {
+     "status": "Unit-tested",
+     "evidence": "docs/FOREVER-BASELINE-PROPOSAL.md section 1 row 8 (Forever docs status: Unit-tested)"
+    },
+    "forever-09": {
+     "status": "Unit-tested",
+     "evidence": "docs/FOREVER-BASELINE-PROPOSAL.md section 1 row 9 (Forever docs status: Unit-tested)"
+    },
+    "forever-10": {
+     "status": "Unit-tested",
+     "evidence": "docs/FOREVER-BASELINE-PROPOSAL.md section 1 row 10 (Forever docs status: Unit-tested)"
+    },
+    "forever-11": {
+     "status": "Unit-tested",
+     "evidence": "docs/FOREVER-BASELINE-PROPOSAL.md section 1 row 11 (Forever docs status: Unit-tested)"
+    },
+    "forever-12": {
+     "status": "Unit-tested",
+     "evidence": "docs/FOREVER-BASELINE-PROPOSAL.md section 1 row 12 (Forever docs status: Unit-tested)"
+    },
+    "forever-13": {
+     "status": "Unit-tested",
+     "evidence": "docs/FOREVER-BASELINE-PROPOSAL.md section 1 row 13 (Forever docs status: Unit-tested)"
+    },
+    "forever-14": {
+     "status": "Unit-tested",
+     "evidence": "docs/FOREVER-BASELINE-PROPOSAL.md section 1 row 14 (Forever docs status: Unit-tested); templates only, no model"
+    },
+    "forever-15": {
+     "status": "Designed",
+     "evidence": "docs/FOREVER-BASELINE-PROPOSAL.md section 1 row 15 (Forever docs status: Designed); proposal says 'Design and rules'"
+    },
+    "forever-16": {
+     "status": "Designed",
+     "evidence": "docs/FOREVER-BASELINE-PROPOSAL.md section 1 row 16 (Forever docs status: Designed); proposal says 'Mixed, per feature' with no single status; weakest status shown until itemized per feature"
+    },
+    "dit-01": {
+     "status": "Not started",
+     "evidence": "docs/FOREVER-BASELINE-PROPOSAL.md section 1 row 14 and section 2: Forever conversation is templates only, no model"
+    }
+   }
+  },
+  {
+   "game": "FFXI",
+   "owner": "FFXI server lead (to confirm)",
+   "cells": {
+    "forever-01": {
+     "status": "Designed",
+     "evidence": "FFXI_PLAYERBOTS_V0 (hub repo docs/architecture), designed 2026-09-04, not built"
+    }
+   }
+  },
+  {
+   "game": "WotLK Forever",
+   "owner": "WotLK lead",
+   "cells": {
+    "forever-01": {
+     "status": "Designed",
+     "evidence": "wotlk-forever docs/WRATH_COMPANION_BOTS_20261031.md: plan, NOT RUN"
+    }
+   }
+  },
+  {
+   "game": "SWTOR",
+   "owner": "SWTOR lead",
+   "cells": {}
+  }
+ ]
+}
