@@ -70,6 +70,14 @@ no native check is claimed by building or privately delivering a preview.
    remain inspectable despite having no recent-conversation section.
    The sequence-gap fixture must show snapshot unavailable with its actual
    policy and no native observation values or revision.
+   Each field must label its state as **at captured read** and show its own
+   supplied observation time and validity deadline. In the existing ordinary
+   captures, presence expires at `00:01:00` while location/activity expire at
+   `00:00:10`; do not substitute the packet read time or another field's deadline.
+   Missing clocks show **Unknown (not supplied)**, including missing-source and
+   sequence-gap cases. **Live native status** remains **Unknown** for every
+   capture. Retained clocks cannot authorize a withheld value, and opening an
+   old fixture does not recompute its historical state against today's clock.
    Inspect **Requested bot scope** separately from **Native body in capture**:
    the actor key and native actor ID legitimately differ. Compare the exact
    game, requested/server instance, realm, native actor ID and session epoch

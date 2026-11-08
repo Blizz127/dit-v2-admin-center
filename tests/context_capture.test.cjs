@@ -5,6 +5,20 @@ const vm = require('node:vm');
 const {createHash} = require('node:crypto');
 const {get, refresh, context} = require('./overview_snapshot_harness.cjs');
 const capture = JSON.parse(fs.readFileSync('tests/fixtures/context-status-integration/ffxi-companion.json', 'utf8'));
+function assertCapturedTiming(panel, loaded) {
+  const fields = loaded.statusBinding.View?.Fields;
+  const names = ['Presence', 'Location', 'Activity', 'Party', 'Job', 'Level'];
+  const live = panel.children.find(row => row.children[0]?.textContent === 'Live native status');
+  assert.equal(live?.children[1]?.textContent, 'Unknown', 'Offline captures cannot establish live native status');
+  for (const name of names) {
+    const field = fields?.find(field => field.Field === name);
+    const row = panel.children.find(row => row.children[0]?.textContent === name);
+    const meta = row?.children[2]?.textContent || '';
+    assert.ok(meta.includes('State at captured read'), `${name}: field states must be scoped to the captured read`);
+    for (const [key, label] of [['ObservedAtUtc', 'Captured observation'], ['ValidUntilUtc', 'Captured validity deadline']])
+      assert.ok(meta.includes(`${label}: ${field?.[key] ?? 'Unknown (not supplied)'}`), `${name}: ${label} missing or borrowed from another clock`);
+  }
+}
 function presenceCapture(original, state, value, withholdBody) {
   const result = structuredClone(original), view = result.statusBinding.View;
   Object.assign(view.Fields[0], {State:state, Value:value, Reason:'synthetic presence case'});
@@ -43,6 +57,7 @@ function presenceCapture(original, state, value, withholdBody) {
   assert.ok(panel.textContent.includes(capture.userMessage));
   assert.ok(panel.textContent.includes(capture.statusBinding.View.RevisionSha256));
   assert.match(panel.textContent, /independent of roster selection/);
+  assertCapturedTiming(panel, capture);
   assert.equal(button.disabled, false);
   for (const game of ['ffxi', 'swtor']) {
     const original = JSON.parse(fs.readFileSync(`tests/fixtures/context-status-integration/${game}-companion.json`, 'utf8'));
@@ -60,6 +75,7 @@ function presenceCapture(original, state, value, withholdBody) {
       assert.ok(panel.textContent.includes(response.capture.userMessage));
       assert.match(panel.textContent, /Unknown · Value withheld/);
       assert.ok(!panel.textContent.includes('Synthetic native west entrance'));
+      assertCapturedTiming(panel, response.capture);
     }
     for (const mutate of [
       fields => { fields[0] = structuredClone(fields[1]); },
@@ -74,6 +90,7 @@ function presenceCapture(original, state, value, withholdBody) {
     response = {status:'Loaded', capture:original};
     await button.listeners.click();
     assert.ok(panel.textContent.includes(original.userMessage), 'Corrected online capture must recover without losing history');
+    assertCapturedTiming(panel, original);
   }
   for (const failure of ['missing', 'error', 'binding', 'gap']) {
     const unavailable = JSON.parse(fs.readFileSync(`tests/fixtures/context-status-unavailable/ffxi-${failure}.json`, 'utf8'));
@@ -84,6 +101,7 @@ function presenceCapture(original, state, value, withholdBody) {
     assert.ok(!panel.textContent.includes('Synthetic native west entrance'));
     assert.ok(panel.textContent.includes(failure === 'gap' ? 'sequence gap: snapshot required' : unavailable.statusBinding.State));
     assert.match(panel.textContent, /Unknown · Value withheld/);
+    assertCapturedTiming(panel, unavailable);
   }
   for (const game of ['ffxi', 'swtor']) {
     const empty = JSON.parse(fs.readFileSync(`tests/fixtures/context-status-empty/${game}-empty-intent.json`, 'utf8'));
@@ -92,6 +110,7 @@ function presenceCapture(original, state, value, withholdBody) {
     assert.match(panel.textContent, /0 \/ 0 captured input turns retained/);
     assert.ok(panel.textContent.includes(empty.userMessage));
     assert.match(panel.textContent, /Native status unavailable/);
+    assertCapturedTiming(panel, empty);
   }
   response = {status:'Loaded', capture:structuredClone(capture)};
   response.capture.statusBinding.View = null;

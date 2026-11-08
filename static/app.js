@@ -259,8 +259,11 @@ function renderContextCapture(data) {
     'Lookup recorded for this captured request. The native body has its own identity.');
   if (!unbound) item(panel, 'Native body in capture', `Game ${view.Body.Game} · realm ${view.Body.Realm} · instance ${view.Body.Instance} · native actor ${view.Body.NativeActorId}`,
     `Session epoch ${view.Epoch}. Captured binding only; presence and field freshness are shown separately.`);
+  item(panel, 'Live native status', 'Unknown',
+    'Field states describe the synthetic captured read, not the time this page was opened. No live producer evidence is supplied.');
   for (const field of fields) {
-    item(panel, field.Field, `${field.State} · ${field.Value ?? 'Value withheld'}`, field.Reason);
+    item(panel, field.Field, `${field.State} · ${field.Value ?? 'Value withheld'}`,
+      `State at captured read · ${field.Reason} · Captured observation: ${routingText(field.ObservedAtUtc, 'Unknown (not supplied)')} · Captured validity deadline: ${routingText(field.ValidUntilUtc, 'Unknown (not supplied)')}`);
   }
   if (unbound) item(panel, 'Native status unavailable', binding.State,
     `Request ${receipt.RequestId} · No native body or status revision is bound. Conversation context remains inspectable.`);

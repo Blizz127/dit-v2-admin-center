@@ -37,6 +37,14 @@ the existing Python reader separately checks the digest and retained prompt
 section. The displayed cap is the captured builder budget, not a measurement of
 the provider's token capacity or model understanding.
 
+Native field labels describe the **captured read**, not current game status.
+The inspector shows each field's supplied observation time and validity deadline
+separately; an absent clock is **Unknown (not supplied)**. Presence can have a
+different deadline from activity or location. A retained timestamp does not
+restore an Unknown/Stale value or attest its source. **Live native status**
+remains **Unknown**; the page does not age historical fixture states against
+the time it is opened or borrow the packet's read time for missing observations.
+
 ## Separate FFXI Python producer
 
 Read-only inspection of
