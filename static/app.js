@@ -220,10 +220,12 @@ function renderContextCapture(data) {
       || (!unbound && (!view || !Array.isArray(view.Fields) || view.Fields.length !== 6 || !['snapshot projected', 'snapshot unavailable'].includes(binding.State)))
       || typeof capture.systemMessage !== 'string' || typeof capture.userMessage !== 'string'
       || !Number.isInteger(receipt.IncludedHistoryTurns) || !Number.isInteger(receipt.SuppliedHistoryTurns)) throw new Error('invalid capture');
+  const lookup = binding.Lookup;
+  const scopeText = value => typeof value === 'string' && value.trim().length > 0 && value.length <= 128;
+  if (lookup?.Game !== capture.game || !scopeText(lookup.ServerInstance) || !scopeText(lookup.ActorKey)) throw new Error('invalid scope');
+  if (!unbound && (view.Body?.Game !== capture.game || view.Body.Instance !== lookup.ServerInstance
+      || !['Realm', 'Instance', 'NativeActorId'].every(key => scopeText(view.Body[key])) || !scopeText(view.Epoch))) throw new Error('invalid body scope');
   if (unbound) {
-    const lookup = binding.Lookup;
-    if (lookup?.Game !== capture.game || typeof lookup.ServerInstance !== 'string' || !lookup.ServerInstance
-        || typeof lookup.ActorKey !== 'string' || !lookup.ActorKey) throw new Error('invalid scope');
     const approved = capture.userMessage.split('APPROVED FACTS\n')[1]?.split('\n\n')[0].split('\n').filter(line => line.startsWith('- native_status_'));
     const expected = fieldNames.map(field => `- native_status_${field.toLowerCase()}_state: unknown: ${binding.State}`);
     if (!approved || JSON.stringify(approved) !== JSON.stringify(expected)) throw new Error('unbound status has values');
@@ -241,6 +243,10 @@ function renderContextCapture(data) {
   item(panel, `${capture.game.toUpperCase()} · ${capture.path} · Synthetic captured packet`,
     `${receipt.IncludedHistoryTurns} / ${receipt.SuppliedHistoryTurns} captured input turns retained; ${receipt.OmittedHistoryTurns} omitted.`,
     'No real model call or delivery attempted. Counts start at this captured input; earlier producer omissions are not measured. This packet is independent of roster selection.');
+  item(panel, 'Requested bot scope', `Game ${lookup.Game} · instance ${lookup.ServerInstance} · actor key ${lookup.ActorKey}`,
+    'Lookup recorded for this captured request. The native body has its own identity.');
+  if (!unbound) item(panel, 'Native body in capture', `Game ${view.Body.Game} · realm ${view.Body.Realm} · instance ${view.Body.Instance} · native actor ${view.Body.NativeActorId}`,
+    `Session epoch ${view.Epoch}. Captured binding only; presence and field freshness are shown separately.`);
   for (const field of fields) {
     item(panel, field.Field, `${field.State} · ${field.Value ?? 'Value withheld'}`, field.Reason);
   }

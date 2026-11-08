@@ -135,6 +135,60 @@ vm.runInContext(DRIVER, context);
             result = subprocess.run(['node', str(path)], capture_output=True, text=True, timeout=10)
             self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_scope_conflict_mutates_only_body_or_lookup_game_in_response_copies(self):
+        artifact = build()
+        page = Page(artifact)
+        self.assertIn('<option value="scope-conflict">Synthetic scope conflict</option>', artifact)
+        self.assertIn('<option value="presence-conflict">Synthetic presence conflict</option>', artifact)
+        self.assertIn("connect-src 'none'", page.csp)
+        self.assertEqual(page.sources, [])
+        app = (ROOT / 'static/app.js').read_text()
+        self.assertIn(app, page.scripts[0])
+        driver = page.scripts[0].split(app, 1)[0] + '\nglobalThis.fixtureFetch = fetch; globalThis.originalFixtures = fixtures;})();'
+        check = '''const assert = require('node:assert/strict');
+const vm = require('node:vm');
+const controls = {'fixture-scenario':{value:'scope-conflict'}, 'fixture-capture':{value:'ffxi-companion'}};
+let networkCalls = 0;
+const context = vm.createContext({
+  document:{getElementById:id=>controls[id]}, structuredClone,
+  fetch:()=>{networkCalls++; throw new Error('Network forbidden');}
+});
+vm.runInContext(DRIVER, context);
+(async () => {
+  const original = JSON.stringify(context.originalFixtures);
+  const fetchFixture = async url => (await context.fixtureFetch(url)).json();
+  for (const name of ['ffxi-companion', 'swtor-companion', 'ffxi-gap', 'ffxi-missing', 'ffxi-empty-intent', 'swtor-empty-intent']) {
+    controls['fixture-scenario'].value = 'scope-conflict';
+    controls['fixture-capture'].value = name;
+    const source = context.originalFixtures.captures[name];
+    const expected = structuredClone(source);
+    const otherGame = source.game === 'ffxi' ? 'swtor' : 'ffxi';
+    if (expected.statusBinding.View) expected.statusBinding.View.Body.Game = otherGame;
+    else expected.statusBinding.Lookup.Game = otherGame;
+    const response = await fetchFixture('/api/context-capture');
+    assert.equal(response.status, 'Loaded');
+    assert.equal(response.capture.game, source.game);
+    assert.equal(JSON.stringify(response.capture), JSON.stringify(expected));
+    assert.equal(JSON.stringify(context.originalFixtures), original);
+    const delivery = await fetchFixture('/api/delivery-capture');
+    assert.equal(JSON.stringify(delivery), JSON.stringify(context.originalFixtures.delivery[source.game]));
+    assert.equal(delivery.nativeDeliveryVerified, false);
+    assert.equal(delivery.deliveredInGame, null);
+    controls['fixture-scenario'].value = 'loaded';
+    assert.equal(JSON.stringify((await fetchFixture('/api/context-capture')).capture), JSON.stringify(source));
+  }
+  await assert.rejects(context.fixtureFetch('https://example.invalid'), /network forbidden/);
+  await assert.rejects(context.fixtureFetch('/api/context-capture', {method:'POST'}), /Only fixture GETs allowed/);
+  assert.equal(networkCalls, 0);
+  assert.equal(JSON.stringify(context.originalFixtures), original);
+})().catch(error=>{console.error(error);process.exitCode=1;});
+'''.replace('DRIVER', json.dumps(driver), 1)
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'fixture-scope-fetch-check.cjs'
+            path.write_text(check)
+            result = subprocess.run(['node', str(path)], capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 0, result.stderr)
+
 
 if __name__ == '__main__':
     unittest.main()

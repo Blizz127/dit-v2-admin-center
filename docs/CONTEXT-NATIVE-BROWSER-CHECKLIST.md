@@ -70,6 +70,12 @@ no native check is claimed by building or privately delivering a preview.
    remain inspectable despite having no recent-conversation section.
    The sequence-gap fixture must show snapshot unavailable with its actual
    policy and no native observation values or revision.
+   Inspect **Requested bot scope** separately from **Native body in capture**:
+   the actor key and native actor ID legitimately differ. Compare the exact
+   game, requested/server instance, realm, native actor ID and session epoch
+   with the fixture. Missing-source captures show the requested scope but no
+   invented native body. A sequence-gap capture retains its expected body
+   binding while all current field values remain Unknown.
 3. After a successful load, select **Unavailable**, **Invalid field**, then
    **HTTP error fixture**, pressing the panel load button each time. Every error
    must remove the previous prompt/body values. Return to **Loaded** and verify
@@ -81,6 +87,10 @@ no native check is claimed by building or privately delivering a preview.
    or unavailable captures use an explicitly invalid response shape, without
    inventing a native source. Return to **Loaded** to recover the unchanged
    original capture. This is an error-handling fixture, not a new native export.
+   Repeat with **Synthetic scope conflict**. It changes only the cloned body's
+   game (or requested game for an unbound capture). The context panel must
+   clear and report unavailable for either game, while delivery evidence stays
+   unchanged. Returning to **Loaded** must recover the original scope/history.
 4. The actual parser/authentication checks are reproduced separately with
    `python3 -m unittest tests.test_context_capture -v`: truncated/oversized JSON,
    wrong shape, contradictory native facts, missing file, recovery, authentication-before-read, query and
