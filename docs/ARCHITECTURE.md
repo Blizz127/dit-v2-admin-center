@@ -1,5 +1,11 @@
 # Architecture
 
+Current authority: owner message `2c41e771389e7f0d` lifted discretionary project
+policy pauses on 2026-11-08. [Standing notes](PROJECT-STANDING-NOTES.md) supersede
+older policy-only no-release wording below. Actual missing authorized access,
+native approvals, security requirements and sole-writer ownership still apply;
+the loopback scaffold does not become a production deployment by that change.
+
 Status: draft for joint review with the DIT v2 hub lead. The hub owns its contracts; this document does not establish or change them. The coordinator has been asked to relay the proposal and identify the current r10 and ledger specifications.
 
 ## Boundary

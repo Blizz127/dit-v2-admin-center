@@ -6,18 +6,21 @@ the exact application and capture input hashes. The integrated preview was
 delivered to Alienware under `Integrated-Preview-153855b`; copying and hashing
 that file did not launch a browser or validate rendering.
 
-This checklist does not resume the blocked browser step. Devbox's missing
-browser and denied namespace operation remain binding. The earlier Alienware
-executor stopped before browser launch because prerequisites were missing from
-PATH. Do not rerun its older pinned package for this new feature. Device
-execution stays with the designated device lead and its existing holds.
+Owner message `2c41e771389e7f0d`, delivered 2026-11-08, lifts the discretionary
+browser/project hold. Devbox still has no installed browser executable and its
+earlier namespace operation was denied. Those are concrete runtime/access
+limits, not a reason to stop other work or install/bypass isolation. The older
+Alienware attempt stopped before browser launch; a separately sequenced attempt
+was already dispatched after a reported PATH repair. Do not replay either old
+package for this feature. Native execution stays with the existing device lead;
+no native check is claimed by building or privately delivering a preview.
 
 ## Inputs and isolation
 
 - Record the exact Admin revision, browser executable/version, operating system,
   viewport and zoom, UTC start/end, artifact SHA-256, and each fixture SHA-256.
-- Use the existing installed browser and a disposable profile only when the
-  device step is released. No downloads, installs, sandbox changes, occupied
+- Use the existing installed browser and a disposable profile through the
+  designated device owner. No downloads, installs, sandbox changes, occupied
   profile, cookies, credentials, game access, or real provider calls.
 - For static layout review, use
   `build/context-slice/Integrated-Context-Preview.html` (or its independently
@@ -34,8 +37,8 @@ execution stays with the designated device lead and its existing holds.
   captures from the actual hub prompt builder/serializer, and two synthetic
   delivery-correlation reports with no native verifier.
   Its fixture `fetch` cannot call the network, polling is disabled, and CSP
-  explicitly blocks connections. Open this file only on the released device
-  step. No server, token file or normal collector is needed. The generic older
+  explicitly blocks connections. The designated device owner can use this
+  exact file for the new check. No server, token file or normal collector is needed. The generic older
   inspector preview has no context-capture response; do not substitute it.
 - The fixture's token and HTTP-error response are synthetic. File parsing and
   authentication remain separate automated localhost checks, not browser claims.
@@ -109,10 +112,12 @@ execution stays with the designated device lead and its existing holds.
 This is a separate static read-only artifact, not the interactive Admin loader.
 Build it locally with `python3 -m tools.build_delivery_correlation_preview` and
 record the SHA-256 of `build/context-slice/Delivery-Evidence-Preview.html`.
-No device copy or browser launch has been performed. The same device/namespace
-holds above apply; this checklist does not release them.
+At the original 2026-11-04 checkpoint, no device copy or browser launch had been
+performed. Consult the [delivery record](CROSS-GAME-CONTEXT-VIDEO-DELIVERY.md)
+for subsequent copies; copying alone never establishes browser execution.
+The concrete device ownership and namespace-denial limits above still apply.
 
-Once the designated device step is released, record PASS/FAIL/BLOCKED/NOT RUN
+For a new designated-device check, record PASS/FAIL/BLOCKED/NOT RUN
 for each of these eight sections:
 
 1. **FFXI publication only:** four recorded attempts, two publication matches,

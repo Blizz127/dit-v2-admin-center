@@ -1,5 +1,12 @@
 # DIT v2 Admin Center
 
+**Current release policy (2026-11-08):** the owner lifted earlier discretionary
+project holds and requests useful ready releases immediately, at most 45 minutes
+apart while an increment is available. [Standing notes](docs/PROJECT-STANDING-NOTES.md)
+supersede policy-stop wording in older dated handoffs. Actual access denials,
+native approvals, occupied-player safeguards and sole-writer ownership remain;
+source candidates and private previews are not deployed game/server versions.
+
 **October 29 layout preview:** the workspace now has a persistent desktop sidebar,
 eight clearly grouped sections, coverage cards, aligned filters, and a paired
 roster/inspector layout. Narrow screens use a compact two-column navigation menu
@@ -78,7 +85,7 @@ See [docs/BRIEF.md](docs/BRIEF.md) for the full brief, security rules and first 
 
 ## Status
 
-A local scaffold is available. Optional read-only hub integration has been implemented and tested against an isolated stub; trusted SSH access to the hub host is verified. Live reads are on HOLD pending an owner decision (hub lead, November 3): every hub `/v1/control/*` route accepts only the hub administrator token, which also authorizes writes, so no read-only live credential exists. Options are a hub change accepting a reader token on control GETs only plus a lane reader token, or exported snapshots/offline copies. Do not configure the administrator token for this app. Exported snapshots can be reviewed instead by setting `HUB_SNAPSHOT_DIR` (off when unset; feeds and times are labeled as an export, not live; see [snapshot import](docs/HUB-SNAPSHOT-IMPORT.md)). All operational controls are unavailable. See [architecture](docs/ARCHITECTURE.md), [mock API](docs/API.md), and [learning and issues](docs/LEARNING-AND-ISSUES.md).
+A local scaffold is available. Optional read-only hub integration has been implemented and tested against an isolated stub; trusted SSH access to the hub host is verified. Live reads lack an authorized read-only credential (hub lead, November 3): every hub `/v1/control/*` route accepts only the hub administrator token, which also authorizes writes. Lifting project policy pauses does not authorize substituting that token or changing access. A reader token accepted on control GETs would require the owning hub lead's access work; exported snapshots/offline copies already work without it. Do not configure the administrator token for this app. Exported snapshots can be reviewed instead by setting `HUB_SNAPSHOT_DIR` (off when unset; feeds and times are labeled as an export, not live; see [snapshot import](docs/HUB-SNAPSHOT-IMPORT.md)). All operational controls are unavailable. See [architecture](docs/ARCHITECTURE.md), [mock API](docs/API.md), and [learning and issues](docs/LEARNING-AND-ISSUES.md).
 
 Run with Python 3 (no third-party dependencies):
 

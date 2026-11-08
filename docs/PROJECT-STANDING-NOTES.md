@@ -1,5 +1,32 @@
 # Project continuity notes
 
+## Current authority: policy pauses lifted, delivered 2026-11-08
+
+Owner message `2c41e771389e7f0d` explicitly resumes this project and supersedes
+earlier discretionary project-policy pauses and holds. This includes the old
+blanket local-only/live-game-unchanged restriction and the discretionary browser
+hold in assignment `9264848f0572cf4a`. Historical handoffs retain what was true
+at their checkpoint; their policy-stop wording is not a current blocker.
+
+Release genuinely new, ready increments immediately, with no more than 45
+minutes between useful releases while an increment is available. Do not wait
+for the timer, fabricate a deployment, bump a version without a change, repeat
+completed work or compile merely to satisfy a cadence. Use a focused build and
+brief startup/crash smoke; broader suites are very low priority. If unable,
+report the concrete technical, safety, native-approval or no-new-artifact reason
+and the next useful action. This lane installs no release-watch routine.
+
+The shared heavy-work budget remains a capacity constraint, not a project pause.
+The one allocated inference-only worker can review an independent current task;
+do not add compiler/test fanout. Keep the existing sole integrators and
+publishers. Do not restart servers riskily, kill jobs, switch agents/models,
+answer native approval prompts, or create new public/private access.
+
+Do not hold a turn open sleeping or polling another lane. Check once, report
+status to the coordinator, then continue independent work or end the turn.
+Give each existing integrator/publisher one actionable intake per target,
+explicitly stating what earlier intake it supersedes.
+
 ## Standing release order, delivered 2026-11-08
 
 Message `a212a73578b2f2f5` was delivered to this project's CLI inbox on
@@ -18,34 +45,37 @@ acknowledgement, independent review or full-suite gates. Preserve rollback and
 the essential security, data-loss, migration, single-writer and active-player
 checks required by the change.
 
-The delivered message also expressly preserves owner pauses, unresolved owner
-choices, baton/release holds, resource locks, permission, safety, device, source
-and spending gates, native trust/login/tool-permission prompts and actual
-denials. It grants no new authority for credentials, security/access changes,
-spending, destructive actions or public release. The project-specific conflict
-below was already reported by reply to message `a212a73578b2f2f5`;
-delivery of the cadence order does not remove those explicit
-holds. A status report requires no acknowledgement before other authorized,
-unblocked work continues.
+The later policy-resume message above supersedes the earlier discretionary
+holds. Actual security/access denials, native approvals, occupied-FFXI player
+protection, data-loss/inventory integrity, resource locks and sole-writer
+ownership remain concrete safeguards. No new credential, security/access,
+spending, destructive-action or public-release authority is inferred. A status
+report requires no acknowledgement before authorized work continues.
 
 ## Current project boundary
 
-The latest scoped implementation assignment, `9264848f0572cf4a`, is complete
-locally and expressly keeps live games unchanged and the native-browser check
-held. The shared hub and native game leads retain integration ownership;
-this lane owns the Admin repository and
-its isolated source candidates. FFXI active-player protection and the existing
-device, access, source, credential and actual-denial constraints remain in
-effect. No new push, deploy, live flag or device action has been performed in
-response to this order. The 2026-11-08 update records delivery and the standing
-release policy; it changes documentation only and creates no new deployable
-runtime change. Do not treat the general cadence order as removal of these
-specific constraints.
+The synthetic receipt assignment `9264848f0572cf4a` is complete locally; do not
+replay it. This lane owns the Admin repository, its isolated source candidates
+and its existing private owner-preview delivery path. Shared hub and native
+game leads retain their respective integration ownership. Their source changes
+go through those existing owners, not a competing live writer.
+
+Concrete readiness limits remain: Devbox has no installed browser executable
+and its earlier namespace operation was denied; no sandbox bypass or install
+follows from removing a policy hold. Existing device execution belongs to the
+designated device lead. Old dispatched attempts must not be replayed. The
+Admin backend is a loopback development scaffold, not a production service;
+no current listener on port 7391 or matching user service was found during the
+2026-11-08 read-only check. A private standalone preview can be delivered
+without treating that as a server deployment.
+
+The live hub still lacks an authorized read-only control credential for Admin.
+Do not substitute its write-capable administrator token or change access.
 
 The concrete readiness limit is also unresolved: synthetic receipts are not
 native speech evidence, and verified native body/presence sources are missing.
 Passing local fixture tests cannot establish those facts or live conversation
-quality. The browser/device checks remain NOT RUN.
+quality. Native browser checks remain NOT RUN, not policy-paused.
 
 Latest completed local work:
 
@@ -60,7 +90,7 @@ Latest completed local work:
   Only request IDs changed in the captures; all real delivery remains Unknown.
   Earlier dated receipts retain their original revision and results.
 - The overview video and earlier preview deliveries to Alienware are already
-  recorded. Do not repeat them or restart the held native-browser attempt.
+  recorded. Do not repeat them or restart an already-dispatched native attempt.
 
 Keep these evidence boundaries during any later integration. No full suite,
 real model, native game or browser verification should be inferred from these
