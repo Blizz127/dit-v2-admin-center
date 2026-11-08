@@ -1,0 +1,1 @@
+PASS: authenticated capture click, presence/body consistency, exact field identities, unavailable clearing and session-race suppression; native browser NOT RUN.

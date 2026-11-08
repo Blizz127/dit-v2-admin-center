@@ -1,0 +1,44 @@
+{
+  "startedAt": "2026-11-08T06:33:56.026307+00:00",
+  "pressure": {
+    "cpu": "some avg10=52.97 avg60=43.92 avg300=52.09 total=81458096320\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\n",
+    "memory": "some avg10=0.60 avg60=0.65 avg300=0.57 total=1452946578\nfull avg10=0.11 avg60=0.36 avg300=0.37 total=962729038\n",
+    "io": "some avg10=2.19 avg60=2.04 avg300=2.99 total=7216070827\nfull avg10=0.07 avg60=0.14 avg300=0.07 total=3869807671\n"
+  },
+  "checks": [
+    {
+      "name": "python",
+      "exitCode": 0,
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "test_context_capture_playtest.ContextPanelPlaytestTests.test_artifact_binds_actual_application_and_all_twelve_validated_captures",
+        "test_context_capture_playtest.ContextPanelPlaytestTests.test_artifact_blocks_network_and_script_is_valid_without_launching_browser",
+        "test_context_capture.ContextCaptureTests.test_authenticated_loopback_startup_and_exact_capture_smoke",
+        "test_context_capture.ContextCaptureTests.test_authentication_precedes_file_reads_and_queries_are_refused",
+        "-v"
+      ]
+    },
+    {
+      "name": "artifact-build",
+      "exitCode": 0,
+      "command": [
+        "python3",
+        "-m",
+        "tools.build_context_capture_playtest",
+        "--output",
+        "/home/blizz/dev/dit-v2-admin-center/build/context-slice/native-clock-diagnostic-20261108/Context-Panel-Playtest.html"
+      ]
+    },
+    {
+      "name": "artifact-dom",
+      "exitCode": 0,
+      "command": [
+        "node",
+        "tests/context_capture.test.cjs"
+      ]
+    }
+  ],
+  "finishedAt": "2026-11-08T06:33:58.737403+00:00"
+}

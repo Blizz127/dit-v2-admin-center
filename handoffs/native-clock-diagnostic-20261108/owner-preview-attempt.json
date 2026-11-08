@@ -1,0 +1,13 @@
+{
+  "sourceRevision": "8166a4a8150b5c4667f5f6c239bce4dc667c5335",
+  "releaseKind": "private-offline-owner-preview",
+  "transfer": "Timed out after 45 seconds; completion not observed",
+  "readbackVerified": false,
+  "browserOpened": false,
+  "serverDeployed": false,
+  "gameClientDeployed": false,
+  "readback": "Failed",
+  "error": "ssh: connect to host alienware-bazzite port 22: Connection timed out",
+  "exitCode": 255,
+  "recordedAt": "2026-11-08T06:36:15.629133+00:00"
+}

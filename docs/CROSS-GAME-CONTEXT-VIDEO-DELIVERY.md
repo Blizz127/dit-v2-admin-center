@@ -177,3 +177,20 @@ See the [release receipt](../handoffs/inspector-coverage-release-20261108/README
 No browser/game was launched and no hub/server/game-client deployment occurred.
 Native validation remains NOT RUN. Rollback is to close and optionally remove
 only the new versioned folder.
+
+## Native timing preview attempt, 2026-11-08
+
+Source `8166a4a` adds per-field captured observation/deadline diagnostics and an
+explicit live-native-status Unknown label. Local HTML: 287,362 bytes, SHA-256
+`92470858811d06ccc59ba493db786046e17f41f0a0050e3122d9c9b26a84aad3`.
+Four focused Python checks and one artifact-bound simulated-DOM script passed.
+No retained capture or native producer was changed.
+
+Intended private destination: `Conversation-Panel-8166a4a` under the existing
+Alienware overview Downloads folder. **Delivery UNCONFIRMED**: transfer timed out
+after 45 seconds with no completion receipt; one read-only follow-up failed to
+connect to port 22 (exit 255) at 06:36:15Z. No blind retry was made. No hashes,
+file presence, native browser rendering or runtime deployment were verified on
+Alienware. The previous `bd3a4f9` remains the latest verified delivery. Inspect the
+new destination before any later write. See the
+[timing diagnostic handoff](../handoffs/native-clock-diagnostic-20261108/README.md).

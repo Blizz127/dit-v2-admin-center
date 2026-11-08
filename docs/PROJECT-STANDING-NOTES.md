@@ -83,6 +83,17 @@ quality. Native browser checks remain NOT RUN, not policy-paused.
 
 Latest completed local work:
 
+- Scoped native-timing diagnostic `8166a4a` exposes each field's existing
+  observation/deadline clocks and keeps live native status Unknown. Four Python
+  checks plus the artifact-bound simulated-DOM check passed; retained captures
+  and native/shared hub source are unchanged. Private preview publication is
+  **UNCONFIRMED**: the 45-second transfer timed out, then one read-only follow-up
+  failed to connect to Alienware port 22 at 06:36:15Z on 2026-11-08. No blind retry
+  or native/browser/game action occurred. `bd3a4f9` remains the latest verified
+  preview. The [handoff](../handoffs/native-clock-diagnostic-20261108/README.md)
+  records the package, hash, checks and exact next safe readback step. Both reused
+  read-only helpers completed; no job remains. This scoped local item is done;
+  delivery depends on the existing endpoint becoming reachable, not approval.
 - Private coverage preview `bd3a4f9` was delivered to Alienware at 06:06:24Z on
   2026-11-08 with five file hashes/sizes/modes independently verified. Open
   `Conversation-Panel-bd3a4f9/Start-Here.html` in the existing overview Downloads

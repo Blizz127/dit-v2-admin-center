@@ -1,0 +1,26 @@
+{
+  "schema": "dit.private-preview-release.v1",
+  "sourceRevision": "8166a4a8150b5c4667f5f6c239bce4dc667c5335",
+  "builtAt": "2026-11-08T06:34:36.125794+00:00",
+  "releaseKind": "private-offline-owner-preview",
+  "nativeBrowser": "NOT RUN",
+  "gameDelivery": "Unknown",
+  "checks": {
+    "pythonPreviewAndApiTests": 4,
+    "artifactBoundSimulatedDomScripts": 1
+  },
+  "files": {
+    "Context-Panel-Playtest.html": {
+      "sha256": "92470858811d06ccc59ba493db786046e17f41f0a0050e3122d9c9b26a84aad3",
+      "bytes": 287362
+    },
+    "READ-ME-FIRST.txt": {
+      "sha256": "8828a8e06e467fe9024a2499534fd95c0756be00fd93249ba2156e51ed265cb8",
+      "bytes": 1001
+    },
+    "Start-Here.html": {
+      "sha256": "cd133301fec9dc4bf9be2fbd537e5f5eee2da0809471b392aef137a3df727fa6",
+      "bytes": 1618
+    }
+  }
+}
