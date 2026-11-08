@@ -83,6 +83,16 @@ quality. Native browser checks remain NOT RUN, not policy-paused.
 
 Latest completed local work:
 
+- Private scope preview `b57a9d3` was delivered to Alienware at 05:43:57Z on
+  2026-11-08; separate readback verified five files. Open
+  `Conversation-Panel-b57a9d3/Start-Here.html` in the existing overview Downloads
+  folder. It exposes requested bot scope separately from native body identity,
+  refuses cross-game/instance bindings, and preserves missing-source history.
+  Seven Python checks and three artifact-bound simulated-DOM scripts passed;
+  native browser and live game validation remain NOT RUN. Two reused helpers
+  completed disjoint work; no job remains. See the
+  [release handoff](../handoffs/inspector-scope-release-20261108/README.md).
+  The hub `9c99e01a` intake was not repeated; this is an offline preview release.
 - Private preview `69ab75f` was delivered to Alienware at 05:17:02Z on
   2026-11-08; separate readback verified all five file hashes/sizes/modes.
   Open `Conversation-Panel-69ab75f/Start-Here.html` under the existing

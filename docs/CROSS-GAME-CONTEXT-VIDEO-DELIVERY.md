@@ -136,3 +136,24 @@ The handoff includes the full package receipt. Directory/file modes are
 This is not a hub/server or game-client deployment. Earlier preview/video files
 remain intact; rollback is to close the new preview and optionally remove only
 its new folder. No new copy of the unchanged static delivery page was made.
+
+## Captured scope preview, 2026-11-08 05:43Z
+
+Private preview **b57a9d3** was delivered and independently read back at
+**2026-11-08T05:43:57.414657Z**. Open **Downloads →
+DIT-Conversation-Overview-20261104-11735c60 → Conversation-Panel-b57a9d3 →
+Start-Here.html**. All five package hashes, byte counts and private modes
+matched; earlier previews/video remain intact.
+
+The inspector displays the requested bot and captured native body separately,
+rejects cross-game or instance mismatches, and retains requested scope/history
+when native status is unavailable. Synthetic scope conflict exercises clearing
+and recovery without changing source exports or delivery evidence. Seven
+Python/API/contract checks and three artifact-bound simulated-DOM scripts passed.
+The HTML is 285,480 bytes, SHA-256
+`130da88c7353aca10a12f66b59d68b35dec9e742987e6e977506b7ef8abc18ec`.
+
+The [release receipt](../handoffs/inspector-scope-release-20261108/README.md)
+records exact source and evidence. No browser/game was launched and no
+hub/server/game-client deployment occurred. Native validation remains NOT RUN.
+Rollback is to close and optionally remove only the new versioned folder.

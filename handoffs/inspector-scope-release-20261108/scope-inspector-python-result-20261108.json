@@ -1,0 +1,20 @@
+{
+  "startedAt": "2026-11-08T05:41:15.066679+00:00",
+  "command": [
+    "python3",
+    "-m",
+    "unittest",
+    "test_context_capture_playtest",
+    "test_context_capture.ContextCaptureTests.test_authenticated_loopback_startup_and_exact_capture_smoke",
+    "test_context_capture.ContextCaptureTests.test_authentication_precedes_file_reads_and_queries_are_refused",
+    "test_integrated_context_preview.IntegratedPreviewTests.test_changed_request_digest_or_scope_is_refused",
+    "-v"
+  ],
+  "nativeBrowser": false,
+  "liveHubOrGame": false,
+  "cpuPressure": "some avg10=67.04 avg60=67.09 avg300=67.07 total=79637360675\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\n",
+  "memoryPressure": "some avg10=0.31 avg60=0.78 avg300=0.54 total=1399389125\nfull avg10=0.24 avg60=0.55 avg300=0.30 total=935094148\n",
+  "ioPressure": "some avg10=2.58 avg60=2.21 avg300=2.02 total=7099919457\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=3861590403\n",
+  "exitCode": 0,
+  "finishedAt": "2026-11-08T05:41:16.906946+00:00"
+}
