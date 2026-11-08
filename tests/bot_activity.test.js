@@ -81,7 +81,11 @@ setImmediate(() => {
   assert.deepEqual(deaths.children[1].children[0].children[0].children.map(li => li.textContent),
     ['1500 ms before death · attack nearest · pull', '400 ms before death · flee · low hp']);
   assert.match(quests.children[1].children[0].textContent, /Quest 33 · Wolves Across the Border/);
-  assert.equal(panel().children[1].children.length, 3, 'a bot without decisions, deaths or quests has no detail sections');
+  // Empty lists say so explicitly rather than vanishing.
+  const borin = panel().children[1];
+  assert.equal(borin.children.length, 6, 'decisions, deaths and quests sections are always present');
+  assert.equal(borin.children[3].children[0].textContent, 'Recent decisions (0)');
+  assert.match(borin.children[3].children[1].textContent, /none in the export \(does not mean none occurred\)/);
 
   // Engine filter hides the others; search by name and by guid; both are local.
   get('bot-activity-engine').value = 'combat'; get('bot-activity-engine').listeners.change();
@@ -116,6 +120,17 @@ setImmediate(() => {
   assert.equal(titles(panel())[0], 'Bot coverage Unknown for omitted malformed rows');
   assert.ok(titles(panel()).includes('Unnamed (9) · Unknown'));
   assert.match(get('bot-activity-count').textContent, /Showing 1 of 1 loaded bots/);
+  const nine = panel().children.find(row => row.children[0].textContent === 'Unnamed (9) · Unknown');
+  assert.equal(nine.children[3].children[0].textContent, 'Recent decisions (Unknown)');
+  assert.match(nine.children[3].children[1].textContent, /Unknown \(missing or malformed in the export\)/);
+  assert.equal(nine.children[4].children[0].textContent, 'Deaths (1)');
+  assert.equal(nine.children[4].children[1].children[0].textContent, 'Unreadable entry; Unknown');
+  assert.equal(nine.children[5].children[0].textContent, 'Quests (Unknown)');
+  // A decision whose alternatives are malformed still renders, with Unknown rather than a silent gap.
+  setSnapshot({...snapshot, botActivity: {coverage: snapshot.botActivity.coverage, bots: [{botGuid: '8', decisions: [{action: 'rest', alternatives: 'oops'}, {action: 'sit', alternatives: [null]}]}]}}); render();
+  const decisionsList = panel().children[0].children[3].children[1].children;
+  assert.match(decisionsList[0].children[0].textContent, /Rejected alternatives: Unknown \(missing or malformed/);
+  assert.equal(decisionsList[1].children[0].children[0].textContent, 'Unreadable entry; Unknown');
 
   // Missing or malformed botActivity: explicit Unknown, no throw.
   for (const bad of [undefined, null, 'x', [], {}, {coverage: null, bots: []}, {coverage: {status: 'Loaded'}, bots: 'no'}]) {
@@ -171,5 +186,13 @@ setImmediate(() => {
   // Data is rendered as text only: a markup string stays a literal string.
   setSnapshot({...snapshot, botActivity: {coverage: snapshot.botActivity.coverage, bots: [{...bots[1], doing: '<img src=x onerror=alert(1)>'}]}}); render();
   assert.equal(panel().children[0].children[1].textContent.includes('<img src=x onerror=alert(1)>'), true);
+  // Sign-out/session reset clears the filters, coverage text and both panels.
+  get('bot-activity-engine').value = 'combat'; get('bot-activity-search').value = 'x';
+  context.resetPanelSession();
+  assert.equal(get('bot-activity-engine').value, '');
+  assert.equal(get('bot-activity-search').value, '');
+  assert.equal(get('bot-activity-coverage').textContent, 'Coverage unknown.');
+  assert.equal(get('bot-activity').children.length, 0);
+  assert.equal(get('baseline-conformance').children.length, 0);
   console.log('Bot activity and baseline conformance panels passed: coverage states, filters, ordering, Unknown handling.');
 });

@@ -173,6 +173,12 @@ function resetPanelSession() {
   document.querySelector('#model-call-coverage').textContent = 'Metric coverage unknown.';
   document.querySelector('#data-coverage').replaceChildren();
   document.querySelector('#bot-identity').value = '';
+  document.querySelector('#bot-activity-engine').value = '';
+  document.querySelector('#bot-activity-search').value = '';
+  document.querySelector('#bot-activity-coverage').textContent = 'Coverage unknown.';
+  document.querySelector('#bot-activity-count').textContent = '';
+  document.querySelector('#bot-activity').replaceChildren();
+  document.querySelector('#baseline-conformance').replaceChildren();
   clearRosterGapSelection();
   document.querySelector('#roster-gaps').replaceChildren();
   ledgerBotId = null; correlationFilter = '';
@@ -1416,17 +1422,20 @@ function shown(value) {
   if (typeof value === 'string' && value.trim()) return value.slice(0, 500);
   return typeof value === 'number' && Number.isFinite(value) ? String(value) : 'Unknown';
 }
-function botActivityList(parent, label, list, limit, describe) {
-  if (!Array.isArray(list) || !list.length) return;
-  const details = document.createElement('details');
-  const summary = document.createElement('summary');
-  summary.textContent = `${label} (${list.length})`;
+function botActivityNested(list, limit, label, describe) {
+  if (!Array.isArray(list) || !list.length) {
+    const note = document.createElement('p');
+    note.textContent = Array.isArray(list) ? `${label}: none in the export (does not mean none occurred).` : `${label}: Unknown (missing or malformed in the export).`;
+    return note;
+  }
   const ul = document.createElement('ul');
   list.slice(0, limit).forEach(entry => {
     const li = document.createElement('li');
-    if (!plainObject(entry)) { li.textContent = 'Unreadable entry; Unknown'; ul.append(li); return; }
-    const nested = describe(entry, li);
-    if (nested) li.append(nested);
+    if (plainObject(entry)) {
+      const {text, child} = describe(entry);
+      li.textContent = text; // Set text before appending: textContent replaces existing children.
+      if (child) li.append(child);
+    } else li.textContent = 'Unreadable entry; Unknown';
     ul.append(li);
   });
   if (list.length > limit) {
@@ -1434,7 +1443,14 @@ function botActivityList(parent, label, list, limit, describe) {
     more.textContent = `${list.length - limit} more entries not shown.`;
     ul.append(more);
   }
-  details.append(summary, ul); parent.append(details);
+  return ul;
+}
+function botActivityList(parent, label, list, describe) {
+  const details = document.createElement('details');
+  const summary = document.createElement('summary');
+  summary.textContent = `${label} (${Array.isArray(list) ? list.length : 'Unknown'})`;
+  details.append(summary, botActivityNested(list, botActivityListLimit, label, describe));
+  parent.append(details);
 }
 function botActivityRow(panel, bot) {
   const engine = botActivityEngines.includes(bot.engine) ? bot.engine : 'Unknown';
@@ -1443,32 +1459,13 @@ function botActivityRow(panel, bot) {
     `Doing: ${shown(bot.doing)} · Level: ${shown(bot.level)} · Zone ID: ${shown(bot.zoneId)} · Faction: ${shown(bot.faction)}`,
     `Last event: ${shown(bot.lastEventAt)} · Top events: ${counts.length ? counts.map(([type, n]) => `${type} ${n}`).join(', ') : 'Unknown'}`);
   const row = panel.lastElementChild;
-  botActivityList(row, 'Recent decisions', bot.decisions, botActivityListLimit, (d, li) => {
-    li.textContent = `${shown(d.ts)} · ${shown(d.action)} via ${shown(d.trigger)} · ${shown(d.reason)} · relevance ${shown(d.relevance)} ${shown(d.band)} (effective ${shown(d.effective)}) · ${shown(d.engine)}`;
-    if (!Array.isArray(d.alternatives) || !d.alternatives.length) return null;
-    const ul = document.createElement('ul');
-    d.alternatives.slice(0, botActivityAlternativeLimit).forEach(a => {
-      const alt = document.createElement('li');
-      alt.textContent = plainObject(a) ? `${shown(a.action)} — ${shown(a.result)} (${shown(a.relevance)})` : 'Unreadable alternative; Unknown';
-      ul.append(alt);
-    });
-    return ul;
-  });
-  botActivityList(row, 'Deaths', bot.deaths, botActivityListLimit, (d, li) => {
-    li.textContent = `${shown(d.ts)} · ${shown(d.reason)} · ${shown(d.summary)} · Killer entry: ${shown(d.killerEntry)} · Killer level: ${shown(d.killerLevel)} · Level gap: ${shown(d.levelGap)}`;
-    if (!Array.isArray(d.recentDecisions) || !d.recentDecisions.length) return null;
-    const ul = document.createElement('ul');
-    d.recentDecisions.slice(0, botActivityAlternativeLimit).forEach(r => {
-      const prior = document.createElement('li');
-      prior.textContent = plainObject(r) ? `${shown(r.msAgo)} ms before death · ${shown(r.action)} · ${shown(r.reason)}` : 'Unreadable decision; Unknown';
-      ul.append(prior);
-    });
-    return ul;
-  });
-  botActivityList(row, 'Quests', bot.quests, botActivityListLimit, (q, li) => {
-    li.textContent = `${shown(q.ts)} · ${shown(q.reason)} · Quest ${shown(q.questId)} · ${shown(q.summary)}`;
-    return null;
-  });
+  botActivityList(row, 'Recent decisions', bot.decisions, d => ({
+    text: `${shown(d.ts)} · ${shown(d.action)} via ${shown(d.trigger)} · ${shown(d.reason)} · relevance ${shown(d.relevance)} ${shown(d.band)} (effective ${shown(d.effective)}) · ${shown(d.engine)}`,
+    child: botActivityNested(d.alternatives, botActivityAlternativeLimit, 'Rejected alternatives', a => ({text: `${shown(a.action)} — ${shown(a.result)} (${shown(a.relevance)})`}))}));
+  botActivityList(row, 'Deaths', bot.deaths, d => ({
+    text: `${shown(d.ts)} · ${shown(d.reason)} · ${shown(d.summary)} · Killer entry: ${shown(d.killerEntry)} · Killer level: ${shown(d.killerLevel)} · Level gap: ${shown(d.levelGap)}`,
+    child: botActivityNested(d.recentDecisions, botActivityAlternativeLimit, 'Recent decisions before death', r => ({text: `${shown(r.msAgo)} ms before death · ${shown(r.action)} · ${shown(r.reason)}`}))}));
+  botActivityList(row, 'Quests', bot.quests, q => ({text: `${shown(q.ts)} · ${shown(q.reason)} · Quest ${shown(q.questId)} · ${shown(q.summary)}`}));
 }
 function renderBotActivity() {
   const panel = document.getElementById('bot-activity'), coverage = document.getElementById('bot-activity-coverage'), count = document.getElementById('bot-activity-count');
