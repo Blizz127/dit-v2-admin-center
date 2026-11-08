@@ -1,0 +1,12 @@
+COMMAND ["node", "tests/context_capture_coverage.test.cjs"]
+PASS: captured coverage arithmetic, prompt units/digest display, bounded history, omission, Unicode and empty/unbound cases; native browser NOT RUN.
+EXIT 0
+COMMAND ["node", "tests/context_capture_scope.test.cjs"]
+PASS: exact captured lookup/body scope, separate identities, mismatch clearing and missing-source history; native browser NOT RUN.
+EXIT 0
+COMMAND ["node", "tests/context_capture.test.cjs"]
+PASS: authenticated capture click, presence/body consistency, exact field identities, unavailable clearing and session-race suppression; native browser NOT RUN.
+EXIT 0
+COMMAND ["node", "tests/delivery_capture.test.cjs"]
+PASS: delivery panel scope/unknown labels, auth fetch, invalid-claim clearing, conflict wording and late-session suppression; native browser NOT RUN.
+EXIT 0

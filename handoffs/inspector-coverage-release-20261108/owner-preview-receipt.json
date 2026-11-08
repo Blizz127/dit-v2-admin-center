@@ -1,0 +1,41 @@
+{
+  "destination": "/home/blizz/Downloads/DIT-Conversation-Overview-20261104-11735c60/Conversation-Panel-bd3a4f9",
+  "resolvedDestination": "/var/home/blizz/Downloads/DIT-Conversation-Overview-20261104-11735c60/Conversation-Panel-bd3a4f9",
+  "files": {
+    "Context-Panel-Playtest.html": {
+      "sha256": "23bf6ae0cbfc19ece46cd39db4a364e6e670587e813e4fc38458db39dc77af3f",
+      "bytes": 286965,
+      "mode": "0o600"
+    },
+    "READ-ME-FIRST.txt": {
+      "sha256": "4d7a3a2932b83b1b013884423342b882739389b2fa59d24279480ff564b5d3f4",
+      "bytes": 1088,
+      "mode": "0o600"
+    },
+    "RELEASE.json": {
+      "sha256": "0335530a932dcd777ebcc1c89e8810018b415bb38b5e96e56348a94201c13b54",
+      "bytes": 808,
+      "mode": "0o600"
+    },
+    "SHA256SUMS": {
+      "sha256": "fbcb2f8958d0d293ee46ff3e956541a332c295110ad3e221d6549fa979f3c521",
+      "bytes": 339,
+      "mode": "0o600"
+    },
+    "Start-Here.html": {
+      "sha256": "8fa10f752d8c139f68918caec44624532ae668564169fd60e84dad521feacfb5",
+      "bytes": 1887,
+      "mode": "0o600"
+    }
+  },
+  "directoryMode": "0o700",
+  "observedAt": "2026-11-08T06:06:24.923091+00:00",
+  "verifiedAt": "2026-11-08T06:06:24.953673+00:00",
+  "sourceRevision": "bd3a4f9f9590b881e2950f33263aca6ad19634a1",
+  "releaseKind": "private-offline-owner-preview",
+  "readbackVerified": true,
+  "browserOpened": false,
+  "serverDeployed": false,
+  "gameClientDeployed": false,
+  "gameDelivery": "Unknown"
+}

@@ -1,0 +1,40 @@
+{
+  "sourceRevision": "bd3a4f9f9590b881e2950f33263aca6ad19634a1",
+  "artifact": "build/releases/conversation-panel-bd3a4f9/Context-Panel-Playtest.html",
+  "artifactSha256": "23bf6ae0cbfc19ece46cd39db4a364e6e670587e813e4fc38458db39dc77af3f",
+  "artifactBytes": 286965,
+  "startedAt": "2026-11-08T06:03:50.903877+00:00",
+  "commands": [
+    {
+      "command": [
+        "node",
+        "tests/context_capture_coverage.test.cjs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "node",
+        "tests/context_capture_scope.test.cjs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "node",
+        "tests/context_capture.test.cjs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "node",
+        "tests/delivery_capture.test.cjs"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "nativeBrowser": false,
+  "liveHubOrGame": false,
+  "finishedAt": "2026-11-08T06:03:53.616775+00:00"
+}

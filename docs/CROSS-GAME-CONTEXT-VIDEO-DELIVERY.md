@@ -157,3 +157,23 @@ The [release receipt](../handoffs/inspector-scope-release-20261108/README.md)
 records exact source and evidence. No browser/game was launched and no
 hub/server/game-client deployment occurred. Native validation remains NOT RUN.
 Rollback is to close and optionally remove only the new versioned folder.
+
+## Captured coverage preview, 2026-11-08 06:06Z
+
+Private preview **bd3a4f9** was delivered and independently read back at
+**2026-11-08T06:06:24.953673Z**. Open **Downloads →
+DIT-Conversation-Overview-20261104-11735c60 → Conversation-Panel-bd3a4f9 →
+Start-Here.html**. All five hashes, byte counts and private modes matched;
+earlier previews/video remain intact.
+
+Captured prompt receipt displays UTF-16 character usage/cap and the supplied
+prompt SHA-256. Inconsistent counts/size are withheld, while valid omitted,
+repeated, Unicode and empty conversation inputs remain supported. Token count
+and earlier producer omissions stay Unknown. Eight focused Python checks and
+four artifact-bound simulated-DOM scripts passed. HTML: 286,965 bytes, SHA-256
+`23bf6ae0cbfc19ece46cd39db4a364e6e670587e813e4fc38458db39dc77af3f`.
+
+See the [release receipt](../handoffs/inspector-coverage-release-20261108/README.md).
+No browser/game was launched and no hub/server/game-client deployment occurred.
+Native validation remains NOT RUN. Rollback is to close and optionally remove
+only the new versioned folder.

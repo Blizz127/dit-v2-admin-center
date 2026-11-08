@@ -83,6 +83,18 @@ quality. Native browser checks remain NOT RUN, not policy-paused.
 
 Latest completed local work:
 
+- Private coverage preview `bd3a4f9` was delivered to Alienware at 06:06:24Z on
+  2026-11-08 with five file hashes/sizes/modes independently verified. Open
+  `Conversation-Panel-bd3a4f9/Start-Here.html` in the existing overview Downloads
+  folder. It shows captured UTF-16 prompt usage/cap and supplied SHA, rejects
+  inconsistent coverage, and keeps tokens/upstream omissions Unknown. Eight
+  Python checks and four artifact-bound simulated-DOM scripts passed; no native
+  browser/live-game claim is made. See the
+  [release handoff](../handoffs/inspector-coverage-release-20261108/README.md).
+  Two reused helpers completed disjoint work; no job remains. Current documented
+  inspector visibility gaps are closed and no further concrete local UI item
+  was identified. Existing hub integration and native producers remain with
+  their owners; do not duplicate the queued `9c99e01a` intake or make empty builds.
 - Private scope preview `b57a9d3` was delivered to Alienware at 05:43:57Z on
   2026-11-08; separate readback verified five files. Open
   `Conversation-Panel-b57a9d3/Start-Here.html` in the existing overview Downloads

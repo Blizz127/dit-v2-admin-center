@@ -1,0 +1,13 @@
+test_artifact_binds_actual_application_and_all_twelve_validated_captures (test_context_capture_playtest.ContextPanelPlaytestTests.test_artifact_binds_actual_application_and_all_twelve_validated_captures) ... ok
+test_artifact_blocks_network_and_script_is_valid_without_launching_browser (test_context_capture_playtest.ContextPanelPlaytestTests.test_artifact_blocks_network_and_script_is_valid_without_launching_browser) ... ok
+test_coverage_conflict_changes_only_retained_count_and_recovers_loaded_capture (test_context_capture_playtest.ContextPanelPlaytestTests.test_coverage_conflict_changes_only_retained_count_and_recovers_loaded_capture) ... ok
+test_presence_conflict_uses_response_copies_without_network_or_delivery_changes (test_context_capture_playtest.ContextPanelPlaytestTests.test_presence_conflict_uses_response_copies_without_network_or_delivery_changes) ... ok
+test_scope_conflict_mutates_only_body_or_lookup_game_in_response_copies (test_context_capture_playtest.ContextPanelPlaytestTests.test_scope_conflict_mutates_only_body_or_lookup_game_in_response_copies) ... ok
+test_authenticated_loopback_startup_and_exact_capture_smoke (test_context_capture.ContextCaptureTests.test_authenticated_loopback_startup_and_exact_capture_smoke) ... ok
+test_authentication_precedes_file_reads_and_queries_are_refused (test_context_capture.ContextCaptureTests.test_authentication_precedes_file_reads_and_queries_are_refused) ... ok
+test_changed_request_digest_or_scope_is_refused (test_integrated_context_preview.IntegratedPreviewTests.test_changed_request_digest_or_scope_is_refused) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 3.098s
+
+OK
