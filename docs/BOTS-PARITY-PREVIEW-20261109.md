@@ -364,3 +364,23 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-5f0938
 **Checks:** full Python suite 584 OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview df34aad9 (source dde07cf)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-df34aad9**. Readback at **2026-11-09T20:49:28Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 433248 | `df34aad9425a83932fd6ce362256ebf65fff20e49de16867fbcf29318f9d0a5c` | 600 |
+| READ-ME-FIRST.txt | 1133 | `797a3203df363cfa35e5277366258c93d3a96b841c04cb3030ff878b9f3f6e2b` | 600 |
+
+**Change (owner-requested DIT v2 review, commits c6e8766, 754f4e7, fa8c624, fbc00d1, dde07cf):**
+- Human-feel signals per bot (cadence, group sync, trip schedule), from `human_feel.py`.
+- The bot_event importer enforces the hub's chat rule (schema re-pinned to hub ea92d35a) and shows chat totals, bot names, areas and abilities.
+- 16 SWTOR release-kf writer rows are a fixture; all are accepted.
+- A coverage test holds one sample per FFXI C5 log template (all recognized).
+- FFXI LSB p-03/p-04/p-10 evidence cites C5 live at 18:15:22Z; statuses are unchanged.
+
+**Checks:** full Python suite 593 OK; 9 JS tests pass (8 `tests/*.test.js` plus `routing_audit_keyboard.test.cjs`, fixed in c6e8766); native browser NOT RUN.
+
+**Rollback:** remove only that folder.
