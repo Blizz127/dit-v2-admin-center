@@ -65,6 +65,11 @@ try {
   const baselineText = textOf('baseline-conformance');
   check(document.querySelectorAll('#bot-activity-sources .bot-source').length === 3 && baselineText.includes('Bots parity'),
     'Startup renders all additional bot sources and the supplied parity evidence');
+  const vanillaExport = activityFixture.sources.find(source => source.id === 'wow-vanilla-playerbots');
+  const vanillaPanel = [...document.querySelectorAll('#bot-activity-sources .bot-source')]
+    .find(section => section.querySelector('h4').textContent === vanillaExport.label);
+  check(vanillaPanel.textContent.includes(`Observed event range: ${vanillaExport.coverage.from} to ${vanillaExport.coverage.to} (UTC; offline export)`),
+    'Imported Vanilla event range is visible as offline evidence in its own source panel');
   // The following scenarios mutate unrelated roster/inspector fields. Keep their
   // snapshots small instead of rebuilding the same imported exports 30 times.
   // Full imported data is checked above and restored for the final owner view.

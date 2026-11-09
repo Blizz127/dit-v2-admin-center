@@ -1601,6 +1601,23 @@ function botActivityKey(bot, id) {
   const key = bot[id === botActivityWowId ? 'botGuid' : 'actorId'];
   return typeof key === 'string' ? key.trim() : '';
 }
+function botActivityEventRange(cov) {
+  const unknown = 'Observed event range: Unknown';
+  if (!plainObject(cov) || cov.status !== 'Loaded' || !metricNumber(cov.records) || cov.records === 0) return unknown;
+  const timestamp = value => {
+    if (typeof value !== 'string') return null;
+    const match = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d{1,6}))?Z$/.exec(value);
+    if (!match || value.startsWith('0000-')) return null;
+    const millis = Date.parse(value);
+    // Date.parse may normalize an impossible calendar date; refuse that change.
+    if (!Number.isFinite(millis) || new Date(millis).toISOString().slice(0, 19) !== match[1]) return null;
+    // Compare at the readers' microsecond precision, beyond Date's milliseconds.
+    return `${match[1]}.${(match[2] || '').padEnd(6, '0')}Z`;
+  };
+  const first = timestamp(cov.from), last = timestamp(cov.to);
+  if (first === null || last === null || first > last) return unknown;
+  return `Observed event range: ${cov.from} to ${cov.to} (UTC; offline export)`;
+}
 function botActivityCoverageText(cov) {
   const status = botActivityStatuses.includes(cov.status) ? cov.status : 'Unknown';
   const parts = [`Coverage: ${status}`, `Imported log rows: ${metricNumber(cov.records) ? cov.records : 'Unknown'}`,
@@ -1613,7 +1630,7 @@ function botActivityCoverageText(cov) {
       .map(([code, n]) => `${String(code).slice(0, 40)} ${n}`);
     if (reasons.length) parts.push(`Omitted by reason: ${reasons.join(', ')}`);
   }
-  parts.push(routingText(cov.reason, 'Reason unknown'));
+  parts.push(botActivityEventRange(cov), routingText(cov.reason, 'Reason unknown'));
   return parts.join(' · ');
 }
 function botActivityStatusItem(panel, status, cov, id) {
