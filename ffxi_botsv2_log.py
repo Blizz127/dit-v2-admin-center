@@ -21,6 +21,7 @@ Rules enforced here:
   kind=party_tactic' lines are events only.
 - C4.3/V2-Q1.1 (frozen, not live): 'group party' members/drop/off, 'slow eval', 'progression' and 'roe' lines count
   as other; a members line goes to every member and must start with its leader.
+- C5 (frozen): 'bag full <bot> free=<n> (camping on, no sell path)' counts as other; group trip ends use why=group_<why>.
 - J0a/J0b: profile lines count as other; advice answers count as advice (applied or not; the event result says
   which); requests are events only; a drop counts as other, and 'advice - drop' (no bot) is a system notice.
 - counts.rest counts rest starts ('rest <bot> why=...'); a 'rest end' line is an event only.
@@ -606,6 +607,17 @@ def _roe(body):
     return _part([_bot(match.group(1))], 'roe', count='other', result=match.group(3), detail=f'record={match.group(2)}')
 
 
+_BAG_FULL = re.compile(r'bag full ' + _BOT + r' free=(\d{1,3}) \(camping on, no sell path\)')
+
+
+def _bag_full(body):
+    # C5 (banshee_bots_v2.lua:797): once per trip, the bot camps on with a full bag instead of riding home.
+    match = _BAG_FULL.fullmatch(body)
+    if match is None:
+        raise _Malformed('bag full')
+    return _part([_bot(match.group(1))], 'bagFull', count='other', reason='camping_on', detail=f'free={match.group(2)}')
+
+
 def _budget(body):
     if _BUDGET.fullmatch(body) is None:
         raise _Malformed('budget')
@@ -648,6 +660,7 @@ _RULES = (
     (re.compile(r'slow eval '), _slow_eval),
     (re.compile(r'progression '), _progression),
     (re.compile(r'roe '), _roe),
+    (re.compile(r'bag full '), _bag_full),
 )
 
 

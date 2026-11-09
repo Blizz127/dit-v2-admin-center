@@ -759,6 +759,22 @@ class FFXIBotsV2LogTests(unittest.TestCase):
             ('roe', 'refused', None, 'record=12'),
         ])
 
+    def test_c5_bag_full_camps_on_and_group_trip_ends(self):
+        # ffxi handoff 2026-11-09-botsv2-c5-frozen (banshee_bots_v2.lua:797): the export-7 bag_full fix. Frozen.
+        raw = b''.join([
+            self.line('bag full fumika free=0 (camping on, no sell path)', stamp='11/09/26 18:30:00:000'),
+            self.line('trip end fumika camp=meriphataud_windurst field->home zone=119 why=group_night',
+                      stamp='11/09/26 18:30:01:000'),
+            self.line('bag full fumika free=0', stamp='11/09/26 18:30:02:000'),  # no tail: omitted
+        ])
+        bots, coverage = botsv2.read(self.write('c5.log', raw))
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['unrecognized']), (2, 1, 0))
+        fumika = bots[0]
+        self.assertEqual((fumika['counts']['other'], fumika['counts']['tripEnd']), (1, 1))
+        self.assertEqual([(e['type'], e['reason'], e['detail']) for e in reversed(fumika['events'])][0],
+                         ('bagFull', 'camping_on', 'free=0'))
+        self.assertEqual(fumika['events'][0]['reason'], 'group_night')
+
     def test_c28_near_misses_are_omitted_not_guessed(self):
         cases = ['release nalu zone=119 after 30s',        # no why=
                  'release nalu why=x zone=119',             # no after

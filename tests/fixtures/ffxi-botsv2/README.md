@@ -118,3 +118,9 @@
 - All six count as other.
 - V2-Q1.1 ships dark: no progression or roe line appears unless `BANSHEE_BOTS_V2_PROGRESSION=1`.
 - These formats are covered by synthetic tests only.
+
+# C5 formats (frozen; install batch staged)
+
+- Source: ffxi handoff `2026-11-09-botsv2-c5-frozen`. A log-call diff against q1.1-frozen shows one new template: `bag full <bot> free=<n> (camping on, no sell path)`, logged once per trip. It counts as other.
+- Group cohesion adds only a value: `trip end ... why=group_<why>`.
+- Covered by a synthetic test only.
