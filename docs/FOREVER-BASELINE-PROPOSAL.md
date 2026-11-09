@@ -327,3 +327,22 @@ The adversarial review of the P1 design is `docs/reviews/FFXI-BOTSV2-P1-REVIEW-2
   - language handling stays on the hub side.
 - Owner decision on "bots join at the player's level": **level sync to the inviter** while the bots are in that player's party. Stored character levels stay unchanged.
 - The outbox record shape change goes to the hub session (`dit-human-behavior-platform`) for confirmation.
+
+**Owner, later the same day (2026-11-09):**
+
+> this is how i want the bots in all games to work with dit but tailored for those games
+
+What this means: every game with DIT bots follows the 0.1.33 operating model (owner-bound companions, follow and zone, combat roles, rest, order verbs, world gatherings, AI-worded chat), translated into that game's own mechanics, classes, chat channels and commands. It is not a literal WoW copy.
+- FFXI: level sync, /heal, linkshell and /party.
+- Ship games such as Earth & Beyond and EVE: formations and fleet roles in place of tank/healer.
+- The hub standard holds the shared model; each game lead writes its own game profile.
+
+DIT games with live leads:
+- `ffxi`, `ffxi-platform`: FFXI.
+- `trinitycore-forever`: WoW Forever.
+- `wotlk-forever`: WotLK.
+- `swtor-preservation`: SWTOR.
+- `Earth-and-Beyond-DIT`, `earth-and-beyond-rust`: Earth & Beyond.
+- `warhammer-online-rust`: Warhammer Online.
+
+The hub has adapters for eve_online, marvel_heroes, minecraft, monster_hunter_frontier and ultima_online, but no matching session is running. Those games reach this direction through the hub standard.
