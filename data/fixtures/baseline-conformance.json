@@ -281,7 +281,7 @@
         },
         "p-10": {
           "status": "Designed",
-          "evidence": "quests, missions, FoV, sub-job/job unlocks J4."
+          "evidence": "V2-Q1.1 frozen (ffxi handoff 2026-11-09-botsv2-q1.1-frozen): gear and spell refresh on level-up and Records of Eminence steps, off unless BANSHEE_BOTS_V2_PROGRESSION=1 (waits for an OK on item and spell writes). Quests, missions, FoV, job unlocks not built."
         },
         "p-11": {
           "status": "Built",
