@@ -89,3 +89,21 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-c57434
 **Checks:** 573 Python tests OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview 27b0d956 (source 8cf440d)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-27b0d956**. Readback at **2026-11-09T10:34:17Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 391586 | `27b0d956edaaa88a19d4a7cadf1b13b0c751ab046f175ed64394812d4a21047c` | 600 |
+| READ-ME-FIRST.txt | 915 | `ea7509cb3ca19ccd07aaeeedbf18e25d44c33860b05811ca764d80d553866943` | 600 |
+
+**Change:**
+- The FFXI activity section uses ffxi export 3 (the live c2.8.1 run with two deaths, sha `a53acf46`). The page is larger because there are more events.
+- The importer reads the c2.10 mount lines.
+- FFXI LSB p-06 Mounts is now Built. p-03 and p-05 cite export 3 line numbers.
+
+**Checks:** full Python suite OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
+
+**Rollback:** remove only that folder.
