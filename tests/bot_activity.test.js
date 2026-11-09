@@ -71,7 +71,7 @@ const ditBots = [{game: 'swtor', actorId: '2001', lastEventAt: '2026-11-09T05:00
   deaths: [{ts: '2026-11-09T04:50:00Z', killer: 'Gundark', recentDecisions: [{action: 'attack', reason: 'pull'}, {action: null, reason: null}]}],
   advice: [{ts: '2026-11-09T05:00:00Z', kind: 'mission', chosen: 'accept', outcome: 'applied', reason: 'ok'}]},
   {game: 'ffxi-forever', actorId: '2002', lastEventAt: null, level: null, area: null, doing: '<script>alert(2)</script>', counts: {}, events: [],
-    deaths: [], advice: 'not a list'}];
+    deaths: [], advice: 'not a list', chat: {voiced: 3, dropped: 2, byReason: {NO_LISTENER: 2, STALE: 0}}}];
 const ffxiSource = {id: 'ffxi-lsb', label: 'FFXI (LSB) Bots V2 log export', note: 'Exported [BOTS-V2] map-log lines; offline import (DIT_FFXI_BOTSV2_LOG); owner name masked.',
   bots: ffxiBots, coverage: {status: 'Loaded', records: 382, omitted: 0, unrecognized: 0, ignored: 0, reason: 'Real export.', from: '2026-11-09T01:12:51.704Z', to: '2026-11-09T04:23:57.203Z'}};
 const ditSource = {id: 'dit-bot-event-v1', label: 'DIT bot_event v1 (SWTOR, FFXI Forever, other DIT games)', note: 'Offline import of dit.bot_event.v1 JSONL (DIT_BOT_EVENT_DIR); includes AI advice rows.',
@@ -303,6 +303,8 @@ setImmediate(() => {
   assert.equal(ditAdvice.children[1].children[0].textContent, '2026-11-09T05:00:00Z · mission · chosen accept · outcome applied · ok');
   assert.equal(d2.children[0].textContent, '2002 · ffxi-forever');
   assert.equal(d2.children[1].textContent, 'Doing: <script>alert(2)</script> · Level: Unknown · Area: Unknown');
+  // Chat totals appear only for a bot with chat rows; a bot without the field (d1, an older snapshot) shows none.
+  assert.equal(d2.children[2].textContent, 'Last event: Unknown · Counts by type: Unknown · Chat: voiced 3, dropped 2 (NO_LISTENER 2)');
   assert.equal(d2.children[3].children[0].textContent, 'Events (0)');
   assert.match(d2.children[3].children[1].textContent, /Events: none in the export/);
   assert.equal(d2.children[5].children[0].textContent, 'Advice (Unknown)', 'a non-list advice field is Unknown, not empty');

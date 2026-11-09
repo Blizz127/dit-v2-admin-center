@@ -1506,10 +1506,16 @@ function botActivityFfxiRow(panel, bot) {
   botActivityList(row, 'Deaths', bot.deaths, e => ({text: botActivityJoin([
     botActivityPart(e.ts), botActivityPart(e.type), botActivityPart(e.reason, 'reason '), botActivityPart(e.detail)])}));
 }
+// Chat totals (BOT_BRAIN_STANDARD 6.6): lines voiced, lines dropped and why. Empty when the bot has no chat rows.
+function botActivityChat(chat) {
+  if (!plainObject(chat) || !metricNumber(chat.voiced) || !metricNumber(chat.dropped) || chat.voiced + chat.dropped <= 0) return '';
+  const reasons = botActivityCounts(chat.byReason);
+  return ` · Chat: voiced ${chat.voiced}, dropped ${chat.dropped}${chat.dropped > 0 && reasons !== 'Unknown' ? ` (${reasons})` : ''}`;
+}
 function botActivityDitRow(panel, bot) {
   item(panel, `${shown(bot.actorId)} · ${shown(bot.game)}`,
     `Doing: ${shown(bot.doing)} · Level: ${shown(bot.level)} · Area: ${shown(bot.area)}`,
-    `Last event: ${shown(bot.lastEventAt)} · Counts by type: ${botActivityCounts(bot.counts)}`);
+    `Last event: ${shown(bot.lastEventAt)} · Counts by type: ${botActivityCounts(bot.counts)}${botActivityChat(bot.chat)}`);
   const row = panel.lastElementChild;
   botActivityList(row, 'Events', bot.events, e => ({text: botActivityJoin([
     botActivityPart(e.ts), botActivityPart(e.type), botActivityPart(e.severity, 'severity '), botActivityPart(e.reason),

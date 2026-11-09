@@ -269,7 +269,9 @@
                 "maxLength": 32
               },
               "origin": {
-                "const": "ai"
+                "type": "string",
+                "maxLength": 32,
+                "description": "ai; anything else is a dropped line (voiced false, drop_reason NOT_AI)"
               },
               "route": {
                 "type": [
@@ -291,7 +293,49 @@
                   null
                 ]
               }
-            }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "voiced": {
+                      "const": true
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "origin": {
+                      "const": "ai"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "origin": {
+                      "not": {
+                        "const": "ai"
+                      }
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "drop_reason"
+                  ],
+                  "properties": {
+                    "voiced": {
+                      "const": false
+                    },
+                    "drop_reason": {
+                      "const": "NOT_AI"
+                    }
+                  }
+                }
+              }
+            ]
           }
         }
       }

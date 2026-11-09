@@ -1,7 +1,7 @@
 Provenance of the dit.bot_event.v1 fixtures in this directory.
 
 Source repository: /home/blizz/dev/dit-forever-baseline-20261108
-Source commit:     60bc1a9c (copied with `git show 60bc1a9c:<path>`, not from the working tree)
+Source commit:     ea92d35a (copied with `git show ea92d35a:<path>`, not from the working tree)
 
 Copied files (byte-exact):
   dit.bot_event.v1.schema.json                  <- docs/architecture/schemas/dit.bot_event.v1.schema.json
@@ -19,4 +19,6 @@ and a 6.6 chat row with structured fields only, never the text). Line 3 is an ad
 (dit.decision_advice.v1). Line 4 is the matching advice response, which has no schema field.
 bot_event_v1.py omits lines 3 and 4 as not_bot_event.
 
-History: first copied at 347a01fa; refreshed at 60bc1a9c (adds the chat row and its schema branch).
+History: first copied at 347a01fa; refreshed at 60bc1a9c (adds the chat row and its schema branch); refreshed at
+ea92d35a (a non-AI line is logged as dropped: origin is a string, a voiced row must have origin "ai", any other
+origin must be voiced false with drop_reason NOT_AI). Only the bot_event schema changed at ea92d35a.

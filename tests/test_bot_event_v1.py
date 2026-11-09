@@ -146,7 +146,7 @@ class BotEventTests(unittest.TestCase):
 
     def test_fixture_provenance_note_names_the_source_commit(self):
         note = (FIXTURE / 'SOURCE.txt').read_text()
-        self.assertIn('60bc1a9c', note)
+        self.assertIn('ea92d35a', note)
         self.assertIn('dit.decision_advice.v1.schema.json', note)  # The substitution is recorded.
         for name in ('dit.bot_event.v1.schema.json', 'dit.decision_advice.v1.request.schema.json',
                      'dit.decision_advice.v1.response.schema.json', 'EXAMPLES.jsonl'):
@@ -178,6 +178,19 @@ class BotEventTests(unittest.TestCase):
                          (0, events.MAX_OPTIONS))
         self.assertEqual(advice['properties']['reason']['maxLength'], events.ADVICE_REASON)
         self.assertEqual(allof['advice']['properties']['correlation_id']['type'], 'string')
+        chat = allof['chat']['properties']['details']
+        self.assertEqual(set(chat['required']), events.CHAT_REQUIRED)
+        self.assertEqual(set(chat['properties']['drop_reason']['enum']) - {None}, events.CHAT_DROP_REASONS)
+        self.assertIn(None, chat['properties']['drop_reason']['enum'])
+        self.assertEqual((chat['properties']['channel']['maxLength'], chat['properties']['origin']['maxLength'],
+                          chat['properties']['route']['maxLength']),
+                         (events.CHAT_CHANNEL, events.CHAT_ORIGIN, events.CHAT_ROUTE))
+        voiced_rule, origin_rule = chat['allOf']
+        self.assertEqual(voiced_rule['then']['properties']['origin']['const'], events.CHAT_AI)
+        self.assertEqual(origin_rule['if']['properties']['origin']['not']['const'], events.CHAT_AI)
+        self.assertEqual((origin_rule['then']['properties']['voiced']['const'],
+                          origin_rule['then']['properties']['drop_reason']['const']), (False, 'NOT_AI'))
+        self.assertEqual(allof['chat']['properties']['correlation_id']['type'], 'string')
         death = allof['death']['properties']['details']['properties']['recent_decisions']
         self.assertEqual((death['type'], death['maxItems']), ('array', events.MAX_RECENT))
         request = json.loads((FIXTURE / 'dit.decision_advice.v1.request.schema.json').read_text())
@@ -698,6 +711,36 @@ class BotEventTests(unittest.TestCase):
             self.assertNotIn(sentinel, text)
         self.assertNotIn(sentinels[5], json.dumps(coverage))
 
+    def test_chat_rows_follow_ai_or_silence(self):
+        # BOT_BRAIN_STANDARD 6.6 at ea92d35a: a voiced line is AI, and a non-AI line is logged as dropped.
+        def chat(**details):
+            return base(event_type='chat', reason='CHAT', correlation_id='hub-reply-1',
+                        details={'channel': 'party', 'origin': 'ai', 'voiced': True, **details})
+        rows = [chat(),
+                chat(voiced=False, drop_reason='NO_LISTENER'),
+                chat(voiced=False, drop_reason='NO_LISTENER'),
+                chat(origin='canned', voiced=False, drop_reason='NOT_AI'),
+                chat(voiced=False)]                                             # dropped, no reason given
+        bots, coverage = self.run_rows(*rows)
+        self.assertEqual((coverage['records'], coverage['omitted']), (5, 0))
+        self.assertEqual(bots[0]['chat'], {'voiced': 1, 'dropped': 4,
+                                           'byReason': {'NOT_AI': 1, 'NO_LISTENER': 2, 'not_voiced': 1}})
+        self.assertEqual([(e['action'], e['result']) for e in reversed(bots[0]['events'])],
+                         [('party', 'voiced'), ('party', 'NO_LISTENER'), ('party', 'NO_LISTENER'),
+                          ('party', 'NOT_AI'), ('party', 'not_voiced')])
+        # The rule itself: a canned line that was voiced is refused under its own code, never shown as chat.
+        self.refused(chat(origin='canned'), 'chat_voiced_not_ai')
+        for bad in (chat(origin='canned', voiced=False),                        # non-AI needs drop_reason NOT_AI
+                    chat(origin='canned', voiced=False, drop_reason='STALE'),
+                    chat(voiced='yes'), chat(drop_reason='BORED'), chat(channel=7), chat(origin=None),
+                    chat(route=5), chat(channel='c' * 33),
+                    base(event_type='chat', details={'channel': 'party', 'origin': 'ai'})):  # voiced missing
+            self.refused(bad, 'invalid_chat')
+        self.refused(base(event_type='chat', details=MISSING), 'missing_details')
+        self.refused(chat() | {'correlation_id': None}, 'invalid_correlation_id')
+        # A bot with no chat rows still has the totals, all zero.
+        self.assertEqual(self.accepted(base())[0]['chat'], {'voiced': 0, 'dropped': 0, 'byReason': {}})
+
     def test_chat_text_rows_are_refused_not_stripped(self):
         sentinel = 'SECRET-CHAT-9'
         bots, coverage = self.run_rows(base(details={'chat_text': sentinel, 'intent': 'say'}),
@@ -724,7 +767,7 @@ class BotEventTests(unittest.TestCase):
             events._parse(b'x' * (events.MAX_LINE + 1))
         parsed = events._parse(json.dumps(base()).encode())
         self.assertEqual(set(parsed), {'game', 'actorId', 'ts', 'type', 'severity', 'reason', 'summary', 'level',
-                                       'area', 'action', 'result', 'advice', 'killer', 'recent'})
+                                       'area', 'action', 'result', 'advice', 'killer', 'recent', 'chat'})
 
 
 if __name__ == '__main__':

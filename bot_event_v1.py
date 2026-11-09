@@ -5,7 +5,7 @@ Non-recursive, files read in name order. Never opens a live path and never uses 
 Producers: SWTOR bot-event exports, the hub's Forever owner-party driver, and any DIT game that
 writes the envelope.
 
-The schema pinned at commit 60bc1a9c is copied to tests/fixtures/bot-event-v1/ (see SOURCE.txt).
+The schema pinned at commit ea92d35a is copied to tests/fixtures/bot-event-v1/ (see SOURCE.txt).
 The checks here are written out explicitly, and the tests cross-check every constant against
 that file, so a drift in either place fails.
 
@@ -17,6 +17,9 @@ Rules enforced here:
   session_seq is 0..2**63-1; an advice row must carry details (its outcome cannot be classified
   without them); death.details.recent_decisions, when present, must be a list of at most 8.
 - A row whose details hold `text` or `chat_text` is refused. Free-form chat never enters the output.
+- A chat row must carry details.channel, origin and voiced (6.6). A voiced row whose origin is not "ai" is refused
+  as chat_voiced_not_ai (the AI-or-silence rule); any other origin must be voiced false with drop_reason NOT_AI.
+  Each bot's output has chat totals: voiced, dropped, and drops by reason.
 - Only the summary and the structured decision, death and advice fields are returned. Other
   details keys, including free-form ones, are never returned.
 - Duplicate keys, NaN and Infinity are refused. Lines over MAX_LINE are refused unparsed.
@@ -81,6 +84,12 @@ ADVICE_REQUIRED = frozenset({'kind', 'options', 'default_option', 'choice', 'out
 ADVICE_OPTION_ID = 64
 ADVICE_REASON = 160
 FORBIDDEN_DETAILS = frozenset({'text', 'chat_text'})
+CHAT_REQUIRED = frozenset({'channel', 'origin', 'voiced'})
+CHAT_DROP_REASONS = frozenset({'NOT_AI', 'NO_REPLY_ID', 'STALE', 'FILTERED', 'NO_LISTENER'})  # The schema also allows null.
+CHAT_CHANNEL = 32
+CHAT_ORIGIN = 32
+CHAT_ROUTE = 64
+CHAT_AI = 'ai'
 SHORT_TEXT = 64
 
 
@@ -185,6 +194,26 @@ def _advice(data, details):
     return {'kind': kind, 'choice': details['choice'], 'outcome': outcome, 'reason': details.get('reason')}
 
 
+def _chat(data, details):
+    """Chat rows: the pinned details shape (BOT_BRAIN_STANDARD 6.6, AI or silence), or RowRefused.
+
+    A voiced line whose origin is not "ai" breaks the owner's rule (no canned lines). It gets its own reason code,
+    chat_voiced_not_ai, so the coverage shows it apart from a merely malformed row."""
+    _need('details' in data, 'missing_details')
+    _need(CHAT_REQUIRED <= set(details), 'invalid_chat')
+    origin, voiced, drop = details['origin'], details['voiced'], details.get('drop_reason')
+    _need(_text(details['channel'], CHAT_CHANNEL), 'invalid_chat')
+    _need(_text(origin, CHAT_ORIGIN), 'invalid_chat')
+    _need(_optional_text(details.get('route'), CHAT_ROUTE), 'invalid_chat')
+    _need(type(voiced) is bool, 'invalid_chat')
+    _need(drop is None or (isinstance(drop, str) and drop in CHAT_DROP_REASONS), 'invalid_chat')
+    _need('correlation_id' not in data or isinstance(data['correlation_id'], str), 'invalid_correlation_id')
+    if origin != CHAT_AI:
+        _need(not voiced, 'chat_voiced_not_ai')
+        _need(drop == 'NOT_AI', 'invalid_chat')
+    return {'channel': details['channel'], 'voiced': voiced, 'dropReason': drop}
+
+
 def _recent(items):
     """Recent decisions as {action, reason}. One malformed item empties the whole list, never a partial one."""
     parsed = []
@@ -243,17 +272,20 @@ def _row(data):
     if action is None:
         action = _bounded(details.get('intent'), SHORT_TEXT)
     result = _bounded(details.get('result'), SHORT_TEXT)
-    advice = killer = None
+    advice = killer = chat = None
     recent = []
     if kind == 'advice':
         advice = _advice(data, details)
         action, result = advice['choice'], advice['outcome']
     elif kind == 'death':
         killer, recent = _death(details)
+    elif kind == 'chat':
+        chat = _chat(data, details)
+        action, result = chat['channel'], 'voiced' if chat['voiced'] else (chat['dropReason'] or 'not_voiced')
     return {'game': data['game'], 'actorId': data['actor_id'], 'ts': data['ts'], 'type': kind,
             'severity': data['severity'], 'reason': data.get('reason'), 'summary': data.get('summary'),
             'level': data.get('level'), 'area': data.get('area'), 'action': action, 'result': result,
-            'advice': advice, 'killer': killer, 'recent': recent}
+            'advice': advice, 'killer': killer, 'recent': recent, 'chat': chat}
 
 
 def _parse(line):
@@ -288,8 +320,20 @@ def _project(key, entries):
     advice = [{'ts': row['ts'], 'kind': row['advice']['kind'], 'chosen': row['advice']['choice'],
                'outcome': row['advice']['outcome'], 'reason': row['advice']['reason']}
               for row in newest if row['type'] == 'advice'][:MAX_ADVICE]
+    # Chat totals over every kept chat row: lines voiced, lines dropped, and the drops by reason. Never the text.
+    chat = {'voiced': 0, 'dropped': 0, 'byReason': {}}
+    for row in rows:
+        if row['chat'] is None:
+            continue
+        if row['chat']['voiced']:
+            chat['voiced'] += 1
+        else:
+            reason = row['chat']['dropReason'] or 'not_voiced'
+            chat['dropped'] += 1
+            chat['byReason'][reason] = chat['byReason'].get(reason, 0) + 1
+    chat['byReason'] = dict(sorted(chat['byReason'].items()))
     return {'game': game, 'actorId': actor, 'lastEventAt': rows[-1]['ts'], 'level': level, 'area': area,
-            'doing': doing, 'counts': counts, 'events': events, 'deaths': deaths, 'advice': advice}
+            'doing': doing, 'counts': counts, 'events': events, 'deaths': deaths, 'advice': advice, 'chat': chat}
 
 
 def _coverage(status, records, omitted, reason, files=0, games=(), span=(None, None), by_reason=None):
