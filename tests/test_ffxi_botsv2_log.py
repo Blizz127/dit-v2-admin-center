@@ -26,6 +26,8 @@ C2101 = FIXTURE / 'bots-v2-c2101-20261109.log'
 C2101_SHA256 = 'ce90dc67feb82b5a46cbe6abf3608b3cd88c113ccb31f5d61e7f3dc20105234b'
 J0B = FIXTURE / 'bots-v2-j0b-20261109.log'
 J0B_SHA256 = '027b96d5a05459815e301cba85fb82d1f32d7cedfed2b883c9323874973b7c01'
+J1234 = FIXTURE / 'bots-v2-j1234-20261109.log'
+J1234_SHA256 = 'fb7b289b4e59bdbe5ab562bdcf4e770d39c8006debf5e0d74a53e5b1f9ec4cd6'
 C28_SHA256 = 'be2eea13e43c196a06bef51cc580b9a4ff2bbde6ede624eb7cb608b03a1740fc'
 
 # Expected values come from grep over REAL, not from the parser. Recipe for bot B (run with the export as FILE):
@@ -669,6 +671,49 @@ class FFXIBotsV2LogTests(unittest.TestCase):
                                   ('formation', None, 'arg=tight by=<owner> channel=party')])
         release = [e for e in nalu['events'] if e['type'] == 'adviceRelease']
         self.assertEqual([(e['reason'], e['detail']) for e in release], [('ttl', 'kind=party_tactic choice=burst')])
+
+    def test_live_j1234_export_dies_three_times_and_turns_home_on_bag_full(self):
+        # Export 7 (ffxi handoff 2026-11-09-botsv2-log-export-7): the J1-J4 run, 13:37Z-17:10Z, no human interaction.
+        raw = J1234.read_bytes()
+        self.assertEqual(hashlib.sha256(raw).hexdigest(), J1234_SHA256)
+        self.assertEqual(_lines(raw), 1818)
+        bots, coverage = botsv2.read(J1234)
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['unrecognized'], coverage['ignored']),
+                         (1818, 0, 0, 0))
+        by_name = {b['name']: b for b in bots}
+        tomoe = by_name['tomoe']
+        self.assertEqual((tomoe['counts']['dead'], tomoe['counts']['release']), (3, 3))
+        lines = raw.decode('ascii').splitlines()
+        # The live C5 bug: the THF and WHM ride out and turn home with a full bag, so they never fight. Counted on the
+        # raw lines because the view keeps only the most recent events per bot.
+        for name in ('shadowtail', 'fumika'):
+            self.assertEqual(sum(f'trip end {name} ' in l and 'why=bag_full' in l for l in lines), 3, name)
+            self.assertFalse(any(f'act {name} rule=combat ' in l for l in lines), name)
+            self.assertEqual(by_name[name]['counts']['tripEnd'], 8, name)
+        self.assertFalse(any('apl=sub_' in l for l in lines))
+        self.assertIn('dead tomoe wait_raise=30', lines[585])
+        self.assertIn('revived tomoe at its home point', lines[590])
+
+    def test_c31_group_survival_lines_use_the_existing_formats(self):
+        # ffxi handoff 2026-11-09-botsv2-c3.1-frozen: no new log template (template diff vs P2b is empty); new values
+        # only: rules retreat/mate_assist, defend why=retreat_*/cornered, no trip why=danger.
+        raw = b''.join([
+            self.line('act nalu rule=retreat apl=- op=path -> ok path', stamp='11/09/26 17:20:00:000'),
+            self.line('act pell rule=mate_assist apl=- op=path -> ok path', stamp='11/09/26 17:20:01:000'),
+            self.line('defend nalu hp=31pct attacker=Boggart lv27 why=retreat_to_healer', stamp='11/09/26 17:20:02:000'),
+            self.line('defend nalu hp=12pct attacker=Boggart lv27 why=cornered (repeated 2 times)',
+                      stamp='11/09/26 17:20:03:000'),
+            self.line('no trip pell why=danger zone=119', stamp='11/09/26 17:20:04:000'),
+        ])
+        bots, coverage = botsv2.read(self.write('c31.log', raw))
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['unrecognized']), (5, 0, 0))
+        by_name = {b['name']: b for b in bots}
+        self.assertEqual(by_name['nalu']['counts']['defend'], 4)
+        self.assertEqual([e['reason'] for e in reversed(by_name['nalu']['events']) if e['type'] == 'defend'],
+                         ['retreat_to_healer', 'cornered'])
+        self.assertEqual(sorted(e['rule'] for b in bots for e in b['events'] if e['type'] == 'act'),
+                         ['mate_assist', 'retreat'])
+        self.assertEqual([e['reason'] for e in by_name['pell']['events'] if e['type'] == 'noTrip'], ['danger'])
 
     def test_c28_near_misses_are_omitted_not_guessed(self):
         cases = ['release nalu zone=119 after 30s',        # no why=

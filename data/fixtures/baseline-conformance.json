@@ -253,15 +253,15 @@
         },
         "p-03": {
           "status": "Partly live",
-          "evidence": "all 22 job kits live since 13:35:54Z (J1-J4, FROZEN 9cbc76b7, 2445/0). Seen live: WHM, THF, BLM moves (exports 2-3) and the sub-job overlay, sub_nuke Aero, export 6 (sha 027b96d5) l.152/156/162. Other jobs need bots of those jobs."
+          "evidence": "all 22 job kits live since 13:35:54Z (J1-J4, FROZEN 9cbc76b7). Seen live: WHM, THF, BLM moves (exports 2-3), sub_nuke Aero (export 6 sha 027b96d5 l.152). Export 7 (sha fb7b289b): BLM nukes only; THF/WHM never fought (bag_full trip bug, fix C5)."
         },
         "p-04": {
           "status": "Partly live",
-          "evidence": "self-defense live (defend fumika attacker=Yagudo_Persecutor lv15 why=fight_back 11-09 07:43:59Z, export 2; also 03:59:04Z, export 1). Party assist and range-keep live in c2.8 since 07:17Z but not yet seen: no human-led party."
+          "evidence": "self-defense live (defend fumika attacker=Yagudo_Persecutor lv15 why=fight_back 11-09 07:43:59Z, export 2). Party assist (c2.8) and group survival (C3.1, live 17:16:51Z: mate_assist, retreat, healer self-preservation) not yet seen."
         },
         "p-05": {
           "status": "Partly live",
-          "evidence": "live, export 4 (sha 4c4a1093): MP rest l.165-173, group_rest_hold l.166, party cure l.302; deaths with release and home-point revive l.401/405/408 and l.426/438/440 (also export 3). 0 unstick lines. Return/weak not seen."
+          "evidence": "live, export 4 (sha 4c4a1093): MP rest l.165-173, group_rest_hold l.166, party cure l.302; deaths with release and home-point revive l.401/405/408 (also exports 3, 7: tomoe x3, sha fb7b289b l.586/590/591). Return/weak not seen."
         },
         "p-06": {
           "status": "Partly live",
@@ -273,7 +273,7 @@
         },
         "p-08": {
           "status": "Built",
-          "evidence": "live since c2.9.1 (10:28Z): follow, stay, assist, attack, pull, rest, dismiss, hold, flee, focus, focusheal, stance, savemp, burst, rally. P2b (who/stats/gear/help, aoe, formation, attack <mob>) frozen 2582/0, armed 13:51:33Z. No owner-order line seen live yet."
+          "evidence": "live since c2.9.1 (10:28Z): follow, stay, assist, attack, pull, rest, dismiss, hold, flee, focus, focusheal, stance, savemp, burst, rally. P2b (who/stats/gear/help, aoe, formation, attack <mob>) live 17:16:51Z with C3.1. No owner-order line seen live yet."
         },
         "p-09": {
           "status": "Built",
@@ -289,7 +289,7 @@
         },
         "p-12": {
           "status": "Built",
-          "evidence": "J0b advice seam installed 12:33:37Z, flag BANSHEE_BOTS_V2_ADVICE=0 (no advice lines); rotation_profile and goal. P2b adds party_tactic (frozen, armed 13:51:33Z). Live only with that flag and the hub's DIT_ADVICE_GAMES=ffxi on."
+          "evidence": "J0b advice seam installed 12:33:37Z, flag BANSHEE_BOTS_V2_ADVICE=0 (no advice lines); rotation_profile and goal. P2b party_tactic live 17:16:51Z, same flag. Live only with that flag and the hub's DIT_ADVICE_GAMES=ffxi on."
         }
       }
     },

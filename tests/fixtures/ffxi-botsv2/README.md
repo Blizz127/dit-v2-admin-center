@@ -81,7 +81,7 @@
 - J1-J4 (live 13:35:54Z) adds no new log templates; a diff of the log calls in the j0b and j4 frozen trees confirms it.
 - The preview builder now uses this export.
 
-# P2b formats (frozen, armed 13:51:33Z, not live)
+# P2b formats (live 17:16:51Z with C3.1)
 
 - Source: ffxi handoff `2026-11-09-botsv2-p2b-frozen` (2582/0). A diff of the log calls against j4-frozen shows exactly two changes.
 - **Order line:** gains an optional ` refused=<why>` suffix. A space in the arg is logged as `_`.
@@ -90,3 +90,18 @@
 - **New line:** `advice <bot> release kind=party_tactic choice=<id> why=ttl|replaced` (an event).
 - **Value changes only:** profile why `order` / `order_ended`; advice kind `party_tactic`; answer why `party_changed`.
 - These are covered by synthetic tests only.
+
+# Export 7: `bots-v2-j1234-20261109.log` (live J1-J4 run)
+
+- Source: ffxi handoff `2026-11-09-botsv2-log-export-7`. Copied byte for byte; sha256 `fb7b289b4e59bdbe5ab562bdcf4e770d39c8006debf5e0d74a53e5b1f9ec4cd6`, 1818 lines.
+- Coverage: 11-09 13:37:10Z-17:10:17Z. The owner was online from 14:33Z to about 16:10Z but elsewhere (Western Adoulin); no human names appear in bot lines.
+- All 1818 lines are recognized (0 omitted, 0 unrecognized, 0 ignored).
+- Evidence: tomoe dies, releases and revives 3 times (lines 586/590/591, 1090/1094/1095, 1571/1577/1578); 5 group trip starts.
+- **Live bug (ffxi fix C5):** shadowtail and fumika end each trip on arrival with `why=bag_full` (3 times each), so they never fight. No J1 THF/WHM kit line and no `apl=sub_*` line is in this run.
+- The preview builder now uses this export.
+
+# C3.1 formats (live 17:16:51Z)
+
+- Source: ffxi handoff `2026-11-09-botsv2-c3.1-frozen`. A diff of the log calls against p2b-frozen is empty: no new template.
+- New values only: act rules `retreat` and `mate_assist`; defend why `retreat_to_healer`, `retreat_to_mate`, `retreat_to_camp`, `cornered`; no trip why `danger`.
+- Covered by a synthetic test only; not yet seen live.
