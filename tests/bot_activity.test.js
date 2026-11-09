@@ -78,7 +78,16 @@ const ffxiSource = {id: 'ffxi-lsb', label: 'FFXI (LSB) Bots V2 log export', note
   bots: ffxiBots, coverage: {status: 'Loaded', records: 382, omitted: 0, unrecognized: 0, ignored: 0, reason: 'Real export.', from: '2026-11-09T01:12:51.704Z', to: '2026-11-09T04:23:57.203Z'}};
 const ditSource = {id: 'dit-bot-event-v1', label: 'DIT bot_event v1 (SWTOR, FFXI Forever, other DIT games)', note: 'Offline import of dit.bot_event.v1 JSONL (DIT_BOT_EVENT_DIR); includes AI advice rows.',
   bots: ditBots, coverage: {status: 'Loaded', records: 2, omitted: 2, files: 1, reason: 'One file.', omittedByReason: {not_bot_event: 2, invalid_ts: 0}}};
-const multi = {...snapshot, botActivity: {bots, coverage: wowSource.coverage, sources: [wowSource, ffxiSource, ditSource]}};
+const vanillaBots = [{game: 'wow_vanilla', actorId: 'tohsha', name: 'Tohsha', level: 11.23, lastEventAt: '2026-11-09T20:52:00Z', doing: 'AttackAnything Makrura Shellhide',
+  counts: {AttackAnything: 578, XpGain: 9}, pulls: 578, kills: 9, pullsPerKill: 64.2, hearthStuck: {'combat long stuck': 3},
+  stall: {target: 'Makrura Shellhide', pulls: 562, seconds: 3474, positions: 1, from: '2026-11-09T19:54:06Z', to: '2026-11-09T20:52:00Z'},
+  events: [{ts: '2026-11-09T20:52:00Z', type: 'AttackAnything', detail: 'Makrura Shellhide'}], deaths: [],
+  feel: {cadence: {action: 'pull', gaps: 577, modalGapS: 5, modalCount: 258, modalShare: 0.447, metronomic: false}, sync: null, schedule: null}},
+  {game: 'wow_vanilla', actorId: 'bikdorl', name: 'Bikdorl', level: 8.56, lastEventAt: null, doing: null, counts: {}, pulls: 85, kills: 82, pullsPerKill: 1,
+    hearthStuck: {}, stall: null, events: [], deaths: []}];
+const vanillaSource = {id: 'wow-vanilla-playerbots', label: 'WoW Vanilla / Benilla playerbots (cmangos-classic event log)', note: 'Exported CSV.',
+  bots: vanillaBots, coverage: {status: 'Loaded', records: 10337, omitted: 0, reason: 'One run.'}};
+const multi = {...snapshot, botActivity: {bots, coverage: wowSource.coverage, sources: [wowSource, ffxiSource, ditSource, vanillaSource]}};
 const sourceFor = (id, source) => ({...multi, botActivity: {...multi.botActivity, sources: [wowSource, ...[ffxiSource, ditSource].map(s => s.id === id ? source : s)]}});
 
 setImmediate(() => {
@@ -233,7 +242,7 @@ setImmediate(() => {
 
   // Legacy snapshot without sources: WoW renders from the top-level keys; FFXI and bot_event are explicit Unknown.
   setSnapshot(snapshot); render();
-  assert.equal(sectionsOf().length, 2, 'one section each for FFXI and bot_event even when not supplied');
+  assert.equal(sectionsOf().length, 3, 'one section each for FFXI, bot_event and Vanilla playerbots even when not supplied');
   for (const section of sectionsOf()) {
     assert.match(section.children[2].textContent, /^Coverage: Unknown · No usable data for this source/);
     assert.equal(section.children[5].children[0].children[1].textContent, 'Unknown');
@@ -245,7 +254,7 @@ setImmediate(() => {
   assert.equal(get('bot-activity-label').textContent, 'WoW Forever (70450 predecessor export)');
   assert.equal(get('bot-activity-note').textContent, WOW_NOTE);
   assert.match(coverage(), /^Coverage: Loaded · Imported log rows: 17 · Omitted malformed: 2 · Exported copy read\.$/);
-  assert.equal(sectionsOf().length, 2);
+  assert.equal(sectionsOf().length, 3);
   const [ffxi, dit] = sectionsOf();
   assert.equal(ffxi.children[0].textContent, 'FFXI (LSB) Bots V2 log export');
   assert.equal(ffxi.children[1].textContent, ffxiSource.note);
@@ -304,6 +313,14 @@ setImmediate(() => {
   assert.deepEqual(ditDeaths.children[1].children[0].children[0].children.map(li => li.textContent), ['action attack · reason pull', 'Unknown']);
   assert.equal(ditAdvice.children[1].children[0].textContent, '2026-11-09T05:00:00Z · mission · chosen accept · outcome applied · ok');
   assert.equal(d2.children[1].textContent, 'Doing: <script>alert(2)</script> · Level: Unknown · Area: Unknown');
+  // Vanilla playerbots: pulls against kills, the longest run of pulls without a kill, and stuck hearthstone escapes.
+  const [v1, v2] = sectionsOf()[2].children[5].children;
+  assert.equal(v1.children[0].textContent, 'Tohsha (tohsha) · level 11.23');
+  assert.equal(v1.children[1].textContent, 'Doing: AttackAnything Makrura Shellhide · Pulls: 578 · Kills: 9 · Pulls per kill: 64.2 · Hearthstone escapes (stuck): combat long stuck 3');
+  assert.equal(v1.children[5].textContent, 'Longest run of pulls without a kill: 562 pulls on Makrura Shellhide over 58 min from 1 position (2026-11-09T19:54:06Z to 2026-11-09T20:52:00Z).');
+  assert.equal(v1.children[6].textContent, 'Human-feel signals: pull: 258 of 577 gaps exactly 5 s');
+  assert.equal(v2.children[1].textContent, 'Doing: Unknown · Pulls: 85 · Kills: 82 · Pulls per kill: 1 · Hearthstone escapes (stuck): none');
+  assert.equal(v2.children[5].textContent, 'Longest run of pulls without a kill: under 10 pulls (not stuck).');
   // Human-feel signals: the measurement line closes each row; a snapshot without the field says so.
   assert.equal(d1.children[d1.children.length - 1].textContent, 'Human-feel signals: not measured in this snapshot.');
   assert.equal(d2.children[d2.children.length - 1].textContent,

@@ -20,6 +20,7 @@ from baseline_conformance import read as baseline_conformance
 from forever_botlog import load as forever_botlog
 from ffxi_botsv2_log import read as read_ffxi_botsv2
 from bot_event_v1 import read as read_bot_event
+from vanilla_botlog import read as read_vanilla_botlog
 from local_evidence import read_bytes, read_json
 
 
@@ -46,7 +47,10 @@ def bot_activity_preview():
              read_ffxi_botsv2, ROOT / 'tests/fixtures/ffxi-botsv2/bots-v2-j1234-20261109.log'),
             ('dit-bot-event-v1', 'DIT bot_event v1 (SWTOR, FFXI Forever, other DIT games)',
              'Offline import of dit.bot_event.v1 JSONL (DIT_BOT_EVENT_DIR); includes AI advice rows.',
-             read_bot_event, ROOT / 'tests/fixtures/bot-event-v1')):
+             read_bot_event, ROOT / 'tests/fixtures/bot-event-v1'),
+            ('wow-vanilla-playerbots', 'WoW Vanilla / Benilla playerbots (cmangos-classic event log)',
+             'Exported cmangos-classic playerbot event CSV from the live server run of 11-09 19:27Z-20:52Z (580 bots, no humans); offline import (DIT_VANILLA_BOTLOG_CSV).',
+             read_vanilla_botlog, ROOT / 'tests/fixtures/vanilla-botlog/vanilla-bot_events-20261109T1927Z.derived.csv')):
         bots, coverage = read(str(path))  # Both readers take an absolute path string, not a Path.
         sources.append(dict(id=source_id, label=label, note=note, bots=bots, coverage=coverage))
     return dict(wow, sources=sources)
@@ -84,7 +88,8 @@ def source_fingerprints():
              'tools/inspector_playtest.js', 'tools/preview_progress.js', 'tools/assignment_keyboard_playtest.js', 'tools/build_inspector_playtest.py',
              'forever_botlog.py', 'tests/fixtures/forever-botlog/manifest.json', 'tests/fixtures/forever-botlog/bots.jsonl',
              'tests/fixtures/forever-botlog/events.jsonl', 'baseline_conformance.py', 'data/fixtures/baseline-conformance.json',
-             'ffxi_botsv2_log.py', 'tests/fixtures/ffxi-botsv2/bots-v2-j1234-20261109.log', 'bot_event_v1.py', 'human_feel.py',
+             'ffxi_botsv2_log.py', 'tests/fixtures/ffxi-botsv2/bots-v2-j1234-20261109.log', 'bot_event_v1.py', 'human_feel.py', 'vanilla_botlog.py',
+             'tests/fixtures/vanilla-botlog/vanilla-bot_events-20261109T1927Z.derived.csv',
              'tests/fixtures/bot-event-v1/EXAMPLES.jsonl')
     return {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in paths}
 

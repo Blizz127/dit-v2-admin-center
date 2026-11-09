@@ -579,13 +579,14 @@ class OverviewSwitchTests(unittest.TestCase):
              patch('server.read_ffxi_botsv2', side_effect=RuntimeError('/private/owner-Bobby.log')):
             activity = server.overview()['botActivity']
         self.assertEqual([source['id'] for source in activity['sources']],
-                         ['wow-70450-export', 'ffxi-lsb', 'dit-bot-event-v1'])
+                         ['wow-70450-export', 'ffxi-lsb', 'dit-bot-event-v1', 'wow-vanilla-playerbots'])
         by_id = {source['id']: source for source in activity['sources']}
         self.assertEqual((by_id['ffxi-lsb']['coverage']['status'], by_id['ffxi-lsb']['bots']), ('Unavailable', []))
         self.assertEqual(by_id['ffxi-lsb']['coverage']['reason'],
                          'Import failed; nothing was imported. Details are not shown.')
         self.assertEqual(by_id['wow-70450-export']['coverage']['status'], 'Not configured')
         self.assertEqual(by_id['dit-bot-event-v1']['coverage']['status'], 'Off')
+        self.assertEqual(by_id['wow-vanilla-playerbots']['coverage']['status'], 'Off')
         text = json.dumps(activity)
         self.assertNotIn('Bobby', text)
         self.assertNotIn('/private', text)

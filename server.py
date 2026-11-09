@@ -37,6 +37,7 @@ from baseline_conformance import read as baseline_conformance
 from forever_botlog import from_env as forever_botlog
 from ffxi_botsv2_log import read as read_ffxi_botsv2
 from bot_event_v1 import read as read_bot_event
+from vanilla_botlog import read as read_vanilla_botlog
 from wake_verification import read as read_wake_verification
 from operation_sources import read as read_operation_sources
 from local_evidence import read_json
@@ -79,6 +80,9 @@ def bot_activity():
         bot_activity_source('dit-bot-event-v1', 'DIT bot_event v1 (SWTOR, FFXI Forever, other DIT games)',
                             'Offline import of dit.bot_event.v1 JSONL (DIT_BOT_EVENT_DIR); includes AI advice rows.',
                             read_bot_event),
+        bot_activity_source('wow-vanilla-playerbots', 'WoW Vanilla / Benilla playerbots (cmangos-classic event log)',
+                            'Exported cmangos-classic playerbot event CSV; offline import (DIT_VANILLA_BOTLOG_CSV); '
+                            'one server run, bots only.', read_vanilla_botlog),
     ]
     wow = sources[0]
     return {'bots': wow['bots'], 'coverage': wow['coverage'], 'sources': sources}

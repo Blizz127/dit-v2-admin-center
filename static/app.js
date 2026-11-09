@@ -1416,7 +1416,8 @@ function renderModelCalls() {
 }
 const botActivityEngines = ['noncombat', 'combat', 'dead', 'Unknown'];
 const botActivityWowId = 'wow-70450-export';
-const botActivitySourceIds = [botActivityWowId, 'ffxi-lsb', 'dit-bot-event-v1'];
+const botActivityVanillaId = 'wow-vanilla-playerbots';
+const botActivitySourceIds = [botActivityWowId, 'ffxi-lsb', 'dit-bot-event-v1', botActivityVanillaId];
 // Per-source fallbacks for a snapshot that omits a label or note. The 70450 caveat belongs to the WoW source only.
 const botActivityDefaults = {
   [botActivityWowId]: {label: 'WoW Forever (70450 predecessor export)', env: 'DIT_FOREVER_BOTLOG_DIR',
@@ -1425,6 +1426,8 @@ const botActivityDefaults = {
     note: 'Exported [BOTS-V2] map-log lines; offline import (DIT_FFXI_BOTSV2_LOG); owner name masked.'},
   'dit-bot-event-v1': {label: 'DIT bot_event v1 (SWTOR, FFXI Forever, other DIT games)', env: 'DIT_BOT_EVENT_DIR',
     note: 'Offline import of dit.bot_event.v1 JSONL (DIT_BOT_EVENT_DIR); includes AI advice rows.'},
+  [botActivityVanillaId]: {label: 'WoW Vanilla / Benilla playerbots (cmangos-classic event log)', env: 'DIT_VANILLA_BOTLOG_CSV',
+    note: 'Exported cmangos-classic playerbot event CSV; offline import (DIT_VANILLA_BOTLOG_CSV); one server run, bots only.'},
 };
 const botActivityStatuses = ['Not configured', 'Off', 'Loaded', 'Unavailable'];
 const botActivityRowLimit = 200, botActivityListLimit = 50, botActivityAlternativeLimit = 20;
@@ -1550,7 +1553,27 @@ function botActivityDitRow(panel, bot) {
     botActivityPart(a.reason)])}));
   botActivityFeelNote(row, bot);
 }
-const botActivityRenderers = {[botActivityWowId]: botActivityRow, 'ffxi-lsb': botActivityFfxiRow, 'dit-bot-event-v1': botActivityDitRow};
+// Vanilla playerbots: pulls against kills, and the longest run of pulls on one target with no kill (a stuck bot).
+function botActivityStall(stall) {
+  if (!plainObject(stall) || !metricNumber(stall.pulls) || !metricNumber(stall.seconds)) return 'Longest run of pulls without a kill: under 10 pulls (not stuck).';
+  const spots = metricNumber(stall.positions) ? ` from ${stall.positions} position${stall.positions === 1 ? '' : 's'}` : '';
+  return `Longest run of pulls without a kill: ${stall.pulls} pulls on ${shown(stall.target)} over ${Math.round(stall.seconds / 60)} min${spots} (${shown(stall.from)} to ${shown(stall.to)}).`;
+}
+function botActivityVanillaRow(panel, bot) {
+  const ratio = metricNumber(bot.pullsPerKill) ? bot.pullsPerKill : 'Unknown';
+  item(panel, `${routingText(bot.name, 'Unnamed')} (${shown(bot.actorId)}) · level ${shown(bot.level)}`,
+    `Doing: ${shown(bot.doing)} · Pulls: ${shown(bot.pulls)} · Kills: ${shown(bot.kills)} · Pulls per kill: ${ratio} · Hearthstone escapes (stuck): ${botActivityCounts(bot.hearthStuck) === 'Unknown' ? 'none' : botActivityCounts(bot.hearthStuck)}`,
+    `Last event: ${shown(bot.lastEventAt)} · Counts: ${botActivityCounts(bot.counts)}`);
+  const row = panel.lastElementChild;
+  botActivityList(row, 'Events', bot.events, e => ({text: botActivityJoin([botActivityPart(e.ts), botActivityPart(e.type), botActivityPart(e.detail)])}));
+  botActivityList(row, 'Deaths', bot.deaths, e => ({text: botActivityJoin([botActivityPart(e.ts), botActivityPart(e.type)])}));
+  const stall = document.createElement('p');
+  stall.textContent = botActivityStall(bot.stall);
+  row.append(stall);
+  botActivityFeelNote(row, bot);
+}
+const botActivityRenderers = {[botActivityWowId]: botActivityRow, 'ffxi-lsb': botActivityFfxiRow, 'dit-bot-event-v1': botActivityDitRow,
+  [botActivityVanillaId]: botActivityVanillaRow};
 // The source record for id: the top-level WoW keys when the snapshot has no sources list (older snapshots).
 function botActivityEntry(data, id) {
   if (!plainObject(data)) return null;
