@@ -547,3 +547,28 @@ or keyboard result is claimed. No full suite or live game/hub action.
 **Rollback:** preceding preview `17e174cb` retained; only the new private folder
 was added. The profile identifies fixed-ID selector tree traversals as a
 concrete follow-up performance item, not a gate on this delivered increment.
+
+## Update: preview bb887867 (source b7e2f5c)
+
+Private folder **Downloads → DIT-Admin-Center-Preview-bb887867** on Alienware.
+Independent readback at **2026-11-09T23:46:28Z** matched both files:
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 544446 | `bb887867146d893fc1620a2a64e80d375016f5cd39e709378264e73aa2d443dc` | 600 |
+| READ-ME-FIRST.txt | 681 | `1a5dd853cdb3b818cdfc800347f3b3631d70a3bb69e7ceffad9f26b10b9c2e9b` | 600 |
+
+**Change:** snapshot loading uses direct `getElementById` lookups for 14 fixed
+IDs instead of selector searches. The previous CPU profile identified repeated
+tree traversal in the installed DOM selector engine. This changes no data,
+session checks, error handling or timeout. The release-k evidence is retained.
+
+**Checks:** `source_race.test.js` and `overview_failure.test.js` pass, preserving
+out-of-order response isolation, source failures, scoped details and recovery.
+The exact delivered artifact passed 176 simulated-DOM startup checks with zero
+transport attempts (construction 767 ms, completion wait 9,332 ms). Shared-host
+timings vary; this is not a measured native-browser speedup claim. Native
+browser and keyboard checks remain NOT RUN; no full suite rerun.
+
+**Rollback:** `b4d2c1d3` remains available. No live hub/game action or launcher/feed
+publication; only the new private preview folder was added.
