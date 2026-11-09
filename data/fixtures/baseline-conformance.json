@@ -303,7 +303,7 @@
         },
         "p-01": {
           "status": "Built",
-          "evidence": "hub owner-party driver 3d7d23cf (branch feat/forever-owner-party-20261109; uid-10001 container), staged on Banshee, not started; 5 bots SQL ffxi-platform 5e46007 (Lysnor WAR, Ianfalmond WHM, Pota BLM, Morggor MNK, Neha THF, lv6); owner approved, install pending."
+          "evidence": "hub owner-party driver 3d7d23cf staged on Banshee, not started. 5 bots SQL ffxi-platform 5e46007 (Lysnor WAR, Ianfalmond WHM, Pota BLM, Morggor MNK, Neha THF, lv6) applied to xiforever ~19:07Z (ffxi cohort0-r2, readback 15/15 ok); map population install pending."
         },
         "p-02": {
           "status": "Built",
@@ -326,8 +326,8 @@
           "evidence": "rented chocobo (era-correct)."
         },
         "p-07": {
-          "status": "Designed",
-          "evidence": "owner party provisioned by roster; add-by-job later."
+          "status": "Built",
+          "evidence": "owner party of 5 created by roster in the live DB ~19:07Z (ffxi handoff 2026-11-09-forever-cohort0-r2, bots-cohort0.tsv sha 0ddd2c31, charids 1040000-1040004); not yet in game. Add-by-job, fill and roster commands later."
         },
         "p-08": {
           "status": "Built",

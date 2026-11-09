@@ -111,8 +111,10 @@ class BaselineConformanceTests(unittest.TestCase):
         games = {game['game']: game['cells'] for game in bc.read()['games']}
         cells = games['FFXI Forever (Rust)']
         self.assertEqual([cells[row_id]['status'] for row_id in PARITY],
-                         ['Built', 'Built', 'Built', 'Built', 'Built', 'Designed', 'Designed', 'Built',
+                         ['Built', 'Built', 'Built', 'Built', 'Built', 'Designed', 'Built', 'Built',
                           'Designed', 'Built', 'Designed', 'Designed'])
+        self.assertIn('cohort0-r2', cells['p-07']['evidence'])
+        self.assertIn('not yet in game', cells['p-07']['evidence'])
         self.assertIn('733dfb5', cells['p-02']['evidence'])
         self.assertIn('da14962', cells['p-10']['evidence'])
         self.assertIn('3d7d23cf', cells['p-01']['evidence'])
