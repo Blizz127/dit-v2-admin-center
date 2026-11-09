@@ -84,6 +84,15 @@ class VanillaBotlogTests(unittest.TestCase):
         bot = vanilla.read(self.write(*rows))[0][0]
         self.assertEqual((bot['pulls'], bot['kills'], bot['stall']), (16, 0, None))  # two runs of 8, not one of 16
 
+    def test_unknown_targets_do_not_create_or_join_stalls(self):
+        rows = [row(stamp=f'2026-11-09 19:00:{i:02d}') for i in range(6)]
+        rows += [row(stamp=f'2026-11-09 19:00:{i:02d}', info1='') for i in range(6, 18)]
+        rows += [row(stamp=f'2026-11-09 19:00:{i:02d}') for i in range(18, 24)]
+        rows += [row(stamp=f'2026-11-09 19:00:{i:02d}', info1='<invalid>') for i in range(24, 36)]
+        bots, coverage = vanilla.read(self.write(*rows))
+        self.assertEqual((bots[0]['pulls'], bots[0]['stall'], coverage['stalledBots'], coverage['stalledPulls']),
+                         (36, None, 0, 0))
+
     def test_a_kill_or_a_new_target_ends_a_run(self):
         rows = [row(stamp=f'2026-11-09 19:00:{i:02d}', info1='Makrura Shellhide') for i in range(12)]
         rows.append(row(stamp='2026-11-09 19:00:20', action='XpGainAction', info1='Makrura Shellhide', info2='29'))

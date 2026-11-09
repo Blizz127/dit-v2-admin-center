@@ -17,7 +17,8 @@ Rules enforced here:
   one target name with no kill between them. A bot that re-pulls one mob for an hour without a kill is stuck,
   and it is the clearest non-human tell this log can show.
 - A run ends on an XpGainAction or a StoreLootAction row (a mob too low to give xp still drops loot) or on a
-  different target name. Limit: a kill that gives neither xp nor loot still reads as no kill, so a bot
+  different or unknown target name. Pulls with unknown targets cannot establish a same-target run.
+  Limit: a kill that gives neither xp nor loot still reads as no kill, so a bot
   grinding far below its level can show a run it did not have.
 - Hearthstone escapes are counted by their reason ("move long stuck", "combat long stuck").
 - Output caps: MAX_BOTS bots (longest stall first, then most rows) and MAX_EVENTS events per bot. The
@@ -91,10 +92,15 @@ def _row(line):
 
 
 def _stalls(rows):
-    """Runs of pulls on one target with no kill between, as dicts; a kill or a new target ends a run."""
+    """Runs of pulls on a known target; a kill, new target or unknown target ends a run."""
     runs, current = [], None
     for row in rows:
         if row['action'] == PULL:
+            if row['target'] is None:
+                if current is not None:
+                    runs.append(current)
+                    current = None
+                continue
             if current is not None and current['target'] == row['target']:
                 current['pulls'] += 1
                 current['end'] = row['moment']
