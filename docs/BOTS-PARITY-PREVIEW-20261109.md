@@ -432,3 +432,21 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-60ce64
 **Checks:** full Python suite 598 OK; 9 JS tests pass; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview e6a77534 (source f229777)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-e6a77534**. Readback at **2026-11-09T22:04:16Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 542617 | `e6a7753469c0d72430fb8a1d97e19308c046539ab43c9124c26ce531662a0edf` | 600 |
+| READ-ME-FIRST.txt | 997 | `9d18bd56b0f1123766d6cdcbad32cf7a9883f67c2243d1d5f5dd7d4a56f77ed0` | 600 |
+
+**Change:**
+- The WoW Vanilla playerbot section uses the run after the stuck re-pull fix (cmangos-classic release-20261109j, log sha `3e2e82b5`, 4,149 rows, 449 bots).
+- Against the first 33 minutes of the earlier run: runs of 10+ pulls with no kill 6 → 2; share of pulls in such runs 17.8% → 4.7%; longest run 121 → 37; pulls per kill 1.61 → 1.39.
+- A loot row now ends a no-kill run. It changes none of these numbers.
+
+**Checks:** full Python suite 600 OK; 9 JS tests pass; native browser NOT RUN.
+
+**Rollback:** remove only that folder.
