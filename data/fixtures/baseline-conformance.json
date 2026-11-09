@@ -356,36 +356,36 @@
       "owner": "swtor-preservation",
       "cells": {
         "p-01": {
-          "status": "Designed",
-          "evidence": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md target 1 (owner-bound companions), lane bot-behavior; invite-only squad rule."
+          "status": "Built",
+          "evidence": "release kc live 11-09 10:48:48Z (integrator 072376da), not yet seen: 0 humans. Owner-bound, invite-only squad; off-duty bots stay out."
         },
         "p-02": {
-          "status": "Designed",
-          "evidence": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md target 1 (follow and travel across every area transfer), lane bot-behavior."
+          "status": "Built",
+          "evidence": "release kc live 11-09 10:48:48Z (integrator 072376da), not yet seen: 0 humans. Follows across taxi and shuttle, regroups after stuck or death. Ship, Fleet, flashpoint and relog not stated."
         },
         "p-03": {
-          "status": "Designed",
-          "evidence": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md target 4 (all 8 classes, 16 ACs, 48 disciplines from client data), lane bot-rotations."
+          "status": "Built",
+          "evidence": "release kc live 11-09 10:48:48Z (integrator 072376da), not yet seen: 0 humans. Juggernaut (3) and Inquisitor ability rules live; rotation tables for all 48 disciplines shipped but off (SWTOR_BOT_ROTATIONS=False). BH, Agent and all Republic rules not done."
         },
         "p-04": {
-          "status": "Designed",
-          "evidence": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md targets 2 and 4 (tank, heal, dps roles; cleanse, interrupt, CC helpers), lanes bot-rotations and bot-behavior."
+          "status": "Built",
+          "evidence": "release kc live 11-09 10:48:48Z (integrator 072376da), not yet seen: 0 humans. Tank taunts the owner's attacker, dps/heal wait for the opener, heal tiers. Guard/Intercede, absorbs, dispels and stealth not done."
         },
         "p-05": {
-          "status": "Designed",
-          "evidence": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md target 2 (rest between pulls, regroup after death), lane bot-behavior."
+          "status": "Built",
+          "evidence": "release kc live 11-09 10:48:48Z (integrator 072376da), not yet seen: 0 humans. Rest between pulls (healer tops up, no pulls while resting); regroup after death."
         },
         "p-06": {
           "status": "Designed",
-          "evidence": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md target 3 (order verb mount), lane bot-behavior; class mount or speeder per docs/goals/BOTS-PARITY-GOAL-20261109.md area 6."
+          "evidence": "release kc live 11-09 10:48:48Z (integrator 072376da), not yet seen: 0 humans: bots match the owner's mount speed. No bot mount yet (BOTS-PLAN-20261109.md target 3)."
         },
         "p-07": {
           "status": "Designed",
           "evidence": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md lane bot-behavior (squad fill) and existing private_squad*.py roster and kits; docs/goals/BOTS-PARITY-GOAL-20261109.md area 7."
         },
         "p-08": {
-          "status": "Designed",
-          "evidence": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md target 3 (order verbs: follow, stay, attack, assist, stance, rest, regroup), lane bot-behavior."
+          "status": "Built",
+          "evidence": "release kc live 11-09 10:48:48Z (integrator 072376da), not yet seen: 0 humans. More .squad order verbs (bot-behavior)."
         },
         "p-09": {
           "status": "Not applicable",
@@ -396,12 +396,12 @@
           "evidence": "docs/goals/BOTS-PARITY-GOAL-20261109.md area 10 (class story and planet quests); /home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md does not itemize quests."
         },
         "p-11": {
-          "status": "Designed",
-          "evidence": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md target 5 and lane bot-chat: AI via ChatGateway/DIT, AI-or-silence gate."
+          "status": "Built",
+          "evidence": "release kc live 11-09 10:48:48Z (integrator 072376da), not yet seen: 0 humans. AI-only squad chat (bot-chat): speaks only with DIT origin-ai provenance and a listener in range, else silent."
         },
         "p-12": {
           "status": "Designed",
-          "evidence": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md lane bot-chat: AI via ChatGateway; decision advice per docs/goals/BOTS-PARITY-GOAL-20261109.md area 12; bot events via dit.bot_event.v1."
+          "evidence": "BOTS-PLAN-20261109.md lane bot-chat. kc writes bot-events/swtor-YYYY-MM-DD.jsonl (dit.bot_event.v1 + decision_advice.v1 shape), but squad behaviour and rotation choices write no rows yet and no advice is requested."
         }
       }
     },

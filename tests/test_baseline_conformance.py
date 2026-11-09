@@ -120,11 +120,20 @@ class BaselineConformanceTests(unittest.TestCase):
     def test_swtor_parity_cells(self):
         cells = bc.read()['games'][3]['cells']
         self.assertEqual([cells[row_id]['status'] for row_id in PARITY],
-                         ['Designed'] * 8 + ['Not applicable'] + ['Designed'] * 3)
+                         ['Built'] * 5 + ['Designed', 'Designed', 'Built', 'Not applicable', 'Designed', 'Built',
+                          'Designed'])
         for row_id in PARITY:
-            if row_id != 'p-09':
-                self.assertIn('BOTS-PLAN-20261109.md', cells[row_id]['evidence'], row_id)
+            if row_id == 'p-09':
+                continue
+            evidence = cells[row_id]['evidence']
+            if cells[row_id]['status'] == 'Built':
+                # Built from release kc: live code, but no live log line yet, so never Verified live.
+                self.assertIn('release kc live 11-09 10:48:48Z', evidence, row_id)
+                self.assertIn('not yet seen', evidence, row_id)
+            else:
+                self.assertIn('BOTS-PLAN-20261109.md', evidence, row_id)
         self.assertIn('bot-behavior', cells['p-08']['evidence'])
+        self.assertIn('SWTOR_BOT_ROTATIONS=False', cells['p-03']['evidence'])
         self.assertIn('bot-chat', cells['p-12']['evidence'])
         self.assertIn('bot-chat', cells['p-11']['evidence'])
         self.assertTrue(all(cells[k] == UNKNOWN for k in cells if k not in PARITY))
