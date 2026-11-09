@@ -107,3 +107,18 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-27b0d9
 **Checks:** full Python suite OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview 44c97512 (source 8f9bfbb)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-44c97512**. Readback at **2026-11-09T10:35:01Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 391592 | `44c9751230dd2bc2f598300a6c27e8b1ea783d65a51b9a5c04b0efccc313317e` | 600 |
+| READ-ME-FIRST.txt | 723 | `6edffeb0c458d461889c8dba4af167d3ac6a5fbce4810e33de5e222020638f31` | 600 |
+
+**Change:** only the evidence wording for FFXI LSB p-06. c2.10 will not be installed; the mounts ship as c2.10.1, which is pending. The status stays Built.
+
+**Checks:** conformance and FFXI importer tests OK; native browser NOT RUN.
+
+**Rollback:** remove only that folder.
