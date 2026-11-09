@@ -105,8 +105,9 @@ class BaselineConformanceTests(unittest.TestCase):
         cells = games['FFXI Forever (Rust)']
         self.assertEqual([cells[row_id]['status'] for row_id in PARITY],
                          ['Built', 'Built', 'Built', 'Built', 'Built', 'Designed', 'Designed', 'Built',
-                          'Designed', 'Not started', 'Designed', 'Designed'])
+                          'Designed', 'Built', 'Designed', 'Designed'])
         self.assertIn('733dfb5', cells['p-02']['evidence'])
+        self.assertIn('da14962', cells['p-10']['evidence'])
         self.assertIn('3d7d23cf', cells['p-01']['evidence'])
         self.assertIn('ffxi-platform 5e46007', cells['p-01']['evidence'])
         self.assertEqual(cells['forever-01']['status'], 'Designed')

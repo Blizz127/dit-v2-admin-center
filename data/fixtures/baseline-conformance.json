@@ -338,8 +338,8 @@
           "evidence": "temporary raise capped at 60."
         },
         "p-10": {
-          "status": "Not started",
-          "evidence": "no talk/trade intents yet."
+          "status": "Built",
+          "evidence": "talk/trade quest intents merged ffxi-platform da14962 (flag FOREVER_POP_QUEST; test: Kohlo-Lakolo quest accept and Rarab Tail turn-in, quest log byte-equal to a human's); ships in kit v3.74 (5be9158). Not installed or run live yet; the DIT quest planner is not built."
         },
         "p-11": {
           "status": "Designed",
