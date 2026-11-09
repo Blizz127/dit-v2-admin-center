@@ -440,3 +440,20 @@ The fix is canary c2.8a, queued before MP rest.
 **Other updates:**
 - **Shadowtail death:** the native 300 s death clock kept it down for five minutes. After it homepointed, a zone-follow bug left it idle in the wrong zone. The c2.8 fix waits up to 60 s for a raise, then releases, returns to the owner and handles weakness.
 - **SWTOR** started a three-lane plan: every class, AC and discipline; behaviour; and AI chat.
+
+**Party bots settled (2026-11-09):**
+- **The owner:** a Forever RDM 6 from Windurst, no support job. Read-only SELECT by `ffxi`.
+- **Owner's choices:**
+  - camp zone "West Sarutabaruta (Recommended)";
+  - level "6–9", matching the read.
+- **Roster:** `roster-owner-party-windurst-6.tsv` (sha `ff835b76…31e7`), logins P02001–5, all level 6, Windurst.
+  - WAR, Elvaan male (tank; PLD from 30)
+  - WHM, Hume female
+  - BLM, Tarutaru male
+  - MNK, Galka male
+  - THF, Mithra female
+- **Placement:** in zone 115. They can't leave it until `ffxi-platform` phase 3.
+- **Open blocker:** the DIT driver (uid 1000) can't reach the population socket in the uid-10001 container. `ffxi-platform` has to provide access.
+- **Driver work:** owner-party mode in hub branch `feat/forever-owner-party-20261109` (`fe3c7c24`).
+
+**WoW Forever:** `trinitycore-forever` built the Karrz 0.1.33 bots candidate (`8609da55023`, all bot tests pass, 9 DIT commits carried). It is not deployed. Owner task `c74bdf770f95` ("update forever bots too") is queued for `codex-trinitycore-forever`, which owns the deploy.
