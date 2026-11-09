@@ -328,3 +328,20 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-27804f
 **Checks:** full Python suite 583 OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview 1fd4ed09 (source 9ab5ac5)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-1fd4ed09**. Readback at **2026-11-09T18:26:51Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 429156 | `1fd4ed095fee843031733829d846e0d7b3f2b7f2da3eb193e200af8e4de78ae6` | 600 |
+| READ-ME-FIRST.txt | 556 | `74ee9f8158b373f213bef319024ce57bd297e9571a7d93363e14962cc307903f` | 600 |
+
+**Change:**
+- The importer reads the ffxi C5 line `bag full <bot> free=<n> (camping on, no sell path)`, and group trip ends with `why=group_<why>`.
+- C5 is frozen, with an install batch staged, so it is not live. The page content is unchanged.
+
+**Checks:** full Python suite 584 OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
+
+**Rollback:** remove only that folder.
