@@ -59,3 +59,13 @@
   - two deaths with release and revive: 401/405/408 and 426/438/440;
   - 0 unstick lines.
 - Every line is recognized. The preview builder now uses this export.
+
+# Bots V2 live log export 5 (regular LSB, canary 2.10.1), 2026-11-09
+
+- `bots-v2-c2101-20261109.log`: copied byte-for-byte from ffxi's handoff `2026-11-09-botsv2-log-export-5` (sha256 `ce90dc67feb82b5a46cbe6abf3608b3cd88c113ccb31f5d61e7f3dc20105234b`, 575 lines).
+- **Coverage:** the live c2.10.1 run, 11-09 11:32:09Z-12:32:55Z. No human was online.
+- **Content:** the first live mount lines confirm the c2.10 formats.
+  - 14 `mount <bot> why=travel` lines (first at 17/19/21).
+  - dismounts why=cast, camp, group and native.
+  - 0 deaths.
+- The preview builder now uses this export.

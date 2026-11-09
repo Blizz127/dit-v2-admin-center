@@ -22,6 +22,8 @@ C281 = FIXTURE / 'bots-v2-c281-20261109.log'
 C281_SHA256 = 'a53acf46d5076eaaf1b83690237e4081825f2169ae6baeedf4e661139a0185cc'
 C291 = FIXTURE / 'bots-v2-c291-20261109.log'
 C291_SHA256 = '4c4a1093dedce6055e3f4e44f6cd8122cea5903cfac23b16f14e6319094b044b'
+C2101 = FIXTURE / 'bots-v2-c2101-20261109.log'
+C2101_SHA256 = 'ce90dc67feb82b5a46cbe6abf3608b3cd88c113ccb31f5d61e7f3dc20105234b'
 C28_SHA256 = 'be2eea13e43c196a06bef51cc580b9a4ff2bbde6ede624eb7cb608b03a1740fc'
 
 # Expected values come from grep over REAL, not from the parser. Recipe for bot B (run with the export as FILE):
@@ -552,6 +554,23 @@ class FFXIBotsV2LogTests(unittest.TestCase):
         lines = raw.decode('ascii').splitlines()
         self.assertIn('rest shadowtail why=mp mp=12 hp=79', lines[164])
         self.assertIn('revived fumika at its home point zone=241 after 33s', lines[439])
+
+    def test_live_c2101_export_mounts_and_dismounts(self):
+        # Export 5 (ffxi handoff 2026-11-09-botsv2-log-export-5): the live c2.10.1 run, 11:32Z-12:32Z, no human online.
+        raw = C2101.read_bytes()
+        self.assertEqual(hashlib.sha256(raw).hexdigest(), C2101_SHA256)
+        self.assertEqual(_lines(raw), 575)
+        bots, coverage = botsv2.read(C2101)
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['unrecognized'], coverage['ignored']),
+                         (575, 0, 0, 0))
+        by = {bot['name']: bot for bot in bots}
+        # grep -c "[BOTS-V2] mount B " FILE
+        self.assertEqual({n: b['counts']['mount'] for n, b in by.items()}, {'fumika': 4, 'shadowtail': 5, 'tomoe': 5})
+        dismounts = sorted({e['reason'] for b in bots for e in b['events'] if e['type'] == 'dismount'})
+        self.assertEqual(dismounts, ['camp', 'cast', 'group', 'native'])
+        lines = raw.decode('ascii').splitlines()
+        self.assertIn('mount tomoe why=travel', lines[16])
+        self.assertIn('dismount fumika why=group', lines[217])
 
     def test_c210_mount_lines_use_the_exact_formats(self):
         raw = b''.join([

@@ -100,7 +100,7 @@ class BaselineConformanceTests(unittest.TestCase):
         self.assertIn('MP rest', cells['p-05']['evidence'])
         self.assertIn('inert', cells['p-09']['evidence'])
         self.assertIn('4c4a1093', cells['p-05']['evidence'])
-        self.assertIn('why=travel', cells['p-06']['evidence'])
+        self.assertIn('ce90dc67', cells['p-06']['evidence'])
         self.assertNotIn('Blizz', bc.FIXTURE.read_text())  # the owner name is masked in the export and the tracker
         self.assertTrue(all(cells[k] == UNKNOWN for k in cells if k not in PARITY))
 

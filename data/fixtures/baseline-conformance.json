@@ -253,7 +253,7 @@
         },
         "p-03": {
           "status": "Partly live",
-          "evidence": "live: WHM dia/paralyze/banish, critical_cure (export 3 l.188); THF steal, sneak_attack l.332, weapon_skill l.335; BLM nuke l.356. J0a (job-kit framework, sub-job moves, profiles) staged, not live. 22-job kits J1-J4."
+          "evidence": "live: WHM dia/paralyze/banish, critical_cure (export 3 l.188); THF steal, sneak_attack, weapon_skill (l.332/335); BLM nuke l.356. J0a job kits and sub-job overlay live since 12:34Z; no sub_* line seen yet. Full kits J1-J4."
         },
         "p-04": {
           "status": "Partly live",
@@ -265,7 +265,7 @@
         },
         "p-06": {
           "status": "Partly live",
-          "evidence": "c2.10.1 live 11:30:54Z: mount tomoe/shadowtail/fumika why=travel 11:33:19-20Z, act rule=mount_up -> ok mount (ffxi report; export 5 due). The group rode together. Mount with the owner (why=owner) not seen yet."
+          "evidence": "live, export 5 (sha ce90dc67): group mounts why=travel l.17/19/21 (11:33Z) and 11 more; dismounts why=cast l.130, camp l.191, group l.218, native on zoning l.427. Mounting with the owner (why=owner) not seen yet."
         },
         "p-07": {
           "status": "Designed",
@@ -289,7 +289,7 @@
         },
         "p-12": {
           "status": "Built",
-          "evidence": "J0b decision_advice seam built (handoff 2026-11-09-botsv2-j0b-frozen, 1563/0; rotation_profile and goal advice), staged, not live; flag off by default. Goes live only with the flag and the hub's DIT_ADVICE_GAMES=ffxi on."
+          "evidence": "J0b decision_advice seam installed live 12:33:37Z (advice cc65a520) with BANSHEE_BOTS_V2_ADVICE=0, so no advice lines. Live only with that flag and the hub's DIT_ADVICE_GAMES=ffxi both on."
         }
       }
     },
