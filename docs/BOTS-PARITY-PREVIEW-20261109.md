@@ -139,3 +139,21 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-bafffe
 **Checks:** conformance and FFXI importer tests OK; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview f20cd94a (source 945aaa4)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-f20cd94a**. Readback at **2026-11-09T10:51:08Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 391508 | `f20cd94a823ae5711bfa80aaf991131f6b2f9f0cdb7a38aab14f210766260cb9` | 600 |
+| READ-ME-FIRST.txt | 840 | `2dd3ee84aa05988e67f8343dfd888fbf24d2448f7f03cdabab0bc8980e00b640` | 600 |
+
+**Change:** SWTOR release kc went live at 10:48:48Z (swtor-preservation, integrator 072376da).
+- p-01 to p-05, p-08 and p-11 are now Built.
+- p-06 and p-12 stay Designed, with updated evidence.
+- No SWTOR cell is Partly live or Verified live: the bot event log has no rows yet, because no human has played with a squad.
+
+**Checks:** full Python suite OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
+
+**Rollback:** remove only that folder.
