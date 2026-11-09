@@ -80,3 +80,13 @@
   - 0 profile and 0 advice lines, because the advice flag is off.
 - J1-J4 (live 13:35:54Z) adds no new log templates; a diff of the log calls in the j0b and j4 frozen trees confirms it.
 - The preview builder now uses this export.
+
+# P2b formats (frozen, staged, not armed)
+
+- Source: ffxi handoff `2026-11-09-botsv2-p2b-frozen` (2582/0). A diff of the log calls against j4-frozen shows exactly two changes.
+- **Order line:** gains an optional ` refused=<why>` suffix. A space in the arg is logged as `_`.
+  - The event result is `refused`, and the line still counts as party.
+  - The mob name in an `attack` arg is not a person.
+- **New line:** `advice <bot> release kind=party_tactic choice=<id> why=ttl|replaced` (an event).
+- **Value changes only:** profile why `order` / `order_ended`; advice kind `party_tactic`; answer why `party_changed`.
+- These are covered by synthetic tests only.

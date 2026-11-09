@@ -273,7 +273,7 @@
         },
         "p-08": {
           "status": "Built",
-          "evidence": "c2.8 /party verbs wired; c2.9 (frozen, 1254/0 tests, armed for LSB's next idle sleep) adds hold, flee, focus, focusheal, stance, savemp, burst, rally, camp/roles/distance. No owner-order line seen live yet."
+          "evidence": "live since c2.9.1 (10:28Z): follow, stay, assist, attack, pull, rest, dismiss, hold, flee, focus, focusheal, stance, savemp, burst, rally. P2b (who/stats/gear/help, aoe, formation, attack <mob>) frozen 2582/0, staged. No owner-order line seen live yet."
         },
         "p-09": {
           "status": "Built",
@@ -289,7 +289,7 @@
         },
         "p-12": {
           "status": "Built",
-          "evidence": "J0b decision_advice seam installed live 12:33:37Z (advice cc65a520) with BANSHEE_BOTS_V2_ADVICE=0, so no advice lines. Live only with that flag and the hub's DIT_ADVICE_GAMES=ffxi both on."
+          "evidence": "J0b advice seam installed 12:33:37Z, flag BANSHEE_BOTS_V2_ADVICE=0 (no advice lines); rotation_profile and goal. P2b adds party_tactic (frozen, staged). Live only with that flag and the hub's DIT_ADVICE_GAMES=ffxi on."
         }
       }
     },

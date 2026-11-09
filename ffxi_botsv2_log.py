@@ -17,6 +17,8 @@ Rules enforced here:
   masked owner; a focusheal arg that is not '<owner>' is shown as '<member>'. levelsync lines are events counted as
   other.
 - counts.mount counts 'mount <bot> why=' lines; dismount lines are events only; mount_blocked counts as other.
+- P2b: an order line may end ' refused=<why>' (event result 'refused', still counted as party); 'advice <bot> release
+  kind=party_tactic' lines are events only.
 - J0a/J0b: profile lines count as other; advice answers count as advice (applied or not; the event result says
   which); requests are events only; a drop counts as other, and 'advice - drop' (no bot) is a system notice.
 - counts.rest counts rest starts ('rest <bot> why=...'); a 'rest end' line is an event only.
@@ -245,7 +247,9 @@ def _stuck(body):
 
 _ORDER = re.compile(r'order ([a-z_]{1,32}) from (\S+) -> ' + _BOT)
 # c2.9 (banshee_bots_v2.lua:1426): 'order %s verb=%s%s by=%s channel=%s', the middle %s being '' or ' arg=<arg>'.
-_ORDER_C29 = re.compile(r'order ' + _BOT + r' verb=([a-z_]{1,32})(?: arg=(\S{1,64}))? by=(\S+) channel=([a-z_]{1,16})')
+# P2b (banshee_bots_v2.lua:1683) adds an optional ' refused=<why>' suffix; spaces in the arg are logged as '_'.
+_ORDER_C29 = re.compile(r'order ' + _BOT + r' verb=([a-z_]{1,32})(?: arg=(\S{1,64}))? by=(\S+) channel=([a-z_]{1,16})'
+                        r'(?: refused=([a-z_]{1,32}))?')
 # focusheal's arg is a party member's name, which may be a human: only the masked owner is shown.
 _NAME_ARG_VERBS = frozenset({'focusheal'})
 
@@ -263,7 +267,11 @@ def _order(body):
     if arg is not None and verb in _NAME_ARG_VERBS and arg not in (OWNER, 'off'):
         arg = '<member>'
     detail = (f'arg={arg} ' if arg is not None else '') + f'by={OWNER} channel={match.group(5)}'
-    return _part([_bot(match.group(1))], 'party', count='party', reason=verb, detail=detail)
+    refused = match.group(6)
+    if refused is not None:
+        detail += f' refused={refused}'
+    return _part([_bot(match.group(1))], 'party', count='party', reason=verb,
+                 result='refused' if refused is not None else None, detail=detail)
 
 
 # c2.9 level sync (banshee_bots_v2.lua and exec E.revertSync). Events only, counted as other.
@@ -496,6 +504,7 @@ _PROFILE = re.compile(r'profile ' + _BOT + r' to=(\S{1,64}) from=(\S{1,64}) why=
 _ADVICE_REQ = re.compile(r'advice ' + _BOT + r' req kind=([a-z_]{1,32}) id=(\S{1,128}) options=(\d{1,3}) default=(\S{1,64})')
 _ADVICE_ANSWER = re.compile(r'advice ' + _BOT + r' answer kind=([a-z_]{1,32}) choice=(\S{1,64}) applied=(yes|no) '
                             r'why=([a-z_0-9]{1,32})')
+_ADVICE_RELEASE = re.compile(r'advice ' + _BOT + r' release kind=(party_tactic) choice=(\S{1,64}) why=(ttl|replaced)')
 _ADVICE_DROP = re.compile(r'advice (?:-|' + _BOT + r') drop why=(unknown_id|bad_choice|expired|cap)')
 
 
@@ -520,6 +529,11 @@ def _advice(body):
         return _part([_bot(match.group(1))], 'advice', count='advice', reason=match.group(5),
                      result='applied' if applied else 'not_applied',
                      detail=f'kind={match.group(2)} choice={match.group(3)} applied={match.group(4)}')
+    match = _ADVICE_RELEASE.fullmatch(body)
+    if match:
+        # P2b (banshee_bots_v2_advice.lua:276): a party_tactic choice raised by this bot ends.
+        return _part([_bot(match.group(1))], 'adviceRelease', reason=match.group(4),
+                     detail=f'kind={match.group(2)} choice={match.group(3)}')
     match = _ADVICE_DROP.fullmatch(body)
     if match:
         if match.group(1) is None:

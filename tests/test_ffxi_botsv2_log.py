@@ -643,6 +643,33 @@ class FFXIBotsV2LogTests(unittest.TestCase):
                           ('adviceDrop', 'expired', None)])
         self.assertEqual(chronological[0]['apl'], 'sub_dia')
 
+    def test_p2b_order_refusals_and_tactic_release(self):
+        # Templates from ffxi handoff 2026-11-09-botsv2-p2b-frozen (banshee_bots_v2.lua:1683, advice.lua:276).
+        raw = b''.join([
+            self.line('order nalu verb=attack arg=bee by=<owner> channel=party refused=not_party_mob',
+                      stamp='11/09/26 14:00:00:000'),
+            self.line('order nalu verb=attack arg=Yagudo_Persecutor by=<owner> channel=party', stamp='11/09/26 14:00:01:000'),
+            self.line('order nalu verb=query arg=stats by=<owner> channel=tell refused=rate', stamp='11/09/26 14:00:02:000'),
+            self.line('order nalu verb=formation arg=tight by=<owner> channel=party', stamp='11/09/26 14:00:03:000'),
+            self.line('profile nalu to=aoe from=default why=order_ended', stamp='11/09/26 14:00:04:000'),
+            self.line('advice nalu answer kind=party_tactic choice=burst applied=no why=party_changed',
+                      stamp='11/09/26 14:00:05:000'),
+            self.line('advice nalu release kind=party_tactic choice=burst why=ttl', stamp='11/09/26 14:00:06:000'),
+            self.line('advice nalu release kind=goal choice=x why=ttl', stamp='11/09/26 14:00:07:000'),  # only party_tactic
+            self.line('order nalu verb=aoe arg=on by=<owner> channel=party refused=No', stamp='11/09/26 14:00:08:000'),
+        ])
+        bots, coverage = botsv2.read(self.write('p2b.log', raw))
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['unrecognized']), (7, 2, 0))
+        nalu = bots[0]
+        self.assertEqual((nalu['counts']['party'], nalu['counts']['advice']), (4, 1))
+        orders = [(e['reason'], e['result'], e['detail']) for e in reversed(nalu['events']) if e['type'] == 'party']
+        self.assertEqual(orders, [('attack', 'refused', 'arg=bee by=<owner> channel=party refused=not_party_mob'),
+                                  ('attack', None, 'arg=Yagudo_Persecutor by=<owner> channel=party'),
+                                  ('query', 'refused', 'arg=stats by=<owner> channel=tell refused=rate'),
+                                  ('formation', None, 'arg=tight by=<owner> channel=party')])
+        release = [e for e in nalu['events'] if e['type'] == 'adviceRelease']
+        self.assertEqual([(e['reason'], e['detail']) for e in release], [('ttl', 'kind=party_tactic choice=burst')])
+
     def test_c28_near_misses_are_omitted_not_guessed(self):
         cases = ['release nalu zone=119 after 30s',        # no why=
                  'release nalu why=x zone=119',             # no after
