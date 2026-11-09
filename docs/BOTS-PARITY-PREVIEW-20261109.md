@@ -55,3 +55,20 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-10bae0
 **Checks:** 570 Python tests OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview 7d576aae (source fe1c968)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-7d576aae**. Readback at **2026-11-09T09:55:38Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 379689 | `7d576aaee6e00be4d57bda61092a6cc7e13c128e7071e13ed95250d3daae6e49` | 600 |
+| READ-ME-FIRST.txt | 998 | `5ab70b555d7094863af8678ef3b63215fb603e52f02765dede0b8b427cf8ed4a` | 600 |
+
+**Change:**
+- The importer reads the c2.9 order and level sync lines (from the frozen code; not live yet).
+- FFXI LSB p-09 is now Built (inert at current levels). p-08 has new evidence.
+
+**Checks:** full Python suite OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
+
+**Rollback:** remove only that folder.
