@@ -245,3 +245,20 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-561cf2
 **Checks:** full Python suite OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview 3a3bead0 (source f8766d7)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-3a3bead0**. Readback at **2026-11-09T13:52:38Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 401381 | `3a3bead0c3853559968e312feae76b5a4440bfbdc8f34be8510bdaa9b807513b` | 600 |
+| READ-ME-FIRST.txt | 777 | `edcba1ded2456df6a9bb91b917dd94919489a0c8767a71eec99590efc45e1b31` | 600 |
+
+**Change:**
+- The importer reads the P2b formats (the order refusal suffix and the party_tactic release line).
+- The FFXI LSB p-08 and p-12 evidence is updated; their statuses are unchanged.
+
+**Checks:** full Python suite OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
+
+**Rollback:** remove only that folder.
