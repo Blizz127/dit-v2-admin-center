@@ -345,3 +345,22 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-1fd4ed
 **Checks:** full Python suite 584 OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview 5f0938d1 (source 57dbd97)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-5f0938d1**. Readback at **2026-11-09T19:38:47Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 429321 | `5f0938d1cbc61d2b22a4c31788a5f69d983772598b7741177d0c1fae25ab9a6e` | 600 |
+| READ-ME-FIRST.txt | 709 | `db451af2a8e2d971c790c438540155c079630d4f38ab1370f6338c89b27b72f2` | 600 |
+
+**Change:**
+- FFXI Forever p-07 moves from Designed to Built.
+  - The owner party of 5 was created in xiforever at about 19:07Z: ffxi handoff `2026-11-09-forever-cohort0-r2`, `out/bots-cohort0.tsv` sha `0ddd2c31`, readback 15/15 tables ok.
+  - The bots are not yet in game.
+- The p-01 evidence notes the same SQL apply; the map population install is still pending.
+
+**Checks:** full Python suite 584 OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
+
+**Rollback:** remove only that folder.
