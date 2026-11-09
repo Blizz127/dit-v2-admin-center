@@ -38,3 +38,20 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-124396
 **Checks:** 568 Python tests OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview 10bae052 (source 1a2ba9b)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-10bae052**. Readback at **2026-11-09T09:35:56Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 379643 | `10bae0527d1e7696c74975b653f809460a21bc1f1fad57912642acf496269a18` | 600 |
+| READ-ME-FIRST.txt | 847 | `4e1bc433bbb0b90f22dd8ccf287e81ce78cf1073f7a5e3317d6ff31679879b73` | 600 |
+
+**Change:**
+- The FFXI activity section uses ffxi's export 2 (the live c2.8 run, sha `be2eea13`). The importer now reads the `rest` lines, so every bot line is recognized.
+- FFXI LSB p-05 is now Partly live. p-03 and p-04 have new evidence.
+
+**Checks:** 570 Python tests OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
+
+**Rollback:** remove only that folder.
