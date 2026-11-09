@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dit.decision_advice.v1.response",
+  "title": "DIT decision advice response, hub -> body (BOT_BRAIN_STANDARD 6.5)",
+  "description": "A choice outside the request's options, a malformed answer, a non-2xx or a timeout = no advice: the body applies default_option. The body re-validates before acting and drops advice past ttl_s or after the state it depended on changed.",
+  "type": "object",
+  "required": ["request_id", "choice"],
+  "additionalProperties": false,
+  "properties": {
+    "request_id": {"type": "string", "maxLength": 128},
+    "choice": {"type": ["string", "null"], "maxLength": 64},
+    "reason": {"type": ["string", "null"], "maxLength": 160},
+    "ttl_s": {"type": "integer", "minimum": 0, "maximum": 3600},
+    "route": {"enum": ["cheap", "planning", "rules", null]}
+  }
+}

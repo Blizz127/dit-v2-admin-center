@@ -4,8 +4,9 @@ from local_evidence import read_json
 
 FIXTURE = Path(__file__).resolve().parent / 'data/fixtures/baseline-conformance.json'
 LIMIT = 256 * 1024
-STATUSES = frozenset({'Reference', 'Sim-measured', 'Unit-tested', 'Designed', 'Not started', 'Unknown'})
-GROUPS = frozenset({'forever', 'dit'})
+STATUSES = frozenset({'Reference', 'Sim-measured', 'Unit-tested', 'Designed', 'Not started', 'Not applicable', 'Unknown',
+                      'Verified live', 'Partly live', 'Built'})
+GROUPS = frozenset({'parity', 'forever', 'dit'})
 MAX_TEXT = 300
 MISSING = {'status': 'Unknown', 'evidence': 'No documented evidence'}
 

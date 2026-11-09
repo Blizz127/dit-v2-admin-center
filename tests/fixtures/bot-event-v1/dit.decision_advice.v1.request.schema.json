@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dit.decision_advice.v1.request",
+  "title": "DIT decision advice request, body -> hub (BOT_BRAIN_STANDARD 6.5)",
+  "type": "object",
+  "required": ["schema", "game", "request_id", "kind", "snapshot_seq", "snapshot", "options", "default_option", "deadline_ms"],
+  "anyOf": [{"required": ["actor_id"]}, {"required": ["party_id"]}],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {"const": "dit.decision_advice.v1"},
+    "game": {"type": "string", "pattern": "^[a-z0-9_]{2,32}$"},
+    "actor_id": {"type": "string", "maxLength": 64},
+    "party_id": {"type": "string", "maxLength": 64},
+    "request_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "kind": {"enum": ["goal", "party_tactic", "rotation_profile"]},
+    "snapshot_seq": {"type": "integer", "minimum": 0},
+    "snapshot": {
+      "type": "object",
+      "description": "bounded facts: level, job/sub, hp/mp/tp, area, party (roles), hostiles (<=16), current goal, recent_decisions (<=8); game extras (FFXI: con, skillchain window). No chat text, no account data.",
+      "properties": {
+        "hostiles": {"type": "array", "maxItems": 16},
+        "recent_decisions": {"type": "array", "maxItems": 8}
+      },
+      "not": {"anyOf": [{"required": ["text"]}, {"required": ["chat_text"]}]}
+    },
+    "options": {
+      "type": "array", "minItems": 1, "maxItems": 16,
+      "items": {
+        "type": "object", "required": ["id", "label"], "additionalProperties": false,
+        "properties": {"id": {"type": "string", "maxLength": 64}, "label": {"type": "string", "maxLength": 120}, "params": {"type": "object"}}
+      }
+    },
+    "default_option": {"type": "string", "maxLength": 64, "description": "must be one of options[].id"},
+    "deadline_ms": {"type": "integer", "minimum": 0, "maximum": 60000}
+  }
+}

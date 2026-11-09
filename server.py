@@ -35,6 +35,8 @@ from hub_snapshot import ENV as HUB_SNAPSHOT_ENV, SnapshotReader
 from bakeoff_run import from_env as bakeoff_run
 from baseline_conformance import read as baseline_conformance
 from forever_botlog import from_env as forever_botlog
+from ffxi_botsv2_log import read as read_ffxi_botsv2
+from bot_event_v1 import read as read_bot_event
 from wake_verification import read as read_wake_verification
 from operation_sources import read as read_operation_sources
 from local_evidence import read_json
@@ -48,6 +50,38 @@ BRIDGE = BridgeObserver()
 HUB_VIEWS = HubViewsCache(lambda url, token_file: read_views(HubReader(url, token_file)))
 HUB_HEALTH = HubViewsCache(lambda url, token_file: project_hub_health(*HubReader(url, token_file).health()))
 HUB_INTERACTION = HubViewsCache(lambda url, token_file: project_interaction(*HubReader(url, token_file).interaction()))
+
+
+BOT_ACTIVITY_WOW_NOTE = ('Exported WoW Forever bot log (70450 predecessor Bots format); '
+                         'not live, not DIT bots, not PlayerbotV2.')
+
+
+def bot_activity_source(source_id, label, note, read):
+    """One offline bot-activity source as (bots, coverage). A failing reader is isolated to its own source."""
+    try:
+        bots, coverage = read()
+        if not isinstance(bots, list) or not isinstance(coverage, dict):
+            raise TypeError('unexpected reader result')
+    except Exception:
+        bots, coverage = [], {'status': 'Unavailable', 'records': 0, 'omitted': None,
+                              'reason': 'Import failed; nothing was imported. Details are not shown.'}
+    return {'id': source_id, 'label': label, 'note': note, 'bots': bots, 'coverage': coverage}
+
+
+def bot_activity():
+    """Off unless each source's own DIT_* switch names an offline export; never a live read."""
+    sources = [
+        bot_activity_source('wow-70450-export', 'WoW Forever (70450 predecessor export)', BOT_ACTIVITY_WOW_NOTE,
+                            forever_botlog),
+        bot_activity_source('ffxi-lsb', 'FFXI (LSB) Bots V2 log export',
+                            'Exported [BOTS-V2] map-log lines; offline import (DIT_FFXI_BOTSV2_LOG); owner name masked.',
+                            read_ffxi_botsv2),
+        bot_activity_source('dit-bot-event-v1', 'DIT bot_event v1 (SWTOR, FFXI Forever, other DIT games)',
+                            'Offline import of dit.bot_event.v1 JSONL (DIT_BOT_EVENT_DIR); includes AI advice rows.',
+                            read_bot_event),
+    ]
+    wow = sources[0]
+    return {'bots': wow['bots'], 'coverage': wow['coverage'], 'sources': sources}
 
 
 def hub_source():
@@ -269,7 +303,8 @@ def overview(source='mock'):
         "evaluatorSnapshot": evaluator_coverage,
         "bakeoffRun": bakeoff_coverage,
         # Off unless DIT_FOREVER_BOTLOG_DIR names an exported WoW Forever bot log; never a live read.
-        "botActivity": dict(zip(("bots", "coverage"), forever_botlog())),
+        # Each source is read in isolation; the top-level bots/coverage stay the WoW source for compatibility.
+        "botActivity": bot_activity(),
         # Committed tracker of the Forever-style baseline per game; None renders Unknown.
         "baselineConformance": baseline_conformance(),
         "audit": [

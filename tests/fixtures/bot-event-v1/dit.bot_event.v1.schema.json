@@ -1,0 +1,300 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dit.bot_event.v1",
+  "title": "DIT bot event row (BOT_BRAIN_STANDARD 6.3)",
+  "description": "One JSON object per line; files are per game and UTC day (<game>-YYYY-MM-DD.jsonl). No player chat text and no account data anywhere; a human appears only as is_human plus a public character name or charid.",
+  "type": "object",
+  "required": [
+    "schema",
+    "game",
+    "actor_id",
+    "ts",
+    "event_type",
+    "severity"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "dit.bot_event.v1"
+    },
+    "game": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]{2,32}$",
+      "description": "module id: ffxi, ffxi_forever, swtor, wow_forever, war, ..."
+    },
+    "actor_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "bot id, stable within the game"
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC, millisecond precision, Z suffix"
+    },
+    "session_seq": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "the bot's login session (generation)"
+    },
+    "event_type": {
+      "type": "string",
+      "pattern": "^[a-z_]{2,32}$",
+      "description": "decision, refused, state_change, death, quest, stuck, path_fail, xp, level_up, combat, party_invite, callout, advice, error, ..."
+    },
+    "severity": {
+      "type": "integer",
+      "enum": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "description": "0 trace, 1 info, 2 warn, 3 error"
+    },
+    "reason": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 64,
+      "description": "short machine code, e.g. NO_PATH, DIED, AUTO_PULL, ORDER_PULL"
+    },
+    "summary": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 255
+    },
+    "level": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "area": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 64,
+      "description": "game area / zone as a string"
+    },
+    "pos": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "required": [
+        "x",
+        "y",
+        "z"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "z": {
+          "type": "number"
+        }
+      }
+    },
+    "quest_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 64
+    },
+    "target": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 64
+    },
+    "correlation_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 128,
+      "description": "joins to the evidence ledger; for advice rows the decision_advice request_id"
+    },
+    "details": {
+      "type": "object",
+      "description": "event-specific. decision: intent/action, fields, alternatives[]; death: killer, recent_decisions (<=8); advice: see allOf. chat (6.6): channel, origin (ai), route, voiced, drop_reason; never the text.",
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "text"
+            ]
+          },
+          {
+            "required": [
+              "chat_text"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "advice"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "correlation_id": {
+            "type": "string"
+          },
+          "details": {
+            "required": [
+              "kind",
+              "options",
+              "default_option",
+              "choice",
+              "outcome"
+            ],
+            "properties": {
+              "kind": {
+                "enum": [
+                  "goal",
+                  "party_tactic",
+                  "rotation_profile"
+                ]
+              },
+              "options": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 16,
+                "description": "count of options offered"
+              },
+              "default_option": {
+                "type": "string"
+              },
+              "choice": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 160
+              },
+              "route": {
+                "enum": [
+                  "cheap",
+                  "planning",
+                  "rules",
+                  null
+                ]
+              },
+              "outcome": {
+                "enum": [
+                  "applied",
+                  "NO_ADVICE",
+                  "TIMEOUT",
+                  "INVALID_OPTION",
+                  "STALE",
+                  "REVALIDATE_FAIL"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "death"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "details": {
+            "properties": {
+              "recent_decisions": {
+                "type": "array",
+                "maxItems": 8
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "chat"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "correlation_id": {
+            "type": "string"
+          },
+          "details": {
+            "required": [
+              "channel",
+              "origin",
+              "voiced"
+            ],
+            "properties": {
+              "channel": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "origin": {
+                "const": "ai"
+              },
+              "route": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 64
+              },
+              "voiced": {
+                "type": "boolean"
+              },
+              "drop_reason": {
+                "enum": [
+                  "NOT_AI",
+                  "NO_REPLY_ID",
+                  "STALE",
+                  "FILTERED",
+                  "NO_LISTENER",
+                  null
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

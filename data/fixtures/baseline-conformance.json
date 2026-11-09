@@ -2,8 +2,68 @@
   "kind": "baseline-conformance",
   "version": 1,
   "asOf": "2026-11-09",
-  "source": "docs/FOREVER-BASELINE-PROPOSAL.md (Forever pinned at trinitycore-forever-production-70450 fb754788894); live reference corrected to PlayerbotV2 70790 on 2026-11-08; reference re-pinned to Karrz v0.1.33 on 2026-11-09",
+  "source": "docs/goals/BOTS-PARITY-GOAL-20261109.md (parity p-01..p-12; Karrz v0.1.33 reference); docs/FOREVER-BASELINE-PROPOSAL.md (forever and dit rows; 70450 pinned fb754788894)",
   "rows": [
+    {
+      "id": "p-01",
+      "group": "parity",
+      "behavior": "Bound to the owner, party"
+    },
+    {
+      "id": "p-02",
+      "group": "parity",
+      "behavior": "Follow everywhere (zone lines, transports, teleports)"
+    },
+    {
+      "id": "p-03",
+      "group": "parity",
+      "behavior": "Every class/job with its own rotation"
+    },
+    {
+      "id": "p-04",
+      "group": "parity",
+      "behavior": "Party roles and helpers (tank, heals, cleanse/raise, buffs, debuffs, CC, pets)"
+    },
+    {
+      "id": "p-05",
+      "group": "parity",
+      "behavior": "Rest, death and recovery"
+    },
+    {
+      "id": "p-06",
+      "group": "parity",
+      "behavior": "Mounts"
+    },
+    {
+      "id": "p-07",
+      "group": "parity",
+      "behavior": "Getting bots by class and role, filling the party"
+    },
+    {
+      "id": "p-08",
+      "group": "parity",
+      "behavior": "Owner orders"
+    },
+    {
+      "id": "p-09",
+      "group": "parity",
+      "behavior": "Level match with the owner"
+    },
+    {
+      "id": "p-10",
+      "group": "parity",
+      "behavior": "Quests and progression"
+    },
+    {
+      "id": "p-11",
+      "group": "parity",
+      "behavior": "AI chat through DIT"
+    },
+    {
+      "id": "p-12",
+      "group": "parity",
+      "behavior": "AI decisions (dit.decision_advice.v1)"
+    },
     {
       "id": "forever-01",
       "group": "forever",
@@ -122,12 +182,236 @@
   ],
   "games": [
     {
-      "game": "WoW Forever PlayerbotV2 (70790, live reference)",
-      "owner": "WoW Forever server lead",
+      "game": "WoW Forever Bots (Karrz v0.1.33, reference)",
+      "owner": "trinitycore-forever",
       "cells": {
         "forever-01": {
           "status": "Reference",
-          "evidence": "Karrz WoW Forever Bots v0.1.33 PlayerbotV2 (source zip sha256 8ed3810b, owner 2026-11-09: baseline for all bots); live 70790 tree c4ab28a47c7 = 0.1.29.1 + 9 DIT commits (0.1.33 port in progress). Other rows not yet assessed."
+          "evidence": "Karrz WoW Forever Bots v0.1.33 PlayerbotV2 (source zip sha256 8ed3810b, owner 2026-11-09: baseline for all bots); live 70790 tree c4ab28a47c7 = 0.1.29.1 + 9 DIT commits; port to 0.1.33 built, not deployed (8609da55023). Forever and dit rows not yet assessed."
+        },
+        "p-01": {
+          "status": "Reference",
+          "evidence": "Karrz: .bot add companions bound to owner"
+        },
+        "p-02": {
+          "status": "Reference",
+          "evidence": "Karrz: follow + goto cross-map by flight, portal and ship"
+        },
+        "p-03": {
+          "status": "Reference",
+          "evidence": "Karrz: Combat/Apl, one APL per class/spec, 38 files"
+        },
+        "p-04": {
+          "status": "Reference",
+          "evidence": "Karrz: ApHealHelpers/ApDispelHelpers/ApInterrupt/ApCrowdControl/ApTankThreat"
+        },
+        "p-05": {
+          "status": "Reference",
+          "evidence": "Karrz: healers drink; release and wipe recovery"
+        },
+        "p-06": {
+          "status": "Reference",
+          "evidence": "Karrz: mount/mount_all"
+        },
+        "p-07": {
+          "status": "Reference",
+          "evidence": "Karrz: .bot add <class> [role], .bot lfg fills group, roster call/save"
+        },
+        "p-08": {
+          "status": "Reference",
+          "evidence": "Karrz: BOT_COMMANDS.md section 4 stances/orders"
+        },
+        "p-09": {
+          "status": "Reference",
+          "evidence": "Karrz: .bot add levels the bot to you"
+        },
+        "p-10": {
+          "status": "Reference",
+          "evidence": "Karrz: quests/accept/turn in/share"
+        },
+        "p-11": {
+          "status": "Reference",
+          "evidence": "Karrz: Playerbot.ChatModel (local Ollama) whisper/party/say"
+        },
+        "p-12": {
+          "status": "Not started",
+          "evidence": "Not in upstream; DIT improvement (hub standard 6.5, ce9cf906)"
+        }
+      }
+    },
+    {
+      "game": "FFXI (LSB)",
+      "owner": "ffxi",
+      "cells": {
+        "p-01": {
+          "status": "Verified live",
+          "evidence": "[BOTS-V2] fumika owned by <owner> (joined their party) 11-09 03:58:17Z (tests/fixtures/ffxi-botsv2/bots-v2-20261109.log line 203)."
+        },
+        "p-02": {
+          "status": "Built",
+          "evidence": "same-zone follow verified in the export (party_follow paths 11-09 03:59:40-04:00:22Z); no zone-crossing follow line exists; refused and waiting at 04:05-04:07Z (export lines 297, 317, 322); Home Point warps/airship/boat/Warp not started."
+        },
+        "p-03": {
+          "status": "Partly live",
+          "evidence": "3 archetype APLs live (healer, nuker, THF); 22-job kits planned J0-J4."
+        },
+        "p-04": {
+          "status": "Partly live",
+          "evidence": "self-defense live (defend fumika hp=100pct attacker=Goblin_Ambusher lv17 why=fight_back 11-09 03:59:04Z, export line 232); party assist gap found live, fix c2.8 in test."
+        },
+        "p-05": {
+          "status": "Built",
+          "evidence": "c2.8 death/raise/release/return/weakness in test; 11-09 04:00Z Shadowtail death showed the gap; MP rest c2.9."
+        },
+        "p-06": {
+          "status": "Designed",
+          "evidence": "c2.10 chocobo for every bot."
+        },
+        "p-07": {
+          "status": "Designed",
+          "evidence": "J2 add by job/role, fill party, roster."
+        },
+        "p-08": {
+          "status": "Built",
+          "evidence": "/party verbs follow, stay, resume, come, assist, attack, pull, rest, dismiss are wired; the in-game check is pending (ffxi handoff 2026-11-09-botsv2-parity-notes/PARITY-NOTES.md item 6) and the export has no owner-order line. Stances/focus/formation c2.9."
+        },
+        "p-09": {
+          "status": "Designed",
+          "evidence": "owner chose temporary raise to inviter level, never saved (after J1, DIT review)."
+        },
+        "p-10": {
+          "status": "Designed",
+          "evidence": "quests, missions, FoV, sub-job/job unlocks J4."
+        },
+        "p-11": {
+          "status": "Built",
+          "evidence": "Callouts and say_open are DIT outbox records (ffxi handoff 2026-11-09-botsv2-parity-notes/PARITY-NOTES.md item 7); no say_open or callout line is in the export, so not shown live here. Two-way tell/party replies pending."
+        },
+        "p-12": {
+          "status": "Designed",
+          "evidence": "J0 advice seam, flag BANSHEE_BOTS_V2_AI_ADVICE=0."
+        }
+      }
+    },
+    {
+      "game": "FFXI Forever (Rust)",
+      "owner": "ffxi-platform",
+      "cells": {
+        "forever-01": {
+          "status": "Designed",
+          "evidence": "FFXI_PLAYERBOTS_V0 (hub docs/architecture), designed 2026-09-04; hub lead reports phase 1 (socketless PC) landed in b2a7953396. Not verified here; rows fold into FFXI_FOREVER_POPULATION_PLAN."
+        },
+        "p-01": {
+          "status": "Built",
+          "evidence": "hub owner-party driver 3d7d23cf (branch feat/forever-owner-party-20261109; uid-10001 container), staged on Banshee, not started; 5 bots SQL ffxi-platform 5e46007 (Lysnor WAR, Ianfalmond WHM, Pota BLM, Morggor MNK, Neha THF, lv6); owner approved, install pending."
+        },
+        "p-02": {
+          "status": "Built",
+          "evidence": "cross-zone follow merged ffxi-platform main 733dfb5 (in-crate tests 14/0; ships in v3.73); driver follows the owner in every mode (3d7d23cf). Not yet run on a live map."
+        },
+        "p-03": {
+          "status": "Built",
+          "evidence": "population bridge per-job gambit ladder (cures, WS, JAs, buffs, songs, nukes), not live; 11 era-job APLs in P2."
+        },
+        "p-04": {
+          "status": "Built",
+          "evidence": "bridge assist mode and job gambits, not live."
+        },
+        "p-05": {
+          "status": "Built",
+          "evidence": "rest and return to Home Point (West Sarutabaruta gate) built, not live; raise/return-to-owner designed."
+        },
+        "p-06": {
+          "status": "Designed",
+          "evidence": "rented chocobo (era-correct)."
+        },
+        "p-07": {
+          "status": "Designed",
+          "evidence": "owner party provisioned by roster; add-by-job later."
+        },
+        "p-08": {
+          "status": "Built",
+          "evidence": "driver party words pull/follow/assist/stop/rest (3284f0ef, current 3d7d23cf), not live."
+        },
+        "p-09": {
+          "status": "Designed",
+          "evidence": "temporary raise capped at 60."
+        },
+        "p-10": {
+          "status": "Not started",
+          "evidence": "no talk/trade intents yet."
+        },
+        "p-11": {
+          "status": "Designed",
+          "evidence": "P3; bots silent until then."
+        },
+        "p-12": {
+          "status": "Designed",
+          "evidence": "advice per hub standard 6.5."
+        }
+      }
+    },
+    {
+      "game": "SWTOR",
+      "owner": "swtor-preservation",
+      "cells": {
+        "p-01": {
+          "status": "Designed",
+          "evidence": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md target 1 (owner-bound companions), lane bot-behavior; invite-only squad rule."
+        },
+        "p-02": {
+          "status": "Designed",
+          "evidence": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md target 1 (follow and travel across every area transfer), lane bot-behavior."
+        },
+        "p-03": {
+          "status": "Designed",
+          "evidence": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md target 4 (all 8 classes, 16 ACs, 48 disciplines from client data), lane bot-rotations."
+        },
+        "p-04": {
+          "status": "Designed",
+          "evidence": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md targets 2 and 4 (tank, heal, dps roles; cleanse, interrupt, CC helpers), lanes bot-rotations and bot-behavior."
+        },
+        "p-05": {
+          "status": "Designed",
+          "evidence": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md target 2 (rest between pulls, regroup after death), lane bot-behavior."
+        },
+        "p-06": {
+          "status": "Designed",
+          "evidence": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md target 3 (order verb mount), lane bot-behavior; class mount or speeder per docs/goals/BOTS-PARITY-GOAL-20261109.md area 6."
+        },
+        "p-07": {
+          "status": "Designed",
+          "evidence": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md lane bot-behavior (squad fill) and existing private_squad*.py roster and kits; docs/goals/BOTS-PARITY-GOAL-20261109.md area 7."
+        },
+        "p-08": {
+          "status": "Designed",
+          "evidence": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md target 3 (order verbs: follow, stay, attack, assist, stance, rest, regroup), lane bot-behavior."
+        },
+        "p-09": {
+          "status": "Not applicable",
+          "evidence": "docs/goals/BOTS-PARITY-GOAL-20261109.md area 9: not needed, SWTOR scales levels."
+        },
+        "p-10": {
+          "status": "Designed",
+          "evidence": "docs/goals/BOTS-PARITY-GOAL-20261109.md area 10 (class story and planet quests); /home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md does not itemize quests."
+        },
+        "p-11": {
+          "status": "Designed",
+          "evidence": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md target 5 and lane bot-chat: AI via ChatGateway/DIT, AI-or-silence gate."
+        },
+        "p-12": {
+          "status": "Designed",
+          "evidence": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/lanes/BOTS-PLAN-20261109.md lane bot-chat: AI via ChatGateway; decision advice per docs/goals/BOTS-PARITY-GOAL-20261109.md area 12; bot events via dit.bot_event.v1."
+        }
+      }
+    },
+    {
+      "game": "WotLK Forever",
+      "owner": "WotLK lead",
+      "cells": {
+        "forever-01": {
+          "status": "Designed",
+          "evidence": "wotlk-forever docs/WRATH_COMPANION_BOTS_20261031.md: plan, NOT RUN"
         }
       }
     },
@@ -204,31 +488,6 @@
           "evidence": "docs/FOREVER-BASELINE-PROPOSAL.md section 1 row 14 and section 2: Forever conversation is templates only, no model"
         }
       }
-    },
-    {
-      "game": "FFXI",
-      "owner": "ffxi-platform (per DIT hub lead, 2026-11-08)",
-      "cells": {
-        "forever-01": {
-          "status": "Designed",
-          "evidence": "FFXI_PLAYERBOTS_V0 (hub docs/architecture), designed 2026-09-04; hub lead reports phase 1 (socketless PC) landed in b2a7953396. Not verified here; rows fold into FFXI_FOREVER_POPULATION_PLAN."
-        }
-      }
-    },
-    {
-      "game": "WotLK Forever",
-      "owner": "WotLK lead",
-      "cells": {
-        "forever-01": {
-          "status": "Designed",
-          "evidence": "wotlk-forever docs/WRATH_COMPANION_BOTS_20261031.md: plan, NOT RUN"
-        }
-      }
-    },
-    {
-      "game": "SWTOR",
-      "owner": "SWTOR lead",
-      "cells": {}
     }
   ]
 }

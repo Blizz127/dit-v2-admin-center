@@ -174,6 +174,8 @@ function resetPanelSession() {
   document.querySelector('#data-coverage').replaceChildren();
   document.querySelector('#bot-identity').value = '';
   document.querySelector('#bot-activity-engine').value = '';
+  document.querySelector('#bot-activity-sources').replaceChildren(); botActivitySearch.clear();
+  document.querySelector('#bot-activity-label').textContent = ''; document.querySelector('#bot-activity-note').textContent = '';
   document.querySelector('#bot-activity-search').value = '';
   document.querySelector('#bot-activity-coverage').textContent = 'Coverage unknown.';
   document.querySelector('#bot-activity-count').textContent = '';
@@ -1413,14 +1415,37 @@ function renderModelCalls() {
     `${routingText(c.source, 'Source unknown')} · Observed: ${routingText(c.observedAt)}`));
 }
 const botActivityEngines = ['noncombat', 'combat', 'dead', 'Unknown'];
-const botActivityNote = 'Exported WoW Forever bot log (70450 predecessor Bots format); not live, not DIT bots, not PlayerbotV2.';
+const botActivityWowId = 'wow-70450-export';
+const botActivitySourceIds = [botActivityWowId, 'ffxi-lsb', 'dit-bot-event-v1'];
+// Per-source fallbacks for a snapshot that omits a label or note. The 70450 caveat belongs to the WoW source only.
+const botActivityDefaults = {
+  [botActivityWowId]: {label: 'WoW Forever (70450 predecessor export)', env: 'DIT_FOREVER_BOTLOG_DIR',
+    note: 'Exported WoW Forever bot log (70450 predecessor Bots format); not live, not DIT bots, not PlayerbotV2.'},
+  'ffxi-lsb': {label: 'FFXI (LSB) Bots V2 log export', env: 'DIT_FFXI_BOTSV2_LOG',
+    note: 'Exported [BOTS-V2] map-log lines; offline import (DIT_FFXI_BOTSV2_LOG); owner name masked.'},
+  'dit-bot-event-v1': {label: 'DIT bot_event v1 (SWTOR, FFXI Forever, other DIT games)', env: 'DIT_BOT_EVENT_DIR',
+    note: 'Offline import of dit.bot_event.v1 JSONL (DIT_BOT_EVENT_DIR); includes AI advice rows.'},
+};
+const botActivityStatuses = ['Not configured', 'Off', 'Loaded', 'Unavailable'];
 const botActivityRowLimit = 200, botActivityListLimit = 50, botActivityAlternativeLimit = 20;
+const botActivitySearch = new Map(); // Local text filter per non-WoW source; kept across re-renders of that section.
 function plainObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value);
 }
 function shown(value) {
   if (typeof value === 'string' && value.trim()) return value.slice(0, 500);
   return typeof value === 'number' && Number.isFinite(value) ? String(value) : 'Unknown';
+}
+function botActivityPart(value, label = '') {
+  if (typeof value === 'string' && value.trim()) return label + value.trim();
+  return typeof value === 'number' && Number.isFinite(value) ? label + value : '';
+}
+function botActivityJoin(parts) {
+  return parts.filter(Boolean).join(' · ').slice(0, 1000) || 'Unknown';
+}
+function botActivityCounts(counts) {
+  const entries = plainObject(counts) ? Object.entries(counts).filter(([, n]) => metricNumber(n) && n > 0) : [];
+  return entries.length ? entries.map(([key, n]) => `${String(key).slice(0, 40)} ${n}`).join(', ') : 'Unknown';
 }
 function botActivityNested(list, limit, label, describe) {
   if (!Array.isArray(list) || !list.length) {
@@ -1467,36 +1492,141 @@ function botActivityRow(panel, bot) {
     child: botActivityNested(d.recentDecisions, botActivityAlternativeLimit, 'Recent decisions before death', r => ({text: `${shown(r.msAgo)} ms before death · ${shown(r.action)} · ${shown(r.reason)}`}))}));
   botActivityList(row, 'Quests', bot.quests, q => ({text: `${shown(q.ts)} · ${shown(q.reason)} · Quest ${shown(q.questId)} · ${shown(q.summary)}`}));
 }
-function renderBotActivity() {
-  const panel = document.getElementById('bot-activity'), coverage = document.getElementById('bot-activity-coverage'), count = document.getElementById('bot-activity-count');
-  panel.replaceChildren();
-  const data = currentSnapshot?.botActivity;
-  const cov = plainObject(data) && plainObject(data.coverage) && Array.isArray(data.bots) ? data.coverage : null;
-  if (!cov) {
-    coverage.textContent = `Coverage: Unknown · No usable botActivity in this snapshot. ${botActivityNote}`;
-    count.textContent = '';
-    item(panel, 'Forever-style bot activity coverage', 'Unknown', 'Missing or malformed data does not mean the bots are idle or that the log is empty.');
+function botActivityFfxiRow(panel, bot) {
+  item(panel, `${routingText(bot.name, 'Unnamed')} (${shown(bot.actorId)})`,
+    `Doing: ${shown(bot.doing)} · Zone ID: ${shown(bot.zoneId)} · Character ID: ${shown(bot.charId)}`,
+    `Last event: ${shown(bot.lastEventAt)} · Counts: ${botActivityCounts(bot.counts)}`);
+  const row = panel.lastElementChild;
+  botActivityList(row, 'Events', bot.events, e => ({text: botActivityJoin([
+    botActivityPart(e.ts), botActivityPart(e.type), botActivityPart(e.rule), botActivityPart(e.op), botActivityPart(e.result),
+    botActivityPart(e.reason), botActivityPart(e.apl, 'apl '), metricNumber(e.repeated) && e.repeated > 1 ? `repeated ${e.repeated}` : '',
+    botActivityPart(e.detail)])}));
+  botActivityList(row, 'Refusals', bot.refusals, e => ({text: botActivityJoin([
+    botActivityPart(e.ts), botActivityPart(e.rule), botActivityPart(e.op), botActivityPart(e.reason, 'reason '), botActivityPart(e.detail)])}));
+  botActivityList(row, 'Deaths', bot.deaths, e => ({text: botActivityJoin([
+    botActivityPart(e.ts), botActivityPart(e.type), botActivityPart(e.reason, 'reason '), botActivityPart(e.detail)])}));
+}
+function botActivityDitRow(panel, bot) {
+  item(panel, `${shown(bot.actorId)} · ${shown(bot.game)}`,
+    `Doing: ${shown(bot.doing)} · Level: ${shown(bot.level)} · Area: ${shown(bot.area)}`,
+    `Last event: ${shown(bot.lastEventAt)} · Counts by type: ${botActivityCounts(bot.counts)}`);
+  const row = panel.lastElementChild;
+  botActivityList(row, 'Events', bot.events, e => ({text: botActivityJoin([
+    botActivityPart(e.ts), botActivityPart(e.type), botActivityPart(e.severity, 'severity '), botActivityPart(e.reason),
+    botActivityPart(e.action, 'action '), botActivityPart(e.result, 'result '), botActivityPart(e.summary)])}));
+  botActivityList(row, 'Deaths', bot.deaths, d => ({
+    text: botActivityJoin([botActivityPart(d.ts), `Killer: ${routingText(d.killer, 'Unknown')}`]),
+    child: botActivityNested(d.recentDecisions, botActivityAlternativeLimit, 'Recent decisions before death', r => ({text: botActivityJoin([
+      botActivityPart(r.action, 'action '), botActivityPart(r.reason, 'reason ')])}))}));
+  botActivityList(row, 'Advice', bot.advice, a => ({text: botActivityJoin([
+    botActivityPart(a.ts), botActivityPart(a.kind), botActivityPart(a.chosen, 'chosen '), botActivityPart(a.outcome, 'outcome '),
+    botActivityPart(a.reason)])}));
+}
+const botActivityRenderers = {[botActivityWowId]: botActivityRow, 'ffxi-lsb': botActivityFfxiRow, 'dit-bot-event-v1': botActivityDitRow};
+// The source record for id: the top-level WoW keys when the snapshot has no sources list (older snapshots).
+function botActivityEntry(data, id) {
+  if (!plainObject(data)) return null;
+  if (!Array.isArray(data.sources)) return id === botActivityWowId ? data : null;
+  return data.sources.find(entry => plainObject(entry) && entry.id === id) || null;
+}
+function botActivityValid(entry) {
+  return plainObject(entry) && plainObject(entry.coverage) && Array.isArray(entry.bots) ? entry : null;
+}
+function botActivityLabel(entry, id) {
+  return routingText(entry?.label, botActivityDefaults[id].label).slice(0, 200);
+}
+function botActivityNoteText(entry, id) {
+  return routingText(entry?.note, botActivityDefaults[id].note).slice(0, 500);
+}
+function botActivityKey(bot, id) {
+  const key = bot[id === botActivityWowId ? 'botGuid' : 'actorId'];
+  return typeof key === 'string' ? key.trim() : '';
+}
+function botActivityCoverageText(cov) {
+  const status = botActivityStatuses.includes(cov.status) ? cov.status : 'Unknown';
+  const parts = [`Coverage: ${status}`, `Imported log rows: ${metricNumber(cov.records) ? cov.records : 'Unknown'}`,
+    `Omitted malformed: ${metricNumber(cov.omitted) ? cov.omitted : 'Unknown'}`];
+  if (metricNumber(cov.files)) parts.push(`Files read: ${cov.files}`);
+  if (metricNumber(cov.unrecognized)) parts.push(`Unrecognized lines: ${cov.unrecognized}`);
+  if (metricNumber(cov.ignored)) parts.push(`Ignored lines: ${cov.ignored}`);
+  if (plainObject(cov.omittedByReason)) {
+    const reasons = Object.entries(cov.omittedByReason).filter(([, n]) => metricNumber(n) && n > 0).slice(0, 10)
+      .map(([code, n]) => `${String(code).slice(0, 40)} ${n}`);
+    if (reasons.length) parts.push(`Omitted by reason: ${reasons.join(', ')}`);
+  }
+  parts.push(routingText(cov.reason, 'Reason unknown'));
+  return parts.join(' · ');
+}
+function botActivityStatusItem(panel, status, cov, id) {
+  if (status === 'Not configured' || status === 'Off') item(panel, 'Import is off', `The ${botActivityDefaults[id].env} switch is not set, so no exported log is read.`, 'Off by default. Nothing here describes live activity.');
+  else if (status === 'Unavailable') item(panel, 'Import unavailable', routingText(cov.reason, 'Reason unknown'), 'Nothing was imported; this does not mean the bots are idle.');
+  else if (status !== 'Loaded') item(panel, 'Import status Unknown', 'Coverage status was not recognized.', 'No conclusion about bot activity can be drawn.');
+}
+// Renders one source's coverage line and rows into refs. A missing or malformed source is Unknown, never empty.
+function renderBotActivityBody(refs, entry, id, engine, needle) {
+  const {coverage, count, rows} = refs;
+  rows.replaceChildren(); count.textContent = '';
+  const source = botActivityValid(entry);
+  if (!source) {
+    coverage.textContent = 'Coverage: Unknown · No usable data for this source in the snapshot.';
+    item(rows, 'Source coverage', 'Unknown', 'Missing or malformed data does not mean the bots are idle or that the log is empty.');
     return;
   }
-  const status = ['Not configured', 'Loaded', 'Unavailable'].includes(cov.status) ? cov.status : 'Unknown';
-  coverage.textContent = `Coverage: ${status} · Imported log rows: ${metricNumber(cov.records) ? cov.records : 'Unknown'} · Omitted malformed: ${metricNumber(cov.omitted) ? cov.omitted : 'Unknown'} · ${routingText(cov.reason, 'Reason unknown')} · ${botActivityNote}`;
-  const bots = data.bots.filter(bot => plainObject(bot) && typeof bot.botGuid === 'string' && bot.botGuid.trim());
-  const engineControl = document.getElementById('bot-activity-engine'), searchControl = document.getElementById('bot-activity-search');
-  const engine = botActivityEngines.includes(engineControl.value) ? engineControl.value : '';
-  const needle = typeof searchControl.value === 'string' ? searchControl.value.trim().toLowerCase() : '';
+  const cov = source.coverage;
+  const status = botActivityStatuses.includes(cov.status) ? cov.status : 'Unknown';
+  coverage.textContent = botActivityCoverageText(cov);
+  botActivityStatusItem(rows, status, cov, id);
+  const bots = source.bots.filter(bot => plainObject(bot) && botActivityKey(bot, id));
   const matches = bots.filter(bot => (!engine || (botActivityEngines.includes(bot.engine) ? bot.engine : 'Unknown') === engine)
-    && (!needle || (typeof bot.name === 'string' && bot.name.toLowerCase().includes(needle)) || bot.botGuid.toLowerCase().includes(needle)));
+    && (!needle || (typeof bot.name === 'string' && bot.name.toLowerCase().includes(needle)) || botActivityKey(bot, id).toLowerCase().includes(needle)));
   count.textContent = `Showing ${matches.length} of ${bots.length} loaded bots. Local filter only; no request is made.`;
-  if (status === 'Not configured') item(panel, 'Forever bot log import is off', 'The DIT_FOREVER_BOTLOG_DIR switch is not set, so no exported bot log is read.', 'Off by default. Nothing here describes DIT bots or live activity.');
-  else if (status === 'Unavailable') item(panel, 'Forever bot log unavailable', routingText(cov.reason, 'Reason unknown'), 'Nothing was imported; this does not mean the bots are idle.');
-  else if (status !== 'Loaded') item(panel, 'Forever bot log status Unknown', 'Coverage status was not recognized.', 'No conclusion about bot activity can be drawn.');
-  if (data.bots.length !== bots.length) item(panel, 'Bot coverage Unknown for omitted malformed rows', `${data.bots.length - bots.length} rows without a usable bot GUID are not shown.`, 'Valid rows are shown below; coverage is incomplete.');
-  if (status === 'Loaded' && !bots.length) item(panel, 'No bot activity in the export', 'The export contained no usable bot rows (does not mean bots are idle).', botActivityNote);
-  else if (bots.length && !matches.length) item(panel, 'No bots match the local filter', 'Change the engine filter or search to see other loaded bots.', 'This does not mean a bot is idle.');
-  matches.slice(0, botActivityRowLimit).forEach(bot => botActivityRow(panel, bot));
-  if (matches.length > botActivityRowLimit) item(panel, 'More bots not shown', `${matches.length - botActivityRowLimit} matching bots exceed the ${botActivityRowLimit}-row display limit.`, 'Narrow the filter to see them.');
+  if (source.bots.length !== bots.length) item(rows, 'Bot coverage Unknown for omitted malformed rows', `${source.bots.length - bots.length} rows without a usable bot ID are not shown.`, 'Valid rows are shown below; coverage is incomplete.');
+  if (status === 'Loaded' && !bots.length) item(rows, 'No bot activity in the export', 'The export contained no usable bot rows (does not mean bots are idle).', 'Not a claim about live activity.');
+  else if (bots.length && !matches.length) item(rows, 'No bots match the local filter', 'Change the filter to see other loaded bots.', 'This does not mean a bot is idle.');
+  matches.slice(0, botActivityRowLimit).forEach(bot => botActivityRenderers[id](rows, bot));
+  if (matches.length > botActivityRowLimit) item(rows, 'More bots not shown', `${matches.length - botActivityRowLimit} matching bots exceed the ${botActivityRowLimit}-row display limit.`, 'Narrow the filter to see them.');
 }
-const baselineStatuses = ['Reference', 'Sim-measured', 'Unit-tested', 'Designed', 'Not started', 'Unknown'];
+function renderBotActivityOthers(data) {
+  const container = document.getElementById('bot-activity-sources');
+  container.replaceChildren();
+  if (Array.isArray(data?.sources)) {
+    const unknown = data.sources.filter(entry => !plainObject(entry) || !botActivitySourceIds.includes(entry.id)).length;
+    if (unknown) item(container, 'Unrecognized sources not shown', `${unknown} source entries have an id this page does not render.`, 'Nothing from them is shown.');
+  }
+  for (const id of botActivitySourceIds.slice(1)) {
+    const entry = botActivityEntry(data, id);
+    const section = document.createElement('div'); section.className = 'bot-source';
+    const heading = document.createElement('h4'); heading.textContent = botActivityLabel(entry, id);
+    const note = document.createElement('p'); note.className = 'muted'; note.textContent = botActivityNoteText(entry, id);
+    const coverage = document.createElement('p'); coverage.setAttribute('role', 'status');
+    const search = document.createElement('label'), input = document.createElement('input');
+    input.type = 'search'; input.setAttribute('maxlength', '128'); input.placeholder = 'Bot name or ID'; input.value = botActivitySearch.get(id) || '';
+    search.textContent = 'Search bot name or ID'; search.append(input);
+    const count = document.createElement('p'); count.className = 'muted'; count.setAttribute('aria-live', 'polite');
+    const rows = document.createElement('div'); rows.setAttribute('aria-live', 'polite');
+    section.append(heading, note, coverage, search, count, rows);
+    container.append(section);
+    const refs = {coverage, count, rows};
+    const refresh = () => renderBotActivityBody(refs, entry, id, '', (botActivitySearch.get(id) || '').trim().toLowerCase());
+    input.addEventListener('input', () => { botActivitySearch.set(id, input.value); refresh(); });
+    refresh();
+  }
+}
+function renderBotActivity() {
+  const data = currentSnapshot?.botActivity;
+  const wow = botActivityEntry(data, botActivityWowId);
+  document.getElementById('bot-activity-label').textContent = botActivityLabel(wow, botActivityWowId);
+  document.getElementById('bot-activity-note').textContent = botActivityNoteText(wow, botActivityWowId);
+  const engine = botActivityEngines.includes(document.getElementById('bot-activity-engine').value) ? document.getElementById('bot-activity-engine').value : '';
+  const needle = typeof document.getElementById('bot-activity-search').value === 'string' ? document.getElementById('bot-activity-search').value.trim().toLowerCase() : '';
+  renderBotActivityBody({coverage: document.getElementById('bot-activity-coverage'), count: document.getElementById('bot-activity-count'),
+    rows: document.getElementById('bot-activity')}, wow, botActivityWowId, engine, needle);
+  renderBotActivityOthers(data);
+}
+const baselineStatuses = ['Reference', 'Sim-measured', 'Unit-tested', 'Designed', 'Not started', 'Not applicable', 'Verified live', 'Partly live', 'Built', 'Unknown'];
+const baselineStatusClass = {'Reference': 'reference', 'Sim-measured': 'sim-measured', 'Unit-tested': 'unit-tested', 'Designed': 'designed',
+  'Not started': 'not-started', 'Not applicable': 'not-applicable', 'Verified live': 'verified-live', 'Partly live': 'partly-live', 'Built': 'built', 'Unknown': 'unknown'};
+const baselineGroups = [['parity', 'Bots parity (owner goal 2026-11-09)'], ['forever', 'WoW Forever operating model'], ['dit', 'DIT improvements'], [null, 'Group unknown']];
 function renderBaselineConformance() {
   const panel = document.getElementById('baseline-conformance');
   panel.replaceChildren();
@@ -1512,13 +1642,14 @@ function renderBaselineConformance() {
   item(panel, 'Baseline conformance source', routingText(data.source, 'Source unknown'),
     `${rows.length} behaviors · ${games.length} games${rows.length !== data.rows.length || games.length !== data.games.length ? ' · Malformed entries omitted; coverage incomplete' : ''}`);
   if (!rows.length || !games.length) item(panel, 'No usable conformance rows or games', 'Unknown', 'An empty table does not mean no bot has these behaviors.');
-  for (const [group, label] of [['forever', 'WoW Forever operating model'], ['dit', 'DIT improvements'], [null, 'Group unknown']]) {
-    const groupRows = rows.filter(row => group ? row.group === group : !['forever', 'dit'].includes(row.group));
+  for (const [group, label] of baselineGroups) {
+    const groupRows = rows.filter(row => group ? row.group === group : !['parity', 'forever', 'dit'].includes(row.group));
     if (!groupRows.length || !games.length) continue;
     const region = document.createElement('div'); region.className = 'model-samples';
     region.setAttribute('role', 'region'); region.setAttribute('aria-label', label); region.setAttribute('tabindex', '0');
+    const heading = document.createElement('h4'); heading.textContent = label;
     const table = document.createElement('table'), caption = document.createElement('caption');
-    caption.textContent = `${label}. Status reflects documented evidence, not live verification.`;
+    caption.textContent = `${label}. Status reflects the evidence cited for each cell; Unknown means not supplied.`;
     const head = document.createElement('thead'), headings = document.createElement('tr');
     for (const text of ['Behavior', ...games.map(g => `${g.game} · ${routingText(g.owner, 'Owner unknown')}`)]) {
       const cell = document.createElement('th'); cell.setAttribute('scope', 'col'); cell.textContent = text; headings.append(cell);
@@ -1534,12 +1665,13 @@ function renderBaselineConformance() {
         const status = cell && baselineStatuses.includes(cell.status) ? cell.status : 'Unknown';
         const evidence = cell ? routingText(cell.evidence, 'No evidence supplied').slice(0, 500) : 'No evidence supplied';
         const td = document.createElement('td'), strong = document.createElement('strong'), small = document.createElement('small');
+        strong.className = `baseline-status baseline-${baselineStatusClass[status]}`;
         strong.textContent = status; small.textContent = evidence;
         td.setAttribute('title', evidence); td.append(strong, small); tr.append(td);
       }
       body.append(tr);
     }
-    table.append(caption, head, body); region.append(table); panel.append(region);
+    table.append(caption, head, body); region.append(heading, table); panel.append(region);
   }
 }
 function renderSpendExample() {

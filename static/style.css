@@ -111,3 +111,10 @@ details{margin-top:12px}summary{color:#a2e4e0;cursor:pointer;font-weight:600}sum
 .model-samples{overflow-x:auto;max-width:100%;margin-top:10px}.model-samples table{min-width:560px;text-align:left}.model-samples th,.model-samples td{padding:8px;border:1px solid #365268;overflow-wrap:anywhere}.model-samples caption{text-align:left}.model-samples:focus-visible{outline:2px solid #f2ce8f;outline-offset:2px}
 
 #context-capture pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 32rem; overflow: auto; }
+/* Bot activity sources and parity status labels: dark page background; colours chosen for contrast on the panel. */
+.bot-source{border-top:1px solid #293a4d;margin-top:14px;padding-top:12px}.bot-source h4{margin:0 0 6px}.bot-source label{margin-top:8px}
+.baseline-status{display:inline-block;border:1px solid #466078;border-radius:4px;padding:1px 6px;font-weight:700;background:#16283a;color:#e8f0f7}
+.baseline-status.baseline-verified-live{background:#12402f;border-color:#3fae7a;color:#b9f5d3}
+.baseline-status.baseline-partly-live{background:#3d3418;border-color:#c99a3d;color:#f7e0a6}
+.baseline-status.baseline-built{background:#1d2c4a;border-color:#6d8fd6;color:#cfe0ff}
+.baseline-status.baseline-unknown,.baseline-status.baseline-not-started,.baseline-status.baseline-not-applicable{background:transparent;color:#a7b7c8;font-weight:400}

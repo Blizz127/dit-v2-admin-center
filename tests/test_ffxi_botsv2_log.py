@@ -1,0 +1,533 @@
+"""Offline FFXI Bots V2 log import: off by default, strict lines, repeats counted, owners masked, nothing raised."""
+import hashlib
+import json
+import os
+from pathlib import Path
+import random
+import shutil
+import stat
+import tempfile
+import unittest
+from unittest.mock import patch
+
+import ffxi_botsv2_log as botsv2
+
+FIXTURE = Path(__file__).resolve().parent / 'fixtures/ffxi-botsv2'
+REAL = FIXTURE / 'bots-v2-20261109.log'
+SYNTHETIC = FIXTURE / 'synthetic-edge-cases.log'
+REAL_SHA256 = 'b11459411b1062573eca7beb2cacb19d7031fe60e1e39b1247df54df194647bb'
+REAL_LINES = 382
+
+# Expected values come from grep over REAL, not from the parser. Recipe for bot B (run with the export as FILE):
+#   ok        grep "[BOTS-V2] act B " FILE | grep -c -- "-> ok "
+#   refused   L = grep "[BOTS-V2] act B " FILE | grep -c -- "-> refused "; R = the repeated tails of those lines
+#             (grep -o "repeated [0-9]* times" | awk sum); refused = L + R, since a tail line is 1 + N
+#   defend    grep -c "[BOTS-V2] defend B " FILE
+#   tripStart grep "[BOTS-V2] trip start group " FILE | grep -c "B"
+#   tripEnd   grep -c "[BOTS-V2] trip end B " FILE
+#   noTrip    grep -c "[BOTS-V2] no trip B " FILE
+#   party     grep -c "[BOTS-V2] B: owner \\|[BOTS-V2] B owned by " FILE
+#   other     grep -c "[BOTS-V2] owns B \\|[BOTS-V2] zone danger B " FILE
+#   events    every bot line naming B: act, defend, owns, trip, no trip, zone danger, owner lines, trip start group
+REAL_COUNTS = {
+    'fumika': {'ok': 109, 'refused': 10, 'defend': 3, 'tripStart': 1, 'tripEnd': 2, 'noTrip': 1, 'stuck': 0,
+               'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'party': 5, 'other': 2},
+    'shadowtail': {'ok': 64, 'refused': 1, 'defend': 1, 'tripStart': 1, 'tripEnd': 2, 'noTrip': 2, 'stuck': 0,
+                   'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'party': 6, 'other': 2},
+    'tomoe': {'ok': 90, 'refused': 1, 'defend': 2, 'tripStart': 1, 'tripEnd': 2, 'noTrip': 1, 'stuck': 0,
+              'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'party': 0, 'other': 3},
+}
+REAL_EVENTS = {'fumika': 127, 'shadowtail': 79, 'tomoe': 100}
+REAL_REFUSALS = {'fumika': 4, 'shadowtail': 1, 'tomoe': 1}
+REAL_IDS = {'fumika': (1050162, 241), 'shadowtail': (1040292, 241), 'tomoe': (1050143, 241)}
+REAL_LAST = {'fumika': ('2026-11-09T04:23:21.034Z', 'party owner_left_zone'),
+             'shadowtail': ('2026-11-09T04:23:21.034Z', 'party owner_left_zone'),
+             'tomoe': ('2026-11-09T04:13:08.903Z', 'tripEnd home')}
+
+
+def _lines(raw):
+    return raw.count(b'\n')  # Every fixture ends with a newline, so this is the line count.
+
+
+class FFXIBotsV2LogTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+
+    def write(self, name, raw):
+        path = self.root / name
+        path.write_bytes(raw)
+        return path
+
+    def line(self, body, stamp='11/09/26 05:10:00:000'):
+        return f'[{stamp}][map][lua] [BOTS-V2] {body} (lua_print:228)\n'.encode('utf-8', 'surrogateescape')
+
+    def assertConserved(self, coverage, total):
+        parts = (coverage['records'], coverage['omitted'], coverage['unrecognized'], coverage['ignored'])
+        self.assertEqual(sum(parts), total, coverage)
+
+    # Real export
+
+    def test_real_export_is_the_verified_copy(self):
+        raw = REAL.read_bytes()
+        self.assertEqual(hashlib.sha256(raw).hexdigest(), REAL_SHA256)
+        self.assertEqual(_lines(raw), REAL_LINES)
+
+    def test_real_export_coverage_is_exact(self):
+        bots, coverage = botsv2.read(REAL)
+        self.assertEqual(coverage['status'], 'Loaded')
+        self.assertEqual(coverage['records'], REAL_LINES)
+        self.assertEqual(coverage['omitted'], 0)
+        self.assertEqual(coverage['unrecognized'], 0)
+        self.assertEqual(coverage['ignored'], 0)
+        self.assertEqual((coverage['budget'], coverage['system']), (69, 9))
+        self.assertEqual(coverage['from'], '2026-11-09T01:12:51.704Z')
+        self.assertEqual(coverage['to'], '2026-11-09T04:23:57.203Z')
+        self.assertConserved(coverage, REAL_LINES)
+        self.assertEqual([b['actorId'] for b in bots], ['fumika', 'shadowtail', 'tomoe'])
+
+    def test_real_export_per_bot_counts_and_identity(self):
+        bots, _ = botsv2.read(REAL)
+        by_id = {b['actorId']: b for b in bots}
+        for name, counts in REAL_COUNTS.items():
+            with self.subTest(bot=name):
+                bot = by_id[name]
+                self.assertEqual(bot['game'], 'ffxi-lsb')
+                self.assertEqual(bot['counts'], counts)
+                self.assertEqual((bot['charId'], bot['zoneId']), REAL_IDS[name])
+                self.assertEqual(len(bot['events']), REAL_EVENTS[name])
+                self.assertEqual(len(bot['refusals']), REAL_REFUSALS[name])
+                self.assertEqual(bot['deaths'], [])
+                self.assertEqual((bot['lastEventAt'], bot['doing']), REAL_LAST[name])
+
+    def test_real_export_repeated_refusal_counts_printed_line_plus_held(self):
+        bots, _ = botsv2.read(REAL)
+        fumika = next(b for b in bots if b['actorId'] == 'fumika')
+        # Independent grep: 4 'refused' lines for fumika, one of them with 'repeated 6 times'.
+        # The printed tail is 1 + 6 occurrences, so 3 plain + 7 = 10.
+        self.assertEqual(sum(1 for line in REAL.read_text().splitlines()
+                             if '[BOTS-V2] act fumika ' in line and '-> refused ' in line), 4)
+        repeated = next(e for e in fumika['refusals'] if e['repeated'] == 6)
+        self.assertEqual((repeated['reason'], repeated['detail']), ('ws', 'wsId=18 targetId=17264690 sc=solo'))
+        self.assertEqual(fumika['counts']['refused'], 10)
+
+    def test_event_and_refusal_caps_with_out_of_order_lines(self):
+        # 250 refusals for one bot, one per second; lines 10/11 and 100/101 are written out of order.
+        order = list(range(250))
+        order[10], order[11] = order[11], order[10]
+        order[100], order[101] = order[101], order[100]
+        raw = b''.join(self.line(f'act capbot rule=travel apl=- op=path -> refused path_not_found dist={i}',
+                                 stamp=f'11/09/26 06:{i // 60:02d}:{i % 60:02d}:000') for i in order)
+        bots, coverage = botsv2.read(self.write('caps.log', raw))
+        self.assertEqual((coverage['records'], coverage['omitted']), (250, 0))
+        bot = bots[0]
+        self.assertEqual(bot['counts']['refused'], 250)  # counts are not capped
+        self.assertEqual(len(bot['events']), botsv2.MAX_EVENTS)
+        self.assertEqual(bot['events'][0]['detail'], 'dist=249')
+        self.assertEqual(bot['events'][-1]['detail'], 'dist=50')  # the oldest 50 are dropped
+        self.assertEqual(len(bot['refusals']), botsv2.MAX_REFUSALS)
+        self.assertEqual(bot['refusals'][0]['detail'], 'dist=249')
+        self.assertEqual(bot['lastEventAt'], '2026-11-09T06:04:09.000Z')
+        stamps = [e['ts'] for e in bot['events']]
+        self.assertEqual(stamps, sorted(stamps, reverse=True))
+
+    def test_real_export_totals_match_grep(self):
+        bots, _ = botsv2.read(REAL)
+        self.assertEqual(sum(b['counts']['ok'] for b in bots), 263)  # grep -c -- '-> ok ' on the export
+        self.assertEqual(sum(b['counts']['refused'] for b in bots), 12)  # 6 refused lines + 6 held repeats
+
+    def test_real_export_events_are_newest_first_and_bounded(self):
+        bots, _ = botsv2.read(REAL)
+        for bot in bots:
+            with self.subTest(bot=bot['actorId']):
+                stamps = [e['ts'] for e in bot['events']]
+                self.assertEqual(stamps, sorted(stamps, reverse=True))
+                self.assertLessEqual(len(bot['events']), botsv2.MAX_EVENTS)
+                self.assertEqual(bot['events'][0]['ts'], bot['lastEventAt'])
+                self.assertTrue(all(e['result'] == 'refused' for e in bot['refusals']))
+
+    def test_real_export_owner_is_always_masked(self):
+        bots, _ = botsv2.read(REAL)
+        text = json.dumps(bots)
+        self.assertIn('owner=<owner>', text)
+        self.assertNotIn('Bobby', text)
+        for token in text.split('owner=')[1:]:
+            self.assertTrue(token.startswith('<owner>'), token[:20])
+
+    def test_real_export_apl_is_optional_and_percent_free(self):
+        bots, _ = botsv2.read(REAL)
+        text = json.dumps(bots)
+        self.assertNotIn('%%', text)
+        shadow = next(b for b in bots if b['actorId'] == 'shadowtail')
+        unstick = [e for e in shadow['events'] if e['rule'] == 'unstick']
+        self.assertTrue(unstick)
+        self.assertTrue(all(e['apl'] is None for e in unstick))
+
+    # Synthetic edge cases
+
+    def test_synthetic_coverage_is_exact(self):
+        _, coverage = botsv2.read(SYNTHETIC)
+        self.assertEqual(coverage['status'], 'Loaded')
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['unrecognized'], coverage['ignored']),
+                         (34, 10, 1, 2))
+        self.assertEqual((coverage['budget'], coverage['system']), (1, 3))
+        self.assertEqual(coverage['from'], '2026-11-09T05:00:00.001Z')
+        self.assertEqual(coverage['to'], '2026-11-09T05:00:28.000Z')
+        self.assertConserved(coverage, _lines(SYNTHETIC.read_bytes()))
+
+    def test_synthetic_per_bot_counts(self):
+        bots, _ = botsv2.read(SYNTHETIC)
+        by_id = {b['actorId']: b for b in bots}
+        nalu, pell = by_id['nalu'], by_id['pell']
+        # refused: line 4 is 1 + 6, line 5 is 1 + 1, so 9. defend: line 7 is 1 + 3, so 4.
+        self.assertEqual(nalu['counts'], {'ok': 2, 'refused': 9, 'defend': 4, 'tripStart': 1, 'tripEnd': 1,
+                                          'noTrip': 0, 'stuck': 3, 'dead': 1, 'release': 1, 'return': 1,
+                                          'weak': 0, 'party': 2, 'other': 4})
+        self.assertEqual(pell['counts'], {'ok': 0, 'refused': 1, 'defend': 1, 'tripStart': 1, 'tripEnd': 0,
+                                          'noTrip': 1, 'stuck': 0, 'dead': 0, 'release': 0, 'return': 0,
+                                          'weak': 1, 'party': 3, 'other': 4})
+        self.assertEqual((nalu['charId'], nalu['zoneId']), (2001, 119))
+        self.assertEqual((pell['charId'], pell['zoneId']), (None, 300))
+        self.assertEqual(len(nalu['events']), 19)
+        self.assertEqual(len(pell['events']), 12)
+        self.assertEqual(len(nalu['deaths']), 1)
+        self.assertEqual(nalu['doing'], 'travel path')
+
+    def test_synthetic_repeated_tails_add_n_plus_one_and_keep_n_in_the_event(self):
+        bots, _ = botsv2.read(SYNTHETIC)
+        nalu = next(b for b in bots if b['actorId'] == 'nalu')
+        six = next(e for e in nalu['events'] if e['repeated'] == 6)
+        self.assertEqual((six['result'], six['reason'], six['detail']), ('refused', 'path_not_found',
+                                                                         'dist=289 path_long'))
+        three = next(e for e in nalu['events'] if e['type'] == 'defend')
+        self.assertEqual((three['repeated'], three['detail']), (3, 'hp=45pct attacker=Goblin_Mugger lv21'))
+        self.assertEqual(nalu['counts']['defend'], 4)
+
+    def test_synthetic_percent_unescape_is_observable(self):
+        bots, _ = botsv2.read(SYNTHETIC)
+        pell = next(b for b in bots if b['actorId'] == 'pell')
+        refused = next(e for e in pell['refusals'])
+        self.assertEqual(refused['detail'], '50% {x}')
+        text = json.dumps(bots)
+        # The one refused event sits in both events and refusals: two single '%', no escaped pair left.
+        self.assertEqual((text.count('50% {x}'), text.count('%')), (2, 2))
+        self.assertNotIn('%%', text)
+
+    def test_synthetic_same_millisecond_order_is_by_line(self):
+        bots, _ = botsv2.read(SYNTHETIC)
+        nalu = next(b for b in bots if b['actorId'] == 'nalu')
+        stuck = [e for e in nalu['events'] if e['type'] == 'stuck']
+        # events are newest first: the later line of the same millisecond comes first.
+        self.assertEqual([e['ts'] for e in stuck], ['2026-11-09T05:00:06.000Z', '2026-11-09T05:00:05.000Z',
+                                                    '2026-11-09T05:00:05.000Z'])
+        self.assertEqual([e['reason'] for e in stuck], ['homepoint_no_move', 'human_in_view', 'walk_out'])
+        self.assertEqual(nalu['doing'], 'travel path')
+
+    def test_synthetic_c28_kinds_and_stuck_wording(self):
+        bots, _ = botsv2.read(SYNTHETIC)
+        nalu = next(b for b in bots if b['actorId'] == 'nalu')
+        dead = next(e for e in nalu['events'] if e['type'] == 'dead')
+        self.assertEqual((dead['reason'], dead['detail']), (None, 'wait_raise=60 raisers=0 zone=119'))
+        self.assertEqual(nalu['deaths'][0]['ts'], dead['ts'])
+        self.assertEqual(sorted(e['type'] for e in nalu['events'] if e['type'] in ('release', 'return')),
+                         ['release', 'return'])
+
+    def test_synthetic_trip_group_fans_out_to_every_named_bot(self):
+        bots, _ = botsv2.read(SYNTHETIC)
+        for bot in bots:
+            trips = [e for e in bot['events'] if e['type'] == 'tripStart']
+            self.assertEqual(len(trips), 1, bot['actorId'])
+            self.assertEqual(trips[0]['detail'], 'group=nalu+pell camp=meriphataud_windurst attached')
+
+    def test_synthetic_nil_tokens_do_not_overwrite_ids(self):
+        bots, _ = botsv2.read(SYNTHETIC)
+        nalu = next(b for b in bots if b['actorId'] == 'nalu')
+        self.assertEqual(nalu['zoneId'], 119)
+        trip_end = next(e for e in nalu['events'] if e['type'] == 'tripEnd')
+        self.assertEqual(trip_end['detail'], 'camp=nil out->home zone=nil')
+
+    def test_synthetic_owner_names_are_masked_and_bad_lines_omitted(self):
+        bots, coverage = botsv2.read(SYNTHETIC)
+        text = json.dumps({'bots': bots, 'coverage': coverage})
+        self.assertNotIn('Bobby', text)
+        pell = next(b for b in bots if b['actorId'] == 'pell')
+        self.assertTrue(all('Bobby' not in e['detail'] for e in pell['events']))
+        self.assertEqual(coverage['omitted'], 10)
+
+    def test_synthetic_random_junk_never_raises_and_conserves(self):
+        rng = random.Random(20261109)
+        pieces = [b'[BOTS-V2] ', b'[11/09/26 04:01:58:414][map][lua] [BOTS-V2] ', b'act ', b'defend ', b' -> ok ',
+                  b'%%', b'(repeated ', b'owned by ', b'\x00', b'\xff', b' ', b'trip start group ', b'owns ']
+        lines = []
+        for _ in range(500):
+            body = b''.join(rng.choice(pieces) + bytes(rng.randrange(256) for _ in range(rng.randint(0, 30)))
+                            for _ in range(rng.randint(0, 4)))
+            lines.append(body.replace(b'\n', b' '))
+        raw = b'\n'.join(lines) + b'\n'
+        path = self.write('junk.log', raw)
+        bots, coverage = botsv2.read(path)
+        self.assertEqual(coverage['status'], 'Loaded')
+        self.assertConserved(coverage, _lines(raw))
+        json.dumps(bots)
+
+    def test_mutated_real_lines_never_raise_and_conserve(self):
+        rng = random.Random(7)
+        mutated = []
+        for line in REAL.read_bytes().split(b'\n')[:-1]:
+            body = bytearray(line)
+            for _ in range(rng.randint(1, 3)):
+                index = rng.randrange(len(body))
+                action = rng.randrange(3)
+                if action == 0:
+                    del body[index]
+                elif action == 1:
+                    body[index:index] = bytes([rng.randrange(256)])
+                else:
+                    body[index] = rng.randrange(256)
+            mutated.append(bytes(body).replace(b'\n', b' '))
+        raw = b'\n'.join(mutated) + b'\n'
+        path = self.write('mutated.log', raw)
+        bots, coverage = botsv2.read(path)
+        self.assertEqual(coverage['status'], 'Loaded')
+        self.assertConserved(coverage, _lines(raw))
+        json.dumps(bots)
+
+    def test_random_single_lines_never_raise(self):
+        rng = random.Random(11)
+        for _ in range(2000):
+            raw = bytes(rng.randrange(256) for _ in range(rng.randint(0, 300)))
+            status, _ = botsv2._line(raw, 1)
+            self.assertIn(status, ('record', 'ignored', 'unrecognized', 'omitted'))
+
+    # Line-level validation
+
+    def test_bad_dates_and_timestamps_are_omitted(self):
+        for stamp in ('13/40/26 25:00:00:000', '02/30/26 01:00:00:000', '11/09/26 24:00:00:000'):
+            with self.subTest(stamp=stamp):
+                raw = self.line('owns nalu charid=1 zone=1', stamp=stamp)
+                self.assertEqual(botsv2._line(raw.rstrip(b'\n'), 1)[0], 'omitted')
+
+    def test_invalid_utf8_or_non_ascii_bots_line_is_omitted_and_other_bytes_ignored(self):
+        bad = b'[11/09/26 05:10:00:000][map][lua] [BOTS-V2] owns nalu charid=\xff zone=1\n'
+        other = b'[11/09/26 05:10:00:000][map][lua] \xff\xfe unrelated\n'
+        path = self.write('bytes.log', bad + other)
+        _, coverage = botsv2.read(path)
+        self.assertEqual((coverage['omitted'], coverage['ignored']), (1, 1))
+
+    def test_oversized_line_is_omitted_not_read(self):
+        raw = b'[11/09/26 05:10:00:000][map][lua] [BOTS-V2] ' + b'x' * (botsv2.MAX_LINE + 1) + b'\n'
+        _, coverage = botsv2.read(self.write('long.log', raw))
+        self.assertEqual((coverage['status'], coverage['records'], coverage['omitted']), ('Loaded', 0, 1))
+
+    def test_unknown_bots_lines_are_unrecognized_not_errors(self):
+        raw = self.line('mystery nalu x=1') + self.line('owns nalu charid=7 zone=241')
+        _, coverage = botsv2.read(self.write('unknown.log', raw))
+        self.assertEqual((coverage['records'], coverage['unrecognized'], coverage['omitted']), (1, 1, 0))
+
+    def test_malformed_known_shapes_are_omitted_not_repaired(self):
+        cases = ['act nalu rule=zz -> ok x', 'defend pell hp=101pct attacker=none why=x',
+                 'trip start group nalu+nalu camp=x', 'owns pell charid=12x zone=1',
+                 'act nalu rule=a op=b -> ok', 'owned bot pell is in zone x: not driven']
+        for body in cases:
+            with self.subTest(body=body):
+                self.assertEqual(botsv2._line(self.line(body).rstrip(b'\n'), 1)[0], 'omitted')
+
+    def test_repeat_count_of_zero_is_malformed(self):
+        raw = self.line('act nalu rule=travel apl=- op=path -> refused path_not_found (repeated 0 times)')
+        self.assertEqual(botsv2._line(raw.rstrip(b'\n'), 1)[0], 'omitted')
+
+    def test_owner_names_other_than_mask_are_omitted(self):
+        cases = ['pell owned by Bobby (joined their party)', 'pell: owner Bobby left zone 241 for 119',
+                 'order follow from Bobby -> nalu', 'pell ownership by Bobby ended: left_party',
+                 'pell ownership by <owner> ended: dismissed by Bobby']
+        for body in cases:
+            with self.subTest(body=body):
+                raw = self.line(body).rstrip(b'\n')
+                self.assertEqual(botsv2._line(raw, 1)[0], 'omitted')
+        self.assertEqual(botsv2._line(self.line('order follow from <owner> -> nalu').rstrip(b'\n'), 1)[0], 'record')
+
+    def test_system_and_budget_lines_are_recognized_and_budget_is_coverage_only(self):
+        raw = (self.line('budget 60s: windows=8 evals=9 deferred=0 maxMs=3.600 avgMs=0.753 budgetMs=10.0')
+               + self.line('tell orders wired (chained before the existing handler)')
+               + self.line('tick host live in zone 115'))
+        bots, coverage = botsv2.read(self.write('system.log', raw))
+        self.assertEqual(bots, [])
+        self.assertEqual((coverage['records'], coverage['budget'], coverage['system']), (3, 1, 2))
+
+    def test_non_bots_lines_are_ignored_and_counted(self):
+        raw = b'[11/09/26 05:10:00:000][map][lua] something else\n\n' + self.line('owns nalu charid=7 zone=241')
+        _, coverage = botsv2.read(self.write('ignored.log', raw))
+        self.assertEqual((coverage['ignored'], coverage['records']), (2, 1))
+
+    def test_bot_count_is_capped_and_says_so(self):
+        raw = b''.join(self.line(f'owns bot{i:03d} charid={i} zone=241') for i in range(botsv2.MAX_BOTS + 1))
+        bots, coverage = botsv2.read(self.write('many.log', raw))
+        self.assertEqual(len(bots), botsv2.MAX_BOTS)
+        self.assertIn(f'Showing the first {botsv2.MAX_BOTS} of {botsv2.MAX_BOTS + 1} bots', coverage['reason'])
+
+    # Producer-exact tails, c2.8 kinds and stuck shapes
+
+    def test_producer_tail_counts_the_printed_line_and_its_held_repeats(self):
+        # banshee_bots_v2_exec.lua and test_travel_fix.lua (c2.7): six identical refusals at 1000..6000 ms and one at
+        # 32000 ms. The producer prints the first, holds five, then prints the seventh with '(repeated 5 times'.
+        # Seven calls, so seven counted. The defend tail is the same rule: the printed line plus three held.
+        raw = (self.line('act pell rule=travel apl=- op=path -> refused path_not_found dist=289 path_long',
+                         stamp='11/09/26 05:10:01:000')
+               + self.line('act pell rule=travel apl=- op=path -> refused path_not_found dist=289 path_long '
+                           '(repeated 5 times in the last 31s)', stamp='11/09/26 05:10:32:000')
+               + self.line('defend pell hp=50pct attacker=Goblin_Mugger lv21 why=fight_back (repeated 3 times)',
+                           stamp='11/09/26 05:10:40:000'))
+        bots, coverage = botsv2.read(self.write('producer-tails.log', raw))
+        self.assertConserved(coverage, 3)
+        pell = bots[0]
+        self.assertEqual((pell['counts']['refused'], pell['counts']['defend']), (7, 4))
+        self.assertEqual([e['repeated'] for e in pell['events'] if e['type'] == 'act'], [5, 1])
+        self.assertEqual(pell['refusals'][0]['repeated'], 5)
+
+    def test_c28_kinds_use_their_exact_producer_formats(self):
+        raw = b''.join([
+            self.line('dead nalu wait_raise=60 raisers=1 zone=119', stamp='11/09/26 05:11:00:000'),
+            self.line('release nalu why=no_raise zone=119 after 30s', stamp='11/09/26 05:11:01:000'),
+            self.line('release nalu why=nil zone=nil after 4s', stamp='11/09/26 05:11:02:000'),
+            self.line('weak nalu resting', stamp='11/09/26 05:11:03:000'),
+            self.line('return nalu gave up why=refused_road after 40s', stamp='11/09/26 05:11:04:000'),
+            self.line('return nalu arrived zone=119 after 12s', stamp='11/09/26 05:11:05:000'),
+            self.line('return nalu to owner zone=241 from=119', stamp='11/09/26 05:11:06:000'),
+            self.line('revived nalu at its home point zone=241 after 90s', stamp='11/09/26 05:11:07:000'),
+            self.line('revived nalu raised zone=nil after 5s', stamp='11/09/26 05:11:08:000'),
+        ])
+        bots, coverage = botsv2.read(self.write('c28.log', raw))
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['unrecognized']), (9, 0, 0))
+        nalu = bots[0]
+        self.assertEqual(nalu['counts'], {'ok': 0, 'refused': 0, 'defend': 0, 'tripStart': 0, 'tripEnd': 0,
+                                          'noTrip': 0, 'stuck': 0, 'dead': 1, 'release': 2, 'return': 3, 'weak': 1,
+                                          'party': 0, 'other': 0})
+        chronological = list(reversed(nalu['events']))
+        self.assertEqual([e['type'] for e in chronological],
+                         ['dead', 'release', 'release', 'weak', 'return', 'return', 'return', 'revived', 'revived'])
+        self.assertEqual([e['reason'] for e in chronological if e['type'] == 'release'], ['no_raise', None])
+        self.assertEqual([e['reason'] for e in chronological if e['type'] == 'revived'], ['home_point', 'raised'])
+        self.assertEqual(nalu['zoneId'], 241)
+        self.assertEqual(nalu['doing'], 'revived raised')
+
+    def test_c28_near_misses_are_omitted_not_guessed(self):
+        cases = ['release nalu zone=119 after 30s',        # no why=
+                 'release nalu why=x zone=119',             # no after
+                 'weak pell level=25',                      # the old generic weak shape
+                 'return nalu arrived zone=119',            # no after
+                 'return nalu to owner zone=x from=119',    # zone is not digits
+                 'revived nalu fell zone=241 after 9s',     # not a revive kind
+                 'dead nalu why=killed_by_mob hp=0']        # the old generic dead shape
+        for body in cases:
+            with self.subTest(body=body):
+                self.assertEqual(botsv2._line(self.line(body).rstrip(b'\n'), 1)[0], 'omitted')
+
+    def test_stuck_reasons_are_fixed_codes_from_the_exact_formats(self):
+        raw = b''.join([
+            self.line('stuck nalu resolved walk_out after 12s attempts=2', stamp='11/09/26 05:12:01:000'),
+            self.line('stuck nalu resolved new_path rule=travel moved=12 after 9s attempts=1',
+                      stamp='11/09/26 05:12:02:000'),
+            self.line('stuck nalu waiting: human in view (3 min, no teleport while seen)',
+                      stamp='11/09/26 05:12:03:000'),
+            self.line('stuck nalu homepoint gave no move (3 accepted), left as is', stamp='11/09/26 05:12:04:000'),
+            self.line('stuck nalu unresolved zone=119 at (12, -4) humans_in_view=0', stamp='11/09/26 05:12:05:000'),
+            self.line('stuck nalu mystery', stamp='11/09/26 05:12:06:000'),
+        ])
+        bots, coverage = botsv2.read(self.write('stuck.log', raw))
+        self.assertEqual((coverage['records'], coverage['omitted']), (5, 1))
+        nalu = bots[0]
+        self.assertEqual([e['reason'] for e in reversed(nalu['events'])],
+                         ['walk_out', 'new_path', 'human_in_view', 'homepoint_no_move', 'unresolved'])
+        self.assertEqual((nalu['counts']['stuck'], nalu['zoneId'], nalu['doing']), (5, 119, 'stuck unresolved'))
+
+    def test_stuck_driven_trip_end_is_a_trip_end_not_a_stuck_line(self):
+        raw = self.line('trip end nalu camp=x out->home zone=119 why=stuck', stamp='11/09/26 05:13:00:000')
+        bots, _ = botsv2.read(self.write('stuck-trip.log', raw))
+        self.assertEqual((bots[0]['counts']['tripEnd'], bots[0]['counts']['stuck']), (1, 0))
+        self.assertEqual(bots[0]['events'][0]['reason'], 'stuck')
+
+    # Switch and file refusals
+
+    def test_off_by_default_reads_nothing(self):
+        with patch('ffxi_botsv2_log.read_bytes', side_effect=AssertionError('read while off')):
+            with patch.dict(os.environ, {}, clear=False):
+                os.environ.pop(botsv2.ENV, None)
+                bots, coverage = botsv2.read()
+            self.assertEqual((bots, coverage['status']), ([], 'Off'))
+            with patch.dict(os.environ, {botsv2.ENV: ''}):
+                bots, coverage = botsv2.read()
+            self.assertEqual((bots, coverage['status']), ([], 'Off'))
+
+    def test_env_switch_reads_the_named_file(self):
+        with patch.dict(os.environ, {botsv2.ENV: str(REAL)}):
+            bots, coverage = botsv2.read()
+        self.assertEqual((coverage['status'], coverage['records']), ('Loaded', REAL_LINES))
+        self.assertEqual(len(bots), 3)
+
+    def test_relative_and_non_path_arguments_are_unavailable(self):
+        for path in ('relative/bots.log', '', 12, b'/tmp/bots.log'):
+            with self.subTest(path=path):
+                bots, coverage = botsv2.read(path)
+                self.assertEqual((bots, coverage['status']), ([], 'Unavailable'))
+                self.assertIn('nothing imported', coverage['reason'])
+
+    def test_missing_directory_and_symlink_are_refused(self):
+        bots, coverage = botsv2.read(self.root / 'missing.log')
+        self.assertEqual((bots, coverage['status']), ([], 'Unavailable'))
+        self.assertIn('missing file', coverage['reason'])
+        bots, coverage = botsv2.read(self.root)
+        self.assertEqual((bots, coverage['status']), ([], 'Unavailable'))
+        target = self.write('target.log', REAL.read_bytes())
+        link = self.root / 'link.log'
+        link.symlink_to(target)
+        with patch('ffxi_botsv2_log.read_bytes', side_effect=AssertionError('followed a symlink')):
+            bots, coverage = botsv2.read(link)
+        self.assertEqual((bots, coverage['status']), ([], 'Unavailable'))
+        self.assertIn('symlink refused', coverage['reason'])
+
+    def test_fifo_is_refused_without_blocking(self):
+        if not hasattr(os, 'mkfifo'):
+            self.skipTest('no mkfifo')
+        fifo = self.root / 'pipe.log'
+        os.mkfifo(fifo)
+        self.assertTrue(stat.S_ISFIFO(os.lstat(fifo).st_mode))
+        bots, coverage = botsv2.read(fifo)
+        self.assertEqual((bots, coverage['status']), ([], 'Unavailable'))
+
+    def test_oversized_file_is_refused(self):
+        path = self.write('big.log', b'x' * (botsv2.MAX_BYTES + 1))
+        bots, coverage = botsv2.read(path)
+        self.assertEqual((bots, coverage['status']), ([], 'Unavailable'))
+        self.assertIn('oversized file', coverage['reason'])
+
+    def test_too_many_lines_is_refused(self):
+        path = self.write('lines.log', b'\n' * (botsv2.MAX_LINES + 1))
+        bots, coverage = botsv2.read(path)
+        self.assertEqual((bots, coverage['status']), ([], 'Unavailable'))
+        self.assertIn('too many lines', coverage['reason'])
+
+    def test_reason_never_echoes_the_path(self):
+        secret = self.root / 'owner-Bobby-private.log'
+        _, coverage = botsv2.read(secret)
+        self.assertNotIn('Bobby', coverage['reason'])
+        self.assertNotIn(str(self.root), coverage['reason'])
+
+    def test_read_never_raises_on_hostile_arguments(self):
+        for path in (None, object(), '\x00bad', 1.5, ['x']):
+            with self.subTest(path=repr(path)):
+                with patch.dict(os.environ, {botsv2.ENV: ''}):
+                    bots, coverage = botsv2.read(path)
+                self.assertIsInstance(coverage, dict)
+                self.assertIsInstance(bots, list)
+
+    def test_reads_do_not_modify_the_source(self):
+        before = hashlib.sha256(REAL.read_bytes()).hexdigest()
+        botsv2.read(REAL)
+        self.assertEqual(hashlib.sha256(REAL.read_bytes()).hexdigest(), before)
+        shutil.copy(REAL, self.root / 'copy.log')
+        self.assertEqual(botsv2.read(self.root / 'copy.log')[1]['records'], REAL_LINES)
+
+
+if __name__ == '__main__':
+    unittest.main()

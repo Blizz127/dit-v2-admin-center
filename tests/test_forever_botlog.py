@@ -570,6 +570,26 @@ class OverviewSwitchTests(unittest.TestCase):
         self.assertEqual(on['botActivity']['coverage']['status'], 'Loaded')
         self.assertEqual(len(on['botActivity']['bots']), 3)
 
+    def test_overview_source_failure_is_isolated_and_generic(self):
+        import server
+        with tempfile.TemporaryDirectory() as home, \
+             patch.dict('os.environ', {}, clear=True), \
+             patch.object(Path, 'home', return_value=Path(home)), \
+             patch('server.LOCAL_DATA', Path(home) / 'local'), \
+             patch('server.read_ffxi_botsv2', side_effect=RuntimeError('/private/owner-Bobby.log')):
+            activity = server.overview()['botActivity']
+        self.assertEqual([source['id'] for source in activity['sources']],
+                         ['wow-70450-export', 'ffxi-lsb', 'dit-bot-event-v1'])
+        by_id = {source['id']: source for source in activity['sources']}
+        self.assertEqual((by_id['ffxi-lsb']['coverage']['status'], by_id['ffxi-lsb']['bots']), ('Unavailable', []))
+        self.assertEqual(by_id['ffxi-lsb']['coverage']['reason'],
+                         'Import failed; nothing was imported. Details are not shown.')
+        self.assertEqual(by_id['wow-70450-export']['coverage']['status'], 'Not configured')
+        self.assertEqual(by_id['dit-bot-event-v1']['coverage']['status'], 'Off')
+        text = json.dumps(activity)
+        self.assertNotIn('Bobby', text)
+        self.assertNotIn('/private', text)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,0 +1,22 @@
+Provenance of the dit.bot_event.v1 fixtures in this directory.
+
+Source repository: /home/blizz/dev/dit-forever-baseline-20261108
+Source commit:     60bc1a9c (copied with `git show 60bc1a9c:<path>`, not from the working tree)
+
+Copied files (byte-exact):
+  dit.bot_event.v1.schema.json                  <- docs/architecture/schemas/dit.bot_event.v1.schema.json
+  dit.decision_advice.v1.request.schema.json    <- docs/architecture/schemas/dit.decision_advice.v1.request.schema.json
+  dit.decision_advice.v1.response.schema.json   <- docs/architecture/schemas/dit.decision_advice.v1.response.schema.json
+  EXAMPLES.jsonl                                <- docs/architecture/schemas/EXAMPLES.jsonl
+
+Substitution: the commit has no file named dit.decision_advice.v1.schema.json. Its
+request and response schemas are copied instead.
+
+Contract text: docs/architecture/BOT_BRAIN_STANDARD.md sections 6.3 and 6.5 at the same commit.
+
+EXAMPLES.jsonl has five lines. Lines 1, 2 and 5 are dit.bot_event.v1 rows (decision, advice,
+and a 6.6 chat row with structured fields only, never the text). Line 3 is an advice request
+(dit.decision_advice.v1). Line 4 is the matching advice response, which has no schema field.
+bot_event_v1.py omits lines 3 and 4 as not_bot_event.
+
+History: first copied at 347a01fa; refreshed at 60bc1a9c (adds the chat row and its schema branch).

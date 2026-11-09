@@ -463,3 +463,11 @@ The fix is canary c2.8a, queued before MP rest.
 - **Hidden:** SP2-style later abilities, Fields of Valor, Sanction/Sigil and survival guides.
 
 `ffxi-platform` corrected its plan in `ab38936`.
+
+**FFXI Forever party bots, later (2026-11-09):**
+- **Cross-zone follow:**
+  - `ffxi-platform` merged it on main (`733dfb5`; in-crate tests 14/0) and it ships in v3.73. The same `follow <owner>` now crosses zones. It never enters closed, battlefield or Mog House zones.
+  - New refusals: `owner_unreachable`, `not_found` and `asleep`.
+  - The hub driver follows the owner in every mode, pull included (`3d7d23cf`). It switches on an `other_zone`/`not_found` refusal or on no `human_near` for 20 s.
+- **Driver:** runs as uid 10001 in a hardened container (`255b68da`) because the socket only accepts its own uid, by design. It is staged on Banshee and not started.
+- **Owner's exact approval** (requested by the Devbox coordinator), given in this terminal: "Yes, I approve all of it". That covers creating the 5 DITBOT accounts and characters, turning on the population socket (peer uid 10001), restarting Forever, and starting the DIT driver. `ffxi` forwarded it verbatim to the coordinator.

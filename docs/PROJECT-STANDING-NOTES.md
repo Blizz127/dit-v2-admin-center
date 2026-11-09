@@ -205,3 +205,12 @@ The standard amendment is proposed by the hub Claude session and awaits Codex or
 coordinator acceptance. Bot bodies are built by `ffxi-platform` first, behind the
 owner's FFXI gate. Do not rebuild these views; extend them only when real exports
 or the accepted `dit.bot_event.v1` envelope arrive.
+
+## Bot activity import switches (2026-11-09)
+
+All are offline imports and off by default. None reads a live server.
+
+- `DIT_FOREVER_BOTLOG_DIR`: exported WoW Forever 70450 `bot`/`bot_event` logs.
+- `DIT_FFXI_BOTSV2_LOG`: one exported FFXI LSB `[BOTS-V2]` map-log file, with the owner masked as `<owner>`.
+- `DIT_BOT_EVENT_DIR`: one directory of `dit.bot_event.v1` JSONL files (hub standard §6.3/§6.5/§6.6, schemas pinned at hub `60bc1a9c`).
+  - It reads only one directory, so copy the SWTOR export (`bot-events-YYYYMMDD.jsonl`) and the Forever driver export (`ffxi_forever-YYYY-MM-DD.jsonl`) into the same folder.
