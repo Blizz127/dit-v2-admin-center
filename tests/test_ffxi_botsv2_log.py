@@ -715,6 +715,50 @@ class FFXIBotsV2LogTests(unittest.TestCase):
                          ['mate_assist', 'retreat'])
         self.assertEqual([e['reason'] for e in by_name['pell']['events'] if e['type'] == 'noTrip'], ['danger'])
 
+    def test_c43_and_q11_lines_use_the_exact_formats(self):
+        # Templates from ffxi handoffs 2026-11-09-botsv2-c4.3-frozen and -q1.1-frozen (banshee_bots_v2.lua:608/619/1517/
+        # 1612/1629/1654/1774/1884). Frozen, not live.
+        raw = b''.join([
+            self.line('group party nalu members=nalu+pell+tomo', stamp='11/09/26 18:00:00:000'),
+            self.line('group party nalu drop tomo why=no_accept', stamp='11/09/26 18:00:01:000'),
+            self.line('group party nalu off why=owner_online', stamp='11/09/26 18:00:02:000'),
+            self.line('slow eval pell rule=combat tier=near wallMs=7.31 cpuMs=n/a atomic=yes heapKB=2048->2101',
+                      stamp='11/09/26 18:00:03:000'),
+            self.line('progression pell level=26 why=levelup -> ok', stamp='11/09/26 18:00:04:000'),
+            self.line('progression pell level=26 why=spawn -> refused bag_hold', stamp='11/09/26 18:00:05:000'),
+            self.line('roe pell record=1 -> ok', stamp='11/09/26 18:00:06:000'),
+            self.line('roe pell record=12 -> refused', stamp='11/09/26 18:00:07:000'),
+            self.line('act pell rule=progression apl=- op=roe record=2 -> ok roe', stamp='11/09/26 18:00:08:000'),
+            # near misses: omitted, never guessed
+            self.line('group party nalu members=pell+nalu', stamp='11/09/26 18:00:09:000'),        # leader not first
+            self.line('group party nalu members=nalu', stamp='11/09/26 18:00:10:000'),             # nobody joined
+            self.line('group party nalu off', stamp='11/09/26 18:00:11:000'),                      # no why=
+            self.line('slow eval pell rule=combat tier=near wallMs=7.3 cpuMs=n/a atomic=yes heapKB=1->2',
+                      stamp='11/09/26 18:00:12:000'),                                                # %.2f
+            self.line('progression pell level=26 why=levelup -> refused', stamp='11/09/26 18:00:13:000'),
+            self.line('roe pell record=intro -> ok', stamp='11/09/26 18:00:14:000'),
+        ])
+        bots, coverage = botsv2.read(self.write('c43q11.log', raw))
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['unrecognized']), (9, 6, 0))
+        by_name = {b['name']: b for b in bots}
+        self.assertEqual(sorted(by_name), ['nalu', 'pell', 'tomo'])
+        self.assertEqual(by_name['nalu']['counts']['other'], 2)  # formed + off
+        self.assertEqual(by_name['tomo']['counts']['other'], 2)  # formed + dropped
+        drop = next(e for e in by_name['tomo']['events'] if e['type'] == 'groupPartyDrop')
+        self.assertEqual((drop['reason'], drop['detail']), ('no_accept', 'leader=nalu'))
+        pell = by_name['pell']
+        self.assertEqual(pell['counts']['other'], 6)
+        self.assertEqual(pell['counts']['ok'], 1)
+        got = [(e['type'], e['result'], e['reason'], e['detail']) for e in reversed(pell['events'])
+               if e['type'] in ('slowEval', 'progression', 'roe')]
+        self.assertEqual(got, [
+            ('slowEval', None, 'combat', 'tier=near wallMs=7.31 cpuMs=n/a atomic=yes heapKB=2048->2101'),
+            ('progression', 'ok', 'levelup', 'level=26'),
+            ('progression', 'refused', 'spawn', 'level=26 refused=bag_hold'),
+            ('roe', 'ok', None, 'record=1'),
+            ('roe', 'refused', None, 'record=12'),
+        ])
+
     def test_c28_near_misses_are_omitted_not_guessed(self):
         cases = ['release nalu zone=119 after 30s',        # no why=
                  'release nalu why=x zone=119',             # no after

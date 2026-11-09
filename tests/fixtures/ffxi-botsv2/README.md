@@ -105,3 +105,16 @@
 - Source: ffxi handoff `2026-11-09-botsv2-c3.1-frozen`. A diff of the log calls against p2b-frozen is empty: no new template.
 - New values only: act rules `retreat` and `mate_assist`; defend why `retreat_to_healer`, `retreat_to_mate`, `retreat_to_camp`, `cornered`; no trip why `danger`.
 - Covered by a synthetic test only; not yet seen live.
+
+# C4.3 and V2-Q1.1 formats (frozen, not live)
+
+- Sources: ffxi handoffs `2026-11-09-botsv2-c4.3-frozen` and `2026-11-09-botsv2-q1.1-frozen`. A log-call diff against c3.1-frozen shows six new templates:
+  - `group party <leader> members=<leader>+<a>[+<b>...]`: goes to every member.
+  - `group party <leader> drop <bot> why=<why>`: goes to the dropped bot, with the leader in the detail.
+  - `group party <leader> off why=<why>`
+  - `slow eval <bot> rule=<r> tier=<t> wallMs=<%.2f> cpuMs=<%.2f|n/a> atomic=yes|no heapKB=<a>-><b>`: a diagnostic, at most one line per 10 s.
+  - `progression <bot> level=<n> why=levelup|spawn|periodic -> ok | -> refused <why>`
+  - `roe <bot> record=<n> -> ok|refused`
+- All six count as other.
+- V2-Q1.1 ships dark: no progression or roe line appears unless `BANSHEE_BOTS_V2_PROGRESSION=1`.
+- These formats are covered by synthetic tests only.

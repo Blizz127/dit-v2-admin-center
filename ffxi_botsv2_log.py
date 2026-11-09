@@ -19,6 +19,8 @@ Rules enforced here:
 - counts.mount counts 'mount <bot> why=' lines; dismount lines are events only; mount_blocked counts as other.
 - P2b: an order line may end ' refused=<why>' (event result 'refused', still counted as party); 'advice <bot> release
   kind=party_tactic' lines are events only.
+- C4.3/V2-Q1.1 (frozen, not live): 'group party' members/drop/off, 'slow eval', 'progression' and 'roe' lines count
+  as other; a members line goes to every member and must start with its leader.
 - J0a/J0b: profile lines count as other; advice answers count as advice (applied or not; the event result says
   which); requests are events only; a drop counts as other, and 'advice - drop' (no bot) is a system notice.
 - counts.rest counts rest starts ('rest <bot> why=...'); a 'rest end' line is an event only.
@@ -542,6 +544,68 @@ def _advice(body):
     raise _Malformed('advice')
 
 
+_GP_MEMBERS = re.compile(r'group party ' + _BOT + r' members=(\S{1,160})')
+_GP_DROP = re.compile(r'group party ' + _BOT + r' drop ' + _BOT + r' why=([a-z_]{1,32})')
+_GP_OFF = re.compile(r'group party ' + _BOT + r' off why=([a-z_]{1,32})')
+
+
+def _group_party(body):
+    # C4 trip parties (ffxi C4.3 banshee_bots_v2.lua:1612/1629/1654/1774): bots in one real FFXI party.
+    match = _GP_MEMBERS.fullmatch(body)
+    if match:
+        leader = _bot(match.group(1))
+        bots = [_bot(name) for name in match.group(2).split('+')]
+        if len(bots) < 2 or bots[0] != leader or len(set(bots)) != len(bots):
+            raise _Malformed('group party members')
+        return _part(bots, 'groupParty', count='other', reason='formed', detail=f"members={'+'.join(bots)}")
+    match = _GP_DROP.fullmatch(body)
+    if match:
+        leader = _bot(match.group(1))
+        return _part([_bot(match.group(2))], 'groupPartyDrop', count='other', reason=match.group(3),
+                     detail=f'leader={leader}')
+    match = _GP_OFF.fullmatch(body)
+    if match:
+        return _part([_bot(match.group(1))], 'groupPartyOff', count='other', reason=match.group(2))
+    raise _Malformed('group party')
+
+
+_SLOW_EVAL = re.compile(r'slow eval ' + _BOT + r' rule=([a-z_0-9]{1,32}) tier=([a-z_0-9]{1,16}) wallMs=(\d{1,7}\.\d\d)'
+                        r' cpuMs=(\d{1,7}\.\d\d|n/a) atomic=(yes|no) heapKB=(\d{1,9})->(\d{1,9})')
+
+
+def _slow_eval(body):
+    # C4.3 diagnostic (banshee_bots_v2.lua:1884): one evaluation over BANSHEE_BOTS_V2_SLOW_EVAL_MS, at most 1 per 10 s.
+    match = _SLOW_EVAL.fullmatch(body)
+    if match is None:
+        raise _Malformed('slow eval')
+    return _part([_bot(match.group(1))], 'slowEval', count='other', reason=match.group(2),
+                 detail=f'tier={match.group(3)} wallMs={match.group(4)} cpuMs={match.group(5)} atomic={match.group(6)} '
+                        f'heapKB={match.group(7)}->{match.group(8)}')
+
+
+_PROGRESSION = re.compile(r'progression ' + _BOT + r' level=(\d{1,3}) why=(levelup|spawn|periodic)'
+                          r' -> (ok|refused ([a-z_]{1,40}))')
+_ROE = re.compile(r'roe ' + _BOT + r' record=(\d{1,6}) -> (ok|refused)')
+
+
+def _progression(body):
+    # V2-Q1.1 (banshee_bots_v2.lua:608/1517), dark unless BANSHEE_BOTS_V2_PROGRESSION=1.
+    match = _PROGRESSION.fullmatch(body)
+    if match is None:
+        raise _Malformed('progression')
+    refused = match.group(5)
+    return _part([_bot(match.group(1))], 'progression', count='other', result='refused' if refused else 'ok',
+                 reason=match.group(3), detail=f'level={match.group(2)}' + (f' refused={refused}' if refused else ''))
+
+
+def _roe(body):
+    # V2-Q1.1 (banshee_bots_v2.lua:619): Records of Eminence step; the introduction also logs record=1.
+    match = _ROE.fullmatch(body)
+    if match is None:
+        raise _Malformed('roe')
+    return _part([_bot(match.group(1))], 'roe', count='other', result=match.group(3), detail=f'record={match.group(2)}')
+
+
 def _budget(body):
     if _BUDGET.fullmatch(body) is None:
         raise _Malformed('budget')
@@ -580,6 +644,10 @@ _RULES = (
     (re.compile(r'profile '), _profile),
     (re.compile(r'advice (?!off: )'), _advice),
     (re.compile(r'budget '), _budget),
+    (re.compile(r'group party '), _group_party),
+    (re.compile(r'slow eval '), _slow_eval),
+    (re.compile(r'progression '), _progression),
+    (re.compile(r'roe '), _roe),
 )
 
 
