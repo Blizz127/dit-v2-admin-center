@@ -277,3 +277,20 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-df9c04
 **Checks:** conformance and FFXI importer tests OK; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview f4e7a43a (source 4a9c422)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-f4e7a43a**. Readback at **2026-11-09T14:52:14Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 401450 | `f4e7a43ac2a3d8d0f7fae2560b581f35e765cfdc5e292f8eb8406d04b53776d8` | 600 |
+| READ-ME-FIRST.txt | 696 | `aad2c0eb0655ccdcece202a048d65b538068dcb8815e5dbff8e5557af6cbc785` | 600 |
+
+**Change:**
+- SWTOR p-03 cites release kf (live 14:50:07Z, rotations ON, all 48 disciplines, offline 288 fights). It stays Built because no humans have played since kc.
+- SWTOR p-12 notes that kf writes decision/refused rows but issues no decision_advice.v1 request, so it stays Designed.
+
+**Checks:** full Python suite 580 OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
+
+**Rollback:** remove only that folder.
