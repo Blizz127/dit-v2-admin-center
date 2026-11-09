@@ -248,6 +248,7 @@ setImmediate(() => {
     assert.equal(section.children[5].children[0].children[1].textContent, 'Unknown');
   }
   assert.equal(get('bot-activity-sources').children.some(child => child.className === 'row'), false, 'no unrecognized-source notice for a legacy snapshot');
+  assert.equal(get('bot-activity-sources').children.some(child => child.className === 'bot-gaps'), false, 'no gaps list without a sources list');
 
   // Multi-source: one WoW block plus one section per other source, each with its own label, note and coverage line.
   setSnapshot(multi); render();
@@ -255,6 +256,13 @@ setImmediate(() => {
   assert.equal(get('bot-activity-note').textContent, WOW_NOTE);
   assert.match(coverage(), /^Coverage: Loaded · Imported log rows: 17 · Omitted malformed: 2 · Exported copy read\.$/);
   assert.equal(sectionsOf().length, 3);
+  // Proven gaps: one list across the sources, stuck bots and labelled timing only; unlabelled measurements stay out.
+  const gaps = get('bot-activity-sources').children.find(child => child.className === 'bot-gaps');
+  assert.equal(gaps.children[0].textContent, 'Proven gaps in the loaded exports');
+  assert.deepEqual(gaps.children[2].children.map(li => li.textContent), [
+    'DIT bot_event v1 (SWTOR, FFXI Forever, other DIT games): Kade acts on a metronome: rotation_pick, 18 of 20 gaps exactly 1.5 s.',
+    'DIT bot_event v1 (SWTOR, FFXI Forever, other DIT games): Kade leaves on a fixed clock: 3 of 4 gaps between trip starts exactly 3456 s.',
+    'WoW Vanilla / Benilla playerbots (cmangos-classic event log): Tohsha is stuck: 562 pulls on Makrura Shellhide with no kill over 58 min.']);
   const [ffxi, dit] = sectionsOf();
   assert.equal(ffxi.children[0].textContent, 'FFXI (LSB) Bots V2 log export');
   assert.equal(ffxi.children[1].textContent, ffxiSource.note);
@@ -356,6 +364,8 @@ setImmediate(() => {
 
   // A WoW entry without a usable coverage line is Unknown; the other sources still render.
   setSnapshot({...multi, botActivity: {...multi.botActivity, sources: [{id: 'wow-70450-export', bots: []}, ffxiSource]}}); render();
+  assert.deepEqual(get('bot-activity-sources').children.find(child => child.className === 'bot-gaps').children[2].children.map(li => li.textContent),
+    ['None found in the loaded exports.'], 'sources without a flagged bot say so; it is not a pass');
   assert.equal(get('bot-activity-label').textContent, 'WoW Forever (70450 predecessor export)');
   assert.equal(get('bot-activity-note').textContent, WOW_NOTE, 'a missing note falls back to the WoW note');
   assert.match(coverage(), /^Coverage: Unknown/);

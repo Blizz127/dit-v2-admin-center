@@ -1637,9 +1637,48 @@ function renderBotActivityBody(refs, entry, id, engine, needle) {
   matches.slice(0, botActivityRowLimit).forEach(bot => botActivityRenderers[id](rows, bot));
   if (matches.length > botActivityRowLimit) item(rows, 'More bots not shown', `${matches.length - botActivityRowLimit} matching bots exceed the ${botActivityRowLimit}-row display limit.`, 'Narrow the filter to see them.');
 }
+// One list of every bot a loaded export proves machine-like or stuck, so QA reads the gaps in one place.
+const botActivityGapLimit = 30;
+function botActivityGapLines(data) {
+  const lines = [];
+  for (const id of botActivitySourceIds.slice(1)) {
+    const source = botActivityValid(botActivityEntry(data, id));
+    if (!source) continue;
+    const label = botActivityLabel(source, id);
+    for (const bot of source.bots) {
+      if (!plainObject(bot)) continue;
+      const who = `${label}: ${routingText(bot.name, shown(bot.actorId))}`;
+      const feel = plainObject(bot.feel) ? bot.feel : {};
+      const c = feel.cadence, s = feel.sync, t = feel.schedule, stall = bot.stall;
+      if (plainObject(stall) && metricNumber(stall.pulls) && metricNumber(stall.seconds))
+        lines.push(`${who} is stuck: ${stall.pulls} pulls on ${shown(stall.target)} with no kill over ${Math.round(stall.seconds / 60)} min.`);
+      if (plainObject(c) && c.metronomic === true && metricNumber(c.modalCount) && metricNumber(c.gaps))
+        lines.push(`${who} acts on a metronome: ${shown(c.action)}, ${c.modalCount} of ${c.gaps} gaps exactly ${shown(c.modalGapS)} s.`);
+      if (plainObject(t) && t.fixed === true && metricNumber(t.modalCount) && metricNumber(t.intervals))
+        lines.push(`${who} leaves on a fixed clock: ${t.modalCount} of ${t.intervals} gaps between trip starts exactly ${shown(t.modalIntervalS)} s.`);
+      if (plainObject(s) && s.synchronized === true && metricNumber(s.together) && metricNumber(s.actions))
+        lines.push(`${who} moves in lockstep: ${s.together} of ${s.actions} group actions within 1 s of a party mate.`);
+    }
+  }
+  return lines;
+}
+function renderBotActivityGaps(container, data) {
+  const block = document.createElement('div'); block.className = 'bot-gaps';
+  const heading = document.createElement('h4'); heading.textContent = 'Proven gaps in the loaded exports';
+  const note = document.createElement('p'); note.className = 'muted';
+  note.textContent = 'Measured from timestamps in the offline exports below. A bot that is not listed is not proven human-like; it only shows no gap these measures can see.';
+  const lines = botActivityGapLines(data);
+  const list = document.createElement('ul');
+  lines.slice(0, botActivityGapLimit).forEach(text => { const li = document.createElement('li'); li.textContent = text.slice(0, 500); list.append(li); });
+  if (lines.length > botActivityGapLimit) { const more = document.createElement('li'); more.textContent = `${lines.length - botActivityGapLimit} more not shown.`; list.append(more); }
+  if (!lines.length) { const none = document.createElement('li'); none.textContent = 'None found in the loaded exports.'; list.append(none); }
+  block.append(heading, note, list);
+  container.append(block);
+}
 function renderBotActivityOthers(data) {
   const container = document.getElementById('bot-activity-sources');
   container.replaceChildren();
+  if (Array.isArray(data?.sources)) renderBotActivityGaps(container, data);
   if (Array.isArray(data?.sources)) {
     const unknown = data.sources.filter(entry => !plainObject(entry) || !botActivitySourceIds.includes(entry.id)).length;
     if (unknown) item(container, 'Unrecognized sources not shown', `${unknown} source entries have an id this page does not render.`, 'Nothing from them is shown.');
