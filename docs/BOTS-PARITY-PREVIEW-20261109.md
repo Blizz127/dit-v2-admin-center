@@ -157,3 +157,21 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-f20cd9
 **Checks:** full Python suite OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview 49d6f942 (source b3b6c8d)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-49d6f942**. Readback at **2026-11-09T11:26:38Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 391732 | `49d6f942928be7f9fbb90b3a3da4c92cda3e805530b0bc76c9f59f1d1e402747` | 600 |
+| READ-ME-FIRST.txt | 892 | `ea3965294a88bab375dcad09a506730d55a4a02f534b132a9d4deb2abee5a4a5` | 600 |
+
+**Change:**
+- The importer reads the J0a/J0b lines (profile, advice, gate notices).
+- FFXI LSB p-12 is now Built: the seam is staged, not live, and its flag is off.
+- The p-03 evidence notes that J0a is staged.
+
+**Checks:** full Python suite OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
+
+**Rollback:** remove only that folder.
