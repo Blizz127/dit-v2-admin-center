@@ -572,3 +572,29 @@ browser and keyboard checks remain NOT RUN; no full suite rerun.
 
 **Rollback:** `b4d2c1d3` remains available. No live hub/game action or launcher/feed
 publication; only the new private preview folder was added.
+
+## Update: preview acfa9efd (source fd08f4f)
+
+Private folder **Downloads → DIT-Admin-Center-Preview-acfa9efd** on Alienware.
+Independent readback at **2026-11-09T23:54:03Z** matched hashes, sizes and mode 600:
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 546028 | `acfa9efd160b16cdd02d6c010b3efb2021250193a2b8de7e2c5499105440fb26` | 600 |
+| READ-ME-FIRST.txt | 733 | `f4f0cb2da2f2ab3d6dfbe20631e27fa908a602897d9b6faa6e885fd3b2bf41ff` | 600 |
+
+**Change:** each imported activity source displays its supplied event range in
+UTC, explicitly labeled as an offline export. Missing, invalid, reversed,
+unavailable or empty ranges show Unknown. Strict calendar validation refuses
+normalized invalid dates, and range ordering preserves microsecond precision.
+No current timestamp or live freshness is inferred. Readers and release-k data
+are unchanged; older sources without range metadata remain Unknown.
+
+**Checks:** focused bot-activity JavaScript checks pass, including six valid and
+30 missing/malformed range cases. The exact delivered preview passes all 177
+simulated-DOM startup assertions (construction 549 ms, completion wait
+4,695 ms), zero transport attempts. Native browser rendering and keyboard
+checks remain NOT RUN; no full suite or live game/hub changes.
+
+**Rollback:** preceding preview `bb887867` remains available; only the new
+private folder was added.
