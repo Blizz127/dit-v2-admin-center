@@ -11,6 +11,8 @@ import vanilla_botlog as vanilla
 
 FIXTURE = Path(__file__).parent / 'fixtures' / 'vanilla-botlog' / 'vanilla-bot_events-20261109T1927Z.derived.csv'
 DERIVED_SHA256 = 'ad510a009cd3a44af973eaa32654552058430fe085eab90498d83ef0cbc20210'
+RELEASE_J = FIXTURE.parent / 'vanilla-bot_events-release-j-20261109T2127Z.csv'
+RELEASE_J_SHA256 = '3e2e82b583feac2a854085acbc037bbdc6dcf755bfff4af53fcb3f6a0ce7d673'
 
 
 def row(stamp='2026-11-09 19:27:40', name='Estellene', action='AttackAnythingAction', point='POINT(1670.56 -5705.33)',
@@ -39,6 +41,7 @@ class VanillaBotlogTests(unittest.TestCase):
         self.assertEqual((coverage['pulls'], coverage['kills'], coverage['stalledBots'], coverage['stalledPulls'],
                           coverage['hearthStuck'], coverage['deaths']), (5028, 2236, 10, 1842, 305, 183))
         self.assertEqual((coverage['from'], coverage['to']), ('2026-11-09T19:27:40Z', '2026-11-09T20:52:04Z'))
+        self.assertEqual((coverage['stalledSharePct'], coverage['longestStall']), (36.6, 562))
         self.assertEqual(len(bots), vanilla.MAX_BOTS)
         worst = bots[0]  # Longest stall first.
         self.assertEqual((worst['name'], worst['pulls'], worst['kills'], worst['pullsPerKill']),
@@ -52,6 +55,34 @@ class VanillaBotlogTests(unittest.TestCase):
                          {'action': 'pull', 'gaps': 124, 'modalGapS': 5.0, 'modalCount': 78, 'modalShare': 0.629,
                           'metronomic': True})
         self.assertTrue(all(len(bot['events']) <= vanilla.MAX_EVENTS for bot in bots))
+
+    def test_release_j_run_shows_the_one_spot_loop_fixed(self):
+        # cmangos-classic export after the fix (playerbots b893cfe9, release-20261109j), 21:27:48Z-22:00:48Z, copied
+        # byte for byte (CRLF line ends; field 8 already blank on the 115 group and guild rows).
+        raw = RELEASE_J.read_bytes()
+        self.assertEqual(hashlib.sha256(raw).hexdigest(), RELEASE_J_SHA256)
+        bots, coverage = vanilla.read(str(RELEASE_J))
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['bots']), (4149, 0, 449))
+        self.assertEqual((coverage['pulls'], coverage['kills'], coverage['stalledBots'], coverage['stalledPulls'],
+                          coverage['stalledSharePct'], coverage['longestStall'], coverage['hearthStuck']),
+                         (1524, 1093, 2, 72, 4.7, 37, 89))
+        # The two runs left are other mechanisms: a burst of pull rows from one spot, and a bot that keeps walking.
+        self.assertEqual([(bot['name'], bot['stall']['pulls'], bot['stall']['target'], bot['stall']['positions'])
+                          for bot in bots[:2]],
+                         [('Uywen', 37, 'Crag Boar', 6), ('Ohny', 35, 'Burning Blade Apprentice', 35)])
+        self.assertIsNone(bots[2]['stall'])
+        # The bots stuck before the fix are free in this run.
+        rows = [vanilla._row(line.rstrip(b'\r')) for line in raw.split(b'\n') if line]
+        tohsha = [row for row in rows if row['name'] == 'Tohsha']
+        self.assertEqual((sum(row['action'] == vanilla.PULL for row in tohsha),
+                          sum(row['action'] == vanilla.KILL for row in tohsha)), (34, 25))
+
+    def test_a_loot_row_ends_a_run_like_a_kill(self):
+        rows = [row(stamp=f'2026-11-09 19:00:{i:02d}', info1='Crag Boar') for i in range(8)]
+        rows.append(row(stamp='2026-11-09 19:00:10', action='StoreLootAction', info1='Chunk of Boar Meat', info2='769'))
+        rows += [row(stamp=f'2026-11-09 19:00:{i:02d}', info1='Crag Boar') for i in range(20, 28)]
+        bot = vanilla.read(self.write(*rows))[0][0]
+        self.assertEqual((bot['pulls'], bot['kills'], bot['stall']), (16, 0, None))  # two runs of 8, not one of 16
 
     def test_a_kill_or_a_new_target_ends_a_run(self):
         rows = [row(stamp=f'2026-11-09 19:00:{i:02d}', info1='Makrura Shellhide') for i in range(12)]

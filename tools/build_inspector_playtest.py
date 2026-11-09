@@ -49,8 +49,8 @@ def bot_activity_preview():
              'Offline import of dit.bot_event.v1 JSONL (DIT_BOT_EVENT_DIR); includes AI advice rows.',
              read_bot_event, ROOT / 'tests/fixtures/bot-event-v1'),
             ('wow-vanilla-playerbots', 'WoW Vanilla / Benilla playerbots (cmangos-classic event log)',
-             'Exported cmangos-classic playerbot event CSV from the live server run of 11-09 19:27Z-20:52Z (580 bots, no humans); offline import (DIT_VANILLA_BOTLOG_CSV).',
-             read_vanilla_botlog, ROOT / 'tests/fixtures/vanilla-botlog/vanilla-bot_events-20261109T1927Z.derived.csv')):
+             'Exported cmangos-classic playerbot event CSV from the live run after the stuck re-pull fix (release-20261109j, 11-09 21:27Z-22:00Z, 449 bots, no humans). Before the fix, in the same 33 minutes: 6 runs of 10+ pulls with no kill (17.8% of pulls, longest 121); after: 2 (4.7%, longest 37). Offline import (DIT_VANILLA_BOTLOG_CSV).',
+             read_vanilla_botlog, ROOT / 'tests/fixtures/vanilla-botlog/vanilla-bot_events-release-j-20261109T2127Z.csv')):
         bots, coverage = read(str(path))  # Both readers take an absolute path string, not a Path.
         sources.append(dict(id=source_id, label=label, note=note, bots=bots, coverage=coverage))
     return dict(wow, sources=sources)
@@ -89,7 +89,7 @@ def source_fingerprints():
              'forever_botlog.py', 'tests/fixtures/forever-botlog/manifest.json', 'tests/fixtures/forever-botlog/bots.jsonl',
              'tests/fixtures/forever-botlog/events.jsonl', 'baseline_conformance.py', 'data/fixtures/baseline-conformance.json',
              'ffxi_botsv2_log.py', 'tests/fixtures/ffxi-botsv2/bots-v2-j1234-20261109.log', 'bot_event_v1.py', 'human_feel.py', 'vanilla_botlog.py',
-             'tests/fixtures/vanilla-botlog/vanilla-bot_events-20261109T1927Z.derived.csv',
+             'tests/fixtures/vanilla-botlog/vanilla-bot_events-release-j-20261109T2127Z.csv',
              'tests/fixtures/bot-event-v1/EXAMPLES.jsonl')
     return {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in paths}
 

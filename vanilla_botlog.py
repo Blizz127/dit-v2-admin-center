@@ -16,6 +16,9 @@ Rules enforced here:
 - A pull is an AttackAnythingAction row; a kill is an XpGainAction row. A stall is the longest run of pulls on
   one target name with no kill between them. A bot that re-pulls one mob for an hour without a kill is stuck,
   and it is the clearest non-human tell this log can show.
+- A run ends on an XpGainAction or a StoreLootAction row (a mob too low to give xp still drops loot) or on a
+  different target name. Limit: a kill that gives neither xp nor loot still reads as no kill, so a bot
+  grinding far below its level can show a run it did not have.
 - Hearthstone escapes are counted by their reason ("move long stuck", "combat long stuck").
 - Output caps: MAX_BOTS bots (longest stall first, then most rows) and MAX_EVENTS events per bot. The
   coverage totals cover every bot in the file, shown or not.
@@ -41,6 +44,8 @@ MAX_EVENTS = 25
 MAX_DEATHS = 20
 STALL_MIN = 10          # A run of this many pulls on one target with no kill is called a stall.
 PULL, KILL, HEARTH = 'AttackAnythingAction', 'XpGainAction', 'UseHearthStoneAction'
+# A loot row also proves a kill: a mob too low to give xp writes no XpGainAction, but its loot is still stored.
+KILL_SIGNALS = frozenset({KILL, 'StoreLootAction'})
 DEATHS = frozenset({'RepopAction', 'AutoReleaseSpiritAction', 'ReviveFromSpiritHealerAction'})
 # Actions whose info1 is a creature, item, quest, spell or recipe name: safe to show.
 TARGET_ACTIONS = frozenset({
@@ -99,7 +104,7 @@ def _stalls(rows):
                     runs.append(current)
                 current = {'target': row['target'], 'pulls': 1, 'start': row['moment'], 'end': row['moment'],
                            'points': {row['point']}}
-        elif row['action'] == KILL and current is not None:
+        elif row['action'] in KILL_SIGNALS and current is not None:
             runs.append(current)
             current = None
     if current is not None:
@@ -201,6 +206,8 @@ def _read(path):
     kills = sum(bot['kills'] for bot, _ in bots)
     stalled = [bot for bot, _ in bots if bot['stall'] is not None]
     stalled_pulls = sum(bot['stalledPulls'] for bot, _ in bots)
+    longest = max((bot['stall']['pulls'] for bot in stalled), default=0)
+    share = round(100 * stalled_pulls / pulls, 1) if pulls else 0.0
     hearth = sum(sum(bot['hearthStuck'].values()) for bot, _ in bots)
     deaths = sum(bot['counts'].get('Repop', 0) for bot, _ in bots)
     bots.sort(key=lambda item: (-(item[0]['stall'] or {'pulls': 0})['pulls'], -item[1], item[0]['actorId']))
@@ -209,11 +216,13 @@ def _read(path):
     reason = (f'cmangos-classic playerbot event log read offline (not live): {records} rows, {omitted} omitted '
               f'(malformed); {len(bots)} bots, showing {len(shown)} (longest stall first). Whole file: {pulls} pulls, '
               f'{kills} kills, {len(stalled)} bots with a stall of {STALL_MIN}+ pulls on one target and no kill '
-              f'({stalled_pulls} pulls), {hearth} hearthstone escapes from being stuck, {deaths} deaths. '
+              f'({stalled_pulls} pulls, {share}% of all pulls; longest run {longest}), {hearth} hearthstone escapes from '
+              f'being stuck, {deaths} deaths. '
               f'Timestamps are whole seconds, so short gaps are coarse.')
     return shown, {'status': 'Loaded', 'records': records, 'omitted': omitted, 'reason': reason, 'from': span[0],
                    'to': span[1], 'bots': len(bots), 'pulls': pulls, 'kills': kills, 'stalledBots': len(stalled),
-                   'stalledPulls': stalled_pulls, 'hearthStuck': hearth, 'deaths': deaths}
+                   'stalledPulls': stalled_pulls, 'stalledSharePct': share, 'longestStall': longest, 'hearthStuck': hearth,
+                   'deaths': deaths}
 
 
 def read(path=None):
