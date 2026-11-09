@@ -261,11 +261,11 @@
         },
         "p-05": {
           "status": "Partly live",
-          "evidence": "live: MP rest (rest shadowtail why=mp, export 2 07:39:57Z); death recovery, export 3 (sha a53acf46): dead fumika l.350, release why=solo after 30s l.366, revived at its home point l.368; tomoe l.364/371/372. Return/weak not seen."
+          "evidence": "live, export 4 (sha 4c4a1093): MP rest l.165-173, group_rest_hold l.166, party cure l.302; deaths with release and home-point revive l.401/405/408 and l.426/438/440 (also export 3). 0 unstick lines. Return/weak not seen."
         },
         "p-06": {
-          "status": "Built",
-          "evidence": "c2.10.1 frozen (72dbbf89, 1370/0 tests; c2.9.1 + mounts), armed 10:42:54Z for LSB's next idle sleep. Chocobo via botMount; mounts with the owner or for long trips, group rides together, dismounts to fight."
+          "status": "Partly live",
+          "evidence": "c2.10.1 live 11:30:54Z: mount tomoe/shadowtail/fumika why=travel 11:33:19-20Z, act rule=mount_up -> ok mount (ffxi report; export 5 due). The group rode together. Mount with the owner (why=owner) not seen yet."
         },
         "p-07": {
           "status": "Designed",

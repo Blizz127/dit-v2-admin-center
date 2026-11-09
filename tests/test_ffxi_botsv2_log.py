@@ -20,6 +20,8 @@ REAL_LINES = 382
 C28 = FIXTURE / 'bots-v2-c28-20261109.log'
 C281 = FIXTURE / 'bots-v2-c281-20261109.log'
 C281_SHA256 = 'a53acf46d5076eaaf1b83690237e4081825f2169ae6baeedf4e661139a0185cc'
+C291 = FIXTURE / 'bots-v2-c291-20261109.log'
+C291_SHA256 = '4c4a1093dedce6055e3f4e44f6cd8122cea5903cfac23b16f14e6319094b044b'
 C28_SHA256 = 'be2eea13e43c196a06bef51cc580b9a4ff2bbde6ede624eb7cb608b03a1740fc'
 
 # Expected values come from grep over REAL, not from the parser. Recipe for bot B (run with the export as FILE):
@@ -532,6 +534,24 @@ class FFXIBotsV2LogTests(unittest.TestCase):
         self.assertIn('dead fumika wait_raise=30 raisers=0 zone=119', lines[349])
         self.assertIn('revived tomoe at its home point zone=241 after 34s', lines[371])
         self.assertNotIn(b'Blizz', raw)
+
+    def test_live_c291_export_rests_dies_and_never_unsticks(self):
+        # Export 4 (ffxi handoff 2026-11-09-botsv2-log-export-4): the live c2.9.1 run, 10:29Z-11:29Z, no human online.
+        raw = C291.read_bytes()
+        self.assertEqual(hashlib.sha256(raw).hexdigest(), C291_SHA256)
+        self.assertEqual(_lines(raw), 591)
+        bots, coverage = botsv2.read(C291)
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['unrecognized'], coverage['ignored']),
+                         (591, 0, 0, 0))
+        by = {bot['name']: bot for bot in bots}
+        # grep -c "[BOTS-V2] rest B ", "[BOTS-V2] dead B ", and act ... -> ok (no repeated tails in this export)
+        self.assertEqual({n: (b['counts']['ok'], b['counts']['rest'], b['counts']['dead'], b['counts']['release'])
+                          for n, b in by.items()},
+                         {'fumika': (105, 0, 1, 1), 'shadowtail': (208, 4, 1, 1), 'tomoe': (156, 4, 1, 1)})
+        self.assertNotIn(b'rule=unstick', raw)  # the c2.9.1 'not a stall' fix: 0 unstick lines in this run
+        lines = raw.decode('ascii').splitlines()
+        self.assertIn('rest shadowtail why=mp mp=12 hp=79', lines[164])
+        self.assertIn('revived fumika at its home point zone=241 after 33s', lines[439])
 
     def test_c210_mount_lines_use_the_exact_formats(self):
         raw = b''.join([

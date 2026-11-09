@@ -49,3 +49,13 @@
   - `advice <bot> answer kind= choice= applied=yes|no why=`;
   - `advice <bot>|- drop why=unknown_id|bad_choice|expired|cap`. When the key is `-`, the line is a bot-less system notice.
 - **System lines:** `subjob off: … (gated off)` and `advice off: … (gated off)`.
+
+# Bots V2 live log export 4 (regular LSB, canary 2.9.1), 2026-11-09
+
+- `bots-v2-c291-20261109.log`: copied byte-for-byte from ffxi's handoff `2026-11-09-botsv2-log-export-4` (sha256 `4c4a1093dedce6055e3f4e44f6cd8122cea5903cfac23b16f14e6319094b044b`, 591 lines).
+- **Coverage:** the live c2.9.1 run, 11-09 10:29Z-11:29Z. No human was online, and the export has no order or levelsync lines.
+- **Content:**
+  - MP rests: 165→173, 208→213, 246→307, 330→352;
+  - two deaths with release and revive: 401/405/408 and 426/438/440;
+  - 0 unstick lines.
+- Every line is recognized. The preview builder now uses this export.

@@ -93,13 +93,14 @@ class BaselineConformanceTests(unittest.TestCase):
     def test_ffxi_lsb_parity_cells(self):
         cells = bc.read()['games'][1]['cells']
         self.assertEqual([cells[row_id]['status'] for row_id in PARITY],
-                         ['Verified live', 'Built', 'Partly live', 'Partly live', 'Partly live', 'Built',
+                         ['Verified live', 'Built', 'Partly live', 'Partly live', 'Partly live', 'Partly live',
                           'Designed', 'Built', 'Built', 'Designed', 'Built', 'Built'])
         self.assertIn('03:58:17Z', cells['p-01']['evidence'])
         self.assertIn('owned by <owner> (joined their party)', cells['p-01']['evidence'])
-        self.assertIn('rest shadowtail why=mp', cells['p-05']['evidence'])
+        self.assertIn('MP rest', cells['p-05']['evidence'])
         self.assertIn('inert', cells['p-09']['evidence'])
-        self.assertIn('a53acf46', cells['p-05']['evidence'])
+        self.assertIn('4c4a1093', cells['p-05']['evidence'])
+        self.assertIn('why=travel', cells['p-06']['evidence'])
         self.assertNotIn('Blizz', bc.FIXTURE.read_text())  # the owner name is masked in the export and the tracker
         self.assertTrue(all(cells[k] == UNKNOWN for k in cells if k not in PARITY))
 
