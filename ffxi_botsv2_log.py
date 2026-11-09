@@ -13,6 +13,9 @@ Rules enforced here:
   producer suppressed. The per-bot counts add N+1; the event's repeated field keeps N (a plain line keeps 1).
 - counts.stuck counts 'stuck' lines. A trip end tagged why=stuck is counted as tripEnd and keeps its reason.
 - revived lines are events only; they are not in any count.
+- c2.9 order lines ('order <bot> verb=... by=... channel=...') count as party, like the older form. by= must be the
+  masked owner; a focusheal arg that is not '<owner>' is shown as '<member>'. levelsync lines are events counted as
+  other.
 - counts.rest counts rest starts ('rest <bot> why=...'); a 'rest end' line is an event only.
 - Lua's '%%' escape is unescaped to '%'. Output is printable ASCII; any other line is omitted.
 - The owner is '<owner>' only. A line that names anyone else in an owner or speaker role is omitted, so no
@@ -59,6 +62,7 @@ _SYSTEM = tuple(re.compile(pattern) for pattern in (
     r'tell orders wired( .*)?',
     r'off \(BANSHEE_BOTS_V2=0\): .+',
     r'tick host live in zone \d{1,6}',
+    r'levelsync off: entity:levelRestriction is not bound \(gated off\)',
     r'zone \d{1,6} has no known script name: no host',
     r'BANSHEE_BOTS_V2_ACTORS=all is refused in increment 1; .+',
     r'field_excursion is on without the V2 ownership skip \(fieldExcursionV2Aware unset\): V2 drives nothing',
@@ -234,14 +238,47 @@ def _stuck(body):
 
 
 _ORDER = re.compile(r'order ([a-z_]{1,32}) from (\S+) -> ' + _BOT)
+# c2.9 (banshee_bots_v2.lua:1426): 'order %s verb=%s%s by=%s channel=%s', the middle %s being '' or ' arg=<arg>'.
+_ORDER_C29 = re.compile(r'order ' + _BOT + r' verb=([a-z_]{1,32})(?: arg=(\S{1,64}))? by=(\S+) channel=([a-z_]{1,16})')
+# focusheal's arg is a party member's name, which may be a human: only the masked owner is shown.
+_NAME_ARG_VERBS = frozenset({'focusheal'})
 
 
 def _order(body):
     match = _ORDER.fullmatch(body)
+    if match:
+        _owner(match.group(2))
+        return _part([_bot(match.group(3))], 'party', count='party', reason=match.group(1), detail=f'from={OWNER}')
+    match = _ORDER_C29.fullmatch(body)
     if match is None:
         raise _Malformed('order')
-    _owner(match.group(2))
-    return _part([_bot(match.group(3))], 'party', count='party', reason=match.group(1), detail=f'from={OWNER}')
+    _owner(match.group(4))
+    verb, arg = match.group(2), match.group(3)
+    if arg is not None and verb in _NAME_ARG_VERBS and arg not in (OWNER, 'off'):
+        arg = '<member>'
+    detail = (f'arg={arg} ' if arg is not None else '') + f'by={OWNER} channel={match.group(5)}'
+    return _part([_bot(match.group(1))], 'party', count='party', reason=verb, detail=detail)
+
+
+# c2.9 level sync (banshee_bots_v2.lua and exec E.revertSync). Events only, counted as other.
+_LEVELSYNC_ON = re.compile(r'levelsync ' + _BOT + r' to=(\d{1,3}) from=(\d{1,3})')
+_LEVELSYNC_EXTERNAL = re.compile(r'levelsync ' + _BOT + r' off why=external cur=(-?\d{1,3})')
+_LEVELSYNC_OFF = re.compile(r'levelsync ' + _BOT + r' off why=([a-z_]{1,32})')
+
+
+def _levelsync(body):
+    match = _LEVELSYNC_ON.fullmatch(body)
+    if match:
+        return _part([_bot(match.group(1))], 'levelsync', count='other', reason='on',
+                     detail=f'to={match.group(2)} from={match.group(3)}')
+    match = _LEVELSYNC_EXTERNAL.fullmatch(body)
+    if match:
+        return _part([_bot(match.group(1))], 'levelsync', count='other', reason='off_external',
+                     detail=f'cur={match.group(2)}')
+    match = _LEVELSYNC_OFF.fullmatch(body)
+    if match:
+        return _part([_bot(match.group(1))], 'levelsync', count='other', reason='off', detail=f'why={match.group(2)}')
+    raise _Malformed('levelsync')
 
 
 _NOT_HOSTED = re.compile(r'owned bot ' + _BOT + r' is in zone (\d{1,6}), which has no V2 tick host: not driven')
@@ -443,6 +480,7 @@ _RULES = (
     (re.compile(r'zone danger '), _zone_danger),
     (re.compile(r'stuck '), _stuck),
     (re.compile(r'order '), _order),
+    (re.compile(r'levelsync (?!off: )'), _levelsync),
     (re.compile(r'owned bot '), _not_hosted),
     (re.compile(r'refuse '), _refuse),
     (re.compile(r'\S+: owner '), _owner_left),

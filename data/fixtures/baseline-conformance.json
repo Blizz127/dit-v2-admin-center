@@ -273,11 +273,11 @@
         },
         "p-08": {
           "status": "Built",
-          "evidence": "/party verbs follow, stay, resume, come, assist, attack, pull, rest, dismiss are wired; the in-game check is pending (ffxi handoff 2026-11-09-botsv2-parity-notes/PARITY-NOTES.md item 6) and the export has no owner-order line. Stances/focus/formation c2.9."
+          "evidence": "c2.8 /party verbs wired; c2.9 (frozen, 1254/0 tests, armed for LSB's next idle sleep) adds hold, flee, focus, focusheal, stance, savemp, burst, rally, camp/roles/distance. No owner-order line seen live yet."
         },
         "p-09": {
-          "status": "Designed",
-          "evidence": "owner chose temporary raise to inviter level, never saved (after J1, DIT review)."
+          "status": "Built",
+          "evidence": "c2.9 down-only level sync built (levelsync lines), inert at current levels (owner 94, bots ~25). The owner's choice, a temporary raise in his party, is the later guarded C++ step."
         },
         "p-10": {
           "status": "Designed",

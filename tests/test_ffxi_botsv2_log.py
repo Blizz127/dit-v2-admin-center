@@ -448,6 +448,51 @@ class FFXIBotsV2LogTests(unittest.TestCase):
         self.assertEqual([e['type'] for e in reversed(by['nalu']['events'])], ['rest', 'restEnd'])
         self.assertEqual(by['end']['counts']['rest'], 1)
 
+    def test_c29_order_and_levelsync_use_the_exact_formats(self):
+        # Templates from ffxi handoff 2026-11-09-botsv2-c2.9-frozen (banshee_bots_v2.lua:781/788/816/821/1426).
+        raw = b''.join([
+            self.line('order nalu verb=stance arg=defensive by=<owner> channel=party', stamp='11/09/26 10:30:00:000'),
+            self.line('order nalu verb=rally by=<owner> channel=tell', stamp='11/09/26 10:30:01:000'),
+            self.line('order nalu verb=focusheal arg=Bobby by=<owner> channel=party', stamp='11/09/26 10:30:02:000'),
+            self.line('order nalu verb=focusheal arg=<owner> by=<owner> channel=party', stamp='11/09/26 10:30:03:000'),
+            self.line('order follow from <owner> -> nalu', stamp='11/09/26 10:30:04:000'),
+            self.line('order nalu verb=focusheal arg=off by=<owner> channel=tell', stamp='11/09/26 10:30:04:500'),
+            self.line('levelsync nalu to=20 from=26', stamp='11/09/26 10:30:05:000'),
+            self.line('levelsync nalu off why=left_party', stamp='11/09/26 10:30:06:000'),
+            self.line('levelsync nalu off why=external cur=20', stamp='11/09/26 10:30:07:000'),
+            self.line('levelsync off: entity:levelRestriction is not bound (gated off)', stamp='11/09/26 10:30:08:000'),
+            self.line('act nalu rule=order_flee apl=- op=path -> ok path', stamp='11/09/26 10:30:09:000'),
+            self.line('defend nalu hp=90pct attacker=Goblin_Ambusher lv17 why=passive_to_owner',
+                      stamp='11/09/26 10:30:10:000'),
+        ])
+        bots, coverage = botsv2.read(self.write('c29.log', raw))
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['unrecognized'], coverage['system']),
+                         (12, 0, 0, 1))
+        nalu = bots[0]
+        self.assertEqual((nalu['counts']['party'], nalu['counts']['other'], nalu['counts']['ok'],
+                          nalu['counts']['defend']), (6, 3, 1, 1))
+        chronological = list(reversed(nalu['events']))
+        self.assertEqual([(e['reason'], e['detail']) for e in chronological if e['type'] == 'party'],
+                         [('stance', 'arg=defensive by=<owner> channel=party'), ('rally', 'by=<owner> channel=tell'),
+                          ('focusheal', 'arg=<member> by=<owner> channel=party'),
+                          ('focusheal', 'arg=<owner> by=<owner> channel=party'), ('follow', 'from=<owner>'),
+                          ('focusheal', 'arg=off by=<owner> channel=tell')])
+        self.assertEqual([(e['reason'], e['detail']) for e in chronological if e['type'] == 'levelsync'],
+                         [('on', 'to=20 from=26'), ('off', 'why=left_party'), ('off_external', 'cur=20')])
+        self.assertNotIn('Bobby', json.dumps(bots))
+
+    def test_c29_near_misses_are_omitted_not_guessed(self):
+        cases = ['order nalu verb=hold by=Bobby channel=party',          # by= is not the masked owner
+                 'order nalu verb=hold channel=party',                   # no by=
+                 'order nalu verb=hold by=<owner>',                      # no channel=
+                 'order nalu verb=Stance by=<owner> channel=party',      # verb is not lower case
+                 'levelsync nalu to=20',                                 # no from=
+                 'levelsync nalu off',                                   # no why=
+                 'levelsync nalu to=x from=26']                          # not digits
+        for body in cases:
+            with self.subTest(body=body):
+                self.assertEqual(botsv2._line(self.line(body).rstrip(b'\n'), 1)[0], 'omitted')
+
     def test_c28_near_misses_are_omitted_not_guessed(self):
         cases = ['release nalu zone=119 after 30s',        # no why=
                  'release nalu why=x zone=119',             # no after

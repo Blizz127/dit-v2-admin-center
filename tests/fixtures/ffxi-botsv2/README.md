@@ -15,3 +15,12 @@
 - **Confirmed live:** the c2.8 `rest` / `rest end` formats (V.restLog in banshee_bots_v2.lua). The importer recognizes every bot line in this export.
 - **Still provisional:** dead / release / return / weak. No bot died in this run, so those formats are still unconfirmed against a live line.
 - The private preview builder now uses this export for the FFXI activity section.
+
+# c2.9 formats (not live yet)
+
+- From ffxi's frozen c2.9 code (handoff `2026-11-09-botsv2-c2.9-frozen`, banshee_bots_v2.lua:781/788/816/821/1426 and exec E.revertSync). Covered by synthetic tests only, until a live export exists.
+- **Order line:** `order <bot> verb=<v>[ arg=<a>] by=<speaker> channel=<c>`.
+  - `by=` must be `<owner>`, or the line is omitted.
+  - A focusheal `arg` other than `<owner>` or `off` is shown as `<member>`, because it can be a human name.
+- **Level sync lines:** `levelsync <bot> to=N from=N`, `levelsync <bot> off why=<w>`, `levelsync <bot> off why=external cur=N`. These are events.
+- **System line:** `levelsync off: entity:levelRestriction is not bound (gated off)`. It carries no bot name.
