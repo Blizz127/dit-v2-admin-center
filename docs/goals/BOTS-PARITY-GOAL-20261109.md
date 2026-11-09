@@ -134,7 +134,7 @@ It builds on the live Python server (c30) first; Rust sw-squad mirrors it.
 
 - **FFXI level:** temporary raise to the inviter's level, never saved (option B).
 - **FFXI Forever:**
-  - era-correct: rented chocobo, later content hidden, raise capped at 60;
+  - era-correct: rented chocobo; raise capped at 60; base-era features stay (two-hour abilities, Signet/conquest); only later content is hidden (SP2-style abilities, Fields of Valor, Sanction/Sigil, survival guides);
   - camp zone West Sarutabaruta;
   - the party is WAR, WHM, BLM, MNK and THF around the owner's RDM;
   - go on the population socket and the DIT driver.

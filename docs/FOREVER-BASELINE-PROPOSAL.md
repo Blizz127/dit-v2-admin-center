@@ -457,3 +457,9 @@ The fix is canary c2.8a, queued before MP rest.
 - **Driver work:** owner-party mode in hub branch `feat/forever-owner-party-20261109` (`fe3c7c24`).
 
 **WoW Forever:** `trinitycore-forever` built the Karrz 0.1.33 bots candidate (`8609da55023`, all bot tests pass, 9 DIT commits carried). It is not deployed. Owner task `c74bdf770f95` ("update forever bots too") is queued for `codex-trinitycore-forever`, which owns the deploy.
+
+**Correction (2026-11-09).** My era question to the owner wrongly listed Signet and two-hour abilities as later content. The owner's answer was "Yes, keep Forever era-correct". Under that rule:
+- **Stay, for bots and humans:** Signet (launch-era conquest) and base-job two-hour abilities.
+- **Hidden:** SP2-style later abilities, Fields of Valor, Sanction/Sigil and survival guides.
+
+`ffxi-platform` corrected its plan in `ab38936`.
