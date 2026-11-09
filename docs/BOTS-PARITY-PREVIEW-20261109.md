@@ -211,3 +211,20 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-b1bc2e
 **Checks:** full Python suite OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview 61035a76 (source 8af41da)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-61035a76**. Readback at **2026-11-09T13:22:29Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 414013 | `61035a7642e9822d40f64c718f78c89773102bcdc1bea4162c233970293679ab` | 600 |
+| READ-ME-FIRST.txt | 644 | `2278af14775925a995c4c2b28d6a450d85d265221b81459909d227572685f5a0` | 600 |
+
+**Change:**
+- FFXI LSB p-03 cites the first live sub-job move: `apl=sub_nuke` Aero at 12:50:01Z (ffxi report; export 6 due).
+- The J1-J3 batch (2267/0) is armed. Its log templates are unchanged from J0b, confirmed by diffing the frozen trees.
+
+**Checks:** full Python suite OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
+
+**Rollback:** remove only that folder.
