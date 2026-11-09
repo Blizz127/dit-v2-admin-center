@@ -24,3 +24,17 @@
   - A focusheal `arg` other than `<owner>` or `off` is shown as `<member>`, because it can be a human name.
 - **Level sync lines:** `levelsync <bot> to=N from=N`, `levelsync <bot> off why=<w>`, `levelsync <bot> off why=external cur=N`. These are events.
 - **System line:** `levelsync off: entity:levelRestriction is not bound (gated off)`. It carries no bot name.
+
+# Bots V2 live log export 3 (regular LSB, canary 2.8.1), 2026-11-09
+
+- `bots-v2-c281-20261109.log`: copied byte-for-byte from ffxi's handoff `2026-11-09-botsv2-log-export-3` (sha256 `a53acf46d5076eaaf1b83690237e4081825f2169ae6baeedf4e661139a0185cc`, 436 lines).
+- **Coverage:** the live c2.8.1 run, 11-09 09:26:44Z-10:27:21Z. No human was online.
+- **Content:** it has the first live deaths: dead (lines 350, 364), release (366, 371) and revived at the home point (368, 372). Every line is recognized.
+- The private preview builder now uses this export.
+
+# c2.10 formats (mounts; frozen, not live)
+
+- Source: ffxi handoff `2026-11-09-botsv2-c2.10-frozen` (banshee_bots_v2_exec.lua:59/300/309, banshee_bots_v2.lua:780/803/814).
+- **Bot lines:** `mount <bot> why=<w>`, `dismount <bot> why=<w>`, `mount_blocked <bot> why=no_key_item ki=<n> (V2 grants none)`.
+- **System line:** `mount_gate off: entity:botMount is not bound (gated off)`.
+- These are covered by synthetic tests only.

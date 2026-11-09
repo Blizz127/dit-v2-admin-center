@@ -253,7 +253,7 @@
         },
         "p-03": {
           "status": "Partly live",
-          "evidence": "live: WHM dia/paralyze/banish, critical_cure; THF steal, sneak_attack, weapon_skill wsId=18; BLM nuke spellId=160 (export 2 and ffxi report 11-09 10:07-10:08Z). 22-job kits planned J0-J4."
+          "evidence": "live: WHM dia/paralyze/banish (export 2), critical_cure (export 3 l.188); THF steal (export 2), sneak_attack l.332, weapon_skill wsId=18 l.335; BLM nuke spellId=160 l.356. 22-job kits planned J0-J4."
         },
         "p-04": {
           "status": "Partly live",
@@ -261,11 +261,11 @@
         },
         "p-05": {
           "status": "Partly live",
-          "evidence": "live: MP rest (rest shadowtail why=mp 07:39:57Z, export 2); death+release+revive (dead fumika wait_raise=30 10:08:42Z, release why=solo, revived at its home point 10:09:15Z; tomoe too), ffxi report, export 3 due. Return/weak not seen."
+          "evidence": "live: MP rest (rest shadowtail why=mp, export 2 07:39:57Z); death recovery, export 3 (sha a53acf46): dead fumika l.350, release why=solo after 30s l.366, revived at its home point l.368; tomoe l.364/371/372. Return/weak not seen."
         },
         "p-06": {
-          "status": "Designed",
-          "evidence": "c2.10 chocobo for every bot."
+          "status": "Built",
+          "evidence": "c2.10 (frozen, 1305/0 tests, not installed): chocobo via botMount; mounts with the owner or for long trips, the group rides together; dismounts to fight, on hold, at camp. Live bots already hold the chocobo key item."
         },
         "p-07": {
           "status": "Designed",

@@ -18,6 +18,8 @@ SYNTHETIC = FIXTURE / 'synthetic-edge-cases.log'
 REAL_SHA256 = 'b11459411b1062573eca7beb2cacb19d7031fe60e1e39b1247df54df194647bb'
 REAL_LINES = 382
 C28 = FIXTURE / 'bots-v2-c28-20261109.log'
+C281 = FIXTURE / 'bots-v2-c281-20261109.log'
+C281_SHA256 = 'a53acf46d5076eaaf1b83690237e4081825f2169ae6baeedf4e661139a0185cc'
 C28_SHA256 = 'be2eea13e43c196a06bef51cc580b9a4ff2bbde6ede624eb7cb608b03a1740fc'
 
 # Expected values come from grep over REAL, not from the parser. Recipe for bot B (run with the export as FILE):
@@ -33,11 +35,11 @@ C28_SHA256 = 'be2eea13e43c196a06bef51cc580b9a4ff2bbde6ede624eb7cb608b03a1740fc'
 #   events    every bot line naming B: act, defend, owns, trip, no trip, zone danger, owner lines, trip start group
 REAL_COUNTS = {
     'fumika': {'ok': 109, 'refused': 10, 'defend': 3, 'tripStart': 1, 'tripEnd': 2, 'noTrip': 1, 'stuck': 0,
-               'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'rest': 0, 'party': 5, 'other': 2},
+               'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'rest': 0, 'mount': 0, 'party': 5, 'other': 2},
     'shadowtail': {'ok': 64, 'refused': 1, 'defend': 1, 'tripStart': 1, 'tripEnd': 2, 'noTrip': 2, 'stuck': 0,
-                   'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'rest': 0, 'party': 6, 'other': 2},
+                   'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'rest': 0, 'mount': 0, 'party': 6, 'other': 2},
     'tomoe': {'ok': 90, 'refused': 1, 'defend': 2, 'tripStart': 1, 'tripEnd': 2, 'noTrip': 1, 'stuck': 0,
-              'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'rest': 0, 'party': 0, 'other': 3},
+              'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'rest': 0, 'mount': 0, 'party': 0, 'other': 3},
 }
 REAL_EVENTS = {'fumika': 127, 'shadowtail': 79, 'tomoe': 100}
 REAL_REFUSALS = {'fumika': 4, 'shadowtail': 1, 'tomoe': 1}
@@ -185,10 +187,10 @@ class FFXIBotsV2LogTests(unittest.TestCase):
         # refused: line 4 is 1 + 6, line 5 is 1 + 1, so 9. defend: line 7 is 1 + 3, so 4.
         self.assertEqual(nalu['counts'], {'ok': 2, 'refused': 9, 'defend': 4, 'tripStart': 1, 'tripEnd': 1,
                                           'noTrip': 0, 'stuck': 3, 'dead': 1, 'release': 1, 'return': 1,
-                                          'weak': 0, 'rest': 0, 'party': 2, 'other': 4})
+                                          'weak': 0, 'rest': 0, 'mount': 0, 'party': 2, 'other': 4})
         self.assertEqual(pell['counts'], {'ok': 0, 'refused': 1, 'defend': 1, 'tripStart': 1, 'tripEnd': 0,
                                           'noTrip': 1, 'stuck': 0, 'dead': 0, 'release': 0, 'return': 0,
-                                          'weak': 1, 'rest': 0, 'party': 3, 'other': 4})
+                                          'weak': 1, 'rest': 0, 'mount': 0, 'party': 3, 'other': 4})
         self.assertEqual((nalu['charId'], nalu['zoneId']), (2001, 119))
         self.assertEqual((pell['charId'], pell['zoneId']), (None, 300))
         self.assertEqual(len(nalu['events']), 19)
@@ -403,7 +405,7 @@ class FFXIBotsV2LogTests(unittest.TestCase):
         self.assertEqual((coverage['records'], coverage['omitted'], coverage['unrecognized']), (9, 0, 0))
         nalu = bots[0]
         self.assertEqual(nalu['counts'], {'ok': 0, 'refused': 0, 'defend': 0, 'tripStart': 0, 'tripEnd': 0,
-                                          'noTrip': 0, 'stuck': 0, 'dead': 1, 'release': 2, 'return': 3, 'weak': 1, 'rest': 0,
+                                          'noTrip': 0, 'stuck': 0, 'dead': 1, 'release': 2, 'return': 3, 'weak': 1, 'rest': 0, 'mount': 0,
                                           'party': 0, 'other': 0})
         chronological = list(reversed(nalu['events']))
         self.assertEqual([e['type'] for e in chronological],
@@ -513,6 +515,43 @@ class FFXIBotsV2LogTests(unittest.TestCase):
         self.assertEqual([(e['type'], e['reason']) for e in reversed(by['tomoe']['events'])],
                          [('dead', None), ('release', 'solo'), ('revived', 'home_point')])
         self.assertEqual(by['fumika']['zoneId'], 241)
+
+    def test_live_c281_export_has_the_death_recovery(self):
+        # Export 3 (ffxi handoff 2026-11-09-botsv2-log-export-3): the live c2.8.1 run, 09:26Z-10:27Z, no human online.
+        raw = C281.read_bytes()
+        self.assertEqual(hashlib.sha256(raw).hexdigest(), C281_SHA256)
+        self.assertEqual(_lines(raw), 436)
+        bots, coverage = botsv2.read(C281)
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['unrecognized'], coverage['ignored']),
+                         (436, 0, 0, 0))
+        by = {bot['name']: bot for bot in bots}
+        # grep "[BOTS-V2] act B " FILE | grep -c -- "-> ok "; grep -c "[BOTS-V2] dead B "; grep -c "[BOTS-V2] release B "
+        self.assertEqual({n: (b['counts']['ok'], b['counts']['dead'], b['counts']['release']) for n, b in by.items()},
+                         {'fumika': (89, 1, 1), 'shadowtail': (119, 0, 0), 'tomoe': (126, 1, 1)})
+        lines = raw.decode('ascii').splitlines()
+        self.assertIn('dead fumika wait_raise=30 raisers=0 zone=119', lines[349])
+        self.assertIn('revived tomoe at its home point zone=241 after 34s', lines[371])
+        self.assertNotIn(b'Blizz', raw)
+
+    def test_c210_mount_lines_use_the_exact_formats(self):
+        raw = b''.join([
+            self.line('mount nalu why=owner', stamp='11/09/26 11:00:00:000'),
+            self.line('dismount nalu why=combat', stamp='11/09/26 11:00:01:000'),
+            self.line('mount nalu why=native', stamp='11/09/26 11:00:02:000'),
+            self.line('mount_blocked nalu why=no_key_item ki=3072 (V2 grants none)', stamp='11/09/26 11:00:03:000'),
+            self.line('mount_gate off: entity:botMount is not bound (gated off)', stamp='11/09/26 11:00:04:000'),
+            self.line('act nalu rule=mount_up apl=- op=mount reason=travel -> ok mount', stamp='11/09/26 11:00:05:000'),
+            self.line('mount nalu', stamp='11/09/26 11:00:06:000'),                             # no why=
+            self.line('mount_blocked nalu why=no_key_item ki=3072', stamp='11/09/26 11:00:07:000'),  # no tail
+        ])
+        bots, coverage = botsv2.read(self.write('c210.log', raw))
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['unrecognized'], coverage['system']),
+                         (6, 2, 0, 1))
+        nalu = bots[0]
+        self.assertEqual((nalu['counts']['mount'], nalu['counts']['other'], nalu['counts']['ok']), (2, 1, 1))
+        self.assertEqual([(e['type'], e['reason']) for e in reversed(nalu['events'])],
+                         [('mount', 'owner'), ('dismount', 'combat'), ('mount', 'native'),
+                          ('mountBlocked', 'no_key_item'), ('act', 'mount')])
 
     def test_c28_near_misses_are_omitted_not_guessed(self):
         cases = ['release nalu zone=119 after 30s',        # no why=

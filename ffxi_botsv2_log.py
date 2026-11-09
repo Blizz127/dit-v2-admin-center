@@ -16,6 +16,7 @@ Rules enforced here:
 - c2.9 order lines ('order <bot> verb=... by=... channel=...') count as party, like the older form. by= must be the
   masked owner; a focusheal arg that is not '<owner>' is shown as '<member>'. levelsync lines are events counted as
   other.
+- counts.mount counts 'mount <bot> why=' lines; dismount lines are events only; mount_blocked counts as other.
 - counts.rest counts rest starts ('rest <bot> why=...'); a 'rest end' line is an event only.
 - Lua's '%%' escape is unescaped to '%'. Output is printable ASCII; any other line is omitted.
 - The owner is '<owner>' only. A line that names anyone else in an owner or speaker role is omitted, so no
@@ -41,7 +42,7 @@ MAX_REFUSALS = 50
 MAX_DEATHS = 50
 OWNER = '<owner>'
 COUNT_KEYS = ('ok', 'refused', 'defend', 'tripStart', 'tripEnd', 'noTrip', 'stuck', 'dead', 'release', 'return',
-              'weak', 'rest', 'party', 'other')
+              'weak', 'rest', 'mount', 'party', 'other')
 
 _BOT = r'([A-Za-z][A-Za-z0-9_]{0,23})'
 _BOT_NAME = re.compile(r'[A-Za-z][A-Za-z0-9_]{0,23}')
@@ -63,6 +64,7 @@ _SYSTEM = tuple(re.compile(pattern) for pattern in (
     r'off \(BANSHEE_BOTS_V2=0\): .+',
     r'tick host live in zone \d{1,6}',
     r'levelsync off: entity:levelRestriction is not bound \(gated off\)',
+    r'mount_gate off: entity:botMount is not bound \(gated off\)',
     r'zone \d{1,6} has no known script name: no host',
     r'BANSHEE_BOTS_V2_ACTORS=all is refused in increment 1; .+',
     r'field_excursion is on without the V2 ownership skip \(fieldExcursionV2Aware unset\): V2 drives nothing',
@@ -463,6 +465,28 @@ def _rest(body):
     raise _Malformed('rest')
 
 
+# c2.10 mounts (banshee_bots_v2_exec.lua:59/300/309, banshee_bots_v2.lua:780/803/814).
+_MOUNT = re.compile(r'(mount|dismount) ' + _BOT + r' why=([a-z_]{1,32})')
+_MOUNT_BLOCKED = re.compile(r'mount_blocked ' + _BOT + r' why=([a-z_]{1,32}) ki=(\d{1,6}) \(V2 grants none\)')
+
+
+def _mount(body):
+    match = _MOUNT.fullmatch(body)
+    if match is None:
+        raise _Malformed('mount')
+    mounting = match.group(1) == 'mount'
+    return _part([_bot(match.group(2))], 'mount' if mounting else 'dismount', count='mount' if mounting else None,
+                 reason=match.group(3))
+
+
+def _mount_blocked(body):
+    match = _MOUNT_BLOCKED.fullmatch(body)
+    if match is None:
+        raise _Malformed('mount blocked')
+    return _part([_bot(match.group(1))], 'mountBlocked', count='other', reason=match.group(2),
+                 detail=f'ki={match.group(3)}')
+
+
 def _budget(body):
     if _BUDGET.fullmatch(body) is None:
         raise _Malformed('budget')
@@ -496,6 +520,8 @@ _RULES = (
     (re.compile(r'return '), _return),
     (re.compile(r'revived '), _revived),
     (re.compile(r'rest '), _rest),
+    (re.compile(r'(?:mount|dismount) '), _mount),
+    (re.compile(r'mount_blocked '), _mount_blocked),
     (re.compile(r'budget '), _budget),
 )
 

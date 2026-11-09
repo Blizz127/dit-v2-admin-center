@@ -42,8 +42,8 @@ def bot_activity_preview():
     ]
     for source_id, label, note, read, path in (
             ('ffxi-lsb', 'FFXI (LSB) Bots V2 log export',
-             'Exported [BOTS-V2] map-log lines from the live c2.8 run (11-09 07:15Z-08:13Z, no human online); offline import (DIT_FFXI_BOTSV2_LOG).',
-             read_ffxi_botsv2, ROOT / 'tests/fixtures/ffxi-botsv2/bots-v2-c28-20261109.log'),
+             'Exported [BOTS-V2] map-log lines from the live c2.8.1 run (11-09 09:26Z-10:27Z, no human online, includes two deaths and releases); offline import (DIT_FFXI_BOTSV2_LOG).',
+             read_ffxi_botsv2, ROOT / 'tests/fixtures/ffxi-botsv2/bots-v2-c281-20261109.log'),
             ('dit-bot-event-v1', 'DIT bot_event v1 (SWTOR, FFXI Forever, other DIT games)',
              'Offline import of dit.bot_event.v1 JSONL (DIT_BOT_EVENT_DIR); includes AI advice rows.',
              read_bot_event, ROOT / 'tests/fixtures/bot-event-v1')):
@@ -84,7 +84,7 @@ def source_fingerprints():
              'tools/inspector_playtest.js', 'tools/preview_progress.js', 'tools/assignment_keyboard_playtest.js', 'tools/build_inspector_playtest.py',
              'forever_botlog.py', 'tests/fixtures/forever-botlog/manifest.json', 'tests/fixtures/forever-botlog/bots.jsonl',
              'tests/fixtures/forever-botlog/events.jsonl', 'baseline_conformance.py', 'data/fixtures/baseline-conformance.json',
-             'ffxi_botsv2_log.py', 'tests/fixtures/ffxi-botsv2/bots-v2-c28-20261109.log', 'bot_event_v1.py',
+             'ffxi_botsv2_log.py', 'tests/fixtures/ffxi-botsv2/bots-v2-c281-20261109.log', 'bot_event_v1.py',
              'tests/fixtures/bot-event-v1/EXAMPLES.jsonl')
     return {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in paths}
 
