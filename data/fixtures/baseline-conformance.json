@@ -127,7 +127,7 @@
       "cells": {
         "forever-01": {
           "status": "Reference",
-          "evidence": "Karrz WoW Forever Bots v0.1.33 PlayerbotV2 (source zip sha256 8ed3810b, owner 2026-11-09: baseline for all bots); live 70790 tree c4ab28a47c7 = ~0.1.31 + 9 DIT commits. Other rows not yet assessed."
+          "evidence": "Karrz WoW Forever Bots v0.1.33 PlayerbotV2 (source zip sha256 8ed3810b, owner 2026-11-09: baseline for all bots); live 70790 tree c4ab28a47c7 = 0.1.29.1 + 9 DIT commits (0.1.33 port in progress). Other rows not yet assessed."
         }
       }
     },

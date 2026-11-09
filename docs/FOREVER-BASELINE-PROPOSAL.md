@@ -368,3 +368,9 @@ The hub has adapters for eve_online, marvel_heroes, minecraft, monster_hunter_fr
   The owner chose **B: temporarily raise bots to the inviter's level while in the party**, after being told it is not native and needs a guarded C++ path so the level is never saved, plus a 94-level kit and a DIT BotSessionManager review. This replaces the earlier "level sync to inviter" answer.
 - **Live report:** the owner said Fumika appeared stalled. It was passed to `ffxi`.
 - **Parity notes for ffxi-platform:** `~/dev/ffxi/handoffs/2026-11-09-botsv2-parity-notes/PARITY-NOTES.md` (written by ffxi; read-only reference).
+
+**Correction from `trinitycore-forever` (2026-11-09).**
+- The live PlayerbotV2 matches Karrz **0.1.29.1**, not 0.1.31. On CRLF-normalized files it differs from 0.1.29.1 in 19 module files and from 0.1.31 in 68. Its only 0.1.31 content is the Heating Up cherry-pick `4a8ea5d53c4`.
+- The port from 0.1.29.1 to 0.1.33 is in progress on `integration/forever-70790-bots-0133` (commit `84aa7bf58f0`). It covers the bots only (the module, `sql/playerbot_v2` and their tests), and carries the 9 DIT commits.
+- The AI-only gate is held on the new chat paths (`BotLanguage`, `GuildWhisperInvite`).
+- Not deployed yet. Deploy waits behind the existing maintenance hold.
