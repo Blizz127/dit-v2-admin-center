@@ -384,3 +384,18 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-df34aa
 **Checks:** full Python suite 593 OK; 9 JS tests pass (8 `tests/*.test.js` plus `routing_audit_keyboard.test.cjs`, fixed in c6e8766); native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview 6f42aca8 (source b63ba74)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-6f42aca8**. Readback at **2026-11-09T20:52:52Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 433440 | `6f42aca88c1dc5fb769fe4b359f9a8a4b65d31b12fa539ad041b58a06359ff15` | 600 |
+| READ-ME-FIRST.txt | 580 | `35a4fca48e1b9452a393044152ae374553b933527ea8dd836aa9325cb7e6243b` | 600 |
+
+**Change:** the WotLK Forever row notes the offline policy library the lead reported on 11-09; it is still Designed.
+
+**Checks:** conformance tests OK (full suite 593 OK at dde07cf); native browser NOT RUN.
+
+**Rollback:** remove only that folder.
