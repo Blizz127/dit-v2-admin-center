@@ -72,3 +72,20 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-7d576a
 **Checks:** full Python suite OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview c5743410 (source 627a749)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-c5743410**. Readback at **2026-11-09T10:22:15Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 379711 | `c5743410d6d58e8fedb4e62e2c9b6a7fed8568cad3243689a8d0e6909492d574` | 600 |
+| READ-ME-FIRST.txt | 854 | `108caf121f26cb6a5c6d3285e8152f5cb612b2a1762d22fa44f8ec719078efb5` | 600 |
+
+**Change:**
+- The dead / release / revived formats are confirmed against ffxi's live lines from 10:08-10:09Z (regression test).
+- FFXI LSB p-05 and p-03 cite the live death recovery, Sneak Attack, a weapon skill, a nuke and critical cures. p-05 stays Partly live, because return and weak have not been seen.
+
+**Checks:** 573 Python tests OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
+
+**Rollback:** remove only that folder.
