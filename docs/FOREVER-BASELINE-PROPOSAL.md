@@ -316,3 +316,14 @@ The adversarial review of the P1 design is `docs/reviews/FFXI-BOTSV2-P1-REVIEW-2
 - Every game whose bots run under DIT takes the 0.1.33 feature set as its baseline bot style: FFXI LSB (`ffxi`), FFXI Forever Rust (`ffxi-platform`), WoW Forever (`trinitycore-forever`), WotLK Forever and SWTOR.
 - On top of that baseline go the DIT improvements, with AI wording every bot line it can: whispers, party, say, callouts, order replies, gatherings.
 - The hub (`dit-human-behavior-platform`) owns the standard. devbox-command-center holds the cross-project botport contract. Each game lead builds its own bodies.
+
+**ffxi acknowledgement and owner decision (2026-11-09).**
+- `ffxi` adopted v0.1.33 as the FFXI LSB reference. Canary c2.7 went live at 03:17Z.
+- Its planned c2.8+ mapping:
+  - the healer and nukers rest for MP between pulls;
+  - an 8-line / 10-minute chat history goes on outbox records;
+  - order replies and callouts are AI-worded, through the outbox only;
+  - town groups talk in /say only with a human nearby;
+  - language handling stays on the hub side.
+- Owner decision on "bots join at the player's level": **level sync to the inviter** while the bots are in that player's party. Stored character levels stay unchanged.
+- The outbox record shape change goes to the hub session (`dit-human-behavior-platform`) for confirmation.
