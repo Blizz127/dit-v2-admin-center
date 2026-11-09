@@ -60,7 +60,7 @@ An area counts as **done** for a game only when:
 | # | Area | FFXI (LSB) | FFXI Forever (era 2002-03, cap 60) | SWTOR |
 |---|---|---|---|---|
 | 1 | Bound to the owner, party | owner invite; only the owner commands | the same | invite-only squad |
-| 2 | Follow everywhere | zone lines, Home Point warps, survival guides, outposts, chocobo, airship, boat, Warp | zone lines, Home Point, chocobo, boat (era-correct) | every area transfer: taxi, shuttle, ship, Fleet, flashpoint, relog |
+| 2 | Follow everywhere | zone lines, Home Point warps, survival guides, outposts, chocobo, airship, boat, Warp | zone lines, return to Home Point after death, chocobo, boat (era-correct) | every area transfer: taxi, shuttle, ship, Fleet, flashpoint, relog |
 | 3 | Every class and its rotation | all 22 jobs, each with an action priority list (abilities, weapon skills, skillchains and magic bursts, spells by level, sub-job) | the 11 era jobs (WAR MNK WHM BLM RDM THF PLD DRK BST BRD RNG) | 8 classes, 16 advanced classes, 48 disciplines |
 | 4 | Party roles and helpers | tank/enmity, heals, -na/Erase/Raise, buffs, debuffs, crowd control, pets | the same, era spells | tank/guard/taunt, heals, cleanse, interrupt, CC, defensives |
 | 5 | Rest, death, recovery | /heal between pulls; accept a Raise or Reraise; release, return and rejoin; wipe; weakness | the same | rest; revive; regroup after death |
@@ -128,7 +128,7 @@ It builds on the live Python server (c30) first; Rust sw-squad mirrors it.
 - **Bot activity views** (Admin Center):
   - what each bot did and why, from FFXI `[BOTS-V2]` log lines and from DIT `bot_event` / `decision_advice` records for FFXI Forever and SWTOR;
   - refusals, deaths and recoveries, zone changes, applied advice.
-- **Weekly report:** this lane sends the owner a status of the 12 areas per game, the next milestone, and anything blocked on the owner.
+- **Status on request:** ask this lane for the 12 areas per game, the next milestone, and anything blocked on the owner.
 
 ## Owner decisions already made (don't re-ask)
 
