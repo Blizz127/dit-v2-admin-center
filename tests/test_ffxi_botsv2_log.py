@@ -17,6 +17,8 @@ REAL = FIXTURE / 'bots-v2-20261109.log'
 SYNTHETIC = FIXTURE / 'synthetic-edge-cases.log'
 REAL_SHA256 = 'b11459411b1062573eca7beb2cacb19d7031fe60e1e39b1247df54df194647bb'
 REAL_LINES = 382
+C28 = FIXTURE / 'bots-v2-c28-20261109.log'
+C28_SHA256 = 'be2eea13e43c196a06bef51cc580b9a4ff2bbde6ede624eb7cb608b03a1740fc'
 
 # Expected values come from grep over REAL, not from the parser. Recipe for bot B (run with the export as FILE):
 #   ok        grep "[BOTS-V2] act B " FILE | grep -c -- "-> ok "
@@ -31,11 +33,11 @@ REAL_LINES = 382
 #   events    every bot line naming B: act, defend, owns, trip, no trip, zone danger, owner lines, trip start group
 REAL_COUNTS = {
     'fumika': {'ok': 109, 'refused': 10, 'defend': 3, 'tripStart': 1, 'tripEnd': 2, 'noTrip': 1, 'stuck': 0,
-               'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'party': 5, 'other': 2},
+               'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'rest': 0, 'party': 5, 'other': 2},
     'shadowtail': {'ok': 64, 'refused': 1, 'defend': 1, 'tripStart': 1, 'tripEnd': 2, 'noTrip': 2, 'stuck': 0,
-                   'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'party': 6, 'other': 2},
+                   'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'rest': 0, 'party': 6, 'other': 2},
     'tomoe': {'ok': 90, 'refused': 1, 'defend': 2, 'tripStart': 1, 'tripEnd': 2, 'noTrip': 1, 'stuck': 0,
-              'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'party': 0, 'other': 3},
+              'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'rest': 0, 'party': 0, 'other': 3},
 }
 REAL_EVENTS = {'fumika': 127, 'shadowtail': 79, 'tomoe': 100}
 REAL_REFUSALS = {'fumika': 4, 'shadowtail': 1, 'tomoe': 1}
@@ -183,10 +185,10 @@ class FFXIBotsV2LogTests(unittest.TestCase):
         # refused: line 4 is 1 + 6, line 5 is 1 + 1, so 9. defend: line 7 is 1 + 3, so 4.
         self.assertEqual(nalu['counts'], {'ok': 2, 'refused': 9, 'defend': 4, 'tripStart': 1, 'tripEnd': 1,
                                           'noTrip': 0, 'stuck': 3, 'dead': 1, 'release': 1, 'return': 1,
-                                          'weak': 0, 'party': 2, 'other': 4})
+                                          'weak': 0, 'rest': 0, 'party': 2, 'other': 4})
         self.assertEqual(pell['counts'], {'ok': 0, 'refused': 1, 'defend': 1, 'tripStart': 1, 'tripEnd': 0,
                                           'noTrip': 1, 'stuck': 0, 'dead': 0, 'release': 0, 'return': 0,
-                                          'weak': 1, 'party': 3, 'other': 4})
+                                          'weak': 1, 'rest': 0, 'party': 3, 'other': 4})
         self.assertEqual((nalu['charId'], nalu['zoneId']), (2001, 119))
         self.assertEqual((pell['charId'], pell['zoneId']), (None, 300))
         self.assertEqual(len(nalu['events']), 19)
@@ -401,7 +403,7 @@ class FFXIBotsV2LogTests(unittest.TestCase):
         self.assertEqual((coverage['records'], coverage['omitted'], coverage['unrecognized']), (9, 0, 0))
         nalu = bots[0]
         self.assertEqual(nalu['counts'], {'ok': 0, 'refused': 0, 'defend': 0, 'tripStart': 0, 'tripEnd': 0,
-                                          'noTrip': 0, 'stuck': 0, 'dead': 1, 'release': 2, 'return': 3, 'weak': 1,
+                                          'noTrip': 0, 'stuck': 0, 'dead': 1, 'release': 2, 'return': 3, 'weak': 1, 'rest': 0,
                                           'party': 0, 'other': 0})
         chronological = list(reversed(nalu['events']))
         self.assertEqual([e['type'] for e in chronological],
@@ -410,6 +412,41 @@ class FFXIBotsV2LogTests(unittest.TestCase):
         self.assertEqual([e['reason'] for e in chronological if e['type'] == 'revived'], ['home_point', 'raised'])
         self.assertEqual(nalu['zoneId'], 241)
         self.assertEqual(nalu['doing'], 'revived raised')
+
+    def test_live_c28_export_is_fully_recognized(self):
+        # Export 2 (ffxi handoff 2026-11-09-botsv2-log-export-2): the live c2.8 run, 07:15Z-08:13Z, no human online.
+        raw = C28.read_bytes()
+        self.assertEqual(hashlib.sha256(raw).hexdigest(), C28_SHA256)
+        self.assertEqual(_lines(raw), 377)
+        bots, coverage = botsv2.read(C28)
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['unrecognized'], coverage['ignored']),
+                         (375, 0, 0, 2))
+        by = {bot['name']: bot for bot in bots}
+        self.assertEqual(set(by), {'fumika', 'shadowtail', 'tomoe'})
+        # grep "[BOTS-V2] act B " FILE | grep -c -- "-> ok " (no repeated tails in this export), and so on.
+        self.assertEqual({name: (b['counts']['ok'], b['counts']['refused'], b['counts']['defend'], b['counts']['rest'])
+                          for name, b in by.items()},
+                         {'fumika': (109, 0, 1, 0), 'shadowtail': (77, 1, 1, 1), 'tomoe': (112, 0, 0, 0)})
+        rests = [(e['type'], e['reason'], e['detail']) for e in reversed(by['shadowtail']['events'])
+                 if e['type'] in ('rest', 'restEnd')]
+        self.assertEqual(rests, [('rest', 'mp', 'mp=44 hp=100'), ('restEnd', 'full', 'mp=100 hp=100')])
+        self.assertNotIn(b'Blizz', raw)
+
+    def test_rest_lines_use_the_exact_c28_formats(self):
+        raw = b''.join([
+            self.line('rest nalu why=mp mp=44 hp=100', stamp='11/09/26 05:13:00:000'),
+            self.line('rest end nalu mp=100 hp=100 why=full', stamp='11/09/26 05:13:01:000'),
+            self.line('rest end why=hp mp=-1 hp=30', stamp='11/09/26 05:13:02:000'),  # a bot named 'end'
+            self.line('rest nalu mp=44 hp=100', stamp='11/09/26 05:13:03:000'),  # no why=
+            self.line('rest end nalu mp=100 why=full', stamp='11/09/26 05:13:04:000'),  # no hp=
+            self.line('rest nalu why=mp mp=1000 hp=100', stamp='11/09/26 05:13:05:000'),  # mp too long
+        ])
+        bots, coverage = botsv2.read(self.write('rest.log', raw))
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['unrecognized']), (3, 3, 0))
+        by = {bot['name']: bot for bot in bots}
+        self.assertEqual(by['nalu']['counts']['rest'], 1)
+        self.assertEqual([e['type'] for e in reversed(by['nalu']['events'])], ['rest', 'restEnd'])
+        self.assertEqual(by['end']['counts']['rest'], 1)
 
     def test_c28_near_misses_are_omitted_not_guessed(self):
         cases = ['release nalu zone=119 after 30s',        # no why=

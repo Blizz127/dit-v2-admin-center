@@ -253,15 +253,15 @@
         },
         "p-03": {
           "status": "Partly live",
-          "evidence": "3 archetype APLs live (healer, nuker, THF); 22-job kits planned J0-J4."
+          "evidence": "3 archetype APLs live; c2.8 export 2: WHM apl=dia/paralyze/banish (07:56Z), THF apl=steal abilityId=41 (07:44:02Z), apl=self_protect/self_shell. 22-job kits planned J0-J4."
         },
         "p-04": {
           "status": "Partly live",
-          "evidence": "self-defense live (defend fumika hp=100pct attacker=Goblin_Ambusher lv17 why=fight_back 11-09 03:59:04Z, export line 232); party assist gap found live, fix c2.8 in test."
+          "evidence": "self-defense live (defend fumika attacker=Yagudo_Persecutor lv15 why=fight_back 11-09 07:43:59Z, export 2; also 03:59:04Z, export 1). Party assist and range-keep live in c2.8 since 07:17Z but not yet seen: no human-led party."
         },
         "p-05": {
-          "status": "Built",
-          "evidence": "c2.8 death/raise/release/return/weakness in test; 11-09 04:00Z Shadowtail death showed the gap; MP rest c2.9."
+          "status": "Partly live",
+          "evidence": "MP rest live: rest shadowtail why=mp mp=44 hp=100 (11-09 07:39:57Z), rest end why=full, group holds (rule=group_rest_hold), export 2; c2.8.1 fixes a rest counted as a stall. Death/raise/release/return/weak live but not yet seen."
         },
         "p-06": {
           "status": "Designed",

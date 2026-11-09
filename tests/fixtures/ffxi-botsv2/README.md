@@ -8,3 +8,10 @@
   - Earlier 11-09 lines are gone. The map container is recreated at each canary install, which resets docker logs.
 - **Content:** act ok and refused (path refusals with dist and tails, "(repeated N times …)"), defend, trip start group, trip end, no trip, stuck, owner/party and budget lines.
 - **Not yet in it:** dead / release / return / weak. Those arrive with c2.8; a later export will add them. The parser matches the exact c2.8 format strings from `~/dev/ffxi/handoffs/2026-11-08-botsv2-c2.8-frozen`. Treat those formats as provisional until a live c2.8 export confirms them, before any death or recovery count goes on the scoreboard.
+
+# Bots V2 live log export 2 (regular LSB, canary 2.8), 2026-11-09
+
+- `bots-v2-c28-20261109.log`: copied byte-for-byte from ffxi's handoff `2026-11-09-botsv2-log-export-2` (sha256 `be2eea13e43c196a06bef51cc580b9a4ff2bbde6ede624eb7cb608b03a1740fc`, 377 lines). It is every [BOTS-V2] line of the live c2.8 run, 11-09 07:15Z-08:13:41Z. No human was online, so nothing is masked. Two non-bot lines from the export (container wake notes) are ignored.
+- **Confirmed live:** the c2.8 `rest` / `rest end` formats (V.restLog in banshee_bots_v2.lua). The importer recognizes every bot line in this export.
+- **Still provisional:** dead / release / return / weak. No bot died in this run, so those formats are still unconfirmed against a live line.
+- The private preview builder now uses this export for the FFXI activity section.

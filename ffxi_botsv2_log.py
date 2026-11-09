@@ -13,6 +13,7 @@ Rules enforced here:
   producer suppressed. The per-bot counts add N+1; the event's repeated field keeps N (a plain line keeps 1).
 - counts.stuck counts 'stuck' lines. A trip end tagged why=stuck is counted as tripEnd and keeps its reason.
 - revived lines are events only; they are not in any count.
+- counts.rest counts rest starts ('rest <bot> why=...'); a 'rest end' line is an event only.
 - Lua's '%%' escape is unescaped to '%'. Output is printable ASCII; any other line is omitted.
 - The owner is '<owner>' only. A line that names anyone else in an owner or speaker role is omitted, so no
   human name reaches the output.
@@ -37,7 +38,7 @@ MAX_REFUSALS = 50
 MAX_DEATHS = 50
 OWNER = '<owner>'
 COUNT_KEYS = ('ok', 'refused', 'defend', 'tripStart', 'tripEnd', 'noTrip', 'stuck', 'dead', 'release', 'return',
-              'weak', 'party', 'other')
+              'weak', 'rest', 'party', 'other')
 
 _BOT = r'([A-Za-z][A-Za-z0-9_]{0,23})'
 _BOT_NAME = re.compile(r'[A-Za-z][A-Za-z0-9_]{0,23}')
@@ -408,6 +409,23 @@ def _revived(body):
                  detail=f'zone={match.group(3)} after={match.group(4)}s', zone=_num(match.group(3)))
 
 
+_REST_START = re.compile(r'rest ' + _BOT + r' why=(\S+) mp=(-?\d{1,3}) hp=(-?\d{1,3})')
+_REST_END = re.compile(r'rest end ' + _BOT + r' mp=(-?\d{1,3}) hp=(-?\d{1,3}) why=(\S+)')
+
+
+def _rest(body):
+    # c2.8 V.restLog: 'rest %s why=%s mp=%d hp=%d' and 'rest end %s mp=%d hp=%d why=%s'. The shapes cannot both match.
+    match = _REST_START.fullmatch(body)
+    if match:
+        return _part([_bot(match.group(1))], 'rest', count='rest', reason=match.group(2),
+                     detail=f'mp={match.group(3)} hp={match.group(4)}')
+    match = _REST_END.fullmatch(body)
+    if match:
+        return _part([_bot(match.group(1))], 'restEnd', reason=match.group(4),
+                     detail=f'mp={match.group(2)} hp={match.group(3)}')
+    raise _Malformed('rest')
+
+
 def _budget(body):
     if _BUDGET.fullmatch(body) is None:
         raise _Malformed('budget')
@@ -439,6 +457,7 @@ _RULES = (
     (re.compile(r'weak '), _weak),
     (re.compile(r'return '), _return),
     (re.compile(r'revived '), _revived),
+    (re.compile(r'rest '), _rest),
     (re.compile(r'budget '), _budget),
 )
 
