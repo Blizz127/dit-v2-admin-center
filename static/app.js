@@ -1837,12 +1837,12 @@ async function load() {
   sourceLoading = true;
   resetBotDraft();
   error.textContent = '';
-  document.querySelector('#hub-banner').textContent = currentSnapshot && loadedSource
+  document.getElementById('hub-banner').textContent = currentSnapshot && loadedSource
     ? `Loading selected data source… Showing previous ${loadedSource} request snapshot from ${currentSnapshot.generatedAt || 'unknown time'} until loading finishes.`
     : 'Loading selected data source…';
   let unauthorized = false, rendering = false;
   try {
-    const source = document.querySelector('#data-source').value === 'hub' ? 'hub' : 'mock';
+    const source = document.getElementById('data-source').value === 'hub' ? 'hub' : 'mock';
     const response = await fetch(`/api/overview?source=${source}`, {headers: {Authorization: `Bearer ${requestToken}`}, cache: 'no-store'});
     if (!current()) return;
     if (!response.ok) { unauthorized = response.status === 401; throw new Error(unauthorized ? 'Token was not accepted.' : 'Could not load the workspace.'); }
@@ -1851,24 +1851,24 @@ async function load() {
     rendering = true;
     for (const id of ['bots', 'leads', 'issues', 'ledger', 'learning', 'lead-monitoring', 'audit', 'service-health', 'lead-timeline', 'quota-history', 'session-markers', 'model-calls', 'model-comparison', 'bot-activity', 'baseline-conformance', 'owner-attention', 'assignment-history', 'nudge-history', 'lead-activity', 'hub-feeds', 'lead-summary', 'reply-source', 'learning-coverage', 'issue-coverage', 'bot-coverage', 'learning-plan', 'learning-evidence', 'game-status', 'spend-example', 'learning-artifacts', 'safety-records', 'ffxi-focus', 'ffxi-feeds']) document.getElementById(id).replaceChildren();
     if (ledgerBotId !== null && loadedSource && loadedSource !== source) {
-      ledgerBotId = null; correlationFilter = ''; document.querySelector('#correlation').value = '';
+      ledgerBotId = null; correlationFilter = ''; document.getElementById('correlation').value = '';
     }
     currentSnapshot = data;
     clearRosterGapSelection();
     if (data.ffxiFocus) {
-      const f = data.ffxiFocus, target = document.querySelector('#ffxi-focus');
+      const f = data.ffxiFocus, target = document.getElementById('ffxi-focus');
       item(target, 'Closest documented slice', routingText(f.closest), routingText(f.source, 'Source unknown'));
       item(target, 'What to look for', routingText(f.whatToLookFor), 'Readiness must be confirmed by the owning lead');
       item(target, 'How to toggle', routingText(f.toggle), 'Read only');
       item(target, 'Not yet verified', routingText(f.unverified), 'A bridge observation does not establish delivery');
-    } else item(document.querySelector('#ffxi-focus'), 'FFXI readiness unknown',
+    } else item(document.getElementById('ffxi-focus'), 'FFXI readiness unknown',
       'No readiness summary was supplied in this snapshot.', 'Confirm readiness with the owning lead; feed availability does not establish game behavior.');
     renderOwnerAttention(data.ownerAttention);
     const supplied = data.hubFeeds;
     const feeds = Array.isArray(supplied) ? supplied.filter(f => f && typeof f === 'object' && !Array.isArray(f)) : [];
     const incomplete = !Array.isArray(supplied) || feeds.length !== supplied.length
       || feeds.some(f => ['game', 'view', 'status'].some(key => typeof f[key] !== 'string' || !f[key].trim()));
-    const banner = document.querySelector('#hub-banner');
+    const banner = document.getElementById('hub-banner');
     if (incomplete) banner.textContent = 'Hub coverage unknown or incomplete. Check source labels for the supplied rows.';
     else if (feeds.some(f => f.status === 'Not configured')) banner.textContent = 'Hub not configured. Bot and learning views use synthetic fallback.';
     else if (feeds.some(f => f.status === 'Mock selected')) banner.textContent = 'Synthetic examples selected. No hub read was attempted.';
@@ -1879,17 +1879,17 @@ async function load() {
     else if (feeds.some(f => f.status === 'Unavailable')) banner.textContent = 'Hub data is partially or fully unavailable. Check each feed for synthetic fallback.';
     else if (feeds.length && feeds.every(f => f.status === 'Live response')) banner.textContent = 'Hub reads available. Coverage and deployed revision remain unverified.';
     else banner.textContent = 'Hub status unknown. Check source labels for each view.';
-    feeds.forEach(f => item(document.querySelector('#hub-feeds'), `${routingText(f.game)} · ${routingText(f.view)}`, routingText(f.status), `${routingText(f.note)} · Fetched: ${routingText(f.at)}`));
-    if (incomplete || !feeds.length) item(document.querySelector('#hub-feeds'), 'Feed coverage', 'Unknown', 'Missing or incomplete feed metadata does not establish availability.');
+    feeds.forEach(f => item(document.getElementById('hub-feeds'), `${routingText(f.game)} · ${routingText(f.view)}`, routingText(f.status), `${routingText(f.note)} · Fetched: ${routingText(f.at)}`));
+    if (incomplete || !feeds.length) item(document.getElementById('hub-feeds'), 'Feed coverage', 'Unknown', 'Missing or incomplete feed metadata does not establish availability.');
     const ffxiFeeds = feeds.filter(f => f.game === 'FFXI' || f.game === 'All');
-    if (incomplete || !ffxiFeeds.length) item(document.querySelector('#ffxi-feeds'), 'FFXI feed coverage', 'Unknown', 'Missing or incomplete feed metadata; supplied rows do not establish complete FFXI coverage');
-    ffxiFeeds.forEach(f => item(document.querySelector('#ffxi-feeds'), `${routingText(f.game)} · ${routingText(f.view)}`, routingText(f.status), `${routingText(f.note)} · Fetched: ${routingText(f.at)} · Not proof of game presence or delivery`));
+    if (incomplete || !ffxiFeeds.length) item(document.getElementById('ffxi-feeds'), 'FFXI feed coverage', 'Unknown', 'Missing or incomplete feed metadata; supplied rows do not establish complete FFXI coverage');
+    ffxiFeeds.forEach(f => item(document.getElementById('ffxi-feeds'), `${routingText(f.game)} · ${routingText(f.view)}`, routingText(f.status), `${routingText(f.note)} · Fetched: ${routingText(f.at)} · Not proof of game presence or delivery`));
     renderBotCoverage();
     renderPresenceExamples(data.presenceExamples);
     renderBots();
     if (selectedBotId !== null) inspectBot(selectedBotId);
     else { renderAssignments(); renderReplySource(); renderSafety(); }
-    const gamePanel = document.querySelector('#game-status'), servicePanel = document.querySelector('#service-health');
+    const gamePanel = document.getElementById('game-status'), servicePanel = document.getElementById('service-health');
     observationRows(data.gameStatus, gamePanel).forEach(s => item(gamePanel, routingText(s.game),
       `XP rate: ${metricNumber(s.xpRate) ? s.xpRate + '×' : 'Unknown'} · Server liveness: ${routingText(s.liveness)}`,
       `${routingText(s.source)} · Checked: ${routingText(s.checkedAt)} · Freshness unknown`));
@@ -1916,7 +1916,7 @@ async function load() {
     renderRosterGaps();
     renderBotActivity();
     renderBaselineConformance();
-    document.querySelector('#updated').textContent = `Snapshot generated ${data.generatedAt} · Sources are labeled per view; lead task state comes from the coordinator board.`;
+    document.getElementById('updated').textContent = `Snapshot generated ${data.generatedAt} · Sources are labeled per view; lead task state comes from the coordinator board.`;
     loadedSource = source; sourceLoading = false;
     resetBotDraft();
     sessionStorage.setItem('dit-admin-token', token); workspace.hidden = false; form.hidden = true; loadBridge();
@@ -1931,7 +1931,7 @@ async function load() {
     renderOperationSources(null);
     sourceLoading = false;
     if (currentSnapshot && loadedSource && !unauthorized && !rendering && !e?.invalidShape) {
-      document.querySelector('#hub-banner').textContent = `Refresh failed. Showing previous ${loadedSource} request snapshot from ${currentSnapshot.generatedAt || 'unknown time'}; selected source may not match. Check each feed's source.`;
+      document.getElementById('hub-banner').textContent = `Refresh failed. Showing previous ${loadedSource} request snapshot from ${currentSnapshot.generatedAt || 'unknown time'}; selected source may not match. Check each feed's source.`;
       return;
     }
     workspace.hidden = true; form.hidden = false; sessionStorage.removeItem('dit-admin-token'); resetPanelSession();
