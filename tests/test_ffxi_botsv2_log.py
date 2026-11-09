@@ -24,6 +24,8 @@ C291 = FIXTURE / 'bots-v2-c291-20261109.log'
 C291_SHA256 = '4c4a1093dedce6055e3f4e44f6cd8122cea5903cfac23b16f14e6319094b044b'
 C2101 = FIXTURE / 'bots-v2-c2101-20261109.log'
 C2101_SHA256 = 'ce90dc67feb82b5a46cbe6abf3608b3cd88c113ccb31f5d61e7f3dc20105234b'
+J0B = FIXTURE / 'bots-v2-j0b-20261109.log'
+J0B_SHA256 = '027b96d5a05459815e301cba85fb82d1f32d7cedfed2b883c9323874973b7c01'
 C28_SHA256 = 'be2eea13e43c196a06bef51cc580b9a4ff2bbde6ede624eb7cb608b03a1740fc'
 
 # Expected values come from grep over REAL, not from the parser. Recipe for bot B (run with the export as FILE):
@@ -571,6 +573,22 @@ class FFXIBotsV2LogTests(unittest.TestCase):
         lines = raw.decode('ascii').splitlines()
         self.assertIn('mount tomoe why=travel', lines[16])
         self.assertIn('dismount fumika why=group', lines[217])
+
+    def test_live_j0b_export_has_the_first_sub_job_moves(self):
+        # Export 6 (ffxi handoff 2026-11-09-botsv2-log-export-6): the live J0b run, 12:34Z-13:35Z, no human online.
+        raw = J0B.read_bytes()
+        self.assertEqual(hashlib.sha256(raw).hexdigest(), J0B_SHA256)
+        self.assertEqual(_lines(raw), 508)
+        bots, coverage = botsv2.read(J0B)
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['unrecognized'], coverage['ignored']),
+                         (508, 0, 0, 0))
+        shadowtail = next(b for b in bots if b['name'] == 'shadowtail')
+        self.assertEqual([e['apl'] for e in shadowtail['events'] if (e['apl'] or '').startswith('sub_')],
+                         ['sub_nuke'] * 3)  # grep -c "apl=sub_" FILE
+        self.assertEqual((shadowtail['counts']['dead'], shadowtail['counts']['release']), (1, 1))
+        self.assertFalse(any(e['type'] in ('profile', 'advice', 'adviceRequest') for b in bots for e in b['events']))
+        lines = raw.decode('ascii').splitlines()
+        self.assertIn('apl=sub_nuke op=cast spellId=154', lines[151])
 
     def test_c210_mount_lines_use_the_exact_formats(self):
         raw = b''.join([

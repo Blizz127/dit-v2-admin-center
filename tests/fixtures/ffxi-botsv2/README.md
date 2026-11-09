@@ -69,3 +69,14 @@
   - dismounts why=cast, camp, group and native.
   - 0 deaths.
 - The preview builder now uses this export.
+
+# Bots V2 live log export 6 (regular LSB, J0b), 2026-11-09
+
+- `bots-v2-j0b-20261109.log`: copied byte-for-byte from ffxi's handoff `2026-11-09-botsv2-log-export-6` (sha256 `027b96d5a05459815e301cba85fb82d1f32d7cedfed2b883c9323874973b7c01`, 508 lines).
+- **Coverage:** the live J0b run, 11-09 12:34:51Z-13:35:12Z. No human was online.
+- **Content:**
+  - the first live sub-job moves: `apl=sub_nuke` at 152/156/162;
+  - one death with release and revive: 163/173/176;
+  - 0 profile and 0 advice lines, because the advice flag is off.
+- J1-J4 (live 13:35:54Z) adds no new log templates; a diff of the log calls in the j0b and j4 frozen trees confirms it.
+- The preview builder now uses this export.
