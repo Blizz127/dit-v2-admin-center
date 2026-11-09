@@ -311,3 +311,20 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-47b73b
 **Checks:** full Python suite 582 OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview 27804f7b (source 2b85ca8)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-27804f7b**. Readback at **2026-11-09T17:42:58Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 429156 | `27804f7b9be8d1a77b92e3f317365e7c83b27b5adf6c6ab44482977710faa8b3` | 600 |
+| READ-ME-FIRST.txt | 661 | `e32fbf75adaaeb286a70ad269b0df48c87e74fcbdd1a94ff1ba4276f90eed5a9` | 600 |
+
+**Change:**
+- The importer reads the six new ffxi C4.3 and V2-Q1.1 log templates: group party members/drop/off, slow eval, progression and roe.
+- These are frozen, not live. The page content is the same as 47b73b12; only the importer's source hash changed.
+
+**Checks:** full Python suite 583 OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
+
+**Rollback:** remove only that folder.
