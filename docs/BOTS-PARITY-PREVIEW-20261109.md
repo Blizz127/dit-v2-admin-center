@@ -399,3 +399,21 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-6f42ac
 **Checks:** conformance tests OK (full suite 593 OK at dde07cf); native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview 77a95eef (source 8f0dd65)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-77a95eef**. Readback at **2026-11-09T21:06:10Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 544692 | `77a95eef8fa0c2a18ff739a5582a4212573d294c0a5f603a3ec18b03953f63ae` | 600 |
+| READ-ME-FIRST.txt | 879 | `46aea08bbe86cc7b2cf52b4337254e51b14c442aae5539d78c75590260a4ab6e` | 600 |
+
+**Change:**
+- A fourth bot-activity source: WoW Vanilla / Benilla playerbots, from the cmangos-classic event log (`vanilla_botlog.py`, env `DIT_VANILLA_BOTLOG_CSV`).
+- The preview shows the live run of 11-09 19:27Z-20:52Z: 580 bots, 10 of them stuck re-pulling one mob (1,842 of 5,028 pulls; worst 562 pulls from one position).
+- The cmangos-classic lane confirmed the cause and is building the fix (playerbots b893cfe9, release-20261109j).
+
+**Checks:** full Python suite 598 OK; 9 JS tests pass. `inspector_integration.test.js` failed twice while the machine load average was over 600, then passed three runs in a row. Native browser NOT RUN.
+
+**Rollback:** remove only that folder.
