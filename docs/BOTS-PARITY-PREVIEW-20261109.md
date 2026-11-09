@@ -228,3 +228,20 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-61035a
 **Checks:** full Python suite OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview 561cf2b9 (source def2205)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-561cf2b9**. Readback at **2026-11-09T13:43:51Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 401301 | `561cf2b999029916de41d2e4c84707942b6cff2638d1a108605df7087826216c` | 600 |
+| READ-ME-FIRST.txt | 787 | `345c17d1854c48d98d0bcfb735f610309243ea7084cdc4246c9e556bb70d9ae4` | 600 |
+
+**Change:**
+- The FFXI activity section uses ffxi export 6 (the live J0b run, sha `027b96d5`, 508 lines, all recognized).
+- The FFXI LSB p-03 evidence says all 22 job kits are live (J1-J4, FROZEN 9cbc76b7, 2445/0) and cites the export 6 sub_nuke lines. The status stays Partly live.
+
+**Checks:** full Python suite OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
+
+**Rollback:** remove only that folder.
