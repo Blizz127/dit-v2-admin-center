@@ -515,3 +515,35 @@ remain NOT RUN; no full suite or live game/hub action was performed.
 
 **Rollback:** previous preview `f0f50cd4` remains available. Only the new private
 folder was added.
+
+## Update: preview b4d2c1d3 (source 1989b18)
+
+Private folder **Downloads → DIT-Admin-Center-Preview-b4d2c1d3** on Alienware.
+Independent readback at **2026-11-09T23:45:16Z** matched both files:
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 544446 | `b4d2c1d315bb52b9cd0551352bdbac6dbd444979aafdef9c6b1f8f9a9086e7c0` | 600 |
+| READ-ME-FIRST.txt | 841 | `bb24e71a9a70ddd7d85b64ca206fbaadfffed41cb35ac00ea4a18a2a123dc7a5` | 600 |
+
+The activity preview now uses release k: 4,261 rows, 473 bots, export SHA-256
+`1fcc50b793dae1ff83acf8f87bad2cb57c98203086f805c44cdb59f6417c93c6`.
+The file and all 120 redacted social rows were verified before copying.
+Independent standard-library analysis agrees with the importer and producer:
+against the first 1,928 seconds of j, qualifying runs fall 2 → 1, pull share
+4.3% → 0.9%, longest 37 → 14, and pulls per XP-gain row 1.39 → 1.28.
+The remaining run spans a respawn; differing populations and unlogged kills
+prevent stronger causal or stuck-state conclusions. See the fixture README
+for provenance, comparison boundaries and limitations.
+
+**Verification:** 10 focused reader tests pass, including an equal-duration
+regression. Two simulated startup runs timed out: 154 assertions at 11,452 ms,
+then all 176 assertions at 10,444 ms. A diagnostic CPU-profile run of the exact
+unchanged artifact passed all 176 assertions at 9,158 ms completion wait
+(construction 1,093 ms), zero transport attempts. The ten-second limit was
+unchanged. The timing failures remain part of the evidence; no native browser
+or keyboard result is claimed. No full suite or live game/hub action.
+
+**Rollback:** preceding preview `17e174cb` retained; only the new private folder
+was added. The profile identifies fixed-ID selector tree traversals as a
+concrete follow-up performance item, not a gate on this delivered increment.
