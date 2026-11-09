@@ -49,7 +49,7 @@ def bot_activity_preview():
              'Offline import of dit.bot_event.v1 JSONL (DIT_BOT_EVENT_DIR); includes AI advice rows.',
              read_bot_event, ROOT / 'tests/fixtures/bot-event-v1'),
             ('wow-vanilla-playerbots', 'WoW Vanilla / Benilla playerbots (cmangos-classic event log)',
-             'Exported cmangos-classic playerbot event CSV from the live run after the stuck re-pull fix (release-20261109j, 11-09 21:27Z-22:00Z, 449 bots, no humans). Before the fix, in the same 33 minutes: 6 runs of 10+ pulls with no kill (17.8% of pulls, longest 121); after: 2 (4.7%, longest 37). Offline import (DIT_VANILLA_BOTLOG_CSV).',
+             'Exported cmangos-classic playerbot event CSV after the re-pull fix (release-20261109j, 11-09 21:27Z-22:00Z, 449 bots, no humans). In the same 33 minutes: runs of 10+ pulls without recorded XP or loot fell from 6 (17.8% of pulls, longest 121) to 2 (4.7%, longest 37). Kills with neither signal may be unobserved. Offline import (DIT_VANILLA_BOTLOG_CSV).',
              read_vanilla_botlog, ROOT / 'tests/fixtures/vanilla-botlog/vanilla-bot_events-release-j-20261109T2127Z.csv')):
         bots, coverage = read(str(path))  # Both readers take an absolute path string, not a Path.
         sources.append(dict(id=source_id, label=label, note=note, bots=bots, coverage=coverage))

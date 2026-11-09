@@ -1561,16 +1561,16 @@ function botActivityDitRow(panel, bot) {
     botActivityPart(a.reason)])}));
   botActivityFeelNote(row, bot);
 }
-// Vanilla playerbots: pulls against kills, and the longest run of pulls on one target with no kill (a stuck bot).
+// Vanilla playerbots: XP-gain rows are a kill signal, not a complete kill count.
 function botActivityStall(stall) {
-  if (!plainObject(stall) || !metricNumber(stall.pulls) || !metricNumber(stall.seconds)) return 'Longest run of pulls without a kill: under 10 pulls (not stuck).';
+  if (!plainObject(stall) || !metricNumber(stall.pulls) || !metricNumber(stall.seconds)) return 'No run of 10+ same-target pulls was established in this export; this does not prove the bot is unstuck.';
   const spots = metricNumber(stall.positions) ? ` from ${stall.positions} position${stall.positions === 1 ? '' : 's'}` : '';
-  return `Longest run of pulls without a kill: ${stall.pulls} pulls on ${shown(stall.target)} over ${Math.round(stall.seconds / 60)} min${spots} (${shown(stall.from)} to ${shown(stall.to)}).`;
+  return `Longest same-target run without recorded XP or loot: ${stall.pulls} pulls on ${shown(stall.target)} over ${Math.round(stall.seconds / 60)} min${spots} (${shown(stall.from)} to ${shown(stall.to)}).`;
 }
 function botActivityVanillaRow(panel, bot) {
   const ratio = metricNumber(bot.pullsPerKill) ? bot.pullsPerKill : 'Unknown';
   item(panel, `${routingText(bot.name, 'Unnamed')} (${shown(bot.actorId)}) · level ${shown(bot.level)}`,
-    `Doing: ${shown(bot.doing)} · Pulls: ${shown(bot.pulls)} · Kills: ${shown(bot.kills)} · Pulls per kill: ${ratio} · Hearthstone escapes (stuck): ${botActivityCounts(bot.hearthStuck) === 'Unknown' ? 'none' : botActivityCounts(bot.hearthStuck)}`,
+    `Doing: ${shown(bot.doing)} · Pulls: ${shown(bot.pulls)} · XP-gain rows: ${shown(bot.kills)} · Pulls per XP-gain row: ${ratio} · Hearthstone escapes (stuck): ${botActivityCounts(bot.hearthStuck) === 'Unknown' ? 'none' : botActivityCounts(bot.hearthStuck)}`,
     `Last event: ${shown(bot.lastEventAt)} · Counts: ${botActivityCounts(bot.counts)}`);
   const row = panel.lastElementChild;
   botActivityList(row, 'Events', bot.events, e => ({text: botActivityJoin([botActivityPart(e.ts), botActivityPart(e.type), botActivityPart(e.detail)])}));
@@ -1645,7 +1645,7 @@ function renderBotActivityBody(refs, entry, id, engine, needle) {
   matches.slice(0, botActivityRowLimit).forEach(bot => botActivityRenderers[id](rows, bot));
   if (matches.length > botActivityRowLimit) item(rows, 'More bots not shown', `${matches.length - botActivityRowLimit} matching bots exceed the ${botActivityRowLimit}-row display limit.`, 'Narrow the filter to see them.');
 }
-// One list of every bot a loaded export proves machine-like or stuck, so QA reads the gaps in one place.
+// One list of repeated-pull and timing patterns for QA to inspect in the loaded exports.
 const botActivityGapLimit = 30;
 function botActivityGapLines(data) {
   const lines = [];
@@ -1659,7 +1659,7 @@ function botActivityGapLines(data) {
       const feel = plainObject(bot.feel) ? bot.feel : {};
       const c = feel.cadence, s = feel.sync, t = feel.schedule, stall = bot.stall;
       if (plainObject(stall) && metricNumber(stall.pulls) && metricNumber(stall.seconds))
-        lines.push(`${who} is stuck: ${stall.pulls} pulls on ${shown(stall.target)} with no kill over ${Math.round(stall.seconds / 60)} min.`);
+        lines.push(`${who} has a repeated-pull run: ${stall.pulls} pulls on ${shown(stall.target)} without recorded XP or loot over ${Math.round(stall.seconds / 60)} min.`);
       if (plainObject(c) && c.metronomic === true && metricNumber(c.modalCount) && metricNumber(c.gaps))
         lines.push(`${who} acts on a metronome: ${shown(c.action)}, ${c.modalCount} of ${c.gaps} gaps exactly ${shown(c.modalGapS)} s.`);
       if (plainObject(t) && t.fixed === true && metricNumber(t.modalCount) && metricNumber(t.intervals))
@@ -1672,9 +1672,9 @@ function botActivityGapLines(data) {
 }
 function renderBotActivityGaps(container, data) {
   const block = document.createElement('div'); block.className = 'bot-gaps';
-  const heading = document.createElement('h4'); heading.textContent = 'Proven gaps in the loaded exports';
+  const heading = document.createElement('h4'); heading.textContent = 'Patterns to review in the loaded exports';
   const note = document.createElement('p'); note.className = 'muted';
-  note.textContent = 'Measured from timestamps in the offline exports below. A bot that is not listed is not proven human-like; it only shows no gap these measures can see.';
+  note.textContent = 'Measured from the offline exports below. Kills that produce neither XP nor loot can look like repeated-pull runs. These patterns, or their absence, do not establish human-like behavior.';
   const lines = botActivityGapLines(data);
   const list = document.createElement('ul');
   lines.slice(0, botActivityGapLimit).forEach(text => { const li = document.createElement('li'); li.textContent = text.slice(0, 500); list.append(li); });

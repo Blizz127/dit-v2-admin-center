@@ -13,9 +13,9 @@ Rules enforced here:
 - A row is checked field by field against exact patterns. A failing row is counted as omitted, never repaired.
 - info1 is shown only for actions where it is a game object (TARGET_ACTIONS). For every other action it is
   dropped, because on group and guild actions it can hold a character or guild name.
-- A pull is an AttackAnythingAction row; a kill is an XpGainAction row. A stall is the longest run of pulls on
-  one target name with no kill between them. A bot that re-pulls one mob for an hour without a kill is stuck,
-  and it is the clearest non-human tell this log can show.
+- A pull is an AttackAnythingAction row; the compatibility field kills counts XpGainAction rows, not every
+  possible kill. The stall field is the longest run of pulls on one target name without recorded XP or loot.
+  It is a pattern for investigation, not proof that every pull failed to kill.
 - A run ends on an XpGainAction or a StoreLootAction row (a mob too low to give xp still drops loot) or on a
   different or unknown target name. Pulls with unknown targets cannot establish a same-target run.
   Limit: a kill that gives neither xp nor loot still reads as no kill, so a bot
@@ -221,10 +221,10 @@ def _read(path):
     span = (None if first is None else f'{first:%Y-%m-%dT%H:%M:%SZ}', None if last is None else f'{last:%Y-%m-%dT%H:%M:%SZ}')
     reason = (f'cmangos-classic playerbot event log read offline (not live): {records} rows, {omitted} omitted '
               f'(malformed); {len(bots)} bots, showing {len(shown)} (longest stall first). Whole file: {pulls} pulls, '
-              f'{kills} kills, {len(stalled)} bots with a stall of {STALL_MIN}+ pulls on one target and no kill '
+              f'{kills} XP-gain rows, {len(stalled)} bots with a run of {STALL_MIN}+ pulls on one target without recorded XP or loot '
               f'({stalled_pulls} pulls, {share}% of all pulls; longest run {longest}), {hearth} hearthstone escapes from '
               f'being stuck, {deaths} deaths. '
-              f'Timestamps are whole seconds, so short gaps are coarse.')
+              f'Kills with neither XP nor loot may be unobserved. Timestamps are whole seconds, so short gaps are coarse.')
     return shown, {'status': 'Loaded', 'records': records, 'omitted': omitted, 'reason': reason, 'from': span[0],
                    'to': span[1], 'bots': len(bots), 'pulls': pulls, 'kills': kills, 'stalledBots': len(stalled),
                    'stalledPulls': stalled_pulls, 'stalledSharePct': share, 'longestStall': longest, 'hearthStuck': hearth,

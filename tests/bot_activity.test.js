@@ -292,13 +292,13 @@ setImmediate(() => {
   assert.equal(get('bot-activity-note').textContent, WOW_NOTE);
   assert.match(coverage(), /^Coverage: Loaded · Imported log rows: 17 · Omitted malformed: 2 · Exported copy read\.$/);
   assert.equal(sectionsOf().length, 3);
-  // Proven gaps: one list across the sources, stuck bots and labelled timing only; unlabelled measurements stay out.
+  // Review patterns: one list across sources, repeated pulls and labelled timing only; unlabelled measurements stay out.
   const gaps = get('bot-activity-sources').children.find(child => child.className === 'bot-gaps');
-  assert.equal(gaps.children[0].textContent, 'Proven gaps in the loaded exports');
+  assert.equal(gaps.children[0].textContent, 'Patterns to review in the loaded exports');
   assert.deepEqual(gaps.children[2].children.map(li => li.textContent), [
     'DIT bot_event v1 (SWTOR, FFXI Forever, other DIT games): Kade acts on a metronome: rotation_pick, 18 of 20 gaps exactly 1.5 s.',
     'DIT bot_event v1 (SWTOR, FFXI Forever, other DIT games): Kade leaves on a fixed clock: 3 of 4 gaps between trip starts exactly 3456 s.',
-    'WoW Vanilla / Benilla playerbots (cmangos-classic event log): Tohsha is stuck: 562 pulls on Makrura Shellhide with no kill over 58 min.']);
+    'WoW Vanilla / Benilla playerbots (cmangos-classic event log): Tohsha has a repeated-pull run: 562 pulls on Makrura Shellhide without recorded XP or loot over 58 min.']);
   const [ffxi, dit] = sectionsOf();
   assert.equal(ffxi.children[0].textContent, 'FFXI (LSB) Bots V2 log export');
   assert.equal(ffxi.children[1].textContent, ffxiSource.note);
@@ -361,18 +361,26 @@ setImmediate(() => {
   assert.deepEqual(ditDeaths.children[1].children[0].children[0].children.map(li => li.textContent), ['action attack · reason pull', 'Unknown']);
   assert.equal(ditAdvice.children[1].children[0].textContent, '2026-11-09T05:00:00Z · mission · chosen accept · outcome applied · ok');
   assert.equal(d2.children[1].textContent, 'Doing: <script>alert(2)</script> · Level: Unknown · Area: Unknown');
-  // Vanilla playerbots: pulls against kills, the longest run of pulls without a kill, and stuck hearthstone escapes.
+  // Vanilla playerbots: observed pull/XP rows, repeated pulls without recorded XP or loot, and hearthstone reasons.
   const [v1, v2] = sectionsOf()[2].children[5].children;
   assert.equal(v1.children[3].children.length, 1, 'Vanilla event bodies also wait until opened');
   openLists(v1);
   assert.equal(v1.children[3].children[1].children[0].textContent,
     '2026-11-09T20:52:00Z · AttackAnything · Makrura Shellhide');
   assert.equal(v1.children[0].textContent, 'Tohsha (tohsha) · level 11.23');
-  assert.equal(v1.children[1].textContent, 'Doing: AttackAnything Makrura Shellhide · Pulls: 578 · Kills: 9 · Pulls per kill: 64.2 · Hearthstone escapes (stuck): combat long stuck 3');
-  assert.equal(v1.children[5].textContent, 'Longest run of pulls without a kill: 562 pulls on Makrura Shellhide over 58 min from 1 position (2026-11-09T19:54:06Z to 2026-11-09T20:52:00Z).');
+  assert.equal(v1.children[1].textContent, 'Doing: AttackAnything Makrura Shellhide · Pulls: 578 · XP-gain rows: 9 · Pulls per XP-gain row: 64.2 · Hearthstone escapes (stuck): combat long stuck 3');
+  assert.equal(v1.children[5].textContent, 'Longest same-target run without recorded XP or loot: 562 pulls on Makrura Shellhide over 58 min from 1 position (2026-11-09T19:54:06Z to 2026-11-09T20:52:00Z).');
   assert.equal(v1.children[6].textContent, 'Human-feel signals: pull: 258 of 577 gaps exactly 5 s');
-  assert.equal(v2.children[1].textContent, 'Doing: Unknown · Pulls: 85 · Kills: 82 · Pulls per kill: 1 · Hearthstone escapes (stuck): none');
-  assert.equal(v2.children[5].textContent, 'Longest run of pulls without a kill: under 10 pulls (not stuck).');
+  assert.equal(v2.children[1].textContent, 'Doing: Unknown · Pulls: 85 · XP-gain rows: 82 · Pulls per XP-gain row: 1 · Hearthstone escapes (stuck): none');
+  const noEstablishedRun = 'No run of 10+ same-target pulls was established in this export; this does not prove the bot is unstuck.';
+  assert.equal(v2.children[5].textContent, noEstablishedRun);
+  for (const badStall of [undefined, null, '', [], {}, {pulls: '12', seconds: 60}, {pulls: 12}, {pulls: 12, seconds: NaN}]) {
+    const message = context.botActivityStall(badStall);
+    assert.equal(message, noEstablishedRun, 'absent or unusable run evidence cannot establish that a bot is unstuck');
+    assert.ok(!message.includes('(not stuck)'), 'the old false-clear label must not return');
+    const lines = context.botActivityGapLines({sources: [{...vanillaSource, bots: [{...vanillaBots[1], stall: badStall}]}]});
+    assert.deepEqual(Array.from(lines), [], 'absent or malformed run evidence cannot create a repeated-pull finding');
+  }
   // Human-feel signals: the measurement line closes each row; a snapshot without the field says so.
   assert.equal(d1.children[d1.children.length - 1].textContent, 'Human-feel signals: not measured in this snapshot.');
   assert.equal(d2.children[d2.children.length - 1].textContent,
