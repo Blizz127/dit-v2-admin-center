@@ -417,3 +417,18 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-77a95e
 **Checks:** full Python suite 598 OK; 9 JS tests pass. `inspector_integration.test.js` failed twice while the machine load average was over 600, then passed three runs in a row. Native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview 60ce6425 (source de4beef)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-60ce6425**. Readback at **2026-11-09T21:32:28Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 547554 | `60ce6425c7bea04eabc98272fb4ea27eaced80a3ea63d5f0d08ace6194c887a3` | 600 |
+| READ-ME-FIRST.txt | 764 | `8bcb5d5654c40670ee01d91f09ce9426d2b2c29e3bb86161e00a6adc5166f83a` | 600 |
+
+**Change:** a "Proven gaps in the loaded exports" list above the per-game sections. With the committed exports it has 16 lines: 10 stuck WoW Vanilla bots, 2 Vanilla bots on a 5 s retry metronome, Tomoe's 3.2 s casting, and the three FFXI bots' fixed departure clock.
+
+**Checks:** full Python suite 598 OK; 9 JS tests pass; native browser NOT RUN.
+
+**Rollback:** remove only that folder.
