@@ -411,7 +411,7 @@
       "cells": {
         "forever-01": {
           "status": "Designed",
-          "evidence": "wotlk-forever docs/WRATH_COMPANION_BOTS_20261031.md: plan, NOT RUN"
+          "evidence": "wotlk-forever docs/WRATH_COMPANION_BOTS_20261031.md: plan, NOT RUN. Since then only an offline policy library (Tools/WrathCompanionPolicy: join/follow/stay/dismiss, assist, leader-target), not connected to any client or server; runtime NOT RUN (lead, 11-09)."
         }
       }
     },
