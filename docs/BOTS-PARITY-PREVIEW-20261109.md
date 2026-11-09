@@ -193,3 +193,21 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-c2accf
 **Checks:** 577 Python tests OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview b1bc2e4b (source 9f18388)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-b1bc2e4b**. Readback at **2026-11-09T12:41:47Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 413993 | `b1bc2e4b7d5c3d64e0f5c8d166c8746a85a388337eeb868159926ebc771a7fc2` | 600 |
+| READ-ME-FIRST.txt | 813 | `7064c420f4532ee0d29d315d623a4348cdd1bd0a3b1d8fe2d4d666f4fd6ce590` | 600 |
+
+**Change:**
+- The FFXI activity section uses ffxi export 5 (the live c2.10.1 run, sha `ce90dc67`, 575 lines, all recognized).
+- The p-06 evidence cites the export 5 mount and dismount lines.
+- J0b is live: p-03 notes that J0a is live, and p-12 says installed, flag off.
+
+**Checks:** full Python suite OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
+
+**Rollback:** remove only that folder.
