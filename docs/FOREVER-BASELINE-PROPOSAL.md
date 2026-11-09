@@ -346,3 +346,25 @@ DIT games with live leads:
 - `warhammer-online-rust`: Warhammer Online.
 
 The hub has adapters for eve_online, marvel_heroes, minecraft, monster_hunter_frontier and ultima_online, but no matching session is running. Those games reach this direction through the hub standard.
+
+**Owner priorities and requirements (2026-11-09):**
+
+> right now ff11 and ff11 forever adn swtor are the top ones to work on
+
+> but the bots need to knowevery class and their moves and rotations
+
+- **Priority:** FFXI LSB (`ffxi`), FFXI Forever Rust (`ffxi-platform`) and SWTOR (`swtor-preservation`). Earth & Beyond, WAR and the other adapters come later and were not messaged.
+- **Every class or job, with its moves and rotations:**
+  - FFXI: all 22 jobs.
+  - SWTOR: every class, advanced class and discipline.
+  - Each job or class gets its own action priority list, abilities by level, and role behaviour.
+  - Shared helpers cover heals, status removal, interrupts, crowd control, enmity or threat, skillchains / magic bursts, and pets.
+  - The design pattern is Karrz `Combat/ApRotation` + `ApRegistry`: one APL per class/spec, 38 files in `Combat/Apl`.
+- **Level, revised:** `ffxi` found that native FFXI level sync only lowers levels. Blizz is WHM 94; the canary bots are 25–26. Options offered:
+  - A, down-only sync;
+  - B, a temporary raise;
+  - C, level-89 reserve bots.
+
+  The owner chose **B: temporarily raise bots to the inviter's level while in the party**, after being told it is not native and needs a guarded C++ path so the level is never saved, plus a 94-level kit and a DIT BotSessionManager review. This replaces the earlier "level sync to inviter" answer.
+- **Live report:** the owner said Fumika appeared stalled. It was passed to `ffxi`.
+- **Parity notes for ffxi-platform:** `~/dev/ffxi/handoffs/2026-11-09-botsv2-parity-notes/PARITY-NOTES.md` (written by ffxi; read-only reference).
