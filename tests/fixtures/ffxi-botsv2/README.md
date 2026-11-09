@@ -37,4 +37,4 @@
 - Source: ffxi handoff `2026-11-09-botsv2-c2.10-frozen` (banshee_bots_v2_exec.lua:59/300/309, banshee_bots_v2.lua:780/803/814).
 - **Bot lines:** `mount <bot> why=<w>`, `dismount <bot> why=<w>`, `mount_blocked <bot> why=no_key_item ki=<n> (V2 grants none)`.
 - **System line:** `mount_gate off: entity:botMount is not bound (gated off)`.
-- These are covered by synthetic tests only. ffxi expects c2.10.1 to keep these formats unchanged and will confirm or send a diff.
+- These are covered by synthetic tests only. c2.10.1 (frozen 72dbbf89) keeps every c2.10 log template: confirmed by ffxi and by a diff of the log calls in both frozen trees.
