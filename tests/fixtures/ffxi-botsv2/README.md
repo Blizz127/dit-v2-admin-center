@@ -81,7 +81,7 @@
 - J1-J4 (live 13:35:54Z) adds no new log templates; a diff of the log calls in the j0b and j4 frozen trees confirms it.
 - The preview builder now uses this export.
 
-# P2b formats (frozen, staged, not armed)
+# P2b formats (frozen, armed 13:51:33Z, not live)
 
 - Source: ffxi handoff `2026-11-09-botsv2-p2b-frozen` (2582/0). A diff of the log calls against j4-frozen shows exactly two changes.
 - **Order line:** gains an optional ` refused=<why>` suffix. A space in the arg is logged as `_`.
