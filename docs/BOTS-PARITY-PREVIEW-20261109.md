@@ -294,3 +294,20 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-f4e7a4
 **Checks:** full Python suite 580 OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview 47b73b12 (source 0734fbf)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-47b73b12**. Readback at **2026-11-09T17:22:31Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 429156 | `47b73b12618c52c822195147e6692938996efe098d20ebe8183dfea6ea443f1f` | 600 |
+| READ-ME-FIRST.txt | 811 | `616bf09980cbe902e35222fd124e10af2759b5fac6b04af72d50448939f89896` | 600 |
+
+**Change:**
+- The FFXI activity section uses ffxi export 7 (the live J1-J4 run, sha `fb7b289b`, 1818 lines, all recognized).
+- The FFXI LSB evidence for p-03/p-04/p-05/p-08/p-12 cites export 7 and P2b+C3.1 going live at 17:16:51Z. It also notes the bag_full trip bug (ffxi fix C5). The statuses are unchanged.
+
+**Checks:** full Python suite 582 OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
+
+**Rollback:** remove only that folder.
