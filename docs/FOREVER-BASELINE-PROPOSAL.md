@@ -268,3 +268,51 @@ The adversarial review of the P1 design is `docs/reviews/FFXI-BOTSV2-P1-REVIEW-2
   Windurst, over A (3 of the lv89 reserve) and B (3 Adoulin crowd adventurers).
   `ffxi` picks the city and the non-reserved, non-crafting bots. Canary 1 mainly
   tests autonomous low-level field play.
+
+## Owner direction: Karrz 0.1.33 is the reference for all bots (2026-11-09, Admin Center terminal)
+
+> https://github.com/Karrz1/Karrz-playerbots-wow-forever new version to look atnd use
+
+> this is what i want to see in all bots with dit integration using ai as it can
+
+**What the reference is now.** WoW Forever Bots by Karrz, release **v0.1.33**, published 2026-11-08 16:08Z.
+- The GitHub `main` branch and every tag stop at `1d8234b` (2026-10-21), so the only source for 0.1.33 is the release asset `wow-forever-source-0.1.33.zip`.
+  - sha256 `8ed3810b3f1b04bdc049b705aaa38ace2311e5830c0f68b3ab8c0d493861c6e0` matches the release's `SHA256SUMS.txt`.
+  - Upstream pin: advocaite `forever` `f63ffc12`.
+- `src/modules/PlayerbotV2`: 744 files, about 252k C++ lines; add-on 0.6.17.
+- License GPL-2.0. Credits: agatho (PlayerbotV2), Karrz, and ike3/cmangos playerbots. For the FFXI Rust and LSB ports this is design reuse only (owner: "re-implement"); no code is copied.
+
+**How the live 70790 tree relates to it.** The live server is not on 0.1.33.
+- Karrz bots were merged on 11-02 (`99d8476cbf3`) and updated on 11-04 (`a47a6dd7878`); one fix was cherry-picked from 0.1.31 on 11-07 (`4a8ea5d53c4`).
+- The live tree also carries 9 local DIT commits:
+  - `.bot persona` (`BotPersona`);
+  - AI callouts (`BotCallouts`, `CalloutRules`);
+  - AI-only bot chat and DIT chat identity;
+  - order replies.
+- 0.1.33 does not have those DIT files.
+- 0.1.33 adds 13 files: `BotLanguage` and `BotLocaleText`/`BotLocaleRu` (replies in the player's language), `BotSwim`, `TankStill`, `GuildAskText`/`GuildWhisperInvite` (whisper a bot for a guild invite), `PetReviveCheck`, and `zz-0-playerbot-defaults.conf`.
+- Release-note changes since then:
+  - quick group and `.bot add` give bots at the player's level;
+  - healers drink between pulls;
+  - long walks no longer stutter;
+  - Blackwing Lair positioning;
+  - spell-power gear counts;
+  - weapon buffs at low level;
+  - the City of Dalaran dungeon.
+- Moving the live server to 0.1.33 is the `trinitycore-forever` lead's call. The DIT commits have to be kept.
+
+**Upstream AI chat (what "using AI as it can" builds on).**
+- `Playerbot.ChatModel.*` points at a local Ollama model (`llama3.2:3b`). It is off by default.
+- It covers whispers, party and /say, with an 8-line / 10-minute history, a 3 s per-bot cooldown and a cap of 30 replies a minute.
+- `Playerbot.World.Gathering.UseChatModel` makes world-bot gatherings talk in /say, capped at 4 requests a minute.
+- The DIT integration replaces the Ollama endpoint with DIT, under hub conditions C1–C5:
+  - AI-or-silence;
+  - human-listener gating;
+  - DIT persona identity;
+  - per-bot cooldowns;
+  - the outbox contract.
+
+**What "all bots" means for routing.**
+- Every game whose bots run under DIT takes the 0.1.33 feature set as its baseline bot style: FFXI LSB (`ffxi`), FFXI Forever Rust (`ffxi-platform`), WoW Forever (`trinitycore-forever`), WotLK Forever and SWTOR.
+- On top of that baseline go the DIT improvements, with AI wording every bot line it can: whispers, party, say, callouts, order replies, gatherings.
+- The hub (`dit-human-behavior-platform`) owns the standard. devbox-command-center holds the cross-project botport contract. Each game lead builds its own bodies.

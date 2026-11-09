@@ -1,8 +1,8 @@
 {
   "kind": "baseline-conformance",
   "version": 1,
-  "asOf": "2026-11-08",
-  "source": "docs/FOREVER-BASELINE-PROPOSAL.md (Forever pinned at trinitycore-forever-production-70450 fb754788894); live reference corrected to PlayerbotV2 70790 on 2026-11-08",
+  "asOf": "2026-11-09",
+  "source": "docs/FOREVER-BASELINE-PROPOSAL.md (Forever pinned at trinitycore-forever-production-70450 fb754788894); live reference corrected to PlayerbotV2 70790 on 2026-11-08; reference re-pinned to Karrz v0.1.33 on 2026-11-09",
   "rows": [
     {
       "id": "forever-01",
@@ -127,7 +127,7 @@
       "cells": {
         "forever-01": {
           "status": "Reference",
-          "evidence": "src-70790-0129 src/modules/PlayerbotV2 (HEAD c4ab28a47c7); botport CONTRACT-24e9fd68 behavior 1. Other rows not yet assessed against PlayerbotV2 docs."
+          "evidence": "Karrz WoW Forever Bots v0.1.33 PlayerbotV2 (source zip sha256 8ed3810b, owner 2026-11-09: baseline for all bots); live 70790 tree c4ab28a47c7 = ~0.1.31 + 9 DIT commits. Other rows not yet assessed."
         }
       }
     },
