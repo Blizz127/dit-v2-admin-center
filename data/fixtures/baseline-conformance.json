@@ -253,7 +253,7 @@
         },
         "p-03": {
           "status": "Partly live",
-          "evidence": "live: WHM dia/paralyze/banish, critical_cure (export 3 l.188); THF steal, sneak_attack, weapon_skill (l.332/335); BLM nuke l.356. J0a job kits and sub-job overlay live since 12:34Z; no sub_* line seen yet. Full kits J1-J4."
+          "evidence": "live: WHM cures/dia/paralyze/banish, THF steal/sneak_attack/WS, BLM nuke (exports 2-3); sub-job overlay: shadowtail WHM/BLM apl=sub_nuke Aero 12:50:01Z (ffxi report, export 6 due). J1-J3 batch (17 job kits, Raise, recast gates; 2267/0) armed."
         },
         "p-04": {
           "status": "Partly live",
