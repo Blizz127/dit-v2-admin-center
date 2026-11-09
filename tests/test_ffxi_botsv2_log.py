@@ -35,11 +35,11 @@ C28_SHA256 = 'be2eea13e43c196a06bef51cc580b9a4ff2bbde6ede624eb7cb608b03a1740fc'
 #   events    every bot line naming B: act, defend, owns, trip, no trip, zone danger, owner lines, trip start group
 REAL_COUNTS = {
     'fumika': {'ok': 109, 'refused': 10, 'defend': 3, 'tripStart': 1, 'tripEnd': 2, 'noTrip': 1, 'stuck': 0,
-               'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'rest': 0, 'mount': 0, 'party': 5, 'other': 2},
+               'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'rest': 0, 'mount': 0, 'advice': 0, 'party': 5, 'other': 2},
     'shadowtail': {'ok': 64, 'refused': 1, 'defend': 1, 'tripStart': 1, 'tripEnd': 2, 'noTrip': 2, 'stuck': 0,
-                   'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'rest': 0, 'mount': 0, 'party': 6, 'other': 2},
+                   'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'rest': 0, 'mount': 0, 'advice': 0, 'party': 6, 'other': 2},
     'tomoe': {'ok': 90, 'refused': 1, 'defend': 2, 'tripStart': 1, 'tripEnd': 2, 'noTrip': 1, 'stuck': 0,
-              'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'rest': 0, 'mount': 0, 'party': 0, 'other': 3},
+              'dead': 0, 'release': 0, 'return': 0, 'weak': 0, 'rest': 0, 'mount': 0, 'advice': 0, 'party': 0, 'other': 3},
 }
 REAL_EVENTS = {'fumika': 127, 'shadowtail': 79, 'tomoe': 100}
 REAL_REFUSALS = {'fumika': 4, 'shadowtail': 1, 'tomoe': 1}
@@ -187,10 +187,10 @@ class FFXIBotsV2LogTests(unittest.TestCase):
         # refused: line 4 is 1 + 6, line 5 is 1 + 1, so 9. defend: line 7 is 1 + 3, so 4.
         self.assertEqual(nalu['counts'], {'ok': 2, 'refused': 9, 'defend': 4, 'tripStart': 1, 'tripEnd': 1,
                                           'noTrip': 0, 'stuck': 3, 'dead': 1, 'release': 1, 'return': 1,
-                                          'weak': 0, 'rest': 0, 'mount': 0, 'party': 2, 'other': 4})
+                                          'weak': 0, 'rest': 0, 'mount': 0, 'advice': 0, 'party': 2, 'other': 4})
         self.assertEqual(pell['counts'], {'ok': 0, 'refused': 1, 'defend': 1, 'tripStart': 1, 'tripEnd': 0,
                                           'noTrip': 1, 'stuck': 0, 'dead': 0, 'release': 0, 'return': 0,
-                                          'weak': 1, 'rest': 0, 'mount': 0, 'party': 3, 'other': 4})
+                                          'weak': 1, 'rest': 0, 'mount': 0, 'advice': 0, 'party': 3, 'other': 4})
         self.assertEqual((nalu['charId'], nalu['zoneId']), (2001, 119))
         self.assertEqual((pell['charId'], pell['zoneId']), (None, 300))
         self.assertEqual(len(nalu['events']), 19)
@@ -405,7 +405,7 @@ class FFXIBotsV2LogTests(unittest.TestCase):
         self.assertEqual((coverage['records'], coverage['omitted'], coverage['unrecognized']), (9, 0, 0))
         nalu = bots[0]
         self.assertEqual(nalu['counts'], {'ok': 0, 'refused': 0, 'defend': 0, 'tripStart': 0, 'tripEnd': 0,
-                                          'noTrip': 0, 'stuck': 0, 'dead': 1, 'release': 2, 'return': 3, 'weak': 1, 'rest': 0, 'mount': 0,
+                                          'noTrip': 0, 'stuck': 0, 'dead': 1, 'release': 2, 'return': 3, 'weak': 1, 'rest': 0, 'mount': 0, 'advice': 0,
                                           'party': 0, 'other': 0})
         chronological = list(reversed(nalu['events']))
         self.assertEqual([e['type'] for e in chronological],
@@ -552,6 +552,39 @@ class FFXIBotsV2LogTests(unittest.TestCase):
         self.assertEqual([(e['type'], e['reason']) for e in reversed(nalu['events'])],
                          [('mount', 'owner'), ('dismount', 'combat'), ('mount', 'native'),
                           ('mountBlocked', 'no_key_item'), ('act', 'mount')])
+
+    def test_j0_profile_subjob_and_advice_use_the_exact_formats(self):
+        # Templates from ffxi handoff 2026-11-09-botsv2-j0b-frozen (banshee_bots_v2.lua:798/835/849,
+        # banshee_bots_v2_advice.lua:97-199). Staged, not live.
+        raw = b''.join([
+            self.line('act nalu rule=combat apl=sub_dia op=cast spellId=23 targetId=17260601 -> ok cast',
+                      stamp='11/09/26 12:00:00:000'),
+            self.line('profile nalu to=conserve from=default why=advice', stamp='11/09/26 12:00:01:000'),
+            self.line('advice nalu req kind=rotation_profile id=v2-nalu-1700000000-1 options=2 default=default',
+                      stamp='11/09/26 12:00:02:000'),
+            self.line('advice nalu answer kind=rotation_profile choice=conserve applied=yes why=held_60s',
+                      stamp='11/09/26 12:00:03:000'),
+            self.line('advice nalu answer kind=goal choice=null applied=no why=null', stamp='11/09/26 12:00:04:000'),
+            self.line('advice nalu drop why=expired', stamp='11/09/26 12:00:05:000'),
+            self.line('advice - drop why=unknown_id', stamp='11/09/26 12:00:06:000'),
+            self.line('subjob off: entity:getSubLvl is not readable (gated off)', stamp='11/09/26 12:00:07:000'),
+            self.line('advice off: banshee_bots_v2_advice.lua is not installed (gated off)',
+                      stamp='11/09/26 12:00:08:000'),
+            self.line('advice nalu answer kind=goal choice=x applied=maybe why=null', stamp='11/09/26 12:00:09:000'),
+            self.line('advice nalu drop why=bored', stamp='11/09/26 12:00:10:000'),
+            self.line('profile nalu to=conserve why=order', stamp='11/09/26 12:00:11:000'),
+        ])
+        bots, coverage = botsv2.read(self.write('j0.log', raw))
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['unrecognized'], coverage['system']),
+                         (9, 3, 0, 3))
+        nalu = bots[0]
+        self.assertEqual((nalu['counts']['advice'], nalu['counts']['other'], nalu['counts']['ok']), (2, 2, 1))
+        chronological = list(reversed(nalu['events']))
+        self.assertEqual([(e['type'], e['reason'], e['result']) for e in chronological],
+                         [('act', 'cast', 'ok'), ('profile', 'advice', None), ('adviceRequest', 'rotation_profile', None),
+                          ('advice', 'held_60s', 'applied'), ('advice', 'null', 'not_applied'),
+                          ('adviceDrop', 'expired', None)])
+        self.assertEqual(chronological[0]['apl'], 'sub_dia')
 
     def test_c28_near_misses_are_omitted_not_guessed(self):
         cases = ['release nalu zone=119 after 30s',        # no why=

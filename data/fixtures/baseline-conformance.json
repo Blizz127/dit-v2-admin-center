@@ -253,7 +253,7 @@
         },
         "p-03": {
           "status": "Partly live",
-          "evidence": "live: WHM dia/paralyze/banish (export 2), critical_cure (export 3 l.188); THF steal (export 2), sneak_attack l.332, weapon_skill wsId=18 l.335; BLM nuke spellId=160 l.356. 22-job kits planned J0-J4."
+          "evidence": "live: WHM dia/paralyze/banish, critical_cure (export 3 l.188); THF steal, sneak_attack l.332, weapon_skill l.335; BLM nuke l.356. J0a (job-kit framework, sub-job moves, profiles) staged, not live. 22-job kits J1-J4."
         },
         "p-04": {
           "status": "Partly live",
@@ -288,8 +288,8 @@
           "evidence": "Callouts and say_open are DIT outbox records (ffxi handoff 2026-11-09-botsv2-parity-notes/PARITY-NOTES.md item 7); no say_open or callout line is in the export, so not shown live here. Two-way tell/party replies pending."
         },
         "p-12": {
-          "status": "Designed",
-          "evidence": "J0 advice seam, flag BANSHEE_BOTS_V2_AI_ADVICE=0."
+          "status": "Built",
+          "evidence": "J0b decision_advice seam built (handoff 2026-11-09-botsv2-j0b-frozen, 1563/0; rotation_profile and goal advice), staged, not live; flag off by default. Goes live only with the flag and the hub's DIT_ADVICE_GAMES=ffxi on."
         }
       }
     },

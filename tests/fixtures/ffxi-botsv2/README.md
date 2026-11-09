@@ -38,3 +38,14 @@
 - **Bot lines:** `mount <bot> why=<w>`, `dismount <bot> why=<w>`, `mount_blocked <bot> why=no_key_item ki=<n> (V2 grants none)`.
 - **System line:** `mount_gate off: entity:botMount is not bound (gated off)`.
 - These are covered by synthetic tests only. c2.10.1 (frozen 72dbbf89) keeps every c2.10 log template: confirmed by ffxi and by a diff of the log calls in both frozen trees.
+
+# J0a / J0b formats (staged, not live)
+
+- Source: ffxi handoff `2026-11-09-botsv2-j0b-frozen` (1563/0), checked by diffing its log calls against c2.10.1. These formats are covered by synthetic tests only.
+- **Sub-job moves** use the existing act line with `apl=sub_<name>`.
+- **Profile line:** `profile <bot> to=<id> from=<id> why=default|order|advice`.
+- **Advice lines:**
+  - `advice <bot> req kind= id= options= default=`;
+  - `advice <bot> answer kind= choice= applied=yes|no why=`;
+  - `advice <bot>|- drop why=unknown_id|bad_choice|expired|cap`. When the key is `-`, the line is a bot-less system notice.
+- **System lines:** `subjob off: … (gated off)` and `advice off: … (gated off)`.

@@ -17,6 +17,8 @@ Rules enforced here:
   masked owner; a focusheal arg that is not '<owner>' is shown as '<member>'. levelsync lines are events counted as
   other.
 - counts.mount counts 'mount <bot> why=' lines; dismount lines are events only; mount_blocked counts as other.
+- J0a/J0b: profile lines count as other; advice answers count as advice (applied or not; the event result says
+  which); requests are events only; a drop counts as other, and 'advice - drop' (no bot) is a system notice.
 - counts.rest counts rest starts ('rest <bot> why=...'); a 'rest end' line is an event only.
 - Lua's '%%' escape is unescaped to '%'. Output is printable ASCII; any other line is omitted.
 - The owner is '<owner>' only. A line that names anyone else in an owner or speaker role is omitted, so no
@@ -42,7 +44,7 @@ MAX_REFUSALS = 50
 MAX_DEATHS = 50
 OWNER = '<owner>'
 COUNT_KEYS = ('ok', 'refused', 'defend', 'tripStart', 'tripEnd', 'noTrip', 'stuck', 'dead', 'release', 'return',
-              'weak', 'rest', 'mount', 'party', 'other')
+              'weak', 'rest', 'mount', 'advice', 'party', 'other')
 
 _BOT = r'([A-Za-z][A-Za-z0-9_]{0,23})'
 _BOT_NAME = re.compile(r'[A-Za-z][A-Za-z0-9_]{0,23}')
@@ -65,6 +67,8 @@ _SYSTEM = tuple(re.compile(pattern) for pattern in (
     r'tick host live in zone \d{1,6}',
     r'levelsync off: entity:levelRestriction is not bound \(gated off\)',
     r'mount_gate off: entity:botMount is not bound \(gated off\)',
+    r'subjob off: entity:getSubLvl is not readable \(gated off\)',
+    r'advice off: banshee_bots_v2_advice\.lua is not installed \(gated off\)',
     r'zone \d{1,6} has no known script name: no host',
     r'BANSHEE_BOTS_V2_ACTORS=all is refused in increment 1; .+',
     r'field_excursion is on without the V2 ownership skip \(fieldExcursionV2Aware unset\): V2 drives nothing',
@@ -487,6 +491,43 @@ def _mount_blocked(body):
                  detail=f'ki={match.group(3)}')
 
 
+# J0a profile line (banshee_bots_v2.lua:849) and J0b advice seam (banshee_bots_v2_advice.lua:97-199).
+_PROFILE = re.compile(r'profile ' + _BOT + r' to=(\S{1,64}) from=(\S{1,64}) why=([a-z_]{1,32})')
+_ADVICE_REQ = re.compile(r'advice ' + _BOT + r' req kind=([a-z_]{1,32}) id=(\S{1,128}) options=(\d{1,3}) default=(\S{1,64})')
+_ADVICE_ANSWER = re.compile(r'advice ' + _BOT + r' answer kind=([a-z_]{1,32}) choice=(\S{1,64}) applied=(yes|no) '
+                            r'why=([a-z_0-9]{1,32})')
+_ADVICE_DROP = re.compile(r'advice (?:-|' + _BOT + r') drop why=(unknown_id|bad_choice|expired|cap)')
+
+
+def _profile(body):
+    match = _PROFILE.fullmatch(body)
+    if match is None:
+        raise _Malformed('profile')
+    return _part([_bot(match.group(1))], 'profile', count='other', reason=match.group(4),
+                 detail=f'to={match.group(2)} from={match.group(3)}')
+
+
+def _advice(body):
+    # Requests are events; each answer counts as advice (applied or not); a drop counts as other, or is a
+    # bot-less system notice when the key is '-'.
+    match = _ADVICE_REQ.fullmatch(body)
+    if match:
+        return _part([_bot(match.group(1))], 'adviceRequest', reason=match.group(2),
+                     detail=f'id={match.group(3)} options={match.group(4)} default={match.group(5)}')
+    match = _ADVICE_ANSWER.fullmatch(body)
+    if match:
+        applied = match.group(4) == 'yes'
+        return _part([_bot(match.group(1))], 'advice', count='advice', reason=match.group(5),
+                     result='applied' if applied else 'not_applied',
+                     detail=f'kind={match.group(2)} choice={match.group(3)} applied={match.group(4)}')
+    match = _ADVICE_DROP.fullmatch(body)
+    if match:
+        if match.group(1) is None:
+            return _part([], 'system')
+        return _part([_bot(match.group(1))], 'adviceDrop', count='other', reason=match.group(2))
+    raise _Malformed('advice')
+
+
 def _budget(body):
     if _BUDGET.fullmatch(body) is None:
         raise _Malformed('budget')
@@ -522,6 +563,8 @@ _RULES = (
     (re.compile(r'rest '), _rest),
     (re.compile(r'(?:mount|dismount) '), _mount),
     (re.compile(r'mount_blocked '), _mount_blocked),
+    (re.compile(r'profile '), _profile),
+    (re.compile(r'advice (?!off: )'), _advice),
     (re.compile(r'budget '), _budget),
 )
 
