@@ -450,3 +450,42 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-e6a775
 **Checks:** full Python suite 600 OK; 9 JS tests pass; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview f0f50cd4 (source f8e24bc, includes 2c9e2cf)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-f0f50cd4**.
+Independent readback at **2026-11-09T23:10:51Z** matched both hashes, sizes and
+mode 600. Previous previews remain available.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 544898 | `f0f50cd4d855ea6ddf0d12c78f0b8526b73c588ba0dd4f2446d94770a291838c` | 600 |
+| READ-ME-FIRST.txt | 797 | `0b6e3ff53da8b3034151c958754f20d78a6114a43dda7ba5253500d5f85f8761` | 600 |
+
+**Changes:**
+- Missing or rejected Vanilla target names end a same-target run, preventing
+  unrelated unidentified pulls from creating a false stall finding. Pull totals
+  are retained. Both committed real exports keep their previous results.
+- Event-list bodies render on first opening; reopening reuses the same body.
+  A new snapshot receives new lists. Counts, limits and text escaping remain.
+- Preview checks render the full bot exports and parity data at startup and
+  restore them for the final owner view. Unrelated inspector scenarios use
+  smaller snapshots instead of rebuilding those same imports 30 times. No
+  existing assertion or timeout was removed.
+
+**Verification:** the eight focused reader tests passed at `2c9e2cf`; the bot
+activity JavaScript checks pass with the deferred list behavior. The generated
+artifact passed all 176 simulated-DOM checks with zero transport attempts
+(construction 1063 ms, completion wait 7583 ms). Its SHA-256 matches the exact
+artifact tested. Native browser rendering and keyboard checks remain NOT RUN.
+No full suite was rerun for this increment.
+
+**Earlier failures retained:** the first invocation lacked the existing jsdom
+module path. With that path supplied, the original preview timed out twice after
+150 checks (18.9 and 20.6 seconds); deferred rendering alone timed out after 153
+checks (11.2 seconds). Scenario isolation then passed under the unchanged
+10-second check deadline. These timings are local observations, not a native
+browser performance claim.
+
+**Rollback:** use the preceding preview `e6a77534`; this release added only its
+own private folder. No live hub/game deployment or device/browser execution.
