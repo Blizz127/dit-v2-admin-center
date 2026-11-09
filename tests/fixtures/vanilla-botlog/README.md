@@ -22,3 +22,39 @@
 
 - The two runs left are other mechanisms: Uywen logs a burst of 30 pull rows in 8 seconds on a mob too low to give xp, and Ohny re-selects one mob while walking (35 pulls from 35 positions).
 - A loot row now also ends a run, because a mob too low to give xp writes no `XpGainAction`. It changes none of the numbers above.
+
+## Release k: `vanilla-bot_events-release-k-20261109T2219Z.csv`
+
+- Source: `/home/blizz/scratch/cmangos/bot-events-export/`, with
+  `release-k-intake.json` for release `release-20261109k-pb-never-engaged`.
+  Discovered on disk after its first native message delivery was rejected before
+  delivery; no sender retry was requested or duplicated.
+- Copied byte for byte: 429,908 bytes, SHA-256
+  `1fcc50b793dae1ff83acf8f87bad2cb57c98203086f805c44cdb59f6417c93c6`.
+  All 4,261 rows import, with 0 omissions and 473 distinct bots, from
+  2026-11-09T22:20:20Z through 22:52:28Z (1,928 seconds).
+- Field 8 is empty on all 120 social rows: 118 invitation accepts, one guild
+  accept and one group leave. There are no guild-leave or quest-share rows.
+- Independent standard-library CSV analysis (without this project's importer)
+  agrees with the producer's comparison below. Release j is restricted to its
+  first 1,928 seconds, inclusive, rather than compared over its full 33 minutes.
+
+| Observation | Release j, first 32 min 8 s | Release k, 32 min 8 s |
+| --- | ---: | ---: |
+| Same-target runs of 10+ pulls without recorded XP or loot | 2 | 1 |
+| Share of pulls in those runs | 4.3% | 0.9% |
+| Longest run | 37 | 14 |
+| Pulls per XP-gain row | 1.39 | 1.28 |
+
+The remaining qualifying run is Chardan: 14 pulls on the target name
+`Defias Thug`, across 12 positions in 507 seconds. Whole-file totals are 1,617
+pull rows, 1,264 XP-gain rows and 90 hearthstone rows with stuck reasons.
+That run contains one `RepopAction` between its first and last pulls, so it is
+not evidence of a single uninterrupted engagement.
+
+Limits: the run key is a target **name**, not a creature GUID; XP or loot ends
+a run, but death/repop does not end one in these historical metrics. Kills that
+produce neither signal are invisible. Populations and activity differ, so this
+is an observational comparison, not proof of a controlled causal effect or a
+complete stuck-bot count. The earlier sections' "kill" wording is historical;
+the current preview labels the recorded signals explicitly.

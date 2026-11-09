@@ -49,8 +49,8 @@ def bot_activity_preview():
              'Offline import of dit.bot_event.v1 JSONL (DIT_BOT_EVENT_DIR); includes AI advice rows.',
              read_bot_event, ROOT / 'tests/fixtures/bot-event-v1'),
             ('wow-vanilla-playerbots', 'WoW Vanilla / Benilla playerbots (cmangos-classic event log)',
-             'Exported cmangos-classic playerbot event CSV after the re-pull fix (release-20261109j, 11-09 21:27Z-22:00Z, 449 bots, no humans). In the same 33 minutes: runs of 10+ pulls without recorded XP or loot fell from 6 (17.8% of pulls, longest 121) to 2 (4.7%, longest 37). Kills with neither signal may be unobserved. Offline import (DIT_VANILLA_BOTLOG_CSV).',
-             read_vanilla_botlog, ROOT / 'tests/fixtures/vanilla-botlog/vanilla-bot_events-release-j-20261109T2127Z.csv')):
+             'Release-20261109k exported playerbot CSV, 11-09 22:20Z-22:52Z, 473 bots. In 32 min 8 s each (j → k), same-name runs of 10+ pulls without recorded XP or loot fell from 2 to 1; pull share 4.3% → 0.9%; longest 37 → 14; pulls per XP-gain row 1.39 → 1.28. The remaining run spans a respawn. Populations differ; kills with neither signal are invisible. Offline import (DIT_VANILLA_BOTLOG_CSV).',
+             read_vanilla_botlog, ROOT / 'tests/fixtures/vanilla-botlog/vanilla-bot_events-release-k-20261109T2219Z.csv')):
         bots, coverage = read(str(path))  # Both readers take an absolute path string, not a Path.
         sources.append(dict(id=source_id, label=label, note=note, bots=bots, coverage=coverage))
     return dict(wow, sources=sources)
@@ -89,7 +89,7 @@ def source_fingerprints():
              'forever_botlog.py', 'tests/fixtures/forever-botlog/manifest.json', 'tests/fixtures/forever-botlog/bots.jsonl',
              'tests/fixtures/forever-botlog/events.jsonl', 'baseline_conformance.py', 'data/fixtures/baseline-conformance.json',
              'ffxi_botsv2_log.py', 'tests/fixtures/ffxi-botsv2/bots-v2-j1234-20261109.log', 'bot_event_v1.py', 'human_feel.py', 'vanilla_botlog.py',
-             'tests/fixtures/vanilla-botlog/vanilla-bot_events-release-j-20261109T2127Z.csv',
+             'tests/fixtures/vanilla-botlog/vanilla-bot_events-release-k-20261109T2219Z.csv',
              'tests/fixtures/bot-event-v1/EXAMPLES.jsonl')
     return {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in paths}
 

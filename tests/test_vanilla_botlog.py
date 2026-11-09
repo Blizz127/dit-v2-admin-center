@@ -1,4 +1,5 @@
 """vanilla_botlog: the cmangos-classic playerbot event CSV. Offline, strict, never echoes a bad row."""
+import csv
 import hashlib
 import json
 import os
@@ -13,6 +14,8 @@ FIXTURE = Path(__file__).parent / 'fixtures' / 'vanilla-botlog' / 'vanilla-bot_e
 DERIVED_SHA256 = 'ad510a009cd3a44af973eaa32654552058430fe085eab90498d83ef0cbc20210'
 RELEASE_J = FIXTURE.parent / 'vanilla-bot_events-release-j-20261109T2127Z.csv'
 RELEASE_J_SHA256 = '3e2e82b583feac2a854085acbc037bbdc6dcf755bfff4af53fcb3f6a0ce7d673'
+RELEASE_K = FIXTURE.parent / 'vanilla-bot_events-release-k-20261109T2219Z.csv'
+RELEASE_K_SHA256 = '1fcc50b793dae1ff83acf8f87bad2cb57c98203086f805c44cdb59f6417c93c6'
 
 
 def row(stamp='2026-11-09 19:27:40', name='Estellene', action='AttackAnythingAction', point='POINT(1670.56 -5705.33)',
@@ -76,6 +79,38 @@ class VanillaBotlogTests(unittest.TestCase):
         tohsha = [row for row in rows if row['name'] == 'Tohsha']
         self.assertEqual((sum(row['action'] == vanilla.PULL for row in tohsha),
                           sum(row['action'] == vanilla.KILL for row in tohsha)), (34, 25))
+
+    def test_release_k_export_keeps_only_one_qualifying_run(self):
+        raw = RELEASE_K.read_bytes()
+        self.assertEqual(hashlib.sha256(raw).hexdigest(), RELEASE_K_SHA256)
+        social = {'AcceptInvitationAction', 'LeaveGroupAction', 'GuildAcceptAction',
+                  'GuildLeaveAction', 'AcceptQuestShareAction'}
+        redacted = [fields for fields in csv.reader(raw.decode('ascii').splitlines()) if fields[2] in social]
+        self.assertEqual(len(redacted), 120)
+        self.assertTrue(all(fields[7] == '' for fields in redacted))
+        bots, coverage = vanilla.read(str(RELEASE_K))
+        self.assertEqual((coverage['status'], coverage['records'], coverage['omitted'], coverage['bots']),
+                         ('Loaded', 4261, 0, 473))
+        self.assertEqual((coverage['from'], coverage['to']), ('2026-11-09T22:20:20Z', '2026-11-09T22:52:28Z'))
+        self.assertEqual((coverage['pulls'], coverage['kills'], coverage['stalledBots'], coverage['stalledPulls'],
+                          coverage['stalledSharePct'], coverage['longestStall'], coverage['hearthStuck']),
+                         (1617, 1264, 1, 14, 0.9, 14, 90))
+        self.assertEqual((bots[0]['name'], bots[0]['stall']['target'], bots[0]['stall']['pulls'],
+                          bots[0]['stall']['positions'], bots[0]['stall']['seconds']),
+                         ('Chardan', 'Defias Thug', 14, 12, 507))
+        self.assertTrue(all(bot['stall'] is None for bot in bots[1:]))
+
+    def test_release_j_comparison_uses_the_release_k_duration(self):
+        # First J timestamp 21:27:48 + K's 1928 seconds, with an inclusive endpoint.
+        cutoff = b'2026-11-09 21:59:56+00'
+        window = [line for line in RELEASE_J.read_bytes().splitlines(keepends=True)
+                  if line.partition(b',')[0] <= cutoff]
+        _, coverage = vanilla.read(self.write(*window))
+        self.assertEqual((coverage['records'], coverage['bots'], coverage['pulls'], coverage['kills']),
+                         (3988, 443, 1458, 1050))
+        self.assertEqual((coverage['stalledBots'], coverage['stalledPulls'], coverage['stalledSharePct'],
+                          coverage['longestStall']), (2, 62, 4.3, 37))
+        self.assertEqual(round(coverage['pulls'] / coverage['kills'], 2), 1.39)
 
     def test_a_loot_row_ends_a_run_like_a_kill(self):
         rows = [row(stamp=f'2026-11-09 19:00:{i:02d}', info1='Crag Boar') for i in range(8)]
