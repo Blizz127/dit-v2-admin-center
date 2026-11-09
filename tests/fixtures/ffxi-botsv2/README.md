@@ -13,7 +13,7 @@
 
 - `bots-v2-c28-20261109.log`: copied byte-for-byte from ffxi's handoff `2026-11-09-botsv2-log-export-2` (sha256 `be2eea13e43c196a06bef51cc580b9a4ff2bbde6ede624eb7cb608b03a1740fc`, 377 lines). It is every [BOTS-V2] line of the live c2.8 run, 11-09 07:15Z-08:13:41Z. No human was online, so nothing is masked. Two non-bot lines from the export (container wake notes) are ignored.
 - **Confirmed live:** the c2.8 `rest` / `rest end` formats (V.restLog in banshee_bots_v2.lua). The importer recognizes every bot line in this export.
-- **Still provisional:** dead / release / return / weak. No bot died in this run, so those formats are still unconfirmed against a live line.
+- **Death formats:** dead / release / revived were confirmed against live lines that ffxi reported on 11-09 10:08-10:09Z (test_live_death_lines_reported_by_ffxi_parse). return / weak are still unconfirmed.
 - The private preview builder now uses this export for the FFXI activity section.
 
 # c2.9 formats (not live yet)

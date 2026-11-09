@@ -493,6 +493,27 @@ class FFXIBotsV2LogTests(unittest.TestCase):
             with self.subTest(body=body):
                 self.assertEqual(botsv2._line(self.line(body).rstrip(b'\n'), 1)[0], 'omitted')
 
+    def test_live_death_lines_reported_by_ffxi_parse(self):
+        # Exact live lines from ffxi's report (11-09 10:08-10:09Z, c2.8 code on c2.8.1); export 3 will carry them.
+        raw = b''.join([
+            self.line('dead fumika wait_raise=30 raisers=0 zone=119', stamp='11/09/26 10:08:42:000'),
+            self.line('act fumika rule=dead_wait apl=- op=release reason=solo -> ok release',
+                      stamp='11/09/26 10:09:13:000'),
+            self.line('release fumika why=solo zone=119 after 30s', stamp='11/09/26 10:09:13:100'),
+            self.line('revived fumika at its home point zone=241 after 33s', stamp='11/09/26 10:09:15:000'),
+            self.line('dead tomoe wait_raise=30 raisers=0 zone=119', stamp='11/09/26 10:09:11:000'),
+            self.line('release tomoe why=solo zone=119 after 31s', stamp='11/09/26 10:09:42:000'),
+            self.line('revived tomoe at its home point zone=241 after 34s', stamp='11/09/26 10:09:45:000'),
+        ])
+        bots, coverage = botsv2.read(self.write('death-live.log', raw))
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['unrecognized']), (7, 0, 0))
+        by = {bot['name']: bot for bot in bots}
+        self.assertEqual({n: (b['counts']['dead'], b['counts']['release']) for n, b in by.items()},
+                         {'fumika': (1, 1), 'tomoe': (1, 1)})
+        self.assertEqual([(e['type'], e['reason']) for e in reversed(by['tomoe']['events'])],
+                         [('dead', None), ('release', 'solo'), ('revived', 'home_point')])
+        self.assertEqual(by['fumika']['zoneId'], 241)
+
     def test_c28_near_misses_are_omitted_not_guessed(self):
         cases = ['release nalu zone=119 after 30s',        # no why=
                  'release nalu why=x zone=119',             # no after
