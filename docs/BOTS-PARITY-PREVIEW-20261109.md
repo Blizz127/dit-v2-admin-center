@@ -262,3 +262,18 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-3a3bea
 **Checks:** full Python suite OK; 8/8 `tests/*.test.js` pass; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview df9c0417 (source 89cc8d4)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-df9c0417**. Readback at **2026-11-09T13:53:13Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 401399 | `df9c0417f0a06c7b90d298649263aa7550f88f422b79202137a560cb762a9876` | 600 |
+| READ-ME-FIRST.txt | 552 | `5bdc3fe71f50e551c9dbac59f5eca4c137d485482449c89fb6208d3f801a0a84` | 600 |
+
+**Change:** P2b is now armed (13:51:33Z) in the FFXI LSB p-08 and p-12 evidence; the hub's question is answered. The statuses are unchanged.
+
+**Checks:** conformance and FFXI importer tests OK; native browser NOT RUN.
+
+**Rollback:** remove only that folder.
