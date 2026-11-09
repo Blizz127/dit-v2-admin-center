@@ -365,7 +365,7 @@
         },
         "p-03": {
           "status": "Built",
-          "evidence": "release kc live 11-09 10:48:48Z (integrator 072376da), not yet seen: 0 humans. Juggernaut (3) and Inquisitor ability rules live; rotation tables for all 48 disciplines shipped but off (SWTOR_BOT_ROTATIONS=False). BH, Agent and all Republic rules not done."
+          "evidence": "release kf live 11-09 14:50:07Z (integrator 072376da), rotations ON, not yet seen: 0 humans. Client-data rules for all 8 classes, 16 ACs, 48 disciplines; squad picks from each discipline's APL. Offline 288 fights, 0 refusals. Interrupt, CC, cleanse and ~11 Marauder abilities not done."
         },
         "p-04": {
           "status": "Built",
@@ -401,7 +401,7 @@
         },
         "p-12": {
           "status": "Designed",
-          "evidence": "BOTS-PLAN-20261109.md lane bot-chat. kc writes bot-events/swtor-YYYY-MM-DD.jsonl (dit.bot_event.v1 + decision_advice.v1 shape), but squad behaviour and rotation choices write no rows yet and no advice is requested."
+          "evidence": "BOTS-PLAN-20261109.md lane bot-chat. Release kf (11-09 14:50:07Z) writes a dit.bot_event.v1 decision/refused row per rotation press (offline-tested, no live rows yet). No decision_advice.v1 request is issued, so AI does not decide yet."
         }
       }
     },

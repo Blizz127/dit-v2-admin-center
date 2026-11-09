@@ -128,13 +128,16 @@ class BaselineConformanceTests(unittest.TestCase):
                 continue
             evidence = cells[row_id]['evidence']
             if cells[row_id]['status'] == 'Built':
-                # Built from release kc: live code, but no live log line yet, so never Verified live.
-                self.assertIn('release kc live 11-09 10:48:48Z', evidence, row_id)
+                # Built from release kc/kf: live code, but no live log line yet, so never Verified live.
+                self.assertRegex(evidence, r'release (kc live 11-09 10:48:48Z|kf live 11-09 14:50:07Z)', row_id)
                 self.assertIn('not yet seen', evidence, row_id)
             else:
                 self.assertIn('BOTS-PLAN-20261109.md', evidence, row_id)
         self.assertIn('bot-behavior', cells['p-08']['evidence'])
-        self.assertIn('SWTOR_BOT_ROTATIONS=False', cells['p-03']['evidence'])
+        self.assertIn('release kf live 11-09 14:50:07Z', cells['p-03']['evidence'])
+        self.assertIn('rotations ON', cells['p-03']['evidence'])
+        # kf logs rotation decisions but requests no advice, so AI decisions stay Designed.
+        self.assertIn('No decision_advice.v1 request', cells['p-12']['evidence'])
         self.assertIn('bot-chat', cells['p-12']['evidence'])
         self.assertIn('bot-chat', cells['p-11']['evidence'])
         self.assertTrue(all(cells[k] == UNKNOWN for k in cells if k not in PARITY))
