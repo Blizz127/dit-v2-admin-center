@@ -374,3 +374,30 @@ The hub has adapters for eve_online, marvel_heroes, minecraft, monster_hunter_fr
 - The port from 0.1.29.1 to 0.1.33 is in progress on `integration/forever-70790-bots-0133` (commit `84aa7bf58f0`). It covers the bots only (the module, `sql/playerbot_v2` and their tests), and carries the 9 DIT commits.
 - The AI-only gate is held on the new chat paths (`BotLanguage`, `GuildWhisperInvite`).
 - Not deployed yet. Deploy waits behind the existing maintenance hold.
+
+**Owner, later (2026-11-09):**
+
+> yes send the list excellent, one bot died never released, and they need to use their mounts every bot should have a mount and they need to quest and such too like subjobs etc
+
+**FFXI checklist** (sent to `ffxi` and `ffxi-platform`):
+1. combat for all 22 jobs;
+2. a temporary level raise with job kits;
+3. death and recovery (Raise / Reraise, release and rejoin, wipe, weakness);
+4. getting bots by job and role, and filling the party;
+5. **a mount for every bot**, used with the owner and for long trips;
+6. **sub-jobs and quests**: missions, Fields of Valor, job unlocks, Limit Breaks;
+7. party controls as in the WoW bots;
+8. travel networks;
+9. loot and economy;
+10. battlefields, NMs and Signet;
+11. world population;
+12. two-way AI chat.
+
+**Live bug:** a canary bot died and never released. Sent to `ffxi` to investigate.
+
+**Earlier the same night (c2.8a):** Fumika's stall was a combat-assist gap.
+- She assisted only when the owner was auto-attack engaged.
+- She didn't chase to melee range.
+- She didn't protect the party.
+
+The fix is canary c2.8a, queued before MP rest.
