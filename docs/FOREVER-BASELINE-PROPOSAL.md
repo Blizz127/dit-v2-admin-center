@@ -401,3 +401,42 @@ The hub has adapters for eve_online, marvel_heroes, minecraft, monster_hunter_fr
 - She didn't protect the party.
 
 The fix is canary c2.8a, queued before MP rest.
+
+## FFXI Forever: five party bots for the owner (2026-11-09)
+
+**Owner, verbatim:**
+
+> can we add 5 bots to ff11 forever? i'd like them to level up do missions quests also if possible
+
+> ai can be integrated in bot rotatoins or decisoins too as we planned earlier
+
+> i'm a rdm on the server so add the bots that match it best for parties
+
+> i'm going to use theb ots as party members do old school part levels
+
+**Owner answers to questions from this terminal:**
+- **Era:** "Yes, keep Forever era-correct". Bots use rented chocobos for mounts. Later content stays hidden. The temporary level raise is capped at 60.
+- **5 bots go:** "Go on both". That covers one population socket on Forever (while players may be online) and the DIT driver on Banshee for these 5.
+
+**Plan:**
+- The 5 bots are the owner's old-school EXP party around his RDM: WAR (tank, later PLD), WHM, BLM, MNK and THF.
+- They start in his nation, seeded at his level band.
+- The hub revises the roster. It first cut THF/WAR/MNK/BLM/RDM at level 1, sha `c68d2ac1…`; that roster is superseded.
+- `ffxi-platform` provisions the bots and turns on the socket; `ffxi` applies the SQL with preimage and rollback; the hub runs the driver in party/assist mode bound to Blizz.
+
+**What already exists:** the population bridge (`auto_pull`, gambits, party invite/accept, follow, assist), all default off.
+
+**Not built yet:**
+- cross-zone goto (phase 3);
+- quest and mission intents: map `talk`/`trade`, plus a planner in the DIT driver;
+- `ffxi-platform` P1, the owner-bound companion core, which is now its top priority.
+
+**AI in decisions:**
+- The hub published `dit.decision_advice.v1` as standard §6.5 (commit `ce9cf906`).
+- Advice is for goals, party tactics and rotation profiles, chosen only from legal options the bot offers.
+- The bot re-validates each choice and never waits on the AI. Every exchange is logged. A kill switch is on each game, default off.
+- Both FFXI leads and SWTOR are building to it.
+
+**Other updates:**
+- **Shadowtail death:** the native 300 s death clock kept it down for five minutes. After it homepointed, a zone-follow bug left it idle in the wrong zone. The c2.8 fix waits up to 60 s for a raise, then releases, returns to the owner and handles weakness.
+- **SWTOR** started a three-lane plan: every class, AC and discipline; behaviour; and AI chat.
