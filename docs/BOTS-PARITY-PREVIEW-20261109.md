@@ -122,3 +122,20 @@ Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-44c975
 **Checks:** conformance and FFXI importer tests OK; native browser NOT RUN.
 
 **Rollback:** remove only that folder.
+
+## Update: preview bafffe06 (source cf18663)
+
+Same route, new exclusive folder **Downloads → DIT-Admin-Center-Preview-bafffe06**. Readback at **2026-11-09T10:43:27Z** matched both hashes; both files are mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 391575 | `bafffe066002dd84f2af908f678aef4b6129f09354bb64e5571a74d35720f492` | 600 |
+| READ-ME-FIRST.txt | 612 | `df37ad8aa63871176b233d16230b162000e431f8bb900a40372b2697e1966e1e` | 600 |
+
+**Change:**
+- FFXI LSB p-06 evidence: c2.10.1 is frozen (72dbbf89, 1370/0) and armed at 10:42:54Z.
+- The mount log templates are unchanged from c2.10, confirmed by diffing the log calls in both frozen trees.
+
+**Checks:** conformance and FFXI importer tests OK; native browser NOT RUN.
+
+**Rollback:** remove only that folder.
