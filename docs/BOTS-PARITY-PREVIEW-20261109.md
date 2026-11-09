@@ -489,3 +489,29 @@ browser performance claim.
 
 **Rollback:** use the preceding preview `e6a77534`; this release added only its
 own private folder. No live hub/game deployment or device/browser execution.
+
+## Update: preview 17e174cb (source 3a02594)
+
+Private folder **Downloads → DIT-Admin-Center-Preview-17e174cb** on Alienware.
+Independent readback at **2026-11-09T23:24:37Z** matched hashes, sizes and mode 600.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 545086 | `17e174cb2f6847fbad1323088063d0e1199af72a95aed2263495f19f8b111e1f` | 600 |
+| READ-ME-FIRST.txt | 749 | `9001e0138b290b9b152dfcf43c33a38606aab23c665f6e322b8ec006c43c2c2e` | 600 |
+
+**Change:** the Vanilla view labels XP-gain rows and repeated pulls without
+recorded XP or loot. Neither a repeated-pull finding nor its absence proves a
+bot is stuck or unstuck: low-level kills can produce neither signal, and target
+evidence can be missing. The combined list is now **Patterns to review in the
+loaded exports**. Measurements, compatibility fields and before/after counts
+are unchanged. These labels supersede the earlier previews' stronger wording.
+
+**Checks:** eight focused Python reader tests and the bot activity JavaScript
+checks pass, including absent/malformed run evidence. The exact delivered HTML
+passed 176 simulated-DOM checks with zero transport attempts (construction
+456 ms, completion wait 4570 ms). Native browser rendering and keyboard checks
+remain NOT RUN; no full suite or live game/hub action was performed.
+
+**Rollback:** previous preview `f0f50cd4` remains available. Only the new private
+folder was added.
