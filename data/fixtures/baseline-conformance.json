@@ -265,7 +265,7 @@
         },
         "p-06": {
           "status": "Built",
-          "evidence": "c2.10 (frozen, 1305/0 tests, not installed): chocobo via botMount; mounts with the owner or for long trips, the group rides together; dismounts to fight, on hold, at camp. Live bots already hold the chocobo key item."
+          "evidence": "built in c2.10 (1305/0 tests), which will not be installed; ships as c2.10.1 (c2.10 rebased on live c2.9.1, pending). Chocobo via botMount; mounts with the owner or for long trips, group rides together, dismounts to fight."
         },
         "p-07": {
           "status": "Designed",

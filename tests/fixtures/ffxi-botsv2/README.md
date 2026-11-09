@@ -32,9 +32,9 @@
 - **Content:** it has the first live deaths: dead (lines 350, 364), release (366, 371) and revived at the home point (368, 372). Every line is recognized.
 - The private preview builder now uses this export.
 
-# c2.10 formats (mounts; frozen, not live)
+# c2.10 formats (mounts; c2.10 will not be installed, ships as c2.10.1)
 
 - Source: ffxi handoff `2026-11-09-botsv2-c2.10-frozen` (banshee_bots_v2_exec.lua:59/300/309, banshee_bots_v2.lua:780/803/814).
 - **Bot lines:** `mount <bot> why=<w>`, `dismount <bot> why=<w>`, `mount_blocked <bot> why=no_key_item ki=<n> (V2 grants none)`.
 - **System line:** `mount_gate off: entity:botMount is not bound (gated off)`.
-- These are covered by synthetic tests only.
+- These are covered by synthetic tests only. ffxi expects c2.10.1 to keep these formats unchanged and will confirm or send a diff.
