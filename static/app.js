@@ -1477,7 +1477,15 @@ function botActivityList(parent, label, list, describe) {
   const details = document.createElement('details');
   const summary = document.createElement('summary');
   summary.textContent = `${label} (${Array.isArray(list) ? list.length : 'Unknown'})`;
-  details.append(summary, botActivityNested(list, botActivityListLimit, label, describe));
+  details.append(summary);
+  // Event bodies can contain hundreds of rows across the loaded bots. Build only
+  // the lists the reader opens, once for this snapshot's details element.
+  let rendered = false;
+  details.addEventListener('toggle', () => {
+    if (!details.open || rendered) return;
+    details.append(botActivityNested(list, botActivityListLimit, label, describe));
+    rendered = true;
+  });
   parent.append(details);
 }
 function botActivityRow(panel, bot) {

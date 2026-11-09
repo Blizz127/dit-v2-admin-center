@@ -24,6 +24,13 @@ const document = {querySelector: selector => get(selector.slice(1)), getElementB
 const everything = el => [el.textContent, ...el.children.map(everything)].join('\n');
 const titles = panel => panel.children.map(row => row.children[0].textContent);
 const sectionsOf = () => get('bot-activity-sources').children.filter(child => child.className === 'bot-source');
+const toggleDetails = (details, open = true) => {
+  assert.equal(details.tag, 'details');
+  assert.equal(typeof details.listeners.toggle, 'function');
+  details.open = open;
+  details.listeners.toggle({target: details});
+};
+const openLists = row => row.children.filter(child => child.tag === 'details').forEach(details => toggleDetails(details));
 
 const decision = {ts: '2026-01-01T00:00:01Z', engine: 'noncombat', trigger: 'low health', action: 'eat food', reason: 'hp below 40%',
   relevance: 60, band: 'NORMAL', effective: 61, alternatives: [
@@ -114,6 +121,13 @@ setImmediate(() => {
   const [decisions, deaths, quests] = alyra.children.slice(3);
   assert.equal(decisions.tag, 'details');
   assert.match(decisions.children[0].textContent, /Recent decisions \(1\)/);
+  for (const details of panel().querySelectorAll('details')) {
+    assert.equal(details.children.length, 1, 'closed activity lists initially contain only their count summary');
+    assert.equal(details.children[0].tag, 'summary');
+  }
+  toggleDetails(quests, false);
+  assert.equal(quests.children.length, 1, 'a closed toggle does not populate the list');
+  openLists(alyra);
   const decisionItem = decisions.children[1].children[0];
   assert.match(decisionItem.textContent, /eat food via low health · hp below 40% · relevance 60 NORMAL \(effective 61\)/);
   assert.deepEqual(decisionItem.children[0].children.map(li => li.textContent),
@@ -123,11 +137,31 @@ setImmediate(() => {
   assert.deepEqual(deaths.children[1].children[0].children[0].children.map(li => li.textContent),
     ['1500 ms before death · attack nearest · pull', '400 ms before death · flee · low hp']);
   assert.match(quests.children[1].children[0].textContent, /Quest 33 · Wolves Across the Border/);
+  const decisionBody = decisions.children[1];
+  toggleDetails(decisions, false);
+  toggleDetails(decisions);
+  toggleDetails(decisions);
+  assert.equal(decisions.children.length, 2, 'closing and reopening does not duplicate the event body');
+  assert.equal(decisions.children[1], decisionBody, 'reopening keeps the already-rendered body for this snapshot');
   // Empty lists say so explicitly rather than vanishing.
   const borin = panel().children[1];
   assert.equal(borin.children.length, 6, 'decisions, deaths and quests sections are always present');
   assert.equal(borin.children[3].children[0].textContent, 'Recent decisions (0)');
+  openLists(borin);
   assert.match(borin.children[3].children[1].textContent, /none in the export \(does not mean none occurred\)/);
+
+  // A new snapshot replaces the lazy lists; stale toggle callbacks cannot reattach old evidence.
+  setSnapshot({...snapshot, botActivity: {...snapshot.botActivity,
+    bots: [{...bots[0], decisions: [{...decision, action: 'NEW_SNAPSHOT_ACTION'}]}]}}); render();
+  const freshDecisions = panel().children[0].children[3];
+  assert.notEqual(freshDecisions, decisions);
+  assert.equal(freshDecisions.children.length, 1, 'fresh snapshot begins with a new unopened list');
+  toggleDetails(decisions, false); toggleDetails(decisions);
+  assert.equal(freshDecisions.children.length, 1, 'toggling a detached list cannot populate the new snapshot');
+  toggleDetails(freshDecisions);
+  assert.match(everything(freshDecisions), /NEW_SNAPSHOT_ACTION/);
+  assert.ok(!everything(freshDecisions).includes('eat food'), 'only current snapshot decisions appear');
+  setSnapshot(snapshot); render();
 
   // Engine filter hides the others; search by name and by guid; both are local.
   get('bot-activity-engine').value = 'combat'; get('bot-activity-engine').listeners.change();
@@ -163,6 +197,7 @@ setImmediate(() => {
   assert.ok(titles(panel()).includes('Unnamed (9) · Unknown'));
   assert.match(get('bot-activity-count').textContent, /Showing 1 of 1 loaded bots/);
   const nine = panel().children.find(row => row.children[0].textContent === 'Unnamed (9) · Unknown');
+  openLists(nine);
   assert.equal(nine.children[3].children[0].textContent, 'Recent decisions (Unknown)');
   assert.match(nine.children[3].children[1].textContent, /Unknown \(missing or malformed in the export\)/);
   assert.equal(nine.children[4].children[0].textContent, 'Deaths (1)');
@@ -170,6 +205,7 @@ setImmediate(() => {
   assert.equal(nine.children[5].children[0].textContent, 'Quests (Unknown)');
   // A decision whose alternatives are malformed still renders, with Unknown rather than a silent gap.
   setSnapshot({...snapshot, botActivity: {coverage: snapshot.botActivity.coverage, bots: [{botGuid: '8', decisions: [{action: 'rest', alternatives: 'oops'}, {action: 'sit', alternatives: [null]}]}]}}); render();
+  openLists(panel().children[0]);
   const decisionsList = panel().children[0].children[3].children[1].children;
   assert.match(decisionsList[0].children[0].textContent, /Rejected alternatives: Unknown \(missing or malformed/);
   assert.equal(decisionsList[1].children[0].children[0].textContent, 'Unreadable entry; Unknown');
@@ -283,6 +319,8 @@ setImmediate(() => {
   assert.equal(fumika.children[2].textContent, 'Last event: 2026-11-09T04:00:00Z · Counts: ok 109, refused 9, tripStart 2');
   const [ffxiEvents, ffxiRefusals, ffxiDeaths] = fumika.children.slice(3);
   assert.equal(ffxiEvents.children[0].textContent, 'Events (2)');
+  assert.equal(ffxiEvents.children.length, 1, 'FFXI event bodies also wait until opened');
+  openLists(fumika);
   assert.equal(ffxiEvents.children[1].children[0].textContent,
     '2026-11-09T04:00:00Z · act · follow · move · refused · too_far · apl follow · repeated 3 · <img src=x onerror=alert(1)>');
   assert.equal(ffxiEvents.children[1].children[1].textContent, '2026-11-09T03:59:00Z · party · owner_left_zone');
@@ -315,6 +353,8 @@ setImmediate(() => {
   assert.equal(d1.children[1].textContent, 'Doing: Accept mission · Level: 12 · Area: Coruscant');
   assert.equal(d1.children[2].textContent, 'Last event: 2026-11-09T05:00:00Z · Counts by type: decision 2, advice 1, death 1');
   const [ditEvents, ditDeaths, ditAdvice] = d1.children.slice(3);
+  assert.equal(ditEvents.children.length, 1, 'DIT event bodies also wait until opened');
+  openLists(d1); openLists(d2);
   assert.equal(ditEvents.children[1].children[0].textContent, '2026-11-09T05:00:00Z · advice · severity 1 · choice · action accept · result applied');
   assert.equal(ditDeaths.children[0].textContent, 'Deaths (1)');
   assert.equal(ditDeaths.children[1].children[0].textContent, '2026-11-09T04:50:00Z · Killer: Gundark');
@@ -323,6 +363,10 @@ setImmediate(() => {
   assert.equal(d2.children[1].textContent, 'Doing: <script>alert(2)</script> · Level: Unknown · Area: Unknown');
   // Vanilla playerbots: pulls against kills, the longest run of pulls without a kill, and stuck hearthstone escapes.
   const [v1, v2] = sectionsOf()[2].children[5].children;
+  assert.equal(v1.children[3].children.length, 1, 'Vanilla event bodies also wait until opened');
+  openLists(v1);
+  assert.equal(v1.children[3].children[1].children[0].textContent,
+    '2026-11-09T20:52:00Z · AttackAnything · Makrura Shellhide');
   assert.equal(v1.children[0].textContent, 'Tohsha (tohsha) · level 11.23');
   assert.equal(v1.children[1].textContent, 'Doing: AttackAnything Makrura Shellhide · Pulls: 578 · Kills: 9 · Pulls per kill: 64.2 · Hearthstone escapes (stuck): combat long stuck 3');
   assert.equal(v1.children[5].textContent, 'Longest run of pulls without a kill: 562 pulls on Makrura Shellhide over 58 min from 1 position (2026-11-09T19:54:06Z to 2026-11-09T20:52:00Z).');

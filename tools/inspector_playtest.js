@@ -47,6 +47,29 @@ try {
 /* APPLICATION */
   await settle(() => !document.querySelector('#workspace').hidden);
   check(document.querySelector('#error').textContent === '', 'Actual application loaded the projected fixture');
+  const activityList = document.querySelector('#bot-activity details');
+  check(activityList && activityList.children.length === 1 && activityList.firstElementChild.tagName === 'SUMMARY',
+    'Closed bot activity list shows its summary without building its event body');
+  activityList.open = true;
+  await settle(() => activityList.children.length === 2);
+  const activityBody = activityList.lastElementChild;
+  check(activityBody.textContent.length > 0, 'Opening bot activity populates its local event body');
+  activityList.open = false;
+  await new Promise(resolve => setTimeout(resolve, 0));
+  activityList.open = true;
+  await new Promise(resolve => setTimeout(resolve, 0));
+  check(activityList.children.length === 2 && activityList.lastElementChild === activityBody,
+    'Reopening bot activity retains the same body without duplicate entries');
+  const activityFixture = fixture.botActivity, baselineFixture = fixture.baselineConformance;
+  const activityCoverage = textOf('bot-activity-coverage');
+  const baselineText = textOf('baseline-conformance');
+  check(document.querySelectorAll('#bot-activity-sources .bot-source').length === 3 && baselineText.includes('Bots parity'),
+    'Startup renders all additional bot sources and the supplied parity evidence');
+  // The following scenarios mutate unrelated roster/inspector fields. Keep their
+  // snapshots small instead of rebuilding the same imported exports 30 times.
+  // Full imported data is checked above and restored for the final owner view.
+  fixture.botActivity = null;
+  fixture.baselineConformance = null;
   check(document.querySelectorAll('#presence-examples .row').length === 3 && textOf('presence-examples').includes('Live presence: Unknown') && textOf('presence-examples').includes('Different native identity'), 'Presence review loads three synthetic cases without claiming live presence');
   const originalPresenceExamples = structuredClone(fixture.presenceExamples);
   fixture.presenceExamples = {kind:'live', rows:originalPresenceExamples.rows};
@@ -426,8 +449,13 @@ try {
   check(unexpected.length === 0, 'Only allowlisted in-memory fixture reads occurred');
   // Leave fictional gaps visible for manual inspection after the scripted checks.
   fixture.bots = gapRoster;
+  fixture.botActivity = activityFixture;
+  fixture.baselineConformance = baselineFixture;
   document.getElementById('bot-reset').click();
   await load();
+  check(textOf('bot-activity-coverage') === activityCoverage && textOf('baseline-conformance') === baselineText
+    && document.querySelectorAll('#bot-activity-sources .bot-source').length === 3,
+    'Final preview restores the full bot exports and parity evidence after inspector scenarios');
   installAssignmentKeyboardCheck({document,
     prepare: async () => {
       fixture.assignmentHistory = assignmentFixtures.populated.map(row => ({...row, botId: row.botId === 'fixture-bot' ? 'offline-inspector-bot' : row.botId}));
