@@ -40,7 +40,8 @@ function adapter(fault) {
   context.requests = {get length() {return requestCount();}};
   const driver = fs.readFileSync('tools/inspector_playtest.js', 'utf8');
   const start = driver.indexOf('  const auditRequests =');
-  const end = driver.indexOf("  check(textOf('learning-evidence')", start);
+  // The routing-audit block ends where the partial-audit scenario (fixture + await load) begins.
+  const end = driver.indexOf('  const originalAudit =', start);
   assert.ok(start >= 0 && end > start, 'Standalone audit scenario must be present');
   vm.runInContext('{'+driver.slice(start, end)+'}', context);
   const before = requestCount();
