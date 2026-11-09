@@ -106,7 +106,7 @@
 - New values only: act rules `retreat` and `mate_assist`; defend why `retreat_to_healer`, `retreat_to_mate`, `retreat_to_camp`, `cornered`; no trip why `danger`.
 - Covered by a synthetic test only; not yet seen live.
 
-# C4.3 and V2-Q1.1 formats (frozen, not live)
+# C4.3 and V2-Q1.1 formats (live with C5, 18:15:22Z; Q1.1 dark)
 
 - Sources: ffxi handoffs `2026-11-09-botsv2-c4.3-frozen` and `2026-11-09-botsv2-q1.1-frozen`. A log-call diff against c3.1-frozen shows six new templates:
   - `group party <leader> members=<leader>+<a>[+<b>...]`: goes to every member.
@@ -119,7 +119,7 @@
 - V2-Q1.1 ships dark: no progression or roe line appears unless `BANSHEE_BOTS_V2_PROGRESSION=1`.
 - These formats are covered by synthetic tests only.
 
-# C5 formats (frozen; install batch staged)
+# C5 formats (live 18:15:22Z; cumulative: includes C4-C4.3 and V2-Q1.1, progression flag off)
 
 - Source: ffxi handoff `2026-11-09-botsv2-c5-frozen`. A log-call diff against q1.1-frozen shows one new template: `bag full <bot> free=<n> (camping on, no sell path)`, logged once per trip. It counts as other.
 - Group cohesion adds only a value: `trip end ... why=group_<why>`.

@@ -1505,6 +1505,26 @@ function botActivityFfxiRow(panel, bot) {
     botActivityPart(e.ts), botActivityPart(e.rule), botActivityPart(e.op), botActivityPart(e.reason, 'reason '), botActivityPart(e.detail)])}));
   botActivityList(row, 'Deaths', bot.deaths, e => ({text: botActivityJoin([
     botActivityPart(e.ts), botActivityPart(e.type), botActivityPart(e.reason, 'reason '), botActivityPart(e.detail)])}));
+  botActivityFeelNote(row, bot);
+}
+// Human-feel signals (human_feel.py): measurements of machine-regular timing. Missing or short data reads as not measured.
+function botActivityFeel(feel) {
+  if (!plainObject(feel)) return 'Human-feel signals: not measured in this snapshot.';
+  const parts = [];
+  const c = feel.cadence, s = feel.sync, t = feel.schedule;
+  if (plainObject(c) && metricNumber(c.gaps) && metricNumber(c.modalCount) && metricNumber(c.modalGapS))
+    parts.push(`${shown(c.action)}: ${c.modalCount} of ${c.gaps} gaps exactly ${c.modalGapS} s${c.metronomic === true ? ' (metronomic)' : ''}`);
+  if (plainObject(s) && metricNumber(s.actions) && metricNumber(s.together))
+    parts.push(`group actions within 1 s of a mate: ${s.together} of ${s.actions}${s.synchronized === true ? ' (synchronized)' : ''}`);
+  if (plainObject(t) && metricNumber(t.intervals) && metricNumber(t.modalCount) && metricNumber(t.modalIntervalS))
+    parts.push(`trip starts: ${t.modalCount} of ${t.intervals} gaps exactly ${t.modalIntervalS} s${t.fixed === true ? ' (fixed clock)' : ''}`);
+  return `Human-feel signals: ${parts.length ? parts.join(' · ') : 'too few samples to measure.'}`;
+}
+// Appended after the lists, so the list positions in a row stay the same.
+function botActivityFeelNote(row, bot) {
+  const feel = document.createElement('p');
+  feel.textContent = botActivityFeel(bot.feel);
+  row.append(feel);
 }
 // Chat totals (BOT_BRAIN_STANDARD 6.6): lines voiced, lines dropped and why. Empty when the bot has no chat rows.
 function botActivityChat(chat) {
@@ -1513,13 +1533,14 @@ function botActivityChat(chat) {
   return ` · Chat: voiced ${chat.voiced}, dropped ${chat.dropped}${chat.dropped > 0 && reasons !== 'Unknown' ? ` (${reasons})` : ''}`;
 }
 function botActivityDitRow(panel, bot) {
-  item(panel, `${shown(bot.actorId)} · ${shown(bot.game)}`,
-    `Doing: ${shown(bot.doing)} · Level: ${shown(bot.level)} · Area: ${shown(bot.area)}`,
+  const named = botActivityPart(bot.name), place = botActivityPart(bot.areaName), spec = botActivityPart(bot.discipline, ' · Discipline: ');
+  item(panel, `${named ? `${named} (${shown(bot.actorId)})` : shown(bot.actorId)} · ${shown(bot.game)}`,
+    `Doing: ${shown(bot.doing)} · Level: ${shown(bot.level)} · Area: ${place || shown(bot.area)}${spec}`,
     `Last event: ${shown(bot.lastEventAt)} · Counts by type: ${botActivityCounts(bot.counts)}${botActivityChat(bot.chat)}`);
   const row = panel.lastElementChild;
   botActivityList(row, 'Events', bot.events, e => ({text: botActivityJoin([
     botActivityPart(e.ts), botActivityPart(e.type), botActivityPart(e.severity, 'severity '), botActivityPart(e.reason),
-    botActivityPart(e.action, 'action '), botActivityPart(e.result, 'result '), botActivityPart(e.summary)])}));
+    botActivityPart(e.action, 'action '), botActivityPart(e.ability, 'ability '), botActivityPart(e.result, 'result '), botActivityPart(e.summary)])}));
   botActivityList(row, 'Deaths', bot.deaths, d => ({
     text: botActivityJoin([botActivityPart(d.ts), `Killer: ${routingText(d.killer, 'Unknown')}`]),
     child: botActivityNested(d.recentDecisions, botActivityAlternativeLimit, 'Recent decisions before death', r => ({text: botActivityJoin([
@@ -1527,6 +1548,7 @@ function botActivityDitRow(panel, bot) {
   botActivityList(row, 'Advice', bot.advice, a => ({text: botActivityJoin([
     botActivityPart(a.ts), botActivityPart(a.kind), botActivityPart(a.chosen, 'chosen '), botActivityPart(a.outcome, 'outcome '),
     botActivityPart(a.reason)])}));
+  botActivityFeelNote(row, bot);
 }
 const botActivityRenderers = {[botActivityWowId]: botActivityRow, 'ffxi-lsb': botActivityFfxiRow, 'dit-bot-event-v1': botActivityDitRow};
 // The source record for id: the top-level WoW keys when the snapshot has no sources list (older snapshots).

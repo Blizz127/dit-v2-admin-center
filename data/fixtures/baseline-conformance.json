@@ -253,11 +253,11 @@
         },
         "p-03": {
           "status": "Partly live",
-          "evidence": "all 22 job kits live since 13:35:54Z (J1-J4, FROZEN 9cbc76b7). Seen live: WHM, THF, BLM moves (exports 2-3), sub_nuke Aero (export 6 sha 027b96d5 l.152). Export 7 (sha fb7b289b): BLM nukes only; THF/WHM never fought (bag_full trip bug, fix C5)."
+          "evidence": "all 22 job kits live since 13:35:54Z (J1-J4). Seen live: WHM, THF, BLM moves (exports 2-3), sub_nuke Aero (export 6 sha 027b96d5 l.152). Export 7 (sha fb7b289b): BLM nukes only; THF/WHM never fought (bag_full trip bug). Fix C5 live 18:15:22Z, not yet seen."
         },
         "p-04": {
           "status": "Partly live",
-          "evidence": "self-defense live (defend fumika attacker=Yagudo_Persecutor lv15 why=fight_back 11-09 07:43:59Z, export 2). Party assist (c2.8) and group survival (C3.1, live 17:16:51Z: mate_assist, retreat, healer self-preservation) not yet seen."
+          "evidence": "self-defense live (defend fumika attacker=Yagudo_Persecutor lv15 why=fight_back 11-09 07:43:59Z, export 2). Party assist (c2.8), group survival (C3.1) and bot trip parties (C4, live with C5 18:15:22Z) not yet seen in a log."
         },
         "p-05": {
           "status": "Partly live",
@@ -281,7 +281,7 @@
         },
         "p-10": {
           "status": "Designed",
-          "evidence": "V2-Q1.1 frozen (ffxi handoff 2026-11-09-botsv2-q1.1-frozen): gear and spell refresh on level-up and Records of Eminence steps, off unless BANSHEE_BOTS_V2_PROGRESSION=1 (waits for an OK on item and spell writes). Quests, missions, FoV, job unlocks not built."
+          "evidence": "V2-Q1.1 installed dark with C5 (18:15:22Z): gear and spell refresh on level-up and Records of Eminence steps, off unless BANSHEE_BOTS_V2_PROGRESSION=1 (waits for an OK on item and spell writes). Quests, missions, FoV, job unlocks not built."
         },
         "p-11": {
           "status": "Built",

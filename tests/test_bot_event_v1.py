@@ -1,4 +1,5 @@
 """dit.bot_event.v1 offline import: off by default, strict rows, bounded reads, nothing repaired or invented."""
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -231,7 +232,8 @@ class BotEventTests(unittest.TestCase):
         text = json.dumps(bots)
         for private in ('owner_party', 'camp', 'rest_at', 'radius', 'fields', 'tank'):
             self.assertNotIn(private, text)
-        self.assertEqual(set(bots[0]['events'][0]), {'ts', 'type', 'severity', 'reason', 'summary', 'action', 'result'})
+        self.assertEqual(set(bots[0]['events'][0]),
+                         {'ts', 'type', 'severity', 'reason', 'summary', 'action', 'result', 'ability'})
 
     # Required fields, types, enums, lengths and patterns
 
@@ -741,6 +743,41 @@ class BotEventTests(unittest.TestCase):
         # A bot with no chat rows still has the totals, all zero.
         self.assertEqual(self.accepted(base())[0]['chat'], {'voiced': 0, 'dropped': 0, 'byReason': {}})
 
+    def test_swtor_kf_writer_rows_all_pass_and_show_names_abilities_and_chat_drops(self):
+        # 16 writer-produced, text-free rows from the SWTOR lane (release kf writer private_bot_events.py), one per
+        # shape; sha256 47557336. Synthetic actors and timestamps: this proves the shape, not live play.
+        directory = Path(__file__).parent / 'fixtures' / 'bot-event-swtor'
+        raw = (directory / 'swtor-kf-writer-samples.jsonl').read_bytes()
+        self.assertEqual(hashlib.sha256(raw).hexdigest(),
+                         '4755733618ce570cb7aa1a4b91496751c0d34ad78d8420bd57ff7d848150cfd0')
+        self.assertNotIn(b'"text"', raw)
+        bots, coverage = events.read(str(directory))
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['omittedByReason']), (16, 0, {}))
+        by_actor = {bot['actorId']: bot for bot in bots}
+        vorrak, zoey = by_actor['7ff8000000000001'], by_actor['7ff8000000000002']
+        # The game id stays the key; the DIT actor key, area name and discipline are shown beside it.
+        self.assertEqual((vorrak['name'], vorrak['areaName']), ('vorrak', 'Korriban'))
+        self.assertEqual(zoey['name'], 'zoey')
+        picks = [e for bot in bots for e in bot['events'] if e['action'] == 'rotation_pick']
+        self.assertEqual(sorted((e['type'], e['ability']) for e in picks),
+                         [('decision', 'affliction'), ('refused', 'force_lightning')])
+        self.assertTrue(any(bot['discipline'] == 'sith_inquisitor.sorcerer.lightning' for bot in bots))
+        # zoey: one AI line dropped for no listener (a chat row) and one non-AI line dropped (SWTOR's refused row).
+        self.assertEqual(zoey['chat'], {'voiced': 0, 'dropped': 2, 'byReason': {'NOT_AI': 1, 'NO_LISTENER': 1}})
+        self.assertEqual(vorrak['chat']['voiced'], 1)
+
+    def test_labels_must_match_their_patterns_or_stay_hidden(self):
+        sentence = 'hello there, this is a whole sentence that a player typed'
+        bot = self.accepted(base(details={'intent': 'rotation_pick', 'actor_key': sentence, 'area_name': 'x' * 65,
+                                          'ability': 'Shock!', 'discipline': 7}))[0]
+        self.assertEqual((bot['name'], bot['areaName'], bot['discipline'], bot['events'][0]['ability']),
+                         (None, None, None, None))
+        self.assertNotIn(sentence, json.dumps(bot))
+        bot = self.accepted(base(details={'intent': 'rotation_pick', 'actor_key': 'Kade', 'area_name': "Ord Mantell",
+                                          'ability': 'shock', 'discipline': 'sith_warrior.juggernaut.rage'}))[0]
+        self.assertEqual((bot['name'], bot['areaName'], bot['discipline'], bot['doing']),
+                         ('Kade', 'Ord Mantell', 'sith_warrior.juggernaut.rage', 'rotation_pick shock'))
+
     def test_chat_text_rows_are_refused_not_stripped(self):
         sentinel = 'SECRET-CHAT-9'
         bots, coverage = self.run_rows(base(details={'chat_text': sentinel, 'intent': 'say'}),
@@ -767,7 +804,8 @@ class BotEventTests(unittest.TestCase):
             events._parse(b'x' * (events.MAX_LINE + 1))
         parsed = events._parse(json.dumps(base()).encode())
         self.assertEqual(set(parsed), {'game', 'actorId', 'ts', 'type', 'severity', 'reason', 'summary', 'level',
-                                       'area', 'action', 'result', 'advice', 'killer', 'recent', 'chat'})
+                                       'area', 'action', 'result', 'advice', 'killer', 'recent', 'chat', 'name',
+                                       'areaName', 'ability', 'discipline'})
 
 
 if __name__ == '__main__':

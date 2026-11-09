@@ -691,6 +691,15 @@ class FFXIBotsV2LogTests(unittest.TestCase):
             self.assertFalse(any(f'act {name} rule=combat ' in l for l in lines), name)
             self.assertEqual(by_name[name]['counts']['tripEnd'], 8, name)
         self.assertFalse(any('apl=sub_' in l for l in lines))
+        # Human-feel signals proven from this run: tomoe casts on a 3.2 s metronome, and the group leaves on a clock
+        # (three of the four gaps between trip starts are one Vana'diel day, 3456 s).
+        self.assertEqual(tomoe['feel']['cadence'], {'action': 'combat nuke', 'gaps': 66, 'modalGapS': 3.2,
+                                                    'modalCount': 61, 'modalShare': 0.924, 'metronomic': True})
+        for bot in bots:
+            self.assertEqual(bot['feel']['schedule'], {'intervals': 4, 'modalIntervalS': 3456.0, 'modalCount': 3,
+                                                       'modalShare': 0.75, 'fixed': True}, bot['name'])
+        self.assertEqual((by_name['fumika']['feel']['cadence']['metronomic'], tomoe['feel']['sync']['actions'],
+                          tomoe['feel']['sync']['together']), (False, 47, 17))
         self.assertIn('dead tomoe wait_raise=30', lines[585])
         self.assertIn('revived tomoe at its home point', lines[590])
 

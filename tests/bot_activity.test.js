@@ -71,7 +71,9 @@ const ditBots = [{game: 'swtor', actorId: '2001', lastEventAt: '2026-11-09T05:00
   deaths: [{ts: '2026-11-09T04:50:00Z', killer: 'Gundark', recentDecisions: [{action: 'attack', reason: 'pull'}, {action: null, reason: null}]}],
   advice: [{ts: '2026-11-09T05:00:00Z', kind: 'mission', chosen: 'accept', outcome: 'applied', reason: 'ok'}]},
   {game: 'ffxi-forever', actorId: '2002', lastEventAt: null, level: null, area: null, doing: '<script>alert(2)</script>', counts: {}, events: [],
-    deaths: [], advice: 'not a list', chat: {voiced: 3, dropped: 2, byReason: {NO_LISTENER: 2, STALE: 0}}}];
+    deaths: [], advice: 'not a list', chat: {voiced: 3, dropped: 2, byReason: {NO_LISTENER: 2, STALE: 0}}, name: 'Kade',
+    feel: {cadence: {action: 'rotation_pick', gaps: 20, modalGapS: 1.5, modalCount: 18, modalShare: 0.9, metronomic: true}, sync: null,
+      schedule: {intervals: 4, modalIntervalS: 3456, modalCount: 3, modalShare: 0.75, fixed: true}}}];
 const ffxiSource = {id: 'ffxi-lsb', label: 'FFXI (LSB) Bots V2 log export', note: 'Exported [BOTS-V2] map-log lines; offline import (DIT_FFXI_BOTSV2_LOG); owner name masked.',
   bots: ffxiBots, coverage: {status: 'Loaded', records: 382, omitted: 0, unrecognized: 0, ignored: 0, reason: 'Real export.', from: '2026-11-09T01:12:51.704Z', to: '2026-11-09T04:23:57.203Z'}};
 const ditSource = {id: 'dit-bot-event-v1', label: 'DIT bot_event v1 (SWTOR, FFXI Forever, other DIT games)', note: 'Offline import of dit.bot_event.v1 JSONL (DIT_BOT_EVENT_DIR); includes AI advice rows.',
@@ -301,8 +303,13 @@ setImmediate(() => {
   assert.equal(ditDeaths.children[1].children[0].textContent, '2026-11-09T04:50:00Z · Killer: Gundark');
   assert.deepEqual(ditDeaths.children[1].children[0].children[0].children.map(li => li.textContent), ['action attack · reason pull', 'Unknown']);
   assert.equal(ditAdvice.children[1].children[0].textContent, '2026-11-09T05:00:00Z · mission · chosen accept · outcome applied · ok');
-  assert.equal(d2.children[0].textContent, '2002 · ffxi-forever');
   assert.equal(d2.children[1].textContent, 'Doing: <script>alert(2)</script> · Level: Unknown · Area: Unknown');
+  // Human-feel signals: the measurement line closes each row; a snapshot without the field says so.
+  assert.equal(d1.children[d1.children.length - 1].textContent, 'Human-feel signals: not measured in this snapshot.');
+  assert.equal(d2.children[d2.children.length - 1].textContent,
+    'Human-feel signals: rotation_pick: 18 of 20 gaps exactly 1.5 s (metronomic) · trip starts: 3 of 4 gaps exactly 3456 s (fixed clock)');
+  // Names: the DIT actor key and area name are shown when present; the game id stays.
+  assert.equal(d2.children[0].textContent, 'Kade (2002) · ffxi-forever');
   // Chat totals appear only for a bot with chat rows; a bot without the field (d1, an older snapshot) shows none.
   assert.equal(d2.children[2].textContent, 'Last event: Unknown · Counts by type: Unknown · Chat: voiced 3, dropped 2 (NO_LISTENER 2)');
   assert.equal(d2.children[3].children[0].textContent, 'Events (0)');

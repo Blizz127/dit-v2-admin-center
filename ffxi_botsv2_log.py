@@ -21,7 +21,10 @@ Rules enforced here:
   kind=party_tactic' lines are events only.
 - C4.3/V2-Q1.1 (frozen, not live): 'group party' members/drop/off, 'slow eval', 'progression' and 'roe' lines count
   as other; a members line goes to every member and must start with its leader.
-- C5 (frozen): 'bag full <bot> free=<n> (camping on, no sell path)' counts as other; group trip ends use why=group_<why>.
+- Each bot has feel: human-feel measurements from timestamps (human_feel.py): cadence (identical gaps of one ok
+  action), sync (mount, dismount and trip-end lines within a second of another bot) and schedule (trip starts on
+  a fixed interval). A measurement with too few samples is None.
+- C5 (live 18:15:22Z): 'bag full <bot> free=<n> (camping on, no sell path)' counts as other; group trip ends use why=group_<why>.
 - J0a/J0b: profile lines count as other; advice answers count as advice (applied or not; the event result says
   which); requests are events only; a drop counts as other, and 'advice - drop' (no bot) is a system notice.
 - counts.rest counts rest starts ('rest <bot> why=...'); a 'rest end' line is an event only.
@@ -34,6 +37,7 @@ import os
 import re
 from datetime import datetime, timezone
 
+import human_feel
 from local_evidence import read_bytes
 
 ENV = 'DIT_FFXI_BOTSV2_LOG'
@@ -729,6 +733,10 @@ def _split(raw):
     return [line[:-1] if line.endswith(b'\r') else line for line in lines]
 
 
+# Group actions a party does together; human_feel.sync measures how many happen within a second of a mate.
+_GROUP_ACTIONS = frozenset({'mount', 'dismount', 'tripEnd'})
+
+
 def _project(records):
     """Per-bot state from the records in (moment, line) order, newest first on output."""
     bots = {}
@@ -738,7 +746,16 @@ def _project(records):
             state = bots.get(key)
             if state is None:
                 state = bots[key] = {'name': name, 'charId': None, 'zoneId': None,
-                                     'counts': dict.fromkeys(COUNT_KEYS, 0), 'events': []}
+                                     'counts': dict.fromkeys(COUNT_KEYS, 0), 'events': [],
+                                     'actions': {}, 'group': {}, 'starts': []}
+            # Human-feel inputs: when each ok action, group action and trip start happened (human_feel.py).
+            if record['type'] == 'act' and record['result'] == 'ok':
+                action = f"{record['rule']} {record['apl'] or record['op']}"
+                state['actions'].setdefault(action, []).append(record['moment'])
+            elif record['type'] in _GROUP_ACTIONS:
+                state['group'].setdefault(record['type'], []).append(record['moment'])
+            elif record['type'] == 'tripStart':
+                state['starts'].append(record['moment'])
             state['events'].append({'ts': record['ts'], 'type': record['type'], 'rule': record['rule'],
                                     'apl': record['apl'], 'op': record['op'], 'result': record['result'],
                                     'reason': record['reason'], 'detail': record['detail'],
@@ -752,6 +769,10 @@ def _project(records):
     shown = []
     for key in sorted(bots)[:MAX_BOTS]:
         state = bots[key]
+        others = {kind: [moment for other, peer in bots.items() if other != key for moment in peer['group'].get(kind, ())]
+                  for kind in state['group']}
+        feel = {'cadence': human_feel.cadence(state['actions']), 'sync': human_feel.sync(state['group'], others),
+                'schedule': human_feel.schedule(state['starts'])}
         events = state['events']
         last = events[-1]
         if last['type'] == 'act':
@@ -763,7 +784,7 @@ def _project(records):
                       'zoneId': state['zoneId'], 'lastEventAt': last['ts'], 'doing': doing,
                       'counts': state['counts'], 'events': newest[:MAX_EVENTS],
                       'refusals': [e for e in newest if e['result'] == 'refused'][:MAX_REFUSALS],
-                      'deaths': [e for e in newest if e['type'] == 'dead'][:MAX_DEATHS]})
+                      'deaths': [e for e in newest if e['type'] == 'dead'][:MAX_DEATHS], 'feel': feel})
     return shown, len(bots)
 
 

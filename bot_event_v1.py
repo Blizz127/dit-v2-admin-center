@@ -20,8 +20,13 @@ Rules enforced here:
 - A chat row must carry details.channel, origin and voiced (6.6). A voiced row whose origin is not "ai" is refused
   as chat_voiced_not_ai (the AI-or-silence rule); any other origin must be voiced false with drop_reason NOT_AI.
   Each bot's output has chat totals: voiced, dropped, and drops by reason.
-- Only the summary and the structured decision, death and advice fields are returned. Other
-  details keys, including free-form ones, are never returned.
+- Each bot's output has feel.cadence: the share of identical gaps between repeats of one decision action
+  (human_feel.py); None with too few samples.
+- Only the summary and the structured decision, death, advice and chat fields are returned, plus four
+  labels when they fully match a strict pattern: details.actor_key (the bot's name), area_name, ability and
+  discipline. Other details keys, including free-form ones, are never returned.
+- A refused row with details.intent "chat", voiced false and a known drop_reason (SWTOR's shape for a dropped
+  non-AI line) counts in the bot's chat drops.
 - Duplicate keys, NaN and Infinity are refused. Lines over MAX_LINE are refused unparsed.
 - Symlinked files and directories are refused. Only regular files are opened, and a FIFO is never
   waited on. A refused file is skipped, and the other files still load.
@@ -45,6 +50,7 @@ import os
 import re
 import stat
 
+import human_feel
 from local_evidence import read_bytes
 
 ENV = 'DIT_BOT_EVENT_DIR'
@@ -90,6 +96,11 @@ CHAT_CHANNEL = 32
 CHAT_ORIGIN = 32
 CHAT_ROUTE = 64
 CHAT_AI = 'ai'
+# Structured labels a writer may put in details. Each is returned only when it fully matches its pattern, so
+# a free-form sentence can never pass as one. actor_key is the DIT actor key (6.6); the others are SWTOR's.
+NAME_RE = re.compile(r"[A-Za-z][A-Za-z0-9_' -]{0,31}")
+AREA_NAME_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_' -]{0,63}")
+TOKEN_RE = re.compile(r'[a-z0-9][a-z0-9_.:]{0,63}')
 SHORT_TEXT = 64
 
 
@@ -156,6 +167,11 @@ def _optional_text(value, limit):
 def _bounded(value, limit):
     """A string kept for display when it is a bounded string, otherwise None."""
     return value if _text(value, limit) else None
+
+
+def _label(value, pattern):
+    """A details label kept for display when it fully matches its pattern, otherwise None."""
+    return value if isinstance(value, str) and pattern.fullmatch(value) else None
 
 
 def _moment(value):
@@ -282,10 +298,17 @@ def _row(data):
     elif kind == 'chat':
         chat = _chat(data, details)
         action, result = chat['channel'], 'voiced' if chat['voiced'] else (chat['dropReason'] or 'not_voiced')
+    elif (kind == 'refused' and details.get('intent') == 'chat' and details.get('voiced') is False
+          and isinstance(details.get('drop_reason'), str) and details['drop_reason'] in CHAT_DROP_REASONS):
+        # SWTOR logs a dropped non-AI line as a refused row with intent chat; it counts as a chat drop.
+        chat = {'channel': _bounded(details.get('channel'), CHAT_CHANNEL), 'voiced': False,
+                'dropReason': details['drop_reason']}
     return {'game': data['game'], 'actorId': data['actor_id'], 'ts': data['ts'], 'type': kind,
             'severity': data['severity'], 'reason': data.get('reason'), 'summary': data.get('summary'),
             'level': data.get('level'), 'area': data.get('area'), 'action': action, 'result': result,
-            'advice': advice, 'killer': killer, 'recent': recent, 'chat': chat}
+            'advice': advice, 'killer': killer, 'recent': recent, 'chat': chat,
+            'name': _label(details.get('actor_key'), NAME_RE), 'areaName': _label(details.get('area_name'), AREA_NAME_RE),
+            'ability': _label(details.get('ability'), TOKEN_RE), 'discipline': _label(details.get('discipline'), TOKEN_RE)}
 
 
 def _parse(line):
@@ -310,10 +333,15 @@ def _project(key, entries):
     doing = None
     if decisions:
         doing = decisions[-1]['action'] or decisions[-1]['summary'] or None
+        if decisions[-1]['action'] and decisions[-1]['ability']:
+            doing = f"{decisions[-1]['action']} {decisions[-1]['ability']}"
+    name = next((row['name'] for row in newest if row['name'] is not None), None)
+    area_name = next((row['areaName'] for row in newest if row['areaName'] is not None), None)
+    discipline = next((row['discipline'] for row in newest if row['discipline'] is not None), None)
     level = next((row['level'] for row in newest if row['level'] is not None), None)
     area = next((row['area'] for row in newest if row['area'] is not None), None)
     events = [{'ts': row['ts'], 'type': row['type'], 'severity': row['severity'], 'reason': row['reason'],
-               'summary': row['summary'], 'action': row['action'], 'result': row['result']}
+               'summary': row['summary'], 'action': row['action'], 'result': row['result'], 'ability': row['ability']}
               for row in newest[:MAX_EVENTS]]
     deaths = [{'ts': row['ts'], 'killer': row['killer'], 'recentDecisions': row['recent']}
               for row in newest if row['type'] == 'death'][:MAX_DEATHS]
@@ -332,8 +360,15 @@ def _project(key, entries):
             chat['dropped'] += 1
             chat['byReason'][reason] = chat['byReason'].get(reason, 0) + 1
     chat['byReason'] = dict(sorted(chat['byReason'].items()))
+    # Human-feel cadence (human_feel.py): how many gaps between repeats of one decision action are identical.
+    moments = {}
+    for row in decisions:
+        if row['action']:
+            moments.setdefault(row['action'], []).append(datetime.strptime(row['ts'], '%Y-%m-%dT%H:%M:%S.%fZ'))
+    feel = {'cadence': human_feel.cadence(moments)}
     return {'game': game, 'actorId': actor, 'lastEventAt': rows[-1]['ts'], 'level': level, 'area': area,
-            'doing': doing, 'counts': counts, 'events': events, 'deaths': deaths, 'advice': advice, 'chat': chat}
+            'doing': doing, 'counts': counts, 'events': events, 'deaths': deaths, 'advice': advice, 'chat': chat,
+            'feel': feel, 'name': name, 'areaName': area_name, 'discipline': discipline}
 
 
 def _coverage(status, records, omitted, reason, files=0, games=(), span=(None, None), by_reason=None):
