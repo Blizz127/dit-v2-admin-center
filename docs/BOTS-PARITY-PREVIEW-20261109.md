@@ -1193,3 +1193,38 @@ exclusive file creation; a separate connection verified hashes, sizes and mode
 previews remain. Real FFXI post-H1 and SWTOR exports are still required for
 live conclusions. No live game/hub deployment, save/player change, service
 operation, access change or public release occurred.
+
+## Delivered: preview 60d3d2e0 (source 41c448a)
+
+Private folder **Alienware → Downloads → DIT-Admin-Center-Preview-60d3d2e0**.
+Separate-connection readback at **2026-11-10T04:17:48Z** matched both files:
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 597430 | `60d3d2e0dec208e7613e50320847a0b10b80266d1332be6f40d8a8d8988f5564` | 600 |
+| READ-ME-FIRST.txt | 1219 | `31b6ca39ebb4510693e37e19872649ccffe4cb210db5947802030b7dca1f4cbc` | 600 |
+
+Local package: `build/DIT-Admin-Center-Preview-60d3d2e0/`.
+
+**Change:** FFXI Forever (Rust) conformance cells p-01, p-02 and p-07 were
+stale ("driver not started", "not yet run on a live map", "not yet in game").
+They now cite FFXI handoff `2026-11-10-rc7-live-6579934f` (README and
+`RESULT.json`, read once, read-only): v3.77-rc7 live 2026-11-10 03:05:07Z, map
+`1458b2d`, five bot logins online 03:05:47Z, cross-zone POP on, zone-115 pin
+removed, owner offline, `bots_next_to_owner_confirmed: false`. Statuses stay
+**Built**: owner party membership, proximity and cross-zone follow are not
+confirmed live. This lane copied those facts and did not test the game.
+The tracker's `asOf` stays 2026-11-09; only these cells and the two `/fb`
+notes were revisited. This preview supersedes `9462bda2`.
+
+**Verification:** full suite at `41c448a`: 634 Python tests and every
+`tests/*.test.js` script passed. The exact delivered HTML passed all 191
+simulated-DOM startup assertions, zero transport attempts (construction 963 ms,
+completion wait 2,820 ms); receipt `build/rc7-evidence-startup-smoke.log`.
+Native browser/keyboard checks were not run.
+
+**Delivery and rollback:** destination checked absent, then created with
+exclusive file creation; readback in `build/rc7-evidence-delivery-readback.txt`.
+`9462bda2` and earlier previews remain. Real FFXI post-H1 and SWTOR exports are
+still required for live conclusions. No live game/hub deployment, save/player
+change, service operation, access change or public release occurred.
