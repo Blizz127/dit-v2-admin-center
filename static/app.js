@@ -1524,11 +1524,11 @@ function botActivityFeel(feel) {
   const parts = [];
   const c = feel.cadence, s = feel.sync, t = feel.schedule;
   if (plainObject(c) && metricNumber(c.gaps) && metricNumber(c.modalCount) && metricNumber(c.modalGapS))
-    parts.push(`${shown(c.action)}: ${c.modalCount} of ${c.gaps} gaps exactly ${c.modalGapS} s${c.metronomic === true ? ' (metronomic)' : ''}`);
+    parts.push(`${shown(c.action)}: ${c.modalCount} of ${c.gaps} gaps near ${c.modalGapS} s${c.metronomic === true ? ' (metronomic)' : ''}`);
   if (plainObject(s) && metricNumber(s.actions) && metricNumber(s.together))
     parts.push(`group actions within 1 s of a mate: ${s.together} of ${s.actions}${s.synchronized === true ? ' (synchronized)' : ''}`);
   if (plainObject(t) && metricNumber(t.intervals) && metricNumber(t.modalCount) && metricNumber(t.modalIntervalS))
-    parts.push(`trip starts: ${t.modalCount} of ${t.intervals} gaps exactly ${t.modalIntervalS} s${t.fixed === true ? ' (fixed clock)' : ''}`);
+    parts.push(`trip starts: ${t.modalCount} of ${t.intervals} gaps near ${t.modalIntervalS} s${t.fixed === true ? ' (fixed clock)' : ''}`);
   return `Human-feel signals: ${parts.length ? parts.join(' · ') : 'too few samples to measure.'}`;
 }
 // Appended after the lists, so the list positions in a row stay the same.
@@ -1678,9 +1678,9 @@ function botActivityGapLines(data) {
       if (plainObject(stall) && metricNumber(stall.pulls) && metricNumber(stall.seconds))
         lines.push(`${who} has a repeated-pull run: ${stall.pulls} pulls on ${shown(stall.target)} without recorded XP or loot over ${Math.round(stall.seconds / 60)} min.`);
       if (plainObject(c) && c.metronomic === true && metricNumber(c.modalCount) && metricNumber(c.gaps))
-        lines.push(`${who} acts on a metronome: ${shown(c.action)}, ${c.modalCount} of ${c.gaps} gaps exactly ${shown(c.modalGapS)} s.`);
+        lines.push(`${who} has a regular cadence: ${shown(c.action)}, ${c.modalCount} of ${c.gaps} gaps near ${shown(c.modalGapS)} s.`);
       if (plainObject(t) && t.fixed === true && metricNumber(t.modalCount) && metricNumber(t.intervals))
-        lines.push(`${who} leaves on a fixed clock: ${t.modalCount} of ${t.intervals} gaps between trip starts exactly ${shown(t.modalIntervalS)} s.`);
+        lines.push(`${who} has a regular departure pattern: ${t.modalCount} of ${t.intervals} gaps between trip starts near ${shown(t.modalIntervalS)} s.`);
       if (plainObject(s) && s.synchronized === true && metricNumber(s.together) && metricNumber(s.actions))
         lines.push(`${who} moves in lockstep: ${s.together} of ${s.actions} group actions within 1 s of a party mate.`);
     }
@@ -1691,7 +1691,7 @@ function renderBotActivityGaps(container, data) {
   const block = document.createElement('div'); block.className = 'bot-gaps';
   const heading = document.createElement('h4'); heading.textContent = 'Patterns to review in the loaded exports';
   const note = document.createElement('p'); note.className = 'muted';
-  note.textContent = 'Measured from the offline exports below. Kills that produce neither XP nor loot can look like repeated-pull runs. These patterns, or their absence, do not establish human-like behavior.';
+  note.textContent = 'Measured from the offline exports below. Timing gaps are rounded before grouping. Kills that produce neither XP nor loot can look like repeated-pull runs. These patterns, or their absence, do not establish human-like behavior.';
   const lines = botActivityGapLines(data);
   const list = document.createElement('ul');
   lines.slice(0, botActivityGapLimit).forEach(text => { const li = document.createElement('li'); li.textContent = text.slice(0, 500); list.append(li); });

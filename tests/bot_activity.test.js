@@ -338,8 +338,8 @@ setImmediate(() => {
   const gaps = get('bot-activity-sources').children.find(child => child.className === 'bot-gaps');
   assert.equal(gaps.children[0].textContent, 'Patterns to review in the loaded exports');
   assert.deepEqual(gaps.children[2].children.map(li => li.textContent), [
-    'DIT bot_event v1 (SWTOR, FFXI Forever, other DIT games): Kade acts on a metronome: rotation_pick, 18 of 20 gaps exactly 1.5 s.',
-    'DIT bot_event v1 (SWTOR, FFXI Forever, other DIT games): Kade leaves on a fixed clock: 3 of 4 gaps between trip starts exactly 3456 s.',
+    'DIT bot_event v1 (SWTOR, FFXI Forever, other DIT games): Kade has a regular cadence: rotation_pick, 18 of 20 gaps near 1.5 s.',
+    'DIT bot_event v1 (SWTOR, FFXI Forever, other DIT games): Kade has a regular departure pattern: 3 of 4 gaps between trip starts near 3456 s.',
     'WoW Vanilla / Benilla playerbots (cmangos-classic event log): Tohsha has a repeated-pull run: 562 pulls on Makrura Shellhide without recorded XP or loot over 58 min.']);
   const [ffxi, dit] = sectionsOf();
   assert.equal(ffxi.children[0].textContent, 'FFXI (LSB) Bots V2 log export');
@@ -412,7 +412,7 @@ setImmediate(() => {
   assert.equal(v1.children[0].textContent, 'Tohsha (tohsha) · level 11.23');
   assert.equal(v1.children[1].textContent, 'Doing: AttackAnything Makrura Shellhide · Pulls: 578 · XP-gain rows: 9 · Pulls per XP-gain row: 64.2 · Hearthstone escapes (stuck): combat long stuck 3');
   assert.equal(v1.children[5].textContent, 'Longest same-target run without recorded XP or loot: 562 pulls on Makrura Shellhide over 58 min from 1 position (2026-11-09T19:54:06Z to 2026-11-09T20:52:00Z).');
-  assert.equal(v1.children[6].textContent, 'Human-feel signals: pull: 258 of 577 gaps exactly 5 s');
+  assert.equal(v1.children[6].textContent, 'Human-feel signals: pull: 258 of 577 gaps near 5 s');
   assert.equal(v2.children[1].textContent, 'Doing: Unknown · Pulls: 85 · XP-gain rows: 82 · Pulls per XP-gain row: 1 · Hearthstone escapes (stuck): none');
   const noEstablishedRun = 'No run of 10+ same-target pulls was established in this export; this does not prove the bot is unstuck.';
   assert.equal(v2.children[5].textContent, noEstablishedRun);
@@ -426,7 +426,7 @@ setImmediate(() => {
   // Human-feel signals: the measurement line closes each row; a snapshot without the field says so.
   assert.equal(d1.children[d1.children.length - 1].textContent, 'Human-feel signals: not measured in this snapshot.');
   assert.equal(d2.children[d2.children.length - 1].textContent,
-    'Human-feel signals: rotation_pick: 18 of 20 gaps exactly 1.5 s (metronomic) · trip starts: 3 of 4 gaps exactly 3456 s (fixed clock)');
+    'Human-feel signals: rotation_pick: 18 of 20 gaps near 1.5 s (metronomic) · trip starts: 3 of 4 gaps near 3456 s (fixed clock)');
   // Names: the DIT actor key and area name are shown when present; the game id stays.
   assert.equal(d2.children[0].textContent, 'Kade (2002) · ffxi-forever');
   // Chat totals appear only for a bot with chat rows; a bot without the field (d1, an older snapshot) shows none.
