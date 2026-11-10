@@ -1,22 +1,30 @@
 # Current local preview verification commands
 
-UI checkpoint: `7a16041` (shared synthetic presence review; prior diagnostics retained).
-Local artifact: `build/inspector-playtest.html`, **244384 bytes**.
-SHA-256: `d927884195a9ffa245d1107ef991e7ad13b5e871715426a50f810ead922972bc`.
+UI checkpoint: `69e247c` (direct ID lookups; prior features and diagnostics retained).
+Delivered preview: `e132f3c9`, **571364 bytes**.
+Local artifact: `build/DIT-Admin-Center-Preview-e132f3c9/Admin-Center-Synthetic-Preview.html`.
+SHA-256: `e132f3c9810a484902e4d05f685b59207c6b7d753af495770097aabc9588942c`.
+Private copy: Alienware → Downloads → `DIT-Admin-Center-Preview-e132f3c9`.
 
 ## Executed DOM fallback
 
 From this checkout with the pinned local tool dependency:
 
 ```sh
-DIT_JSDOM_MODULE="$PWD/build/dom-runtime/node_modules/jsdom" timeout 15 node tools/run_inspector_playtest.cjs
+DIT_JSDOM_MODULE="$PWD/build/dom-runtime/node_modules/jsdom" timeout 30 node tools/run_inspector_playtest.cjs
 ```
 
-Actual result: **170 checks passed**, jsdom 26.1.0, zero transport attempts,
+Actual result: **183 checks passed**, zero transport attempts,
 artifact hash as above, `nativeKeyboard: not-run`.
-Measured DOM construction: 567 ms; completion wait: 7657 ms. Runner checkpoints
+Measured DOM construction: 750 ms; completion wait: 2478 ms. The runner generates
+the current source in memory; a later source change produces a different hash.
+The recorded run passed on its first attempt. See the
+[delivery receipt](BOTS-PARITY-PREVIEW-20261109.md#delivered-preview-e132f3c9-source-69e247c)
+for focused checks, the preceding build's retained timeout diagnostic, and
+independent delivery hash readback. These timings are not a native-browser
+benchmark. Runner checkpoints
 `68af3bb`, `95afcee`, `a3034f6` use a monotonic five-second no-assertion-progress
-limit and ten-second total completion limit, with the outer 15-second process
+limit and ten-second total completion limit, with the outer 30-second process
 limit in the command above. Failures report bounded progress/hash diagnostics;
 parse errors are not mislabeled as timeouts. The prior five-second total wait
 was replaced after a measured timeout with 145 completed checks and no errors. The runner uses Node
@@ -66,8 +74,8 @@ On an authorized host with existing Chromium/Node selected through
 `DIT_CHROMIUM` / `DIT_NODE`:
 
 ```sh
-python3 tools/run_headless_playtest.py --expected-artifact-sha256 d927884195a9ffa245d1107ef991e7ad13b5e871715426a50f810ead922972bc
-python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 d927884195a9ffa245d1107ef991e7ad13b5e871715426a50f810ead922972bc
+python3 tools/run_headless_playtest.py --expected-artifact-sha256 e132f3c9810a484902e4d05f685b59207c6b7d753af495770097aabc9588942c
+python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 e132f3c9810a484902e4d05f685b59207c6b7d753af495770097aabc9588942c
 ```
 
 The previous Chromium attempt against artifact `96d4b70e` exited 2 before browser
@@ -77,7 +85,7 @@ jsdom result. The native runner uses the isolated standalone file, not an HTTP
 page. Draft input helper `f014678` requires its own complete receipt; eight option
 combinations have offline orchestration coverage, not native evidence.
 
-The approved `8eb2c9f` device bundle and delivered Alienware previews are
-unchanged. These commands do not authorize a device run, browser install,
+These current-source commands do not replace the approved `8eb2c9f` device
+bundle or modify any earlier delivered files. They do not authorize a device run, browser install,
 namespace bypass or substitution of that bundle. No real draft-review browser
 success receipt is recorded.
