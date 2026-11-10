@@ -1099,3 +1099,39 @@ and the full suite were not run; no live behavior or native UI claim.
 exclusively; a separate connection verified hashes, sizes and mode 600.
 `532ab9a9` and earlier previews remain available. No live game/hub deployment,
 save/player change, service operation, access change or public release occurred.
+
+## Delivered: preview c3283185 (source 0f85db3)
+
+Private folder **Alienware → Downloads → DIT-Admin-Center-Preview-c3283185**.
+Independent remote readback at **2026-11-10T03:12:21Z** matched both files:
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 597088 | `c32831850dc9dcfdc440117579e495caba9e2dabe90d29f7cf360ce37eabf3d4` | 600 |
+| READ-ME-FIRST.txt | 1126 | `8182bcffa74cf205fa7a45dcc5454b9a6836c249cc20c98bd41c942432999191` | 600 |
+
+Local package: `build/DIT-Admin-Center-Preview-c3283185/`.
+
+**Change:** activity coverage now labels its total **Rows omitted on import**.
+The previous **Omitted malformed** label incorrectly described DIT rows skipped
+at the import row limit, non-event rows, and WoW Forever duplicate event IDs as
+malformed input. Counts, source reasons and reader behavior are unchanged.
+Refused files remain in their separate notice; their unread row counts are not
+inferred. Producer-reported loss and FFXI unrecognized/ignored lines stay
+separate. Both incomplete readiness examples remain usable and synthetic.
+This preview supersedes `80f9a6a7` for owner playtesting.
+
+**Focused verification:** five selected reader/builder checks passed for the
+DIT row cap, byte-budget file exclusions, Forever duplicate-ID handling,
+embedded assets/unique IDs/CSP script binding and JavaScript compilation. The
+existing bot-activity UI script passed with the corrected labels. The exact
+delivered HTML passed all 191 simulated-DOM startup assertions on its first run,
+zero transport attempts (construction 998 ms, completion wait 2,668 ms).
+Receipt: `build/import-omission-label-startup-smoke.log`. Native browser/keyboard
+checks and the full suite were not run.
+
+**Delivery and rollback:** exact destination checked absent, then created
+exclusively; a separate connection verified hashes, sizes and mode 600.
+`80f9a6a7` and earlier previews remain available. Real FFXI post-H1 and SWTOR
+exports are still required for live conclusions. No live game/hub deployment,
+save/player change, service operation, access change or public release occurred.

@@ -339,9 +339,9 @@ jsdom checks DOM events and rendering logic; it does not establish browser
 layout or CSP enforcement, HTTP authentication, or running-service behavior.
 This workspace's installed module is `build/dom-runtime/node_modules/jsdom`;
 use `DIT_JSDOM_MODULE="$PWD/build/dom-runtime/node_modules/jsdom"` when running
-the command above. The recorded check for delivered preview `80f9a6a7` passed
+the command above. The recorded check for delivered preview `c3283185` passed
 all 191 assertions with zero transport attempts. See the
-[release receipt](docs/BOTS-PARITY-PREVIEW-20261109.md#delivered-preview-80f9a6a7-source-4e7875f)
+[release receipt](docs/BOTS-PARITY-PREVIEW-20261109.md#delivered-preview-c3283185-source-0f85db3)
 for the exact artifact hash and verification limits. Native browser and keyboard
 checks remain NOT RUN.
 
