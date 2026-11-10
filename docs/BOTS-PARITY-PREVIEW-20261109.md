@@ -890,3 +890,44 @@ the copy used exclusive directory/file creation and a separate readback checked
 hashes, sizes and mode 600. `0b5c6a06` and earlier previews remain available.
 No live hub/game deployment, save or player-state change, service operation,
 browser launch, credential/access change or public release occurred.
+
+## Delivered: preview 7bc2948e (source 5fb6b7e)
+
+Private folder **Alienware → Downloads → DIT-Admin-Center-Preview-7bc2948e**.
+Independent remote readback at **2026-11-10T02:16:07Z** matched both files:
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 569729 | `7bc2948e1e99a976b46ac2e0c604cdfc74b678028e690e6311b903f1080cadcb` | 600 |
+| READ-ME-FIRST.txt | 995 | `0afb27db9b5d03eeec4e3de017616ad7f99a98f0b22c48cd8f616dc3ec7ea9e2` | 600 |
+
+Local package: `build/DIT-Admin-Center-Preview-7bc2948e/`.
+
+**Change:** the preview's **Bot activity sample** selector switches to
+**Synthetic FFXI + SWTOR readiness** after the automatic checks. The two feeds
+use the normal readers and activity rendering, with explicit synthetic source
+labels, notes and coverage. Switching back restores the original captured
+exports/schema examples. Neither mode changes the parity tracker or its evidence.
+
+The new fictional FFXI input has 52 accepted lines, two bots and 28 projected
+events each, exercising travel/mounts and all three timing measurements. SHA-256:
+`0f723e58925f4ca6dfc3c3141f6208486b0dfc6f1f2902b5b7c6b37607426114`.
+It uses existing accepted log shapes; it is not export 8 or an H1 capture.
+SWTOR reuses the unchanged 16-row kf writer sample with synthetic actors/times
+(SHA-256 `4755733618ce570cb7aa1a4b91496751c0d34ad78d8420bd57ff7d848150cfd0`).
+Real exports remain necessary for live conclusions; no parity cell was promoted.
+
+**Verification:** four focused fixture checks passed, including row/event
+coverage, constructed timing, sparse SWTOR cadence and producer drops versus
+reader omissions. Four focused builder checks passed for sample separation,
+source fingerprints, inline asset/CSP binding, JavaScript compilation and
+escaping. The exact delivered artifact passed all 182 simulated-DOM startup
+assertions, zero transport attempts (construction 951 ms, completion wait
+8,801 ms), including selector rendering, sample features, unchanged parity and
+restoration without requests. Native browser/keyboard checks remain NOT RUN;
+no full suite was run.
+
+**Delivery and rollback:** the exact destination was checked absent before
+exclusive creation; a separate readback verified hashes, sizes and mode 600.
+`adfa9a73` and earlier previews remain available. No live game/hub deployment,
+save/player-state change, browser launch, access change or public release.
