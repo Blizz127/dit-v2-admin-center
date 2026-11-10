@@ -1016,3 +1016,44 @@ keyboard checks and the full suite were not run; no native performance claim.
 exclusively; a separate connection verified hashes, sizes and mode 600.
 `36a5fdac` and earlier previews remain available. No live game/hub deployment,
 save/player change, service operation, access change or public release occurred.
+
+## Delivered: preview 532ab9a9 (source 4787e05)
+
+Private folder **Alienware → Downloads → DIT-Admin-Center-Preview-532ab9a9**.
+Independent remote readback at **2026-11-10T02:44:16Z** matched both files:
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 581481 | `532ab9a9a864e2eacfdd8e389431188f7f75012468d541bc22cecbd381953f29` | 600 |
+| READ-ME-FIRST.txt | 1213 | `282c80fe152097c3a9411d3288690eae57f7f3fdf40ee84216d79ebb3f2a989f` | 600 |
+
+Local package: `build/DIT-Admin-Center-Preview-532ab9a9/`.
+
+**Change:** **Bot activity sample → Synthetic SWTOR import with a malformed
+row** exposes an incomplete import and its recovery. The builder appends one
+unfinished JSON row to a disposable copy of the unchanged kf writer fixture,
+then uses the normal bot-event reader. It retains all 16 accepted rows and
+seven actors, with one `invalid_json` omission. The existing producer-loss
+event still reports 27 dropped rows; those counts remain separate, not summed.
+Malformed content is never rendered as an event.
+
+Switching to complete readiness clears the reader omission and restores the
+exact complete sample. FFXI readiness, WoW and Vanilla inputs, parity evidence
+and transport request counts remain unchanged. Both choices are explicitly
+synthetic. Real FFXI post-H1 and SWTOR bot-event exports are still required for
+live conclusions. This preview supersedes `e132f3c9` for owner playtesting.
+
+**Focused verification:** five fixture checks and three selected builder checks
+passed, including valid-event preservation, observation bounds, producer loss
+versus reader omissions, original-file integrity, source separation, unique IDs,
+embedded asset/CSP binding and JavaScript compilation. The exact delivered HTML
+passed all 187 simulated-DOM startup assertions on its first run, zero transport
+attempts (construction 899 ms, completion wait 2,914 ms). Four new assertions
+cover the partial view, loss distinction, unaffected sources and recovery.
+Receipt: `build/partial-readiness-startup-smoke.log`. Native browser/keyboard
+checks and the full suite were not run; no live behavior or native UI claim.
+
+**Delivery and rollback:** exact destination checked absent, then created
+exclusively; a separate connection verified hashes, sizes and mode 600.
+`e132f3c9` and earlier previews remain available. No live game/hub deployment,
+save/player change, service operation, access change or public release occurred.

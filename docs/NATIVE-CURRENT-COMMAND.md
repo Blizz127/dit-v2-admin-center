@@ -1,10 +1,10 @@
 # Current local preview verification commands
 
-UI checkpoint: `69e247c` (direct ID lookups; prior features and diagnostics retained).
-Delivered preview: `e132f3c9`, **571364 bytes**.
-Local artifact: `build/DIT-Admin-Center-Preview-e132f3c9/Admin-Center-Synthetic-Preview.html`.
-SHA-256: `e132f3c9810a484902e4d05f685b59207c6b7d753af495770097aabc9588942c`.
-Private copy: Alienware → Downloads → `DIT-Admin-Center-Preview-e132f3c9`.
+UI checkpoint: `4787e05` (partial SWTOR import and recovery; prior features retained).
+Delivered preview: `532ab9a9`, **581481 bytes**.
+Local artifact: `build/DIT-Admin-Center-Preview-532ab9a9/Admin-Center-Synthetic-Preview.html`.
+SHA-256: `532ab9a9a864e2eacfdd8e389431188f7f75012468d541bc22cecbd381953f29`.
+Private copy: Alienware → Downloads → `DIT-Admin-Center-Preview-532ab9a9`.
 
 ## Executed DOM fallback
 
@@ -14,14 +14,13 @@ From this checkout with the pinned local tool dependency:
 DIT_JSDOM_MODULE="$PWD/build/dom-runtime/node_modules/jsdom" timeout 30 node tools/run_inspector_playtest.cjs
 ```
 
-Actual result: **183 checks passed**, zero transport attempts,
+Actual result: **187 checks passed**, zero transport attempts,
 artifact hash as above, `nativeKeyboard: not-run`.
-Measured DOM construction: 750 ms; completion wait: 2478 ms. The runner generates
+Measured DOM construction: 899 ms; completion wait: 2914 ms. The runner generates
 the current source in memory; a later source change produces a different hash.
 The recorded run passed on its first attempt. See the
-[delivery receipt](BOTS-PARITY-PREVIEW-20261109.md#delivered-preview-e132f3c9-source-69e247c)
-for focused checks, the preceding build's retained timeout diagnostic, and
-independent delivery hash readback. These timings are not a native-browser
+[delivery receipt](BOTS-PARITY-PREVIEW-20261109.md#delivered-preview-532ab9a9-source-4787e05)
+for focused checks and independent delivery hash readback. These timings are not a native-browser
 benchmark. Runner checkpoints
 `68af3bb`, `95afcee`, `a3034f6` use a monotonic five-second no-assertion-progress
 limit and ten-second total completion limit, with the outer 30-second process
@@ -74,8 +73,8 @@ On an authorized host with existing Chromium/Node selected through
 `DIT_CHROMIUM` / `DIT_NODE`:
 
 ```sh
-python3 tools/run_headless_playtest.py --expected-artifact-sha256 e132f3c9810a484902e4d05f685b59207c6b7d753af495770097aabc9588942c
-python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 e132f3c9810a484902e4d05f685b59207c6b7d753af495770097aabc9588942c
+python3 tools/run_headless_playtest.py --expected-artifact-sha256 532ab9a9a864e2eacfdd8e389431188f7f75012468d541bc22cecbd381953f29
+python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 532ab9a9a864e2eacfdd8e389431188f7f75012468d541bc22cecbd381953f29
 ```
 
 The previous Chromium attempt against artifact `96d4b70e` exited 2 before browser
