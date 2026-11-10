@@ -931,3 +931,47 @@ no full suite was run.
 exclusive creation; a separate readback verified hashes, sizes and mode 600.
 `adfa9a73` and earlier previews remain available. No live game/hub deployment,
 save/player-state change, browser launch, access change or public release.
+
+## Delivered: preview 36a5fdac (source 842bdf9)
+
+Private folder **Alienware → Downloads → DIT-Admin-Center-Preview-36a5fdac**.
+Independent remote readback at **2026-11-10T02:23:08Z** matched both files:
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 571364 | `36a5fdac28b07dc06ec68c0aff1c4466757656c2bd77135c5712124af1ee4bc8` | 600 |
+| READ-ME-FIRST.txt | 940 | `0afa7c379662db585a957561395bbca90f504c7fa3a6ab8b6c89f45c2c4cc9c8` | 600 |
+
+Local package: `build/DIT-Admin-Center-Preview-36a5fdac/`.
+
+**Change:** accepted DIT `error` / `LOG_DROPPED` rows expose a per-report
+`reportedDropped` count, limited to nonnegative integers safely represented in
+JavaScript. Missing/invalid counts remain Unknown without discarding the report.
+Coverage warns about retained report rows even when bot/event display caps hide
+them. Counts may overlap and are never summed or added to reader omissions.
+
+In the synthetic readiness view, SWTOR still has 16 imported rows and zero
+reader omissions, but coverage now flags its producer-loss report. Expanding
+Events for `bot_events` shows the reported 27 dropped rows. This is a synthetic
+writer sample, not a live loss measurement or a daily/export-wide total. The
+parity tracker and its evidence remain unchanged.
+
+**Focused verification:** seven selected Python tests passed, covering valid,
+invalid and unknown counts, overlapping reports, unrelated event isolation,
+caps, writer samples and mapped-field/privacy boundaries. The bot-activity UI
+regression script passed, including visible counts, Unknown, source recovery and
+unchanged reader omissions with no requests.
+
+**Startup evidence:** the first run reached 156 passing assertions before the
+unchanged ten-second deadline (construction 973 ms, completion wait 10,130 ms),
+with no runtime errors or transport attempts. That receipt is retained in
+`build/producer-loss-startup-smoke-first-timeout.log`. One bounded retry of the
+same artifact passed all 183 assertions, zero transport attempts (construction
+975 ms, completion wait 7,770 ms), including the visible 27-versus-zero
+distinction. No assertions/deadlines were relaxed. Native browser/keyboard
+checks and the full suite were not run.
+
+**Delivery and rollback:** exact destination checked absent, then created
+exclusively; separate readback verified hashes, sizes and mode 600. `7bc2948e`
+and earlier previews remain available. No live game/hub deployment, save/player
+change, service operation, access change, browser launch or public release.
