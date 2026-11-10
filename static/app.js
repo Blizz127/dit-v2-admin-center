@@ -1631,8 +1631,9 @@ function botActivityEventRange(cov) {
 }
 function botActivityCoverageText(cov) {
   const status = botActivityStatuses.includes(cov.status) ? cov.status : 'Unknown';
+  // Import omissions can include row limits, duplicate IDs or non-event rows.
   const parts = [`Coverage: ${status}`, `Imported log rows: ${metricNumber(cov.records) ? cov.records : 'Unknown'}`,
-    `Omitted malformed: ${metricNumber(cov.omitted) ? cov.omitted : 'Unknown'}`];
+    `Rows omitted on import: ${metricNumber(cov.omitted) ? cov.omitted : 'Unknown'}`];
   if (metricNumber(cov.files)) parts.push(`Files read: ${cov.files}`);
   if (metricNumber(cov.unrecognized)) parts.push(`Unrecognized lines: ${cov.unrecognized}`);
   if (metricNumber(cov.ignored)) parts.push(`Ignored lines: ${cov.ignored}`);

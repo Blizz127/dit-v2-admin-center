@@ -108,7 +108,7 @@ setImmediate(() => {
 
   // Loaded coverage line.
   setSnapshot(snapshot); render();
-  assert.match(coverage(), /Coverage: Loaded · Imported log rows: 17 · Omitted malformed: 2 · Observed event range: Unknown · Exported copy read\./);
+  assert.match(coverage(), /Coverage: Loaded · Imported log rows: 17 · Rows omitted on import: 2 · Observed event range: Unknown · Exported copy read\./);
   assert.equal(get('bot-activity-note').textContent, WOW_NOTE);
   assert.equal(get('bot-activity-label').textContent, 'WoW Forever (70450 predecessor export)');
   assert.match(get('bot-activity-count').textContent, /Showing 3 of 3 loaded bots/);
@@ -153,7 +153,7 @@ setImmediate(() => {
       'missing, malformed, unavailable or reversed evidence has no inferred event range');
   }
   assert.equal(context.botActivityCoverageText({...rangeCoverage, omitted: 0, reason: 'Exported copy read.'}),
-    'Coverage: Loaded · Imported log rows: 2 · Omitted malformed: 0 · Observed event range: 2026-11-09T21:27:48Z to 2026-11-09T21:59:56Z (UTC; offline export) · Exported copy read.');
+    'Coverage: Loaded · Imported log rows: 2 · Rows omitted on import: 0 · Observed event range: 2026-11-09T21:27:48Z to 2026-11-09T21:59:56Z (UTC; offline export) · Exported copy read.');
 
   // Bot rows: title, doing line, meta with top five counts only.
   assert.deepEqual(titles(panel()), ['Alyra (1001) · noncombat', 'Borin (2002) · combat', 'Unnamed (3003) · dead']);
@@ -226,14 +226,14 @@ setImmediate(() => {
 
   // Loaded but empty; Not configured; Unavailable.
   setSnapshot({...snapshot, botActivity: {coverage: {status: 'Loaded', records: 0, omitted: 0, reason: 'Empty export.'}, bots: []}}); render();
-  assert.match(coverage(), /Coverage: Loaded · Imported log rows: 0 · Omitted malformed: 0 · Observed event range: Unknown · Empty export\./);
+  assert.match(coverage(), /Coverage: Loaded · Imported log rows: 0 · Rows omitted on import: 0 · Observed event range: Unknown · Empty export\./);
   assert.equal(titles(panel())[0], 'No bot activity in the export');
   assert.match(everything(panel()), /does not mean bots are idle/);
   setSnapshot({...snapshot, botActivity: {coverage: {status: 'Not configured', records: 0, omitted: 0, reason: 'Import is off.'}, bots: []}}); render();
-  assert.match(coverage(), /^Coverage: Not configured · Imported log rows: 0 · Omitted malformed: 0 · Observed event range: Unknown · Import is off\.$/);
+  assert.match(coverage(), /^Coverage: Not configured · Imported log rows: 0 · Rows omitted on import: 0 · Observed event range: Unknown · Import is off\.$/);
   assert.match(everything(panel()), /DIT_FOREVER_BOTLOG_DIR/);
   setSnapshot({...snapshot, botActivity: {coverage: {status: 'Unavailable', records: 0, omitted: null, reason: 'Directory unreadable.'}, bots: []}}); render();
-  assert.match(coverage(), /Coverage: Unavailable · Imported log rows: 0 · Omitted malformed: Unknown · Observed event range: Unknown · Directory unreadable\./);
+  assert.match(coverage(), /Coverage: Unavailable · Imported log rows: 0 · Rows omitted on import: Unknown · Observed event range: Unknown · Directory unreadable\./);
   assert.equal(titles(panel())[0], 'Import unavailable');
   assert.ok(!titles(panel()).includes('No bot activity in the export'));
 
@@ -267,7 +267,7 @@ setImmediate(() => {
   }
   // An unrecognized status is Unknown, never treated as Loaded.
   setSnapshot({...snapshot, botActivity: {coverage: {status: 'Fine', records: 1}, bots: []}}); render();
-  assert.match(coverage(), /^Coverage: Unknown · Imported log rows: 1 · Omitted malformed: Unknown · Observed event range: Unknown · Reason unknown/);
+  assert.match(coverage(), /^Coverage: Unknown · Imported log rows: 1 · Rows omitted on import: Unknown · Observed event range: Unknown · Reason unknown/);
 
   // Baseline conformance: supplied status plus evidence, missing cell Unknown, invalid status Unknown.
   setSnapshot(snapshot); render();
@@ -336,7 +336,7 @@ setImmediate(() => {
   setSnapshot(multi); render();
   assert.equal(get('bot-activity-label').textContent, 'WoW Forever (70450 predecessor export)');
   assert.equal(get('bot-activity-note').textContent, WOW_NOTE);
-  assert.match(coverage(), /^Coverage: Loaded · Imported log rows: 17 · Omitted malformed: 2 · Observed event range: Unknown · Exported copy read\.$/);
+  assert.match(coverage(), /^Coverage: Loaded · Imported log rows: 17 · Rows omitted on import: 2 · Observed event range: Unknown · Exported copy read\.$/);
   assert.equal(sectionsOf().length, 3);
   // Review patterns: one list across sources, repeated pulls and labelled timing only; unlabelled measurements stay out.
   const gaps = get('bot-activity-sources').children.find(child => child.className === 'bot-gaps');
@@ -350,10 +350,10 @@ setImmediate(() => {
   assert.equal(ffxi.children[1].textContent, ffxiSource.note);
   assert.equal(ffxi.children[1].className, 'muted');
   assert.equal(ffxi.children[2].attributes.role, 'status');
-  assert.equal(ffxi.children[2].textContent, 'Coverage: Loaded · Imported log rows: 382 · Omitted malformed: 0 · Unrecognized lines: 0 · Ignored lines: 0 · Observed event range: 2026-11-09T01:12:51.704Z to 2026-11-09T04:23:57.203Z (UTC; offline export) · Real export.');
+  assert.equal(ffxi.children[2].textContent, 'Coverage: Loaded · Imported log rows: 382 · Rows omitted on import: 0 · Unrecognized lines: 0 · Ignored lines: 0 · Observed event range: 2026-11-09T01:12:51.704Z to 2026-11-09T04:23:57.203Z (UTC; offline export) · Real export.');
   assert.equal(dit.children[0].textContent, 'DIT bot_event v1 (SWTOR, FFXI Forever, other DIT games)');
   assert.equal(dit.children[1].textContent, ditSource.note);
-  assert.equal(dit.children[2].textContent, 'Coverage: Loaded · Imported log rows: 2 · Omitted malformed: 2 · Files read: 1 · Omitted by reason: not_bot_event 2 · Observed event range: Unknown · One file.');
+  assert.equal(dit.children[2].textContent, 'Coverage: Loaded · Imported log rows: 2 · Rows omitted on import: 2 · Files read: 1 · Omitted by reason: not_bot_event 2 · Observed event range: Unknown · One file.');
   for (const section of [ffxi, dit]) assert.ok(!section.children[1].textContent.includes('70450'), 'the 70450 caveat applies to the WoW source only');
   assert.ok(!everything(ffxi).includes('70450') && !everything(dit).includes('70450'));
 
@@ -475,7 +475,7 @@ setImmediate(() => {
   renderLossReports([{...lossReport, reportedDropped: null}]);
   assert.ok(renderLossReports([lossReport])[0].includes('Producer-reported dropped rows: 27 (this report; not summed)'),
     'a recovered snapshot replaces Unknown with the supplied report count');
-  assert.match(sectionsOf()[1].children[2].textContent, /Omitted malformed: 0/, 'producer loss never changes reader omission count');
+  assert.match(sectionsOf()[1].children[2].textContent, /Rows omitted on import: 0/, 'producer loss never changes reader omission count');
   assert.equal(requests.length, beforeLossSnapshots, 'loss-report rendering and recovery make no transport requests');
   setSnapshot(multi); render();
 

@@ -364,8 +364,13 @@ unrecognized and one unrelated line separately while retaining the 52 accepted
 lines and their event range. Returning to complete readiness clears all three
 counts. The other source data and parity evidence remain unchanged.
 
+Activity coverage labels its count **Rows omitted on import**: exclusions may
+include malformed or non-event rows, row limits, or duplicate IDs depending on
+the source. The supplied reason explains them. Refused files have a separate
+notice; their unread row counts are not inferred or added to this total.
+
 DIT bot-event coverage also flags retained `LOG_DROPPED` report rows separately
-from malformed rows omitted by the reader. Each report's event shows its
+from rows omitted by the reader. Each report's event shows its
 producer-reported dropped count, or Unknown if the count is missing or invalid.
 Reports may overlap and are never summed into a loss total or reader omissions.
 

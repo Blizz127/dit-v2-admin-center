@@ -502,7 +502,7 @@ try {
   const lossEvents = lossRow.querySelector('details');
   lossEvents.open = true;
   await settle(() => lossEvents.children.length === 2);
-  check(readinessPanels[1].textContent.includes('Omitted malformed: 0')
+  check(readinessPanels[1].textContent.includes('Rows omitted on import: 0')
     && readinessPanels[1].textContent.includes('Producer-reported log loss: 1 LOG_DROPPED rows.')
     && lossEvents.textContent.includes('Producer-reported dropped rows: 27 (this report; not summed)'),
     'SWTOR producer-reported log loss stays visible and separate from reader omissions');
@@ -516,7 +516,7 @@ try {
   check(partialPanel.textContent.includes(parityPartialReadinessSource.label)
     && partialPanel.textContent.includes('Synthetic incomplete readiness sample; not live evidence.')
     && partialPanel.textContent.includes('Imported log rows: 16')
-    && partialPanel.textContent.includes('Omitted malformed: 1')
+    && partialPanel.textContent.includes('Rows omitted on import: 1')
     && partialPanel.textContent.includes('Omitted by reason: invalid_json 1')
     && partialPanel.textContent.includes('rotation_pick affliction')
     && !partialPanel.textContent.includes('OMITTED_SYNTHETIC_ROW'),
@@ -537,7 +537,7 @@ try {
   paritySample.dispatchEvent(new Event('change', {bubbles: true}));
   const recoveredPanel = [...document.querySelectorAll('#bot-activity-sources .bot-source')][1];
   check(JSON.stringify(currentSnapshot.botActivity) === JSON.stringify(completeReadiness)
-    && recoveredPanel.textContent.includes('Omitted malformed: 0')
+    && recoveredPanel.textContent.includes('Rows omitted on import: 0')
     && !recoveredPanel.textContent.includes('invalid_json')
     && recoveredPanel.textContent.includes('Producer-reported log loss: 1 LOG_DROPPED rows.')
     && requests.length === parityRequests,
@@ -548,7 +548,7 @@ try {
   check(partialFfxiPanel.textContent.includes(parityPartialFfxiReadinessSource.label)
     && partialFfxiPanel.textContent.includes('Synthetic incomplete readiness sample; not live evidence.')
     && partialFfxiPanel.textContent.includes('Imported log rows: 52')
-    && partialFfxiPanel.textContent.includes('Omitted malformed: 1')
+    && partialFfxiPanel.textContent.includes('Rows omitted on import: 1')
     && partialFfxiPanel.textContent.includes('Unrecognized lines: 1')
     && partialFfxiPanel.textContent.includes('Ignored lines: 1')
     && !partialFfxiPanel.textContent.includes('synthetic_unknown')
@@ -568,7 +568,7 @@ try {
   paritySample.dispatchEvent(new Event('change', {bubbles: true}));
   const recoveredFfxiPanel = [...document.querySelectorAll('#bot-activity-sources .bot-source')][0];
   check(JSON.stringify(currentSnapshot.botActivity) === JSON.stringify(completeReadiness)
-    && recoveredFfxiPanel.textContent.includes('Omitted malformed: 0')
+    && recoveredFfxiPanel.textContent.includes('Rows omitted on import: 0')
     && recoveredFfxiPanel.textContent.includes('Unrecognized lines: 0')
     && recoveredFfxiPanel.textContent.includes('Ignored lines: 0')
     && requests.length === parityRequests,
