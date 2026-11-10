@@ -115,6 +115,11 @@ class BaselineConformanceTests(unittest.TestCase):
                           'Designed', 'Built', 'Designed', 'Designed'])
         self.assertIn('cohort0-r2', cells['p-07']['evidence'])
         self.assertIn('not yet in game', cells['p-07']['evidence'])
+        # /fb is a preparation packet (hub design branch 77bfd593): it must never read as wired or live.
+        self.assertIn('/fb list prepared only (77bfd593)', cells['p-07']['evidence'])
+        self.assertIn('/fb owner menu', cells['p-08']['evidence'])
+        self.assertIn('preparation only', cells['p-08']['evidence'])
+        self.assertIn('no native routing, not live', cells['p-08']['evidence'])
         self.assertIn('733dfb5', cells['p-02']['evidence'])
         self.assertIn('da14962', cells['p-10']['evidence'])
         self.assertIn('3d7d23cf', cells['p-01']['evidence'])

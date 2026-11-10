@@ -327,11 +327,11 @@
         },
         "p-07": {
           "status": "Built",
-          "evidence": "owner party of 5 created by roster in the live DB ~19:07Z (ffxi handoff 2026-11-09-forever-cohort0-r2, bots-cohort0.tsv sha 0ddd2c31, charids 1040000-1040004); not yet in game. Add-by-job, fill and roster commands later."
+          "evidence": "owner party of 5 created by roster in the live DB ~19:07Z (ffxi handoff 2026-11-09-forever-cohort0-r2, bots-cohort0.tsv sha 0ddd2c31, charids 1040000-1040004); not yet in game. Add-by-job, fill and roster commands later. /fb list prepared only (77bfd593)."
         },
         "p-08": {
           "status": "Built",
-          "evidence": "driver party words pull/follow/assist/stop/rest (3284f0ef, current 3d7d23cf), not live."
+          "evidence": "driver party words pull/follow/assist/stop/rest (3284f0ef, current 3d7d23cf), not live. /fb owner menu (help, list, summon, dismiss; build-2 orders) is preparation only: Rust contracts on hub design branch 77bfd593 (2026-11-10), no native routing, not live."
         },
         "p-09": {
           "status": "Designed",
