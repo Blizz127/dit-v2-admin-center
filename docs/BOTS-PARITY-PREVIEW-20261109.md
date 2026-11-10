@@ -696,3 +696,37 @@ assertions, zero transport attempts (construction 626 ms, completion wait
 timeout. This package is prepared locally, not copied or verified remotely.
 Read back its exact destination before completing any future authorized
 delivery. Latest confirmed delivered preview remains **acfa9efd**.
+
+## Prepared: preview c207fbc4 (source e026c1b) — next delivery candidate
+
+Checkpoint **2026-11-10T01:03:00Z**. This local candidate supersedes `e6d43a85`
+for the next delivery, retaining the pending event-range, timing-threshold and
+malformed-log continuity fixes. Earlier packages and any unknown partial
+destination remain untouched. No Alienware retry or publication was attempted.
+
+Local package: `build/DIT-Admin-Center-Preview-c207fbc4/`.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 546468 | `c207fbc4f1fa8a344abc493a43ce06b176a845f76994a2f1b61a0a78d54b6052` | 600 |
+| READ-ME-FIRST.txt | 778 | `894ce83dfee6592e08448093aabc1ec73a66fce77424464ec452f5825e5daf51` | 600 |
+
+**Change:** the activity count reports actual visible rows under the 200-bot
+display cap. Previously, 201 matching bots produced 200 rendered rows but a
+"Showing 201 of 201" label. The count now says 200 of 201, preserving the loaded
+total and overflow notice. Filtering still operates on all imported bots.
+
+**Verification:** `node tests/bot_activity.test.js` passed with focused cases for
+201 imported bots, filtering below the cap, clearing the filter, replacement by
+a smaller snapshot and no extra transport requests. The exact packaged HTML
+passed 178 simulated-DOM startup assertions, zero transport attempts
+(construction 613 ms, completion wait 6,101 ms). No full suite was run.
+
+**Native browser:** a read-only local runtime check found no Chromium, Chrome
+or Firefox executable or Playwright browser cache. Native browser/keyboard
+checks remain NOT RUN; no installation, namespace-denial bypass or device
+execution was attempted.
+
+**Delivery:** blocked by the previously observed Alienware endpoint timeout.
+This package is prepared locally, not copied or verified remotely. Latest
+confirmed delivered preview remains **acfa9efd**.
