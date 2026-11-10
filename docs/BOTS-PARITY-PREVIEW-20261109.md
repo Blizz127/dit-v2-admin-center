@@ -796,3 +796,42 @@ No full suite was run. Native browser/keyboard checks remain NOT RUN.
 The package is prepared locally, not copied or verified remotely; latest
 confirmed delivered preview remains **acfa9efd**. No live game, player save,
 level-sync, device or push action occurred.
+
+## Prepared: preview 0b5c6a06 (source ec3a734) — next delivery candidate
+
+Checkpoint **2026-11-10T01:39:04Z**. This candidate supersedes `325142a5` for
+the next private delivery and retains preceding pending reader/UI fixes.
+Earlier packages and any unknown partial destination remain untouched.
+No Alienware retry or publication was attempted.
+
+Local package: `build/DIT-Admin-Center-Preview-0b5c6a06/`.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 546976 | `0b5c6a065b3acc02712d8f2ccacff9e75a9dab109503e933ac57146ddf9bb039` | 600 |
+| READ-ME-FIRST.txt | 755 | `d1346c70fb178229034ced10ae0b29946a4334fc1410794b1913c0b28bb252d8` | 600 |
+
+**Change:** missing or malformed Vanilla hearthstone-escape counts display
+Unknown instead of none. An explicit empty or all-zero count map says
+"none recorded". Valid positive counts retain their supplied labels; mixed
+valid/invalid counts remain Unknown. No source records or game state changed.
+
+**Focused checks:** `node tests/bot_activity.test.js` passed, covering actual
+rendered rows for missing/malformed counts, empty/zero maps, positive labels,
+mixed counts and recovery, with no extra requests.
+
+**Startup evidence:** the first exact-artifact run hit the unchanged ten-second
+deadline after 156 passing assertions (construction 1,006 ms, completion wait
+10,460 ms); it recorded no runtime errors or transport attempts. Its receipt
+is retained in `build/escape-coverage-startup-smoke-first-timeout.log`.
+A resource snapshot showed CPU contention (CPU PSI some avg10 45.18%) with
+about 132 GiB available memory; this does not establish the timeout's cause.
+One bounded retry of the same artifact passed all 178 assertions, zero transport
+attempts (construction 762 ms, completion wait 9,352 ms), recorded in
+`build/escape-coverage-startup-smoke.log`. No deadline/assertion was relaxed,
+and no full suite or native browser/keyboard check was run.
+
+**Limits:** a single read-only FFXI handoff-directory check found export 7 still
+the latest log export; no new post-H1 export was integrated. Private delivery
+remains blocked by the previously observed Alienware endpoint timeout.
+This package is local only; latest confirmed delivered preview is **acfa9efd**.
