@@ -1677,7 +1677,7 @@ function botActivityGapLines(data) {
     if (!source || source.coverage.status !== 'Loaded') continue;
     const label = botActivityLabel(source, id);
     for (const bot of source.bots) {
-      if (!plainObject(bot)) continue;
+      if (!plainObject(bot) || !botActivityKey(bot, id)) continue;
       const who = `${label}: ${routingText(bot.name, shown(bot.actorId))}`;
       const feel = plainObject(bot.feel) ? bot.feel : {};
       const c = feel.cadence, s = feel.sync, t = feel.schedule, stall = bot.stall;

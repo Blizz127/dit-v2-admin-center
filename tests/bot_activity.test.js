@@ -559,6 +559,48 @@ setImmediate(() => {
   assert.equal(sectionsOf()[0].children[5].children[0].children[1].textContent, '4 rows without a usable bot ID are not shown.');
   assert.equal(sectionsOf()[0].children[4].textContent, 'Showing 1 of 1 loaded bots. Local filter only; no request is made.');
 
+  // Review findings require the same usable identity as detail rows, across every supported source.
+  const reviewTexts = () => get('bot-activity-sources').children.find(child => child.className === 'bot-gaps')
+    .children[2].children.map(li => li.textContent);
+  const beforeIdentitySnapshots = requests.length;
+  for (const [index, source] of [ffxiSource, ditSource, vanillaSource].entries()) {
+    const validBot = {...source.bots[0], actorId: 'valid-probe', name: 'Usable identity',
+      stall: {target: 'Synthetic target', pulls: 12, seconds: 120},
+      feel: {cadence: {action: 'pull', gaps: 10, modalCount: 8, modalGapS: 2, metronomic: true},
+        schedule: {intervals: 4, modalCount: 3, modalIntervalS: 60, fixed: true},
+        sync: {actions: 10, together: 8, synchronized: true}}};
+    const rejectedBots = [['missing', undefined], ['null', null], ['empty', ''], ['whitespace', '  '], ['numeric', 42]]
+      .map(([label, actorId]) => {
+        const bot = {...validBot, actorId, name: `Rejected identity ${label}`};
+        if (actorId === undefined) delete bot.actorId;
+        return bot;
+      });
+    const importedSource = {...source, bots: [...rejectedBots, validBot]};
+    const identitySnapshot = status => ({...multi, botActivity: {...multi.botActivity,
+      sources: [{...importedSource, coverage: {...source.coverage, status}}]}});
+    const expectedFindings = [
+      'has a repeated-pull run: 12 pulls on Synthetic target without recorded XP or loot over 2 min.',
+      'has a regular cadence: pull, 8 of 10 gaps near 2 s.',
+      'has a regular departure pattern: 3 of 4 gaps between trip starts near 60 s.',
+      'moves in lockstep: 8 of 10 group actions within 1 s of a party mate.',
+    ].map(finding => `${source.label}: Usable identity ${finding}`);
+    setSnapshot(identitySnapshot('Loaded')); render();
+    const section = sectionsOf()[index], search = section.children[3].children[0];
+    search.value = ''; search.listeners.input();
+    assert.equal(section.children[4].textContent, 'Showing 1 of 1 loaded bots. Local filter only; no request is made.', source.id);
+    assert.equal(section.children[5].children.length, 2, 'only the omission warning and valid bot detail row remain');
+    assert.equal(section.children[5].children[0].children[1].textContent, '5 rows without a usable bot ID are not shown.');
+    assert.ok(!everything(section).includes('Rejected identity'), 'malformed identities stay out of bot detail rows');
+    assert.deepEqual(reviewTexts(), expectedFindings, `${source.id}: only valid identities contribute all four finding types`);
+    setSnapshot(identitySnapshot('Unavailable')); render();
+    assert.equal(sectionsOf()[index].children[4].textContent, '', 'unavailable retained rows are not counted');
+    assert.deepEqual(reviewTexts(), [unavailablePatterns], 'unavailable source findings are withheld');
+    setSnapshot(identitySnapshot('Loaded')); render();
+    assert.equal(sectionsOf()[index].children[4].textContent, 'Showing 1 of 1 loaded bots. Local filter only; no request is made.');
+    assert.deepEqual(reviewTexts(), expectedFindings, 'source recovery restores valid findings without restoring malformed ones');
+  }
+  assert.equal(requests.length, beforeIdentitySnapshots, 'identity filtering and source recovery make no transport requests');
+
   // A reader can supply more bots than the UI cap. "Showing" counts actual rendered rows, not all matches.
   const manyDitBots = Array.from({length: 201}, (_, index) => ({
     game: 'swtor', actorId: String(10000 + index), name: `${index < 3 ? 'Needle' : 'Batch'} bot ${index}`,
