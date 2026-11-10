@@ -303,11 +303,11 @@
         },
         "p-01": {
           "status": "Built",
-          "evidence": "v3.77-rc7 live 2026-11-10 03:05:07Z (ffxi handoff 2026-11-10-rc7-live-6579934f, map 1458b2d): owner-party driver restarted, 5 bot logins online 03:05:47Z, owner offline. Party membership and position beside the owner not confirmed live. Bots SQL ffxi-platform 5e46007."
+          "evidence": "v3.77-rc8 live 2026-11-10 04:22:29Z (ffxi handoff 2026-11-10-rc8-live-09bf10c2, map fe15066); under rc7 (03:05Z) 5 bot logins were online. Owner offline both times: party membership and position beside the owner not confirmed live. Bots SQL ffxi-platform 5e46007."
         },
         "p-02": {
           "status": "Built",
-          "evidence": "cross-zone follow merged ffxi-platform main 733dfb5 (in-crate tests 14/0). rc7 live 2026-11-10 03:05Z with cross-zone POP on and the zone-115 pin removed (handoff 2026-11-10-rc7-live-6579934f); no native-client cross-zone playtest, so follow beside the owner is unconfirmed."
+          "evidence": "cross-zone follow merged ffxi-platform main 733dfb5 (in-crate tests 14/0). rc8 live 2026-11-10 04:22Z (handoff 2026-11-10-rc8-live-09bf10c2) keeps cross-zone POP on, zone pin removed since rc7; no human gameplay smoke, so follow beside the owner is unconfirmed."
         },
         "p-03": {
           "status": "Built",
@@ -327,11 +327,11 @@
         },
         "p-07": {
           "status": "Built",
-          "evidence": "owner party of 5 created by roster in the live DB (ffxi handoff 2026-11-09-forever-cohort0-r2, charids 1040000-1040004); all 5 logged in on rc7 2026-11-10 03:05:47Z, party with the owner not confirmed. Add-by-job, fill and roster commands later. /fb list prepared only (77bfd593)."
+          "evidence": "owner party of 5 created by roster in the live DB (ffxi handoff 2026-11-09-forever-cohort0-r2); all 5 logged in on rc7 2026-11-10 03:05:47Z, party with the owner not confirmed. /fb list/summon/dismiss exist in native source r11 (4a79acef) only: not in a runtime, not live."
         },
         "p-08": {
           "status": "Built",
-          "evidence": "driver party words pull/follow/assist/stop/rest (3284f0ef, current 3d7d23cf), not live. /fb owner menu (help, list, summon, dismiss; build-2 orders) is preparation only: Rust contracts on hub design branch 77bfd593 (2026-11-10), no native routing, not live."
+          "evidence": "driver party words pull/follow/assist/stop/rest (3284f0ef, current 3d7d23cf), not live. /fb native source r12 (054ebebd): help, list, summon, dismiss, follow, stay; test-profile build and focused checks per its README. Source only: no runtime kit, needs the DIT control adapter, not live."
         },
         "p-09": {
           "status": "Designed",
