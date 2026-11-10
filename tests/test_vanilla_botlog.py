@@ -33,6 +33,18 @@ class VanillaBotlogTests(unittest.TestCase):
         path.write_bytes(b''.join(rows))
         return str(path)
 
+    def assert_no_continuity_metadata_or_rejected_content(self, result):
+        self.assertNotIn('REJECTED_OWNER_DATA', json.dumps(result))
+        def check(value):
+            if isinstance(value, dict):
+                for key, child in value.items():
+                    self.assertNotIn('segment', key.lower(), 'internal continuity markers must not be projected')
+                    check(child)
+            elif isinstance(value, (list, tuple)):
+                for child in value:
+                    check(child)
+        check(result)
+
     def test_live_run_shows_the_stuck_re_pull_loop(self):
         # cmangos-classic export of the live run 11-09 19:27Z-20:52Z (source sha 91893354), info1 blanked on the
         # 246 group and guild rows. See the fixture README.
@@ -128,6 +140,52 @@ class VanillaBotlogTests(unittest.TestCase):
         self.assertEqual((bots[0]['pulls'], bots[0]['stall'], coverage['stalledBots'], coverage['stalledPulls']),
                          (36, None, 0, 0))
 
+    def test_malformed_row_prevents_joining_two_short_pull_runs(self):
+        before = [row(stamp=f'2026-11-09 19:00:{i:02d}') for i in range(6)]
+        after = [row(stamp=f'2026-11-09 19:00:{i:02d}') for i in range(10, 16)]
+        result = vanilla.read(self.write(*before, b'REJECTED_OWNER_DATA,invalid,row\n', *after))
+        bots, coverage = result
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['pulls']), (12, 1, 12))
+        self.assertEqual((bots[0]['pulls'], bots[0]['counts']['AttackAnything'], len(bots[0]['events'])), (12, 12, 12))
+        self.assertIsNone(bots[0]['stall'])
+        self.assertEqual((coverage['stalledBots'], coverage['stalledPulls'], coverage['longestStall']), (0, 0, 0))
+        self.assert_no_continuity_metadata_or_rejected_content(result)
+
+    def test_malformed_row_keeps_separate_genuine_pull_runs_and_their_totals(self):
+        before = [row(stamp=f'2026-11-09 19:00:{i:02d}') for i in range(12)]
+        after = [row(stamp=f'2026-11-09 19:00:{i:02d}') for i in range(20, 32)]
+        result = vanilla.read(self.write(*before, b'REJECTED_OWNER_DATA,invalid,row\n', *after))
+        bots, coverage = result
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['pulls']), (24, 1, 24))
+        self.assertEqual((bots[0]['stall']['pulls'], bots[0]['stalledPulls'], len(bots[0]['events'])), (12, 24, 24))
+        self.assertEqual((coverage['stalledBots'], coverage['stalledPulls'], coverage['longestStall']), (1, 24, 12))
+        self.assert_no_continuity_metadata_or_rejected_content(result)
+
+    def test_omitted_row_with_unusable_identity_breaks_continuity_for_every_bot(self):
+        names = ('Estellene', 'Otherbot')
+        before = [row(stamp=f'2026-11-09 19:00:{i:02d}', name=name) for i in range(6) for name in names]
+        after = [row(stamp=f'2026-11-09 19:00:{i:02d}', name=name) for i in range(10, 16) for name in names]
+        unknown_bot = row(stamp='2026-11-09 19:00:08', name='Bad Name', info1='REJECTED_OWNER_DATA')
+        result = vanilla.read(self.write(*before, unknown_bot, *after))
+        bots, coverage = result
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['bots']), (24, 1, 2))
+        self.assertEqual({bot['name']: bot['pulls'] for bot in bots}, {name: 12 for name in names})
+        self.assertTrue(all(bot['stall'] is None and len(bot['events']) == 12 for bot in bots))
+        self.assertEqual((coverage['stalledBots'], coverage['stalledPulls']), (0, 0))
+        self.assert_no_continuity_metadata_or_rejected_content(result)
+
+    def test_timestamp_sorting_does_not_rejoin_runs_across_an_omitted_row(self):
+        for first, second in ((range(20, 26), range(6)), (range(0, 12, 2), range(1, 12, 2))):
+            with self.subTest(first=list(first), second=list(second)):
+                before = [row(stamp=f'2026-11-09 19:00:{i:02d}') for i in first]
+                after = [row(stamp=f'2026-11-09 19:00:{i:02d}') for i in second]
+                result = vanilla.read(self.write(*before, b'REJECTED_OWNER_DATA,invalid,row\n', *after))
+                bots, coverage = result
+                self.assertEqual((coverage['records'], coverage['omitted'], coverage['pulls']), (12, 1, 12))
+                self.assertIsNone(bots[0]['stall'])
+                self.assertEqual((coverage['stalledBots'], coverage['stalledPulls']), (0, 0))
+                self.assert_no_continuity_metadata_or_rejected_content(result)
+
     def test_a_kill_or_a_new_target_ends_a_run(self):
         rows = [row(stamp=f'2026-11-09 19:00:{i:02d}', info1='Makrura Shellhide') for i in range(12)]
         rows.append(row(stamp='2026-11-09 19:00:20', action='XpGainAction', info1='Makrura Shellhide', info2='29'))
@@ -187,7 +245,7 @@ class VanillaBotlogTests(unittest.TestCase):
         empty = Path(self.temp.name) / 'empty.csv'
         empty.write_bytes(b'')
         bots, coverage = vanilla.read(str(empty))
-        self.assertEqual((bots, coverage['status'], coverage['records']), ([], 'Loaded', 0))
+        self.assertEqual((bots, coverage['status'], coverage['records'], coverage['omitted']), ([], 'Loaded', 0, 0))
 
 
 if __name__ == '__main__':

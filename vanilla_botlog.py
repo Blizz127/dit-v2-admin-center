@@ -11,6 +11,7 @@ Format (cmangos-classic lane, 2026-11-09): CSV, no header, 9 fields.
 
 Rules enforced here:
 - A row is checked field by field against exact patterns. A failing row is counted as omitted, never repaired.
+  Its unknown contents break same-target run continuity for all bots; accepted row totals are retained.
 - info1 is shown only for actions where it is a game object (TARGET_ACTIONS). For every other action it is
   dropped, because on group and guild actions it can hold a character or guild name.
 - A pull is an AttackAnythingAction row; the compatibility field kills counts XpGainAction rows, not every
@@ -92,9 +93,16 @@ def _row(line):
 
 
 def _stalls(rows):
-    """Runs of pulls on a known target; a kill, new target or unknown target ends a run."""
+    """Runs of known-target pulls within uninterrupted evidence; XP, loot or target changes end a run."""
     runs, current = [], None
+    previous_segment = None
     for row in rows:
+        segment = row.get('segment', 0)
+        if segment != previous_segment:
+            if current is not None:
+                runs.append(current)
+                current = None
+            previous_segment = segment
         if row['action'] == PULL:
             if row['target'] is None:
                 if current is not None:
@@ -187,19 +195,22 @@ def _read(path):
         return _unavailable('not a readable regular file')
     if len(raw) > MAX_BYTES:
         return _unavailable('oversized file')
-    lines = raw.split(b'\n')
+    lines = raw.split(b'\n') if raw else []
     if raw.endswith(b'\n'):
         lines.pop()
     if len(lines) > MAX_LINES:
         return _unavailable('too many lines')
-    by_bot, omitted, records = {}, 0, 0
+    by_bot, omitted, records, segment = {}, 0, 0, 0
     first = last = None
     for line in lines:
         try:
             row = _row(line[:-1] if line.endswith(b'\r') else line)
         except Exception:  # Any failure omits the one row; no bad input may raise or echo.
             omitted += 1
+            # A rejected row might have ended any bot's run. Do not bridge it.
+            segment += 1
             continue
+        row['segment'] = segment
         records += 1
         by_bot.setdefault(row['name'], []).append(row)
         first = row['moment'] if first is None or row['moment'] < first else first
@@ -224,7 +235,8 @@ def _read(path):
               f'{kills} XP-gain rows, {len(stalled)} bots with a run of {STALL_MIN}+ pulls on one target without recorded XP or loot '
               f'({stalled_pulls} pulls, {share}% of all pulls; longest run {longest}), {hearth} hearthstone escapes from '
               f'being stuck, {deaths} deaths. '
-              f'Kills with neither XP nor loot may be unobserved. Timestamps are whole seconds, so short gaps are coarse.')
+              f'Kills with neither XP nor loot may be unobserved. Timestamps are whole seconds, so short gaps are coarse.'
+              + (' Omitted rows break same-target run continuity; surviving runs may be shorter.' if omitted else ''))
     return shown, {'status': 'Loaded', 'records': records, 'omitted': omitted, 'reason': reason, 'from': span[0],
                    'to': span[1], 'bots': len(bots), 'pulls': pulls, 'kills': kills, 'stalledBots': len(stalled),
                    'stalledPulls': stalled_pulls, 'stalledSharePct': share, 'longestStall': longest, 'hearthStuck': hearth,
