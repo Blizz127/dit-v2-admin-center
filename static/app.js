@@ -1655,7 +1655,7 @@ function renderBotActivityBody(refs, entry, id, engine, needle) {
   const bots = source.bots.filter(bot => plainObject(bot) && botActivityKey(bot, id));
   const matches = bots.filter(bot => (!engine || (botActivityEngines.includes(bot.engine) ? bot.engine : 'Unknown') === engine)
     && (!needle || (typeof bot.name === 'string' && bot.name.toLowerCase().includes(needle)) || botActivityKey(bot, id).toLowerCase().includes(needle)));
-  count.textContent = `Showing ${matches.length} of ${bots.length} loaded bots. Local filter only; no request is made.`;
+  count.textContent = `Showing ${Math.min(matches.length, botActivityRowLimit)} of ${bots.length} loaded bots. Local filter only; no request is made.`;
   if (source.bots.length !== bots.length) item(rows, 'Bot coverage Unknown for omitted malformed rows', `${source.bots.length - bots.length} rows without a usable bot ID are not shown.`, 'Valid rows are shown below; coverage is incomplete.');
   if (status === 'Loaded' && !bots.length) item(rows, 'No bot activity in the export', 'The export contained no usable bot rows (does not mean bots are idle).', 'Not a claim about live activity.');
   else if (bots.length && !matches.length) item(rows, 'No bots match the local filter', 'Change the filter to see other loaded bots.', 'This does not mean a bot is idle.');

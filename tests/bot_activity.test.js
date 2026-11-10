@@ -57,8 +57,12 @@ const wowSource = {id: 'wow-70450-export', label: 'WoW Forever (70450 predecesso
   coverage: {status: 'Loaded', records: 17, omitted: 2, reason: 'Exported copy read.'}};
 const snapshot = {generatedAt: 'test', hubFeeds: [], botActivity: {coverage: {status: 'Loaded', records: 17, omitted: 2, reason: 'Exported copy read.'}, bots}, baselineConformance: conformance};
 
+const requests = [];
 const context = vm.createContext({document, TextDecoder, sessionStorage: {getItem: () => 'test', setItem() {}, removeItem() {}},
-  fetch: async url => ({ok: true, json: async () => url.startsWith('/api/overview') ? snapshot : {}})});
+  fetch: async url => {
+    requests.push(url);
+    return {ok: true, json: async () => url.startsWith('/api/overview') ? snapshot : {}};
+  }});
 vm.runInContext(fs.readFileSync('static/app.js', 'utf8'), context);
 const setSnapshot = value => { context.__snap = value; vm.runInContext('currentSnapshot = __snap', context); };
 const render = () => { context.renderBotActivity(); context.renderBaselineConformance(); };
@@ -470,6 +474,33 @@ setImmediate(() => {
   assert.equal(sectionsOf()[0].children[5].children[0].children[0].textContent, 'Bot coverage Unknown for omitted malformed rows');
   assert.equal(sectionsOf()[0].children[5].children[0].children[1].textContent, '4 rows without a usable bot ID are not shown.');
   assert.equal(sectionsOf()[0].children[4].textContent, 'Showing 1 of 1 loaded bots. Local filter only; no request is made.');
+
+  // A reader can supply more bots than the UI cap. "Showing" counts actual rendered rows, not all matches.
+  const manyDitBots = Array.from({length: 201}, (_, index) => ({
+    game: 'swtor', actorId: String(10000 + index), name: `${index < 3 ? 'Needle' : 'Batch'} bot ${index}`,
+    events: [], deaths: [], advice: [],
+  }));
+  const withDitBots = bots => sourceFor('dit-bot-event-v1', {...ditSource, bots,
+    coverage: {status: 'Loaded', records: bots.length, omitted: 0, reason: 'Bounded synthetic export.'}});
+  const beforeCappedFilter = requests.length;
+  setSnapshot(withDitBots(manyDitBots)); render();
+  const cappedDit = sectionsOf()[1], cappedRows = cappedDit.children[5], cappedSearch = cappedDit.children[3].children[0];
+  const displayedBotRows = () => cappedRows.children.filter(row => /^(Needle|Batch) bot /.test(row.children[0].textContent));
+  assert.equal(displayedBotRows().length, 200);
+  assert.equal(cappedDit.children[4].textContent, 'Showing 200 of 201 loaded bots. Local filter only; no request is made.');
+  assert.equal(cappedRows.lastElementChild.children[0].textContent, 'More bots not shown');
+  assert.equal(cappedRows.lastElementChild.children[1].textContent, '1 matching bots exceed the 200-row display limit.');
+  cappedSearch.value = 'needle'; cappedSearch.listeners.input();
+  assert.equal(displayedBotRows().length, 3);
+  assert.equal(cappedRows.children.length, 3, 'a filter below the display cap removes the overflow notice');
+  assert.equal(cappedDit.children[4].textContent, 'Showing 3 of 201 loaded bots. Local filter only; no request is made.');
+  cappedSearch.value = ''; cappedSearch.listeners.input();
+  assert.equal(displayedBotRows().length, 200);
+  assert.equal(cappedDit.children[4].textContent, 'Showing 200 of 201 loaded bots. Local filter only; no request is made.');
+  setSnapshot(withDitBots(manyDitBots.slice(0, 2))); render();
+  assert.equal(sectionsOf()[1].children[5].children.length, 2, 'a smaller snapshot replaces the capped rows and overflow notice');
+  assert.equal(sectionsOf()[1].children[4].textContent, 'Showing 2 of 2 loaded bots. Local filter only; no request is made.');
+  assert.equal(requests.length, beforeCappedFilter, 'display caps, local filters and snapshot rendering make no transport requests');
 
   // Parity: the parity group renders first under its heading; new statuses carry their own classes; missing cells Unknown.
   const parityConformance = {source: 'docs/goals/BOTS-PARITY-GOAL-20261109.md', rows: [
