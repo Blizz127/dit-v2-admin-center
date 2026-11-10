@@ -629,3 +629,37 @@ device wake/restart or alternate publishing route was attempted.
 files from the hash-checked local package. Preserve unexpected/mismatched remote
 content, and verify both remote hashes/sizes/modes after completion.
 Latest confirmed delivered preview remains **acfa9efd**; its rollback is intact.
+
+## Prepared: preview 47db3b9c (source bfc68c7) — next delivery candidate
+
+Checkpoint **2026-11-10T00:34:00Z**. This local candidate supersedes `693e952a`
+for the next delivery and includes its Forever event-range update. The earlier
+package and any unknown partial destination remain untouched. No Alienware
+connection or publication was attempted for this offline increment.
+
+Local package: `build/DIT-Admin-Center-Preview-47db3b9c/`.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 546437 | `47db3b9ca714ee6a7cf11dc0c2337244e324d376d33c3926e79bb598aee5119d` | 600 |
+| READ-ME-FIRST.txt | 862 | `a917651186e95f46a6bb81af31dfdb84ab1e03e9151febf7f06cab790f46e23b` | 600 |
+
+**Change:** cadence, synchrony and departure labels compare unrounded ratios
+against their existing thresholds; cadence ranking also uses the unrounded
+share before the sample-count tie-break. Reported ratios retain three decimal
+places. Previously, 900/1501 (about 59.96%) rounded to 0.6 and incorrectly
+flagged all three signals, and could outrank a genuinely higher 300/500 result.
+Regression cases now distinguish below-threshold and exact-threshold values.
+Timing text says "near" and discloses rounded grouping instead of claiming
+exact intervals. Labels remain heuristic observations, not human-behavior proof.
+
+**Verification:** 20 focused Python checks (human-feel, Vanilla exports and the
+FFXI J1-J4 export) and the bot-activity JavaScript checks pass. The exact HTML
+passed 178 simulated-DOM startup assertions, zero transport attempts
+(construction 1,242 ms, completion wait 9,129 ms). Native browser/keyboard and
+full-suite checks were not run.
+
+**Delivery:** blocked on the previously observed private endpoint timeout;
+this candidate has not been copied or verified remotely. Once the endpoint is
+available, read back its exact new destination before completing the package.
+Latest confirmed delivered preview remains **acfa9efd**.
