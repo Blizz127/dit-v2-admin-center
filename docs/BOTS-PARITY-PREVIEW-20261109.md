@@ -1306,3 +1306,32 @@ conclusions (one check at 06:30Z: export 7 still the latest FFXI log export;
 the SWTOR export search timed out at 60 s without a result). No live game/hub
 deployment, save/player change, service operation, access change or public
 release occurred.
+
+## Prepared: preview 939cc496 (source 6584f1b) — not delivered
+
+| File | Bytes | SHA-256 |
+| --- | ---: | --- |
+| Admin-Center-Synthetic-Preview.html | 597620 | `939cc496d5f1cbc79d144ba45ce46fa54ec3c1578aad93a8c57064f18853cd44` |
+| READ-ME-FIRST.txt | 1166 | `364e9ceabecd5f3a4c48eee7141ae46317b88846fc5a92b5711629e93c58cfd1` |
+
+Local package: `build/DIT-Admin-Center-Preview-939cc496/`.
+
+**Change:** FFXI Forever (Rust) cells p-08 and p-04 cite the FFXI lane's native
+`/fb` source packets through r33 (`074c3640`; READMEs of r13, r14, r25, r29,
+r30 and r33 read once, read-only): help, list, summon, dismiss, follow
+(cross-zone), stay, attack, assist, pull, rest, role, gear show/scale/bis.
+Every packet says source only, no runtime kit or live behavior; the live build
+is still v3.77-rc8. Both statuses stay **Built**. Those packets' builds and
+checks were not run here.
+
+**Verification:** full suite at `6584f1b`: 634 Python tests and every
+`tests/*.test.js` script passed. The exact HTML passed all 191 simulated-DOM
+startup assertions, zero transport attempts (construction 592 ms, completion
+wait 1,810 ms); receipt `build/fb-r33-startup-smoke.log`. Native
+browser/keyboard checks were not run.
+
+**Not delivered:** `ssh alienware-bazzite` returned `Connection timed out` at
+about 08:25Z (for the intermediate r25 build `21855c33`, also undelivered and
+superseded by this one) and again at 09:30Z. Nothing was written to Alienware.
+The latest delivered preview is still **bd47f803**. No real FFXI post-H1 or
+SWTOR bot-event export has arrived.
