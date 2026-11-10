@@ -35,7 +35,7 @@ def fixture_json(path, expected):
 
 
 def bot_activity_preview():
-    """Committed offline fixtures for the three bot-activity sources; mirrors server.bot_activity() labels and notes."""
+    """Committed offline fixtures for the four bot-activity sources; mirrors server.bot_activity() labels and notes."""
     wow = dict(zip(('bots', 'coverage'), forever_botlog(ROOT / 'tests/fixtures/forever-botlog')))
     sources = [
         dict(id='wow-70450-export', label='WoW Forever (70450 predecessor export)',
@@ -54,6 +54,26 @@ def bot_activity_preview():
         bots, coverage = read(str(path))  # Both readers take an absolute path string, not a Path.
         sources.append(dict(id=source_id, label=label, note=note, bots=bots, coverage=coverage))
     return dict(wow, sources=sources)
+
+
+def parity_readiness_sources():
+    """Separate fictional feeds for import/display readiness, never live parity evidence."""
+    sources = []
+    for source_id, label, note, read, path in (
+            ('ffxi-lsb', 'FFXI post-H1 readiness (synthetic stub)',
+             'Fictional post-H1 readiness sample using accepted BOTS-V2 log shapes. Varied timing exercises the reader; '
+             'this is not an H1 capture or proof of human-like behavior. Real post-H1 export still required.',
+             read_ffxi_botsv2, ROOT / 'tests/fixtures/ffxi-botsv2/synthetic-post-h1-readiness.log'),
+            ('dit-bot-event-v1', 'SWTOR readiness (synthetic writer samples)',
+             'Existing release kf writer test samples with synthetic actors and timestamps. Covers rotation, refusal, '
+             'advice, chat and death shapes; not a real day of play. Real bot-event export still required.',
+             read_bot_event, ROOT / 'tests/fixtures/bot-event-swtor')):
+        bots, coverage = read(str(path))
+        if coverage['status'] != 'Loaded':
+            raise ValueError('Synthetic parity readiness fixture unavailable')
+        coverage = dict(coverage, reason='Synthetic readiness sample; not live evidence. ' + coverage['reason'])
+        sources.append(dict(id=source_id, label=label, note=note, bots=bots, coverage=coverage))
+    return sources
 
 
 def snapshot():
@@ -90,7 +110,11 @@ def source_fingerprints():
              'tests/fixtures/forever-botlog/events.jsonl', 'baseline_conformance.py', 'data/fixtures/baseline-conformance.json',
              'ffxi_botsv2_log.py', 'tests/fixtures/ffxi-botsv2/bots-v2-j1234-20261109.log', 'bot_event_v1.py', 'human_feel.py', 'vanilla_botlog.py',
              'tests/fixtures/vanilla-botlog/vanilla-bot_events-release-k-20261109T2219Z.csv',
-             'tests/fixtures/bot-event-v1/EXAMPLES.jsonl')
+             'tests/fixtures/bot-event-v1/EXAMPLES.jsonl',
+             'tests/fixtures/ffxi-botsv2/synthetic-post-h1-readiness.log',
+             'tests/fixtures/ffxi-botsv2/README.md',
+             'tests/fixtures/bot-event-swtor/swtor-kf-writer-samples.jsonl',
+             'tests/fixtures/bot-event-swtor/README.md')
     return {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in paths}
 
 
@@ -140,7 +164,9 @@ def build():
     driver = (ROOT / 'tools/preview_progress.js').read_text() + '\n' + (ROOT / 'tools/assignment_keyboard_playtest.js').read_text() + '\n' + (ROOT / 'tools/inspector_playtest.js').read_text()
     data = json.dumps(snapshot()).replace('<', '\\u003c')
     assignment_data = json.dumps(fixture_json(ROOT / 'tests/fixtures/assignment-pages.json', dict)).replace('<', '\\u003c')
-    script = '(async function () {\nconst fixture = ' + data + ';\nconst assignmentFixtures = ' + assignment_data + ';\n' + driver.replace('/* APPLICATION */', app) + '\n})();'
+    readiness_data = json.dumps(parity_readiness_sources()).replace('<', '\\u003c')
+    script = ('(async function () {\nconst fixture = ' + data + ';\nconst assignmentFixtures = ' + assignment_data
+              + ';\nconst parityReadinessSources = ' + readiness_data + ';\n' + driver.replace('/* APPLICATION */', app) + '\n})();')
     if '</script' in script.lower() or '</style' in css.lower():
         raise ValueError('Unsafe inline asset terminator')
     digest = base64.b64encode(hashlib.sha256(script.encode()).digest()).decode()
@@ -159,6 +185,13 @@ def build():
     html = html.replace('Try configured read-only hub', 'Simulated hub responses (offline)', 1)
     html = html.replace('Select the hub to request read-only roster and learning data. Missing feeds fall back to examples. Model controls remain disabled.',
                         'Both sources use only embedded fictional records in this file. No network requests are made.', 1)
+    readiness = ('<div class="filter-field"><label for="parity-sample">Bot activity sample</label>'
+                 '<select id="parity-sample" aria-describedby="parity-sample-note" disabled>'
+                 '<option value="exports">Recorded exports and schema examples</option>'
+                 '<option value="readiness">Synthetic FFXI + SWTOR readiness</option></select>'
+                 '<p id="parity-sample-note" class="muted" role="status">Readiness samples are fictional; '
+                 'they do not verify live bot behavior. Parity tracker evidence is unchanged.</p></div>')
+    html = html.replace('<div class="bot-source" id="bot-source-wow">', readiness + '<div class="bot-source" id="bot-source-wow">', 1)
     report = ('<details class="panel preview-report" id="harness-results"><summary>Preview verification &amp; source details</summary>'
               '<h2>Offline synthetic inspector playtest</h2><p id="harness-status" role="status" aria-live="polite">NOT RUN — waiting for browser JavaScript.</p>'
               '<ol id="harness-checks"></ol><p>No server, token file, account or game is used. Runtime test data is synthetic. Dated deployment handoffs are labeled separately and are not live observations. Browser results apply only to this artifact, not the running service. Reload this file to rerun.</p></details>')

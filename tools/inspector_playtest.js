@@ -463,6 +463,43 @@ try {
   check(textOf('bot-activity-coverage') === activityCoverage && textOf('baseline-conformance') === baselineText
     && document.querySelectorAll('#bot-activity-sources .bot-source').length === 3,
     'Final preview restores the full bot exports and parity evidence after inspector scenarios');
+  const paritySample = document.getElementById('parity-sample');
+  const paritySampleNote = document.getElementById('parity-sample-note');
+  paritySample.addEventListener('change', () => {
+    const readiness = paritySample.value === 'readiness';
+    const activity = structuredClone(activityFixture);
+    if (readiness) activity.sources = activity.sources.map(source =>
+      structuredClone(parityReadinessSources.find(sample => sample.id === source.id) || source));
+    fixture.botActivity = activity;
+    currentSnapshot.botActivity = structuredClone(activity);
+    renderBotActivity();
+    paritySampleNote.textContent = readiness
+      ? 'Synthetic FFXI post-H1 and SWTOR writer samples; not live evidence. Parity tracker evidence is unchanged.'
+      : 'Recorded export snapshots and schema examples restored. Check each source label; nothing here is live.';
+  });
+  paritySample.disabled = false;
+  const parityRequests = requests.length;
+  paritySample.value = 'readiness';
+  paritySample.dispatchEvent(new Event('change', {bubbles: true}));
+  const readinessPanels = [...document.querySelectorAll('#bot-activity-sources .bot-source')];
+  check(readinessPanels.slice(0, 2).every((panel, index) =>
+    panel.textContent.includes(parityReadinessSources[index].label)
+    && panel.textContent.includes(`Imported log rows: ${parityReadinessSources[index].coverage.records}`)
+    && panel.textContent.includes('Synthetic readiness sample; not live evidence.')),
+    'Readiness selector renders separately labeled FFXI and SWTOR fixtures through the real activity view');
+  check(readinessPanels[0].textContent.includes('Human-feel signals:')
+    && readinessPanels[1].textContent.includes('rotation_pick affliction')
+    && readinessPanels[1].textContent.includes('NO_LISTENER 1')
+    && readinessPanels[1].textContent.includes('NOT_AI 1'),
+    'Readiness view exposes FFXI timing measurements and SWTOR rotation/chat-drop samples');
+  check(textOf('baseline-conformance') === baselineText
+    && textOf('parity-sample-note').includes('not live evidence'),
+    'Synthetic readiness samples do not promote or replace parity evidence');
+  paritySample.value = 'exports';
+  paritySample.dispatchEvent(new Event('change', {bubbles: true}));
+  check(JSON.stringify(currentSnapshot.botActivity) === JSON.stringify(activityFixture)
+    && textOf('baseline-conformance') === baselineText && requests.length === parityRequests,
+    'Switching back restores the exact prior imports without requests or parity changes');
   installAssignmentKeyboardCheck({document,
     prepare: async () => {
       fixture.assignmentHistory = assignmentFixtures.populated.map(row => ({...row, botId: row.botId === 'fixture-bot' ? 'offline-inspector-bot' : row.botId}));

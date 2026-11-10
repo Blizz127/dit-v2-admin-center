@@ -345,6 +345,15 @@ all 178 assertions with zero transport attempts. See the
 for the exact artifact hash and verification limits. Native browser and keyboard
 checks remain NOT RUN.
 
+The preview's **Bot activity sample** selector can switch to **Synthetic FFXI +
+SWTOR readiness** after the automatic checks finish. It uses a fictional FFXI
+post-H1 timing/travel stub and the existing SWTOR kf writer samples, both through
+the normal readers and activity view. Source labels and coverage identify them
+as synthetic. Switching back restores the original recorded exports and schema
+examples; the parity tracker is unchanged in either mode. These samples test
+import/display readiness, not live bot behavior. Real reviewed exports must
+replace the captured inputs and provenance before any new live-evidence claim.
+
 The HTTP-handler portion can be checked independently of jsdom:
 
 ```sh

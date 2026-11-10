@@ -73,6 +73,22 @@ class InspectorPlaytestTests(unittest.TestCase):
         self.assertTrue(all(r['policy'] == 'Unknown' and r['game'] == 'FFXI' for r in rows))
         self.assertTrue(all('Synthetic' in r['source'] for r in rows))
 
+    def test_readiness_samples_are_separate_labeled_and_do_not_replace_default_evidence(self):
+        before = harness.snapshot()
+        samples = harness.parity_readiness_sources()
+        self.assertEqual([sample['id'] for sample in samples], ['ffxi-lsb', 'dit-bot-event-v1'])
+        for sample in samples:
+            self.assertIn('synthetic', sample['label'])
+            self.assertIn('Real', sample['note'])
+            self.assertTrue(sample['coverage']['reason'].startswith('Synthetic readiness sample; not live evidence.'))
+            self.assertEqual((sample['coverage']['status'], sample['coverage']['omitted']), ('Loaded', 0))
+        self.assertEqual(harness.snapshot(), before)
+        doc = Document(harness.build())
+        self.assertIn('parity-sample', doc.ids)
+        self.assertIn('parity-sample-note', doc.ids)
+        self.assertIn('tests/fixtures/ffxi-botsv2/synthetic-post-h1-readiness.log', harness.source_fingerprints())
+        self.assertIn('tests/fixtures/bot-event-swtor/swtor-kf-writer-samples.jsonl', harness.source_fingerprints())
+
     def test_generated_javascript_compiles_without_executing(self):
         # Parse the complete assembled app + driver + fixtures. This is not DOM execution.
         doc = Document(harness.build())
