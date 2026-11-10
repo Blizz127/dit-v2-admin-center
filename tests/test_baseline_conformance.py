@@ -114,7 +114,11 @@ class BaselineConformanceTests(unittest.TestCase):
                          ['Built', 'Built', 'Built', 'Built', 'Built', 'Designed', 'Built', 'Built',
                           'Designed', 'Built', 'Designed', 'Designed'])
         self.assertIn('cohort0-r2', cells['p-07']['evidence'])
-        self.assertIn('not yet in game', cells['p-07']['evidence'])
+        # rc7 put the five bots in game (logins only); being in the owner's party is still unconfirmed, so Built stays.
+        self.assertIn('all 5 logged in on rc7 2026-11-10 03:05:47Z', cells['p-07']['evidence'])
+        self.assertIn('party with the owner not confirmed', cells['p-07']['evidence'])
+        self.assertIn('not confirmed live', cells['p-01']['evidence'])
+        self.assertIn('unconfirmed', cells['p-02']['evidence'])
         # /fb is a preparation packet (hub design branch 77bfd593): it must never read as wired or live.
         self.assertIn('/fb list prepared only (77bfd593)', cells['p-07']['evidence'])
         self.assertIn('/fb owner menu', cells['p-08']['evidence'])
@@ -122,7 +126,7 @@ class BaselineConformanceTests(unittest.TestCase):
         self.assertIn('no native routing, not live', cells['p-08']['evidence'])
         self.assertIn('733dfb5', cells['p-02']['evidence'])
         self.assertIn('da14962', cells['p-10']['evidence'])
-        self.assertIn('3d7d23cf', cells['p-01']['evidence'])
+        self.assertIn('2026-11-10-rc7-live-6579934f', cells['p-01']['evidence'])
         self.assertIn('ffxi-platform 5e46007', cells['p-01']['evidence'])
         self.assertEqual(cells['forever-01']['status'], 'Designed')
         self.assertIn('FFXI_PLAYERBOTS_V0', cells['forever-01']['evidence'])
