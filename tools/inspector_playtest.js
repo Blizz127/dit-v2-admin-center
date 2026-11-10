@@ -466,17 +466,18 @@ try {
   const paritySample = document.getElementById('parity-sample');
   const paritySampleNote = document.getElementById('parity-sample-note');
   paritySample.addEventListener('change', () => {
-    const partial = paritySample.value === 'partial';
-    const readiness = paritySample.value === 'readiness' || partial;
+    const partialSource = paritySample.value === 'partial' ? parityPartialReadinessSource
+      : paritySample.value === 'partial-ffxi' ? parityPartialFfxiReadinessSource : null;
+    const readiness = paritySample.value === 'readiness' || partialSource !== null;
     const activity = structuredClone(activityFixture);
     if (readiness) activity.sources = activity.sources.map(source =>
-      structuredClone(partial && source.id === parityPartialReadinessSource.id ? parityPartialReadinessSource
+      structuredClone(source.id === partialSource?.id ? partialSource
         : parityReadinessSources.find(sample => sample.id === source.id) || source));
     fixture.botActivity = activity;
     currentSnapshot.botActivity = structuredClone(activity);
     renderBotActivity();
-    paritySampleNote.textContent = partial
-      ? 'Synthetic incomplete SWTOR import; not live evidence. FFXI readiness and parity tracker evidence are unchanged.'
+    paritySampleNote.textContent = partialSource
+      ? `Synthetic incomplete ${partialSource.id === 'ffxi-lsb' ? 'FFXI' : 'SWTOR'} import; not live evidence. Other source data and parity tracker evidence are unchanged from complete readiness.`
       : readiness
       ? 'Synthetic FFXI post-H1 and SWTOR writer samples; not live evidence. Parity tracker evidence is unchanged.'
       : 'Recorded export snapshots and schema examples restored. Check each source label; nothing here is live.';
@@ -541,6 +542,37 @@ try {
     && recoveredPanel.textContent.includes('Producer-reported log loss: 1 LOG_DROPPED rows.')
     && requests.length === parityRequests,
     'Complete readiness recovery removes the reader omission while preserving valid events and producer loss');
+  paritySample.value = 'partial-ffxi';
+  paritySample.dispatchEvent(new Event('change', {bubbles: true}));
+  const partialFfxiPanel = [...document.querySelectorAll('#bot-activity-sources .bot-source')][0];
+  check(partialFfxiPanel.textContent.includes(parityPartialFfxiReadinessSource.label)
+    && partialFfxiPanel.textContent.includes('Synthetic incomplete readiness sample; not live evidence.')
+    && partialFfxiPanel.textContent.includes('Imported log rows: 52')
+    && partialFfxiPanel.textContent.includes('Omitted malformed: 1')
+    && partialFfxiPanel.textContent.includes('Unrecognized lines: 1')
+    && partialFfxiPanel.textContent.includes('Ignored lines: 1')
+    && !partialFfxiPanel.textContent.includes('synthetic_unknown')
+    && !partialFfxiPanel.textContent.includes('synthetic unrelated fixture line'),
+    'Incomplete FFXI sample separates malformed, unrecognized and unrelated lines without displaying them as events');
+  const completeFfxi = completeReadiness.sources.find(source => source.id === 'ffxi-lsb');
+  const partialFfxi = currentSnapshot.botActivity.sources.find(source => source.id === 'ffxi-lsb');
+  check(JSON.stringify(partialFfxi.bots) === JSON.stringify(completeFfxi.bots)
+    && partialFfxiPanel.textContent.includes('readya') && partialFfxiPanel.textContent.includes('readyb')
+    && partialFfxiPanel.textContent.includes(`Observed event range: ${completeFfxi.coverage.from} to ${completeFfxi.coverage.to}`),
+    'Skipped FFXI lines preserve valid bots, timing measurements and accepted event bounds');
+  check(currentSnapshot.botActivity.sources.every((source, index) => source.id === 'ffxi-lsb'
+      || JSON.stringify(source) === JSON.stringify(completeReadiness.sources[index]))
+    && textOf('baseline-conformance') === baselineText && requests.length === parityRequests,
+    'Incomplete FFXI selection leaves SWTOR, WoW, Vanilla and parity evidence unchanged without requests');
+  paritySample.value = 'readiness';
+  paritySample.dispatchEvent(new Event('change', {bubbles: true}));
+  const recoveredFfxiPanel = [...document.querySelectorAll('#bot-activity-sources .bot-source')][0];
+  check(JSON.stringify(currentSnapshot.botActivity) === JSON.stringify(completeReadiness)
+    && recoveredFfxiPanel.textContent.includes('Omitted malformed: 0')
+    && recoveredFfxiPanel.textContent.includes('Unrecognized lines: 0')
+    && recoveredFfxiPanel.textContent.includes('Ignored lines: 0')
+    && requests.length === parityRequests,
+    'Complete FFXI readiness recovery clears all three skipped-line counts and restores the exact source data');
   paritySample.value = 'exports';
   paritySample.dispatchEvent(new Event('change', {bubbles: true}));
   check(JSON.stringify(currentSnapshot.botActivity) === JSON.stringify(activityFixture)

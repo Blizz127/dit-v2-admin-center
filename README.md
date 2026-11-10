@@ -359,6 +359,11 @@ while showing one reader omission separately from the producer's 27-row loss
 report. Returning to the complete readiness sample clears that omission;
 FFXI readiness and the other games' source data remain unchanged.
 
+**Synthetic FFXI import with skipped lines** shows one malformed, one
+unrecognized and one unrelated line separately while retaining the 52 accepted
+lines and their event range. Returning to complete readiness clears all three
+counts. The other source data and parity evidence remain unchanged.
+
 DIT bot-event coverage also flags retained `LOG_DROPPED` report rows separately
 from malformed rows omitted by the reader. Each report's event shows its
 producer-reported dropped count, or Unknown if the count is missing or invalid.

@@ -97,6 +97,29 @@ def parity_partial_readiness_source():
                      'Real bot-event export still required.', bots=bots, coverage=coverage)
 
 
+def parity_partial_ffxi_readiness_source():
+    """Exercise all three non-imported FFXI line categories without altering the fixture."""
+    raw = read_bytes(ROOT / 'tests/fixtures/ffxi-botsv2/synthetic-post-h1-readiness.log', 256 * 1024)
+    if len(raw) > 256 * 1024:
+        raise ValueError('Synthetic parity readiness fixture oversized')
+    # No blank separator: an extra blank line would itself count as ignored.
+    extra = (b'[01/01/26 10:15:00:000][map][lua] [BOTS-V2] act readya rule=combat -> ok cast (lua_print:228)\n'
+             b'[01/01/26 10:15:01:000][map][lua] [BOTS-V2] synthetic_unknown readya (lua_print:228)\n'
+             b'[01/01/26 10:15:02:000][map][lua] synthetic unrelated fixture line (lua_print:228)\n')
+    with tempfile.TemporaryDirectory(prefix='dit-parity-readiness-') as temp:
+        path = Path(temp) / 'synthetic-partial.log'
+        path.write_bytes(raw + (b'' if raw.endswith(b'\n') else b'\n') + extra)
+        bots, coverage = read_ffxi_botsv2(str(path))
+    if (coverage['status'] != 'Loaded'
+            or tuple(coverage[key] for key in ('omitted', 'unrecognized', 'ignored')) != (1, 1, 1)):
+        raise ValueError('Synthetic partial FFXI readiness fixture unavailable')
+    coverage = dict(coverage, reason='Synthetic incomplete readiness sample; not live evidence. ' + coverage['reason'])
+    return dict(id='ffxi-lsb', label='FFXI readiness (synthetic incomplete export)',
+                note='Fictional incomplete FFXI export: one malformed bot line, one unrecognized bot line and one '
+                     'unrelated log line are counted separately. Valid events remain visible. '
+                     'Real post-H1 export still required.', bots=bots, coverage=coverage)
+
+
 def snapshot():
     payload = fixture_json(ROOT / 'tests/fixtures/learning-evidence-e8c81be.json', dict)
     rows = project_learning(payload)
@@ -187,9 +210,11 @@ def build():
     assignment_data = json.dumps(fixture_json(ROOT / 'tests/fixtures/assignment-pages.json', dict)).replace('<', '\\u003c')
     readiness_data = json.dumps(parity_readiness_sources()).replace('<', '\\u003c')
     partial_readiness_data = json.dumps(parity_partial_readiness_source()).replace('<', '\\u003c')
+    partial_ffxi_data = json.dumps(parity_partial_ffxi_readiness_source()).replace('<', '\\u003c')
     script = ('(async function () {\nconst fixture = ' + data + ';\nconst assignmentFixtures = ' + assignment_data
               + ';\nconst parityReadinessSources = ' + readiness_data
               + ';\nconst parityPartialReadinessSource = ' + partial_readiness_data
+              + ';\nconst parityPartialFfxiReadinessSource = ' + partial_ffxi_data
               + ';\n' + driver.replace('/* APPLICATION */', app) + '\n})();')
     if '</script' in script.lower() or '</style' in css.lower():
         raise ValueError('Unsafe inline asset terminator')
@@ -213,7 +238,8 @@ def build():
                  '<select id="parity-sample" aria-describedby="parity-sample-note" disabled>'
                  '<option value="exports">Recorded exports and schema examples</option>'
                  '<option value="readiness">Synthetic FFXI + SWTOR readiness</option>'
-                 '<option value="partial">Synthetic SWTOR import with a malformed row</option></select>'
+                 '<option value="partial">Synthetic SWTOR import with a malformed row</option>'
+                 '<option value="partial-ffxi">Synthetic FFXI import with skipped lines</option></select>'
                  '<p id="parity-sample-note" class="muted" role="status">Readiness samples are fictional; '
                  'they do not verify live bot behavior. Parity tracker evidence is unchanged.</p></div>')
     html = html.replace('<div class="bot-source" id="bot-source-wow">', readiness + '<div class="bot-source" id="bot-source-wow">', 1)

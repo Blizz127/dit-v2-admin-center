@@ -6,7 +6,7 @@ import unittest
 
 import bot_event_v1
 import ffxi_botsv2_log
-from tools.build_inspector_playtest import parity_partial_readiness_source
+from tools.build_inspector_playtest import parity_partial_readiness_source, parity_partial_ffxi_readiness_source
 
 
 FIXTURES = Path(__file__).resolve().parent / 'fixtures'
@@ -105,6 +105,28 @@ class ParityReadinessFixtureTests(unittest.TestCase):
         self.assertEqual((SWTOR / 'swtor-kf-writer-samples.jsonl').read_bytes(), original)
         self.assertEqual(bot_event_v1.read(str(SWTOR)), (clean_bots, clean_coverage),
                          'the complete source recovers without inheriting the synthetic omission')
+
+    def test_partial_ffxi_copy_separates_skipped_lines_without_changing_events(self):
+        original = FFXI.read_bytes()
+        clean_bots, clean_coverage = ffxi_botsv2_log.read(FFXI)
+        partial = parity_partial_ffxi_readiness_source()
+        self.assertEqual(partial['id'], 'ffxi-lsb')
+        self.assertIn('synthetic incomplete export', partial['label'])
+        self.assertIn('Real post-H1 export still required.', partial['note'])
+        coverage = partial['coverage']
+        self.assertEqual(coverage['status'], 'Loaded')
+        self.assertEqual(tuple(coverage[key] for key in ('records', 'omitted', 'unrecognized', 'ignored', 'budget', 'system')),
+                         (52, 1, 1, 1, 0, 0))
+        self.assertEqual(sum(coverage[key] for key in ('records', 'omitted', 'unrecognized', 'ignored')),
+                         len(original.splitlines()) + 3)
+        self.assertTrue(coverage['reason'].startswith('Synthetic incomplete readiness sample; not live evidence.'))
+        self.assertEqual((coverage['from'], coverage['to']), (clean_coverage['from'], clean_coverage['to']))
+        self.assertEqual(partial['bots'], clean_bots, 'omitted lines cannot change identity, events or timing measurements')
+        self.assertNotIn('synthetic_unknown', json.dumps(partial))
+        self.assertNotIn('synthetic unrelated fixture line', json.dumps(partial))
+        self.assertEqual(FFXI.read_bytes(), original)
+        self.assertEqual(ffxi_botsv2_log.read(FFXI), (clean_bots, clean_coverage),
+                         'the complete source recovers without inherited skipped-line counts')
 
 
 if __name__ == '__main__':

@@ -133,3 +133,14 @@
 - **Timing design:** shared departures are 180, 250 and 330 seconds apart. Matching mount/dismount/trip-end actions are staggered by 5, 6 and 7 seconds between bots. Each bot has ten distinct combat gaps: 2 through 11 seconds for `readya`, 3 through 12 seconds for `readyb`. Cadence therefore has modal share 0.1; synchrony is 0/12; schedule is 1/3 (reported 0.333). All three heuristic flags are false because of this constructed input, not because a live fix passed. These counts exceed the current minimum samples without reaching reader/display caps.
 - The companion SWTOR readiness input reuses `../bot-event-swtor/swtor-kf-writer-samples.jsonl` unchanged: 16 writer-test rows, seven actor IDs, eight event types, zero reader omissions. Its timestamps and actors are synthetic; the `LOG_DROPPED` row reports 27 producer drops, which are not reader omissions. It has too few repeated decisions for a cadence measurement. See that directory's README for the original provenance and SHA-256.
 - Focused readiness checks: `python3 -m unittest discover -s tests -p test_parity_readiness_fixtures.py -v`. Native rendering, actual gameplay and H1 acceptance remain unverified by these fixtures.
+
+The preview's **Synthetic FFXI import with skipped lines** selection uses a
+disposable copy of the 52-line fictional sample. It appends a malformed `act`
+line without required fields, an unknown `synthetic_unknown` bot-event shape,
+and a line with no `[BOTS-V2]` marker. The normal reader reports 52 accepted,
+one omitted malformed, one unrecognized and one ignored line. No blank separator
+is inserted. The two bots, all accepted events and timing measurements remain
+identical; the later rejected timestamps do not extend the accepted event range.
+Switching to complete readiness clears the three counts. The original fixture
+is unchanged and the temporary copy is removed. This is an import/recovery
+example, not export 8, an H1 capture or proof of live behavior.
