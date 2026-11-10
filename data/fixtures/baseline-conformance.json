@@ -315,7 +315,7 @@
         },
         "p-04": {
           "status": "Built",
-          "evidence": "bridge assist mode and job gambits, not live."
+          "evidence": "bridge assist mode and job gambits, not live. /fb role assignment and tank-target assist exist in native source r14 (7f1707c8) only, not live."
         },
         "p-05": {
           "status": "Built",
@@ -331,7 +331,7 @@
         },
         "p-08": {
           "status": "Built",
-          "evidence": "driver party words pull/follow/assist/stop/rest (3284f0ef, current 3d7d23cf), not live. /fb native source r12 (054ebebd): help, list, summon, dismiss, follow, stay; test-profile build and focused checks per its README. Source only: no runtime kit, needs the DIT control adapter, not live."
+          "evidence": "driver party words pull/follow/assist/stop/rest (3d7d23cf), not live. /fb native source through r25 (af18d38c): help, list, summon, dismiss, follow (cross-zone), stay, attack, assist, pull, rest, role, gear show/scale/bis. Source packets only: no runtime kit, live build is still rc8, not live."
         },
         "p-09": {
           "status": "Designed",

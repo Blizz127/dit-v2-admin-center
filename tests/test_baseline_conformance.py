@@ -121,8 +121,9 @@ class BaselineConformanceTests(unittest.TestCase):
         self.assertIn('unconfirmed', cells['p-02']['evidence'])
         # /fb exists as native source packets (r11, r12) only: it must never read as a runtime or as live.
         self.assertIn('native source r11 (4a79acef) only: not in a runtime, not live', cells['p-07']['evidence'])
-        self.assertIn('/fb native source r12 (054ebebd)', cells['p-08']['evidence'])
-        self.assertIn('Source only: no runtime kit', cells['p-08']['evidence'])
+        self.assertIn('/fb native source through r25 (af18d38c)', cells['p-08']['evidence'])
+        self.assertIn('Source packets only: no runtime kit, live build is still rc8', cells['p-08']['evidence'])
+        self.assertIn('native source r14 (7f1707c8) only, not live', cells['p-04']['evidence'])
         self.assertTrue(cells['p-08']['evidence'].endswith('not live.'))
         self.assertIn('733dfb5', cells['p-02']['evidence'])
         self.assertIn('da14962', cells['p-10']['evidence'])
