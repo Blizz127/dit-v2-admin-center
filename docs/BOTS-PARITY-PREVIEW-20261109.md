@@ -1156,3 +1156,40 @@ embedded `bot_event_v1.py` source fingerprint; nothing the owner sees changes.
 `c3283185` stays the current delivered preview. Native browser/keyboard checks
 were not run. No real FFXI post-H1 or SWTOR export has arrived (one read-only
 check of the FFXI handoff directory: export 7 is still the latest).
+
+## Delivered: preview 9462bda2 (source 6dbb8f5)
+
+Private folder **Alienware → Downloads → DIT-Admin-Center-Preview-9462bda2**.
+Separate-connection readback at **2026-11-10T03:57:16Z** matched both files:
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 597293 | `9462bda2c97bd5316ece9ffc540a4039937cb34b990c1a5157794e85fb508597` | 600 |
+| READ-ME-FIRST.txt | 1245 | `7e69d2cecea7c53e9a418e246d8038cf4a86f3f7127df8f6d233c93f39b143a3` | 600 |
+
+Local package: `build/DIT-Admin-Center-Preview-9462bda2/`.
+
+**Change:** in Baseline bot style conformance, the FFXI Forever (Rust) cells
+**Owner orders** (p-08) and **Getting bots by class and role** (p-07) now cite
+the `/fb` owner menu packet (help, list, summon, dismiss, build-2 orders) at hub
+design branch `design/ffxi-fb-menu-r1-20261110`, commit `77bfd593`. Its own
+README says PREPARATION ONLY: Rust contracts, no native routing, not live. Both
+statuses stay **Built** for the existing driver work; `/fb` is not presented as
+wired or working. That packet's tests were not run in this lane. The preview
+also carries the oversized-file reader fix `70aa366` (no visible change).
+This preview supersedes `c3283185` for owner playtesting.
+
+**Focused verification:** conformance (15), offline overview and bot-activity UI
+checks passed after the change; the full suite (634 Python tests and all
+`tests/*.test.js`) passed at `70aa366`, before the fixture text change. The
+exact delivered HTML passed all 191 simulated-DOM startup assertions, zero
+transport attempts (construction 649 ms, completion wait 1,947 ms). Receipt:
+`build/fb-prep-evidence-startup-smoke.log`. Native browser/keyboard checks were
+not run.
+
+**Delivery and rollback:** destination checked absent, then created with
+exclusive file creation; a separate connection verified hashes, sizes and mode
+600 (`build/fb-prep-evidence-delivery-readback.txt`). `c3283185` and earlier
+previews remain. Real FFXI post-H1 and SWTOR exports are still required for
+live conclusions. No live game/hub deployment, save/player change, service
+operation, access change or public release occurred.
