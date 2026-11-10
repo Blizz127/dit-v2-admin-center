@@ -730,3 +730,36 @@ execution was attempted.
 **Delivery:** blocked by the previously observed Alienware endpoint timeout.
 This package is prepared locally, not copied or verified remotely. Latest
 confirmed delivered preview remains **acfa9efd**.
+
+## Prepared: preview 5322d9d1 (source 42bcca2) — next delivery candidate
+
+Checkpoint **2026-11-10T01:04:23Z**. This candidate supersedes `c207fbc4` for
+the next private delivery, retaining its visible-row count fix and preceding
+pending reader/timing changes. Earlier packages and any unknown partial
+destination remain untouched. No Alienware retry or publication was attempted.
+
+Local package: `build/DIT-Admin-Center-Preview-5322d9d1/`.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 546775 | `5322d9d1b8d270d3e03a868758f6532ebe4cae776d4d3a12b00bfc8ad7279ded` | 600 |
+| READ-ME-FIRST.txt | 776 | `307e09555e844d9793bca2f5bf0f929d759b7746dc45bc5776f2acd707f0c443` | 600 |
+
+**Change:** only sources with Loaded coverage display bot rows or contribute
+review patterns. Previously, retained rows in an Off, Unavailable or Unknown
+source could contradict the source warning by displaying as loaded activity.
+Other Loaded sources remain usable; source recovery preserves local filters.
+If no review source is loaded, the summary explicitly says Unknown rather than
+claiming no patterns were found.
+
+**Verification:** `node tests/bot_activity.test.js` passed with focused retained
+row cases for Off, Not configured, Unavailable, Unknown, missing and unrecognized
+status; unaffected sources; Loaded recovery and filtering; and missing versus
+Loaded-empty review sources. The exact packaged HTML passed 178 simulated-DOM
+startup assertions, zero transport attempts (construction 575 ms, completion
+wait 7,027 ms). No full suite was run.
+
+**Limits:** native browser/keyboard checks remain NOT RUN because no supported
+local browser was found. Private delivery remains blocked by the previously
+observed Alienware endpoint timeout. The package is prepared locally, not copied
+or verified remotely; latest confirmed delivered preview remains **acfa9efd**.
