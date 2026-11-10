@@ -1,10 +1,10 @@
 # Current local preview verification commands
 
-UI checkpoint: `41c448a` (rc7 live evidence in FFXI Forever conformance; prior features retained).
-Delivered preview: `60d3d2e0`, **597430 bytes**.
-Local artifact: `build/DIT-Admin-Center-Preview-60d3d2e0/Admin-Center-Synthetic-Preview.html`.
-SHA-256: `60d3d2e0dec208e7613e50320847a0b10b80266d1332be6f40d8a8d8988f5564`.
-Private copy: Alienware → Downloads → `DIT-Admin-Center-Preview-60d3d2e0`.
+UI checkpoint: `9a153bf` (SWTOR kt squad timing in conformance; prior features retained).
+Delivered preview: `c56ee498`, **597512 bytes**.
+Local artifact: `build/DIT-Admin-Center-Preview-c56ee498/Admin-Center-Synthetic-Preview.html`.
+SHA-256: `c56ee4987fcfa48d20d8026521b6aba13201079a8a5fdb83d9c3792b7df9e2b7`.
+Private copy: Alienware → Downloads → `DIT-Admin-Center-Preview-c56ee498`.
 
 ## Executed DOM fallback
 
@@ -16,10 +16,10 @@ DIT_JSDOM_MODULE="$PWD/build/dom-runtime/node_modules/jsdom" timeout 30 node too
 
 Actual result: **191 checks passed**, zero transport attempts,
 artifact hash as above, `nativeKeyboard: not-run`.
-Measured DOM construction: 963 ms; completion wait: 2820 ms. The runner generates
+Measured DOM construction: 824 ms; completion wait: 2475 ms. The runner generates
 the current source in memory; a later source change produces a different hash.
 The recorded run passed on its first attempt. See the
-[delivery receipt](BOTS-PARITY-PREVIEW-20261109.md#delivered-preview-60d3d2e0-source-41c448a)
+[delivery receipt](BOTS-PARITY-PREVIEW-20261109.md#delivered-preview-c56ee498-source-9a153bf)
 for focused checks and independent delivery hash readback. These timings are not a native-browser
 benchmark. Runner checkpoints
 `68af3bb`, `95afcee`, `a3034f6` use a monotonic five-second no-assertion-progress
@@ -73,8 +73,8 @@ On an authorized host with existing Chromium/Node selected through
 `DIT_CHROMIUM` / `DIT_NODE`:
 
 ```sh
-python3 tools/run_headless_playtest.py --expected-artifact-sha256 60d3d2e0dec208e7613e50320847a0b10b80266d1332be6f40d8a8d8988f5564
-python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 60d3d2e0dec208e7613e50320847a0b10b80266d1332be6f40d8a8d8988f5564
+python3 tools/run_headless_playtest.py --expected-artifact-sha256 c56ee4987fcfa48d20d8026521b6aba13201079a8a5fdb83d9c3792b7df9e2b7
+python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 c56ee4987fcfa48d20d8026521b6aba13201079a8a5fdb83d9c3792b7df9e2b7
 ```
 
 The previous Chromium attempt against artifact `96d4b70e` exited 2 before browser

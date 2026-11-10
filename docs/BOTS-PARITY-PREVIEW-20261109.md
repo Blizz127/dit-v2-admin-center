@@ -1228,3 +1228,38 @@ exclusive file creation; readback in `build/rc7-evidence-delivery-readback.txt`.
 `9462bda2` and earlier previews remain. Real FFXI post-H1 and SWTOR exports are
 still required for live conclusions. No live game/hub deployment, save/player
 change, service operation, access change or public release occurred.
+
+## Delivered: preview c56ee498 (source 9a153bf)
+
+Private folder **Alienware → Downloads → DIT-Admin-Center-Preview-c56ee498**.
+Separate-connection readback at **2026-11-10T04:30:44Z** matched both files:
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 597512 | `c56ee4987fcfa48d20d8026521b6aba13201079a8a5fdb83d9c3792b7df9e2b7` | 600 |
+| READ-ME-FIRST.txt | 1166 | `fdbf3ef7969f81cafe7eb4539b30b1a4ae510347b685dab24001a8f56490dec9` | 600 |
+
+Local package: `build/DIT-Admin-Center-Preview-c56ee498/`.
+
+**Change:** SWTOR conformance cell p-04 now notes that release kt (c56, live
+2026-11-10T04:19:57Z, 0 players at launch) adds per-role reaction delays and
+press jitter for invited squads. Sources, read once and read-only in the SWTOR
+lane's release folder: `release-kt-c56/VERIFICATION.txt` (live time),
+`release-kj-c46/VERIFICATION.txt` (what the change is; timing values are design
+estimates) and `ORDER-c56.txt` (the `bot-human-r2` squad-timing patch is in the
+live composition). Status stays **Built**: no live squad log line has been
+seen. Other SWTOR cells still cite kc/kf, the releases where their behavior
+went live; they were not reassessed. This preview supersedes `60d3d2e0`.
+
+**Verification:** full suite at `9a153bf`: 634 Python tests and every
+`tests/*.test.js` script passed. The exact delivered HTML passed all 191
+simulated-DOM startup assertions, zero transport attempts (construction 824 ms,
+completion wait 2,475 ms); receipt `build/swtor-kt-evidence-startup-smoke.log`.
+Native browser/keyboard checks were not run; the game was not tested here.
+
+**Delivery and rollback:** destination checked absent, then created with
+exclusive file creation; readback in
+`build/swtor-kt-evidence-delivery-readback.txt`. `60d3d2e0` and earlier
+previews remain. Real FFXI post-H1 and SWTOR exports are still required for
+live conclusions. No live game/hub deployment, save/player change, service
+operation, access change or public release occurred.
