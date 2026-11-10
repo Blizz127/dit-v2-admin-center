@@ -331,7 +331,7 @@
         },
         "p-08": {
           "status": "Built",
-          "evidence": "driver party words pull/follow/assist/stop/rest (3d7d23cf), not live. /fb native source through r33 (074c3640): help, list, summon, dismiss, follow (cross-zone), stay, attack, assist, pull, rest, role, gear show/scale/bis. Source packets only: no runtime kit, live build is still rc8, not live."
+          "evidence": "driver party words pull/follow/assist/stop/rest (3d7d23cf), not live. /fb native source through r83 (76aa11e6): help, list, summon, dismiss, follow (cross-zone), stay, attack, assist, pull, rest, role, gear show/scale/bis. Source packets only: no runtime kit, live build is still rc8, not live."
         },
         "p-09": {
           "status": "Designed",
