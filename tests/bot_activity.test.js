@@ -417,7 +417,7 @@ setImmediate(() => {
   assert.equal(v1.children[1].textContent, 'Doing: AttackAnything Makrura Shellhide · Pulls: 578 · XP-gain rows: 9 · Pulls per XP-gain row: 64.2 · Hearthstone escapes (stuck): combat long stuck 3');
   assert.equal(v1.children[5].textContent, 'Longest same-target run without recorded XP or loot: 562 pulls on Makrura Shellhide over 58 min from 1 position (2026-11-09T19:54:06Z to 2026-11-09T20:52:00Z).');
   assert.equal(v1.children[6].textContent, 'Human-feel signals: pull: 258 of 577 gaps near 5 s');
-  assert.equal(v2.children[1].textContent, 'Doing: Unknown · Pulls: 85 · XP-gain rows: 82 · Pulls per XP-gain row: 1 · Hearthstone escapes (stuck): none');
+  assert.equal(v2.children[1].textContent, 'Doing: Unknown · Pulls: 85 · XP-gain rows: 82 · Pulls per XP-gain row: 1 · Hearthstone escapes (stuck): none recorded');
   const noEstablishedRun = 'No run of 10+ same-target pulls was established in this export; this does not prove the bot is unstuck.';
   assert.equal(v2.children[5].textContent, noEstablishedRun);
   for (const badStall of [undefined, null, '', [], {}, {pulls: '12', seconds: 60}, {pulls: 12}, {pulls: 12, seconds: NaN}]) {
@@ -439,6 +439,42 @@ setImmediate(() => {
   assert.match(d2.children[3].children[1].textContent, /Events: none in the export/);
   assert.equal(d2.children[5].children[0].textContent, 'Advice (Unknown)', 'a non-list advice field is Unknown, not empty');
   assert.match(d2.children[5].children[1].textContent, /Unknown \(missing or malformed in the export\)/);
+
+  // A missing or malformed escape count map is unknown evidence, not a recorded zero.
+  const hearthSummaryPrefix = 'Doing: AttackAnything Makrura Shellhide · Pulls: 578 · XP-gain rows: 9 · Pulls per XP-gain row: 64.2 · Hearthstone escapes (stuck): ';
+  const renderHearthBot = bot => {
+    setSnapshot({...multi, botActivity: {...multi.botActivity,
+      sources: [wowSource, ffxiSource, ditSource, {...vanillaSource, bots: [bot]}]}}); render();
+    const rows = sectionsOf()[2].children[5].children;
+    assert.equal(rows.length, 1, 'the new snapshot replaces the previous Vanilla rows');
+    return rows[0].children[1].textContent;
+  };
+  const beforeHearthSnapshots = requests.length;
+  const missingHearthBot = {...vanillaBots[0]};
+  delete missingHearthBot.hearthStuck;
+  assert.equal(renderHearthBot(missingHearthBot), hearthSummaryPrefix + 'Unknown', 'an absent field cannot mean no escapes');
+  for (const [label, hearthStuck] of [
+    ['undefined', undefined], ['null', null], ['string', 'none'], ['number', 0], ['boolean', false], ['array', []],
+    ['negative count', {'combat long stuck': -1}], ['fractional count', {'combat long stuck': 0.5}],
+    ['string count', {'combat long stuck': '3'}], ['boolean count', {'combat long stuck': true}],
+    ['null count', {'combat long stuck': null}], ['undefined count', {'combat long stuck': undefined}],
+    ['nonfinite count', {'combat long stuck': Infinity}], ['NaN count', {'combat long stuck': NaN}],
+    ['unsafe count', {'combat long stuck': Number.MAX_SAFE_INTEGER + 1}],
+    ['mixed valid and invalid counts', {'combat long stuck': 3, 'move long stuck': '2'}],
+  ]) {
+    assert.equal(renderHearthBot({...vanillaBots[0], hearthStuck}), hearthSummaryPrefix + 'Unknown', label);
+  }
+  for (const hearthStuck of [{}, {'combat long stuck': 0, 'move long stuck': 0}]) {
+    assert.equal(renderHearthBot({...vanillaBots[0], hearthStuck}), hearthSummaryPrefix + 'none recorded',
+      'only an explicit usable map with no positive counts establishes no recorded escapes');
+  }
+  assert.equal(renderHearthBot({...vanillaBots[0], hearthStuck: {'combat long stuck': 3, 'move long stuck': 0, 'custom reason': 2}}),
+    hearthSummaryPrefix + 'combat long stuck 3, custom reason 2', 'positive counts retain their labels without restricting reason names');
+  assert.equal(renderHearthBot({...vanillaBots[0], hearthStuck: {'combat long stuck': -1}}), hearthSummaryPrefix + 'Unknown');
+  setSnapshot(multi); render();
+  assert.equal(sectionsOf()[2].children[5].children[0].children[1].textContent, hearthSummaryPrefix + 'combat long stuck 3',
+    'recovery restores recorded positive counts instead of retaining the unknown state');
+  assert.equal(requests.length, beforeHearthSnapshots, 'rendering escape evidence makes no transport requests');
 
   // Source-level states: Off and Unavailable say so, and a missing or malformed source is Unknown.
   setSnapshot(sourceFor('dit-bot-event-v1', {...ditSource, coverage: {status: 'Off', records: 0, omitted: 0, reason: 'Switch unset.'}, bots: []})); render();

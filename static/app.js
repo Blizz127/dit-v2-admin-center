@@ -1567,10 +1567,15 @@ function botActivityStall(stall) {
   const spots = metricNumber(stall.positions) ? ` from ${stall.positions} position${stall.positions === 1 ? '' : 's'}` : '';
   return `Longest same-target run without recorded XP or loot: ${stall.pulls} pulls on ${shown(stall.target)} over ${Math.round(stall.seconds / 60)} min${spots} (${shown(stall.from)} to ${shown(stall.to)}).`;
 }
+function botActivityHearthStuck(counts) {
+  if (!plainObject(counts) || Object.values(counts).some(n => !Number.isSafeInteger(n) || n < 0)) return 'Unknown';
+  const text = botActivityCounts(counts);
+  return text === 'Unknown' ? 'none recorded' : text;
+}
 function botActivityVanillaRow(panel, bot) {
   const ratio = metricNumber(bot.pullsPerKill) ? bot.pullsPerKill : 'Unknown';
   item(panel, `${routingText(bot.name, 'Unnamed')} (${shown(bot.actorId)}) · level ${shown(bot.level)}`,
-    `Doing: ${shown(bot.doing)} · Pulls: ${shown(bot.pulls)} · XP-gain rows: ${shown(bot.kills)} · Pulls per XP-gain row: ${ratio} · Hearthstone escapes (stuck): ${botActivityCounts(bot.hearthStuck) === 'Unknown' ? 'none' : botActivityCounts(bot.hearthStuck)}`,
+    `Doing: ${shown(bot.doing)} · Pulls: ${shown(bot.pulls)} · XP-gain rows: ${shown(bot.kills)} · Pulls per XP-gain row: ${ratio} · Hearthstone escapes (stuck): ${botActivityHearthStuck(bot.hearthStuck)}`,
     `Last event: ${shown(bot.lastEventAt)} · Counts: ${botActivityCounts(bot.counts)}`);
   const row = panel.lastElementChild;
   botActivityList(row, 'Events', bot.events, e => ({text: botActivityJoin([botActivityPart(e.ts), botActivityPart(e.type), botActivityPart(e.detail)])}));
