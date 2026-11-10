@@ -450,6 +450,54 @@ setImmediate(() => {
   assert.match(sectionsOf()[0].children[5].children[0].children[1].textContent, /Log unreadable/);
   assert.equal(sectionsOf()[1].children[5].children[0].children[0].textContent, '2001 · swtor', 'the other source is unaffected');
 
+  // A source status controls whether retained rows are evidence, even when the rows are structurally usable.
+  setSnapshot(multi); render();
+  const beforeStatusFilters = requests.length;
+  const initialDitSearch = sectionsOf()[1].children[3].children[0];
+  initialDitSearch.value = 'kade'; initialDitSearch.listeners.input();
+  assert.equal(sectionsOf()[1].children[4].textContent, 'Showing 1 of 2 loaded bots. Local filter only; no request is made.');
+  for (const status of ['Off', 'Not configured', 'Unavailable', 'Unknown', undefined, 'Unrecognized status']) {
+    const coverage = {...ditSource.coverage, status};
+    if (status === undefined) delete coverage.status;
+    setSnapshot({...multi, botActivity: {...multi.botActivity,
+      sources: [wowSource, ffxiSource, {...ditSource, coverage}, vanillaSource]}}); render();
+    const disabledDit = sectionsOf()[1];
+    assert.equal(disabledDit.children[4].textContent, '', 'nonloaded sources never count retained rows as loaded bots');
+    assert.equal(disabledDit.children[5].children.length, 1, 'only the source-status warning is rendered');
+    assert.equal(disabledDit.children[5].children[0].children[0].textContent,
+      ['Off', 'Not configured'].includes(status) ? 'Import is off' : status === 'Unavailable' ? 'Import unavailable' : 'Import status Unknown');
+    assert.ok(!everything(disabledDit).includes('Kade') && !everything(disabledDit).includes('Accept mission'),
+      'retained bot names and doing lines cannot bypass unavailable source status');
+    const patterns = get('bot-activity-sources').children.find(child => child.className === 'bot-gaps').children[2];
+    assert.ok(!everything(patterns).includes('Kade'), 'retained timing patterns from this source are withheld');
+    assert.ok(everything(patterns).includes('Tohsha has a repeated-pull run'), 'another Loaded source retains its patterns');
+    assert.equal(sectionsOf()[0].children[5].children[0].children[0].textContent, 'Fumika (fumika)');
+    assert.equal(sectionsOf()[2].children[4].textContent, 'Showing 2 of 2 loaded bots. Local filter only; no request is made.');
+  }
+  setSnapshot(multi); render();
+  const recoveredDit = sectionsOf()[1], recoveredSearch = recoveredDit.children[3].children[0];
+  assert.equal(recoveredSearch.value, 'kade', 'source recovery preserves the local search choice');
+  assert.equal(recoveredDit.children[4].textContent, 'Showing 1 of 2 loaded bots. Local filter only; no request is made.');
+  assert.equal(recoveredDit.children[5].children[0].children[0].textContent, 'Kade (2002) · ffxi-forever');
+  recoveredSearch.value = ''; recoveredSearch.listeners.input();
+  assert.equal(recoveredDit.children[4].textContent, 'Showing 2 of 2 loaded bots. Local filter only; no request is made.');
+  assert.equal(requests.length, beforeStatusFilters, 'status changes and local filter recovery make no transport requests');
+
+  const unavailablePatterns = 'Review patterns: Unknown; no usable loaded export for these sources.';
+  for (const sources of [[], [wowSource], [wowSource,
+    {...ffxiSource, coverage: {...ffxiSource.coverage, status: 'Off'}},
+    {...ditSource, coverage: {...ditSource.coverage, status: 'Unavailable'}},
+    {...vanillaSource, coverage: {...vanillaSource.coverage, status: 'Unrecognized status'}}]]) {
+    setSnapshot({...multi, botActivity: {...multi.botActivity, sources}}); render();
+    const patternList = get('bot-activity-sources').children.find(child => child.className === 'bot-gaps').children[2];
+    assert.deepEqual(patternList.children.map(li => li.textContent), [unavailablePatterns],
+      'missing or nonloaded sources cannot claim that no review patterns were found');
+  }
+  setSnapshot({...multi, botActivity: {...multi.botActivity, sources: [wowSource,
+    {...ditSource, coverage: {status: 'Loaded', records: 0, omitted: 0}, bots: []}]}}); render();
+  assert.deepEqual(get('bot-activity-sources').children.find(child => child.className === 'bot-gaps').children[2].children.map(li => li.textContent),
+    ['None found in the loaded exports.'], 'a usable Loaded export with no flagged bots remains distinct from unavailable evidence');
+
   const malformedSources = {...snapshot, botActivity: {bots, coverage: wowSource.coverage, sources: [null, 7, wowSource,
     {id: 'ffxi-lsb', coverage: {status: 'Loaded'}, bots: 'no'}, {id: 'mystery', coverage: {status: 'Loaded'}, bots: []}]}};
   setSnapshot(malformedSources); render();

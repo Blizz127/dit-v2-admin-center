@@ -1652,6 +1652,7 @@ function renderBotActivityBody(refs, entry, id, engine, needle) {
   const status = botActivityStatuses.includes(cov.status) ? cov.status : 'Unknown';
   coverage.textContent = botActivityCoverageText(cov);
   botActivityStatusItem(rows, status, cov, id);
+  if (status !== 'Loaded') return;
   const bots = source.bots.filter(bot => plainObject(bot) && botActivityKey(bot, id));
   const matches = bots.filter(bot => (!engine || (botActivityEngines.includes(bot.engine) ? bot.engine : 'Unknown') === engine)
     && (!needle || (typeof bot.name === 'string' && bot.name.toLowerCase().includes(needle)) || botActivityKey(bot, id).toLowerCase().includes(needle)));
@@ -1668,7 +1669,7 @@ function botActivityGapLines(data) {
   const lines = [];
   for (const id of botActivitySourceIds.slice(1)) {
     const source = botActivityValid(botActivityEntry(data, id));
-    if (!source) continue;
+    if (!source || source.coverage.status !== 'Loaded') continue;
     const label = botActivityLabel(source, id);
     for (const bot of source.bots) {
       if (!plainObject(bot)) continue;
@@ -1696,7 +1697,12 @@ function renderBotActivityGaps(container, data) {
   const list = document.createElement('ul');
   lines.slice(0, botActivityGapLimit).forEach(text => { const li = document.createElement('li'); li.textContent = text.slice(0, 500); list.append(li); });
   if (lines.length > botActivityGapLimit) { const more = document.createElement('li'); more.textContent = `${lines.length - botActivityGapLimit} more not shown.`; list.append(more); }
-  if (!lines.length) { const none = document.createElement('li'); none.textContent = 'None found in the loaded exports.'; list.append(none); }
+  if (!lines.length) {
+    const loaded = botActivitySourceIds.slice(1).some(id => botActivityValid(botActivityEntry(data, id))?.coverage.status === 'Loaded');
+    const none = document.createElement('li');
+    none.textContent = loaded ? 'None found in the loaded exports.' : 'Review patterns: Unknown; no usable loaded export for these sources.';
+    list.append(none);
+  }
   block.append(heading, note, list);
   container.append(block);
 }
