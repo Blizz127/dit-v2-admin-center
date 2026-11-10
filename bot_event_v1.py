@@ -38,7 +38,7 @@ Rules enforced here:
   limit bites, the newest data is kept: the last MAX_FILES files by name, with the byte and row
   budgets spent newest file and newest line first. A file that does not fit the total byte budget ends the read,
   so the older files are not read either: only a contiguous newest run is kept. Files are named by date, so the
-  oldest go.
+  oldest go. A file over MAX_FILE_BYTES is skipped as oversized whatever budget is left and does not end the read.
   A directory that mixes games is still capped by name order, so the games that sort last win.
 - Output caps: MAX_BOTS bots (the most recently active), MAX_EVENTS events, MAX_ADVICE advice items
   and MAX_DEATHS deaths per bot.
@@ -455,6 +455,9 @@ def _read(directory):
             why = 'symlink'
         elif not stat.S_ISREG(info.st_mode):
             why = 'not a regular file'
+        elif info.st_size > MAX_FILE_BYTES:
+            # Too large for any budget: skipped as oversized, so it never ends the read for older files that fit.
+            why = 'oversized'
         limit = min(MAX_FILE_BYTES, MAX_TOTAL_BYTES - used)
         if why is None and limit <= 0:
             why = 'over the total byte limit'

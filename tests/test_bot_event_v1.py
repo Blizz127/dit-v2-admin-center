@@ -570,6 +570,22 @@ class BotEventTests(unittest.TestCase):
         self.assertIn('2 over the total byte limit', coverage['reason'])
         self.assertEqual({event['summary'] for event in bots[0]['events']}, {'from-c'})
 
+    def test_oversized_file_is_skipped_as_oversized_and_does_not_end_the_read_when_the_budget_is_short(self):
+        # The newest file leaves 300 bytes. The next file is over the per-file limit, so no budget could hold it:
+        # it is reported as oversized, not as the total byte limit, and the small older file still loads.
+        small = len(encode(base(summary='from-a'))) + 1
+        self.assertLessEqual(small, 300, 'the small row must fit the budget left after the newest file')
+        with patch.object(events, 'MAX_FILE_BYTES', 400), patch.object(events, 'MAX_TOTAL_BYTES', 700):
+            root = Path(tempfile.mkdtemp(dir=self.temp.name))
+            (root / 'a.jsonl').write_bytes(self.sized(small, 'from-a'))
+            (root / 'b.jsonl').write_bytes(self.sized(401, 'from-b'))
+            (root / 'c.jsonl').write_bytes(self.sized(400, 'from-c'))
+            bots, coverage = events.read(str(root))
+        self.assertEqual((coverage['files'], coverage['records']), (2, 2))
+        self.assertIn('1 oversized', coverage['reason'])
+        self.assertNotIn('total byte limit', coverage['reason'])
+        self.assertEqual({event['summary'] for event in bots[0]['events']}, {'from-a', 'from-c'})
+
     def sized(self, total, summary='walking'):
         """One valid row line padded with spaces to exactly `total` bytes, newline included."""
         line = json.dumps(base(summary=summary)).encode('utf-8') + b'\n'

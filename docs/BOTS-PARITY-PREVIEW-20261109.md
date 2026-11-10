@@ -1135,3 +1135,24 @@ exclusively; a separate connection verified hashes, sizes and mode 600.
 `80f9a6a7` and earlier previews remain available. Real FFXI post-H1 and SWTOR
 exports are still required for live conclusions. No live game/hub deployment,
 save/player change, service operation, access change or public release occurred.
+
+## Reader fix after c3283185: oversized bot-event file (no new preview)
+
+`bot_event_v1.py` now skips a file larger than the per-file limit (8 MiB) as
+**oversized** whatever total budget is left. Before, when less than 8 MiB of the
+32 MiB total budget remained, such a file was reported as **over the total byte
+limit** and ended the read, so older files that would have fit were left unread.
+A file that fits the per-file limit but not the remaining total still ends the
+read, as before.
+
+**Verification:** the new test failed before the change (1 file, 1 row) and
+passes after (2 files, 2 rows, `1 oversized`). Full suite run: 634 Python tests
+and every `tests/*.test.js` script passed. The simulated-DOM startup run on
+current source passed all 191 assertions with zero transport attempts.
+
+**Preview:** not rebuilt for delivery. Current source builds to
+`c4c0b6d9…901eba`, which differs from delivered `c3283185` in one line, the
+embedded `bot_event_v1.py` source fingerprint; nothing the owner sees changes.
+`c3283185` stays the current delivered preview. Native browser/keyboard checks
+were not run. No real FFXI post-H1 or SWTOR export has arrived (one read-only
+check of the FFXI handoff directory: export 7 is still the latest).
