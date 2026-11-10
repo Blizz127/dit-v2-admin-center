@@ -1263,3 +1263,46 @@ exclusive file creation; readback in
 previews remain. Real FFXI post-H1 and SWTOR exports are still required for
 live conclusions. No live game/hub deployment, save/player change, service
 operation, access change or public release occurred.
+
+## Delivered: preview bd47f803 (source d3be7b1)
+
+Private folder **Alienware → Downloads → DIT-Admin-Center-Preview-bd47f803**.
+Separate-connection readback at **2026-11-10T06:33:49Z** matched both files:
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 597517 | `bd47f803186a025d36fa698e406220f776315b796c8b7a714f9e7bcfd55a0a75` | 600 |
+| READ-ME-FIRST.txt | 1376 | `5465935b803036966ca7cf13ea89020e0f99d5fad59fe74499529af2d2e050b9` | 600 |
+
+Local package: `build/DIT-Admin-Center-Preview-bd47f803/`.
+
+**Change:** FFXI Forever (Rust) cells p-01, p-02, p-07 and p-08, from FFXI
+handoffs read once and read-only:
+
+- `2026-11-10-rc8-live-09bf10c2` (README, `RESULT.json`): v3.77-rc8 live
+  2026-11-10T04:22:29Z, map `fe15066`, cross-zone on, owner offline, no human
+  gameplay smoke. It gives no bot login count, so the "5 bot logins online"
+  fact stays attributed to rc7.
+- `2026-11-10-forever-fb-native-r11-4a79acef` and
+  `2026-11-10-forever-fb-orders-r12-054ebebd` (READMEs): `/fb` help, list,
+  summon, dismiss (r11) plus follow, stay (r12) exist as native source packets;
+  not a runtime kit, not live, and a matching DIT control adapter is required
+  before a runtime release. This replaces the earlier "preparation only" note.
+
+All four statuses stay **Built**. Those packets' build and checks are cited
+from their READMEs and were not run here. This preview supersedes `c56ee498`.
+
+**Verification:** full suite at `d3be7b1`: 634 Python tests and every
+`tests/*.test.js` script passed. The exact delivered HTML passed all 191
+simulated-DOM startup assertions, zero transport attempts (construction 726 ms,
+completion wait 2,101 ms); receipt `build/rc8-fb-source-startup-smoke.log`.
+Native browser/keyboard checks were not run; the game was not tested here.
+
+**Delivery and rollback:** destination checked absent, then created with
+exclusive file creation; readback in
+`build/rc8-fb-source-delivery-readback.txt`. `c56ee498` and earlier previews
+remain. Real FFXI post-H1 and SWTOR exports are still required for live
+conclusions (one check at 06:30Z: export 7 still the latest FFXI log export;
+the SWTOR export search timed out at 60 s without a result). No live game/hub
+deployment, save/player change, service operation, access change or public
+release occurred.
