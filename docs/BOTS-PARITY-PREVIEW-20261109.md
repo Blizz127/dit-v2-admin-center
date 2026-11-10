@@ -663,3 +663,36 @@ full-suite checks were not run.
 this candidate has not been copied or verified remotely. Once the endpoint is
 available, read back its exact new destination before completing the package.
 Latest confirmed delivered preview remains **acfa9efd**.
+
+## Prepared: preview e6d43a85 (source 95deaff) — next delivery candidate
+
+Checkpoint **2026-11-10T00:51:06Z**. This local candidate supersedes `47db3b9c`
+for the next delivery and includes the pending event-range and timing-threshold
+fixes. Earlier packages and any unknown partial destination remain untouched.
+No new Alienware connection or publication was attempted.
+
+Local package: `build/DIT-Admin-Center-Preview-e6d43a85/`.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 546437 | `e6d43a850ff91e23d1d90f53ef6aaf85862ff83c2d359424cb212326641682b3` | 600 |
+| READ-ME-FIRST.txt | 786 | `9740b1c9aea5b5800368ffc9b6bc11b98d5a20e4da70d1f7a63d5d2bb7cfb1c8` | 600 |
+
+**Change:** malformed Vanilla log rows break repeated-pull continuity for all
+bots because the rejected contents could have ended a run. Six valid pulls,
+an omitted row and six more pulls no longer create a false twelve-pull finding.
+Accepted event totals are retained; surviving runs may be shorter, as disclosed
+in coverage text. Empty files now report zero omitted rows. The internal
+continuity marker and rejected content are not exposed in the returned data.
+Existing release i/j/k comparisons are unchanged.
+
+**Verification:** all 14 focused Vanilla reader tests pass, including malformed
+rows, multiple bots, reversed/interleaved timestamps, empty input and the real
+release comparisons. The exact packaged HTML passed 178 simulated-DOM startup
+assertions, zero transport attempts (construction 626 ms, completion wait
+5,518 ms). Native browser/keyboard and full-suite checks were not run.
+
+**Delivery:** remains blocked on the previously observed private endpoint
+timeout. This package is prepared locally, not copied or verified remotely.
+Read back its exact destination before completing any future authorized
+delivery. Latest confirmed delivered preview remains **acfa9efd**.
