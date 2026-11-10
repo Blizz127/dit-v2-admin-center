@@ -859,3 +859,34 @@ The connection timeout is resolved for this verified delivery. Native browser
 and keyboard checks remain NOT RUN. This is an offline private preview, not a
 hub/game deployment; no save, player state, live service or access setting was
 changed.
+
+## Delivered: preview adfa9a73 (source 9a7fe6b)
+
+Private folder **Alienware → Downloads → DIT-Admin-Center-Preview-adfa9a73**.
+Independent remote readback at **2026-11-10T01:54:34Z** matched both files:
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 547004 | `adfa9a73d434cf767fb31322dc89952c88f099b4cf74885132d366838bf923c0` | 600 |
+| READ-ME-FIRST.txt | 811 | `8fabe58c93bb1604879c08b411860b686811c890c6b146222afbbae8c6d2b55f` | 600 |
+
+Local package: `build/DIT-Admin-Center-Preview-adfa9a73/`.
+
+**Change:** review findings require the same usable bot identity as detail
+rows. Missing, null, blank, whitespace and numeric IDs no longer produce
+repeated-pull, cadence, departure or synchrony findings while the corresponding
+bot detail row is omitted. Valid findings and source recovery remain usable.
+Includes the preceding pending reader/UI fixes delivered in `0b5c6a06`.
+
+**Verification:** `node tests/bot_activity.test.js` passed with malformed and
+valid identity cases across FFXI, DIT and Vanilla, all four finding types,
+source recovery and no extra requests. The exact delivered HTML passed all
+178 simulated-DOM startup assertions, zero transport attempts (construction
+657 ms, completion wait 5,666 ms). No full suite was run; native browser and
+keyboard checks remain NOT RUN.
+
+**Delivery and rollback:** a read-only check found the exact destination absent;
+the copy used exclusive directory/file creation and a separate readback checked
+hashes, sizes and mode 600. `0b5c6a06` and earlier previews remain available.
+No live hub/game deployment, save or player-state change, service operation,
+browser launch, credential/access change or public release occurred.
