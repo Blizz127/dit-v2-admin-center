@@ -25,6 +25,8 @@ Rules enforced here:
 - Only the summary and the structured decision, death, advice and chat fields are returned, plus four
   labels when they fully match a strict pattern: details.actor_key (the bot's name), area_name, ability and
   discipline. Other details keys, including free-form ones, are never returned.
+  The displayed area name must come from a row with the last observed area ID; an older area's name
+  cannot label a newer area. Without any supplied area ID, a standalone area name keeps the ID unknown.
 - A refused row with details.intent "chat", voiced false and a known drop_reason (SWTOR's shape for a dropped
   non-AI line) counts in the bot's chat drops.
 - Duplicate keys, NaN and Infinity are refused. Lines over MAX_LINE are refused unparsed.
@@ -336,10 +338,10 @@ def _project(key, entries):
         if decisions[-1]['action'] and decisions[-1]['ability']:
             doing = f"{decisions[-1]['action']} {decisions[-1]['ability']}"
     name = next((row['name'] for row in newest if row['name'] is not None), None)
-    area_name = next((row['areaName'] for row in newest if row['areaName'] is not None), None)
     discipline = next((row['discipline'] for row in newest if row['discipline'] is not None), None)
     level = next((row['level'] for row in newest if row['level'] is not None), None)
     area = next((row['area'] for row in newest if row['area'] is not None), None)
+    area_name = next((row['areaName'] for row in newest if row['area'] == area and row['areaName'] is not None), None)
     events = [{'ts': row['ts'], 'type': row['type'], 'severity': row['severity'], 'reason': row['reason'],
                'summary': row['summary'], 'action': row['action'], 'result': row['result'], 'ability': row['ability']}
               for row in newest[:MAX_EVENTS]]

@@ -778,6 +778,72 @@ class BotEventTests(unittest.TestCase):
         self.assertEqual((bot['name'], bot['areaName'], bot['discipline'], bot['doing']),
                          ('Kade', 'Ord Mantell', 'sith_warrior.juggernaut.rage', 'rotation_pick shock'))
 
+    def test_area_transition_without_a_label_does_not_reuse_the_previous_areas_name(self):
+        bots, coverage = self.run_rows(
+            base(ts='2026-11-09T05:00:00.000Z', area='area-a', details={'intent': 'travel', 'area_name': 'Area A'}),
+            base(ts='2026-11-09T05:01:00.000Z', area='area-b', details={'intent': 'travel'}))
+        self.assertEqual((coverage['records'], coverage['omitted']), (2, 0))
+        self.assertEqual((bots[0]['area'], bots[0]['areaName']), ('area-b', None))
+
+    def test_area_name_falls_back_to_a_label_for_the_same_reported_area(self):
+        bots, coverage = self.run_rows(
+            base(ts='2026-11-09T05:00:00.000Z', area='area-a', details={'intent': 'travel', 'area_name': 'Area A'}),
+            base(ts='2026-11-09T05:01:00.000Z', area='area-a', details={'intent': 'travel'}))
+        self.assertEqual((coverage['records'], coverage['omitted']), (2, 0))
+        self.assertEqual((bots[0]['area'], bots[0]['areaName']), ('area-a', 'Area A'))
+
+    def test_returning_to_an_area_can_reuse_its_earlier_label(self):
+        bots, coverage = self.run_rows(
+            base(ts='2026-11-09T05:00:00.000Z', area='area-a', details={'intent': 'travel', 'area_name': 'Area A'}),
+            base(ts='2026-11-09T05:01:00.000Z', area='area-b', details={'intent': 'travel', 'area_name': 'Area B'}),
+            base(ts='2026-11-09T05:02:00.000Z', area='area-a', details={'intent': 'travel'}))
+        self.assertEqual((coverage['records'], coverage['omitted']), (3, 0))
+        self.assertEqual((bots[0]['area'], bots[0]['areaName']), ('area-a', 'Area A'))
+
+    def test_newest_explicit_label_wins_for_the_same_area(self):
+        bots, coverage = self.run_rows(
+            base(ts='2026-11-09T05:00:00.000Z', area='area-a', details={'intent': 'travel', 'area_name': 'Area A'}),
+            base(ts='2026-11-09T05:01:00.000Z', area='area-a', details={'intent': 'travel', 'area_name': 'Updated Area A'}))
+        self.assertEqual((coverage['records'], coverage['omitted']), (2, 0))
+        self.assertEqual((bots[0]['area'], bots[0]['areaName']), ('area-a', 'Updated Area A'))
+
+    def test_unscoped_label_cannot_relabel_a_known_area(self):
+        for label in ('Area A', None):
+            with self.subTest(known_area_label=label):
+                details = {'intent': 'travel'}
+                if label is not None:
+                    details['area_name'] = label
+                bots, coverage = self.run_rows(
+                    base(ts='2026-11-09T05:00:00.000Z', area='area-a', details=details),
+                    base(ts='2026-11-09T05:01:00.000Z', area=None,
+                         details={'intent': 'travel', 'area_name': 'Unscoped Area'}))
+                self.assertEqual((coverage['records'], coverage['omitted']), (2, 0))
+                self.assertEqual((bots[0]['area'], bots[0]['areaName']), ('area-a', label))
+
+    def test_area_transition_uses_the_new_areas_explicit_label(self):
+        bots, coverage = self.run_rows(
+            base(ts='2026-11-09T05:00:00.000Z', area='area-a', details={'intent': 'travel', 'area_name': 'Area A'}),
+            base(ts='2026-11-09T05:01:00.000Z', area='area-b', details={'intent': 'travel', 'area_name': 'Area B'}))
+        self.assertEqual((coverage['records'], coverage['omitted']), (2, 0))
+        self.assertEqual((bots[0]['area'], bots[0]['areaName']), ('area-b', 'Area B'))
+
+    def test_absent_area_evidence_does_not_invent_an_area_or_label(self):
+        bots, coverage = self.run_rows(
+            base(ts='2026-11-09T05:00:00.000Z', area=MISSING),
+            base(ts='2026-11-09T05:01:00.000Z', area=None))
+        self.assertEqual((coverage['records'], coverage['omitted']), (2, 0))
+        self.assertEqual((bots[0]['area'], bots[0]['areaName']), (None, None))
+        self.assertEqual(bots[0]['lastEventAt'], '2026-11-09T05:01:00.000Z')
+
+    def test_standalone_area_name_is_retained_without_fabricating_an_area_id(self):
+        bots, coverage = self.run_rows(
+            base(ts='2026-11-09T05:00:00.000Z', area=MISSING,
+                 details={'intent': 'travel', 'area_name': 'Earlier Standalone Area'}),
+            base(ts='2026-11-09T05:01:00.000Z', area=None,
+                 details={'intent': 'travel', 'area_name': 'Latest Standalone Area'}))
+        self.assertEqual((coverage['records'], coverage['omitted']), (2, 0))
+        self.assertEqual((bots[0]['area'], bots[0]['areaName']), (None, 'Latest Standalone Area'))
+
     def test_chat_text_rows_are_refused_not_stripped(self):
         sentinel = 'SECRET-CHAT-9'
         bots, coverage = self.run_rows(base(details={'chat_text': sentinel, 'intent': 'say'}),
