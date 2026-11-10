@@ -148,6 +148,8 @@ class BaselineConformanceTests(unittest.TestCase):
             else:
                 self.assertIn('BOTS-PLAN-20261109.md', evidence, row_id)
         self.assertIn('bot-behavior', cells['p-08']['evidence'])
+        # kt carries the squad human-timing patch (bot-human-r2, in the composition since c46); still not seen live.
+        self.assertIn('Release kt (live 11-10 04:19:57Z) adds per-role reaction delays and press jitter', cells['p-04']['evidence'])
         self.assertIn('release kf live 11-09 14:50:07Z', cells['p-03']['evidence'])
         self.assertIn('rotations ON', cells['p-03']['evidence'])
         # kf logs rotation decisions but requests no advice, so AI decisions stay Designed.
