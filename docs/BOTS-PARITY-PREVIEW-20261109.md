@@ -835,3 +835,27 @@ and no full suite or native browser/keyboard check was run.
 the latest log export; no new post-H1 export was integrated. Private delivery
 remains blocked by the previously observed Alienware endpoint timeout.
 This package is local only; latest confirmed delivered preview is **acfa9efd**.
+
+## Delivered: preview 0b5c6a06 — endpoint recovered
+
+Independent remote readback at **2026-11-10T01:53:23Z** verified the new private
+folder **Alienware → Downloads → DIT-Admin-Center-Preview-0b5c6a06**.
+The initial read-only check found that exact destination absent; transfer used
+exclusive directory/file creation. Both files then matched on a separate SSH
+readback, with mode 600. No earlier destination was modified.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 546976 | `0b5c6a065b3acc02712d8f2ccacff9e75a9dab109503e933ac57146ddf9bb039` | 600 |
+| READ-ME-FIRST.txt | 819 | `2bfd9389a7ea1834590f3f0ac8e804ca98607ca7b8a7d64d19f382fb9a2f3933` | 600 |
+
+The delivered HTML is byte-identical to the already checked artifact above;
+no redundant build or test run was performed. The delivery README removes the
+preparation-only status and points to the preserved `acfa9efd` rollback. This
+pair is retained in `build/DIT-Admin-Center-Preview-0b5c6a06-delivery/`; the
+original prepared package and its recorded hashes remain unchanged.
+
+The connection timeout is resolved for this verified delivery. Native browser
+and keyboard checks remain NOT RUN. This is an offline private preview, not a
+hub/game deployment; no save, player state, live service or access setting was
+changed.
