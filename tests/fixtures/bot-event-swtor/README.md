@@ -5,3 +5,12 @@
 - Shapes: advice, callout, chat (voiced and dropped), death, decision (follow, hold, rotation_pick, plain), error, refused (chat, dialogue, focus, pull, rotation_pick), state_change.
 - No row has a `text` or `chat_text` key.
 - SWTOR logs a dropped non-AI line as a `refused` row with `details.intent` `chat`, not as a `chat` row. The importer counts it in the bot's chat drops.
+
+The standalone preview also offers **Synthetic SWTOR import with a malformed
+row**. Its builder reads this unchanged sample, appends one deliberately
+unfinished JSON row to a disposable copy, and passes that directory through the
+normal reader. The copy is removed after projection. It retains the 16 valid
+rows and seven actors while reporting one `invalid_json` reader omission. The
+separate producer `LOG_DROPPED` report still says 27; the two counts are never
+added. This is a synthetic import/recovery case, not a real partial export or a
+measurement of live loss. The original sample and its hash remain unchanged.

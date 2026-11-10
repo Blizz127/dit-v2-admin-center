@@ -6,6 +6,7 @@ import unittest
 
 import bot_event_v1
 import ffxi_botsv2_log
+from tools.build_inspector_playtest import parity_partial_readiness_source
 
 
 FIXTURES = Path(__file__).resolve().parent / 'fixtures'
@@ -82,6 +83,28 @@ class ParityReadinessFixtureTests(unittest.TestCase):
         self.assertIn('not export 8', provenance)
         self.assertIn('Actor ids and timestamps are synthetic.', (SWTOR / 'README.md').read_text())
         self.assertNotIn('<owner>', FFXI.read_text(), 'this fictional fixture supplies no owner relationship')
+
+    def test_partial_swtor_copy_keeps_valid_events_and_separates_reader_loss(self):
+        original = (SWTOR / 'swtor-kf-writer-samples.jsonl').read_bytes()
+        clean_bots, clean_coverage = bot_event_v1.read(str(SWTOR))
+        partial = parity_partial_readiness_source()
+        self.assertEqual(partial['id'], 'dit-bot-event-v1')
+        self.assertIn('synthetic incomplete export', partial['label'])
+        self.assertIn('Real bot-event export still required.', partial['note'])
+        coverage = partial['coverage']
+        self.assertEqual((coverage['status'], coverage['records'], coverage['omitted'], coverage['files']),
+                         ('Loaded', 16, 1, 1))
+        self.assertEqual(coverage['omittedByReason'], {'invalid_json': 1})
+        self.assertTrue(coverage['reason'].startswith('Synthetic incomplete readiness sample; not live evidence.'))
+        self.assertEqual((coverage['from'], coverage['to']), (clean_coverage['from'], clean_coverage['to']))
+        self.assertEqual(partial['bots'], clean_bots)
+        self.assertEqual(len(partial['bots']), 7)
+        losses = [event for bot in partial['bots'] for event in bot['events'] if event['reason'] == 'LOG_DROPPED']
+        self.assertEqual([event['reportedDropped'] for event in losses], [27])
+        self.assertNotIn('OMITTED_SYNTHETIC_ROW', json.dumps(partial))
+        self.assertEqual((SWTOR / 'swtor-kf-writer-samples.jsonl').read_bytes(), original)
+        self.assertEqual(bot_event_v1.read(str(SWTOR)), (clean_bots, clean_coverage),
+                         'the complete source recovers without inheriting the synthetic omission')
 
 
 if __name__ == '__main__':

@@ -7,6 +7,7 @@ import html as html_escape
 import json
 from pathlib import Path
 import sys
+import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -74,6 +75,26 @@ def parity_readiness_sources():
         coverage = dict(coverage, reason='Synthetic readiness sample; not live evidence. ' + coverage['reason'])
         sources.append(dict(id=source_id, label=label, note=note, bots=bots, coverage=coverage))
     return sources
+
+
+def parity_partial_readiness_source():
+    """Run a deliberately damaged synthetic copy through the normal SWTOR reader."""
+    raw = read_bytes(ROOT / 'tests/fixtures/bot-event-swtor/swtor-kf-writer-samples.jsonl', 256 * 1024)
+    if len(raw) > 256 * 1024:
+        raise ValueError('Synthetic parity readiness fixture oversized')
+    # Keep the original writer sample untouched. The unfinished JSON line is
+    # intentional and must never be interpreted as a bot or a producer drop.
+    with tempfile.TemporaryDirectory(prefix='dit-parity-readiness-') as temp:
+        path = Path(temp) / 'synthetic-partial.jsonl'
+        path.write_bytes(raw + b'\n{"synthetic_partial_marker": "OMITTED_SYNTHETIC_ROW",\n')
+        bots, coverage = read_bot_event(temp)
+    if coverage['status'] != 'Loaded' or coverage['omittedByReason'] != {'invalid_json': 1}:
+        raise ValueError('Synthetic partial readiness fixture unavailable')
+    coverage = dict(coverage, reason='Synthetic incomplete readiness sample; not live evidence. ' + coverage['reason'])
+    return dict(id='dit-bot-event-v1', label='SWTOR readiness (synthetic incomplete export)',
+                note='Fictional incomplete SWTOR export: valid events remain visible while one malformed row is rejected. '
+                     'Reader omissions and producer-reported loss are separate. '
+                     'Real bot-event export still required.', bots=bots, coverage=coverage)
 
 
 def snapshot():
@@ -165,8 +186,11 @@ def build():
     data = json.dumps(snapshot()).replace('<', '\\u003c')
     assignment_data = json.dumps(fixture_json(ROOT / 'tests/fixtures/assignment-pages.json', dict)).replace('<', '\\u003c')
     readiness_data = json.dumps(parity_readiness_sources()).replace('<', '\\u003c')
+    partial_readiness_data = json.dumps(parity_partial_readiness_source()).replace('<', '\\u003c')
     script = ('(async function () {\nconst fixture = ' + data + ';\nconst assignmentFixtures = ' + assignment_data
-              + ';\nconst parityReadinessSources = ' + readiness_data + ';\n' + driver.replace('/* APPLICATION */', app) + '\n})();')
+              + ';\nconst parityReadinessSources = ' + readiness_data
+              + ';\nconst parityPartialReadinessSource = ' + partial_readiness_data
+              + ';\n' + driver.replace('/* APPLICATION */', app) + '\n})();')
     if '</script' in script.lower() or '</style' in css.lower():
         raise ValueError('Unsafe inline asset terminator')
     digest = base64.b64encode(hashlib.sha256(script.encode()).digest()).decode()
@@ -188,7 +212,8 @@ def build():
     readiness = ('<div class="filter-field"><label for="parity-sample">Bot activity sample</label>'
                  '<select id="parity-sample" aria-describedby="parity-sample-note" disabled>'
                  '<option value="exports">Recorded exports and schema examples</option>'
-                 '<option value="readiness">Synthetic FFXI + SWTOR readiness</option></select>'
+                 '<option value="readiness">Synthetic FFXI + SWTOR readiness</option>'
+                 '<option value="partial">Synthetic SWTOR import with a malformed row</option></select>'
                  '<p id="parity-sample-note" class="muted" role="status">Readiness samples are fictional; '
                  'they do not verify live bot behavior. Parity tracker evidence is unchanged.</p></div>')
     html = html.replace('<div class="bot-source" id="bot-source-wow">', readiness + '<div class="bot-source" id="bot-source-wow">', 1)

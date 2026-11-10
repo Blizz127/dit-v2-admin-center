@@ -466,14 +466,18 @@ try {
   const paritySample = document.getElementById('parity-sample');
   const paritySampleNote = document.getElementById('parity-sample-note');
   paritySample.addEventListener('change', () => {
-    const readiness = paritySample.value === 'readiness';
+    const partial = paritySample.value === 'partial';
+    const readiness = paritySample.value === 'readiness' || partial;
     const activity = structuredClone(activityFixture);
     if (readiness) activity.sources = activity.sources.map(source =>
-      structuredClone(parityReadinessSources.find(sample => sample.id === source.id) || source));
+      structuredClone(partial && source.id === parityPartialReadinessSource.id ? parityPartialReadinessSource
+        : parityReadinessSources.find(sample => sample.id === source.id) || source));
     fixture.botActivity = activity;
     currentSnapshot.botActivity = structuredClone(activity);
     renderBotActivity();
-    paritySampleNote.textContent = readiness
+    paritySampleNote.textContent = partial
+      ? 'Synthetic incomplete SWTOR import; not live evidence. FFXI readiness and parity tracker evidence are unchanged.'
+      : readiness
       ? 'Synthetic FFXI post-H1 and SWTOR writer samples; not live evidence. Parity tracker evidence is unchanged.'
       : 'Recorded export snapshots and schema examples restored. Check each source label; nothing here is live.';
   });
@@ -504,6 +508,39 @@ try {
   check(textOf('baseline-conformance') === baselineText
     && textOf('parity-sample-note').includes('not live evidence'),
     'Synthetic readiness samples do not promote or replace parity evidence');
+  const completeReadiness = structuredClone(currentSnapshot.botActivity);
+  paritySample.value = 'partial';
+  paritySample.dispatchEvent(new Event('change', {bubbles: true}));
+  const partialPanel = [...document.querySelectorAll('#bot-activity-sources .bot-source')][1];
+  check(partialPanel.textContent.includes(parityPartialReadinessSource.label)
+    && partialPanel.textContent.includes('Synthetic incomplete readiness sample; not live evidence.')
+    && partialPanel.textContent.includes('Imported log rows: 16')
+    && partialPanel.textContent.includes('Omitted malformed: 1')
+    && partialPanel.textContent.includes('Omitted by reason: invalid_json 1')
+    && partialPanel.textContent.includes('rotation_pick affliction')
+    && !partialPanel.textContent.includes('OMITTED_SYNTHETIC_ROW'),
+    'Incomplete SWTOR sample keeps valid events and exposes one rejected row without rendering malformed content');
+  const partialLossRow = [...partialPanel.querySelectorAll('.row')]
+    .find(row => row.firstElementChild.textContent === 'bot_events · swtor');
+  const partialLossEvents = partialLossRow.querySelector('details');
+  partialLossEvents.open = true;
+  await settle(() => partialLossEvents.children.length === 2);
+  check(partialPanel.textContent.includes('Producer-reported log loss: 1 LOG_DROPPED rows.')
+    && partialLossEvents.textContent.includes('Producer-reported dropped rows: 27 (this report; not summed)'),
+    'One malformed reader omission is separate from the producer report of 27 dropped rows');
+  check(currentSnapshot.botActivity.sources.every((source, index) => source.id === parityPartialReadinessSource.id
+      || JSON.stringify(source) === JSON.stringify(completeReadiness.sources[index]))
+    && textOf('baseline-conformance') === baselineText && requests.length === parityRequests,
+    'Incomplete SWTOR selection leaves FFXI, WoW, Vanilla and parity evidence unchanged without requests');
+  paritySample.value = 'readiness';
+  paritySample.dispatchEvent(new Event('change', {bubbles: true}));
+  const recoveredPanel = [...document.querySelectorAll('#bot-activity-sources .bot-source')][1];
+  check(JSON.stringify(currentSnapshot.botActivity) === JSON.stringify(completeReadiness)
+    && recoveredPanel.textContent.includes('Omitted malformed: 0')
+    && !recoveredPanel.textContent.includes('invalid_json')
+    && recoveredPanel.textContent.includes('Producer-reported log loss: 1 LOG_DROPPED rows.')
+    && requests.length === parityRequests,
+    'Complete readiness recovery removes the reader omission while preserving valid events and producer loss');
   paritySample.value = 'exports';
   paritySample.dispatchEvent(new Event('change', {bubbles: true}));
   check(JSON.stringify(currentSnapshot.botActivity) === JSON.stringify(activityFixture)

@@ -86,6 +86,7 @@ class InspectorPlaytestTests(unittest.TestCase):
         doc = Document(harness.build())
         self.assertIn('parity-sample', doc.ids)
         self.assertIn('parity-sample-note', doc.ids)
+        self.assertIn('Synthetic SWTOR import with a malformed row', harness.build())
         self.assertIn('tests/fixtures/ffxi-botsv2/synthetic-post-h1-readiness.log', harness.source_fingerprints())
         self.assertIn('tests/fixtures/bot-event-swtor/swtor-kf-writer-samples.jsonl', harness.source_fingerprints())
 
