@@ -26,7 +26,7 @@ const fetch = async (url, options = {}) => {
 document.querySelectorAll('a').forEach(a => { if (!a.getAttribute('href')?.startsWith('#')) a.href = '#harness-results'; });
 const report = (name) => {
   const row = document.createElement('li'); row.textContent = 'PASS — ' + name;
-  document.querySelector('#harness-checks').append(row);
+  document.getElementById('harness-checks').append(row);
   previewProgress.record(name);
 };
 const check = (condition, name) => { if (!condition) throw new Error(name); report(name); };
@@ -45,8 +45,8 @@ const clickNeed = topic => {
 };
 try {
 /* APPLICATION */
-  await settle(() => !document.querySelector('#workspace').hidden);
-  check(document.querySelector('#error').textContent === '', 'Actual application loaded the projected fixture');
+  await settle(() => !document.getElementById('workspace').hidden);
+  check(document.getElementById('error').textContent === '', 'Actual application loaded the projected fixture');
   const activityList = document.querySelector('#bot-activity details');
   check(activityList && activityList.children.length === 1 && activityList.firstElementChild.tagName === 'SUMMARY',
     'Closed bot activity list shows its summary without building its event body');
@@ -201,13 +201,13 @@ try {
     check((textOf('learning-evidence').match(/Evidence state: Unknown/g) || []).length === 5, need.id + ': five game assessments stay Unknown');
   });
   const before = requests.length;
-  document.querySelector('#learning-evidence').closest('details').open = true;
-  document.querySelector('#learning-evidence-preview').click();
+  document.getElementById('learning-evidence').closest('details').open = true;
+  document.getElementById('learning-evidence-preview').click();
   check(textOf('learning-evidence').includes('Synthetic mapping preview'), 'Preview clearly labeled synthetic');
   check(['supported (synthetic)', 'missing (synthetic)', 'conflicting (synthetic)'].every(s => textOf('learning-evidence').includes(s)), 'Preview displays three distinct synthetic states');
-  document.querySelector('#learning-evidence-selected').click();
+  document.getElementById('learning-evidence-selected').click();
   check(textOf('learning-evidence').includes('Evidence review') && !textOf('learning-evidence').includes('Synthetic mapping preview'), 'Restore returns to the selected fixture task');
-  document.querySelector('#clear-learning').click();
+  document.getElementById('clear-learning').click();
   check(textOf('learning-evidence').includes('No learning record selected'), 'Clear removes assessment context');
   check(requests.length === before, 'Inspector, preview, restore and clear make no fetch requests');
   const originalLearning = structuredClone(fixture.learning);
@@ -419,8 +419,8 @@ try {
   fixture.assignmentHistory = completeAssignments;
   await load();
   check(textOf('assignment-count').includes('Page 1 of 3') && !textOf('assignment-history').includes('coverage unknown') && !textOf('assignment-count').includes('loaded total Unknown'), 'Complete assignment recovery restores pages and clears the partial warning');
-  document.querySelector('#data-source').value = 'hub';
-  document.querySelector('#data-source').dispatchEvent(new Event('change'));
+  document.getElementById('data-source').value = 'hub';
+  document.getElementById('data-source').dispatchEvent(new Event('change'));
   await settle(() => loadedSource === 'hub' && !sourceLoading && !bridgePending);
   const healthGood = {services: [{game: 'FFXI', label: 'Synthetic bridge', state: 'running', observedAt: 'fixture-time'}],
     source: 'Synthetic offline health', fetchedAt: 'fixture-time', coverage: 'Fixture coverage only'};
@@ -512,9 +512,9 @@ try {
   installAssignmentKeyboardCheck({document,
     prepare: async () => {
       fixture.assignmentHistory = assignmentFixtures.populated.map(row => ({...row, botId: row.botId === 'fixture-bot' ? 'offline-inspector-bot' : row.botId}));
-      document.querySelector('#data-source').value = 'mock';
+      document.getElementById('data-source').value = 'mock';
       await load(); await settle(() => !sourceLoading && !bridgePending);
-      document.querySelector('#clear-bot').click();
+      document.getElementById('clear-bot').click();
       inspectBot('offline-inspector-bot');
     },
     page: () => assignmentPages === 3 ? assignmentPage + 1 : null,
@@ -545,10 +545,10 @@ try {
     && document.getElementById('nav-overview').getAttribute('aria-current') === 'location',
     'Preview landing fragment, DOM focus and selected section agree on Overview');
   if (!previewProgress.finish()) throw new Error('Local preview check limit reached; reload to retry.');
-  document.querySelector('#harness-status').textContent = 'PASS — automatic DOM checks completed with synthetic data. Native keyboard check is separate and has NOT RUN.';
+  document.getElementById('harness-status').textContent = 'PASS — automatic DOM checks completed with synthetic data. Native keyboard check is separate and has NOT RUN.';
   document.documentElement.dataset.playtest = 'passed';
 } catch (error) {
   previewProgress.fail();
-  document.querySelector('#harness-status').textContent = 'FAIL — ' + error.message;
+  document.getElementById('harness-status').textContent = 'FAIL — ' + error.message;
   document.documentElement.dataset.playtest = 'failed';
 }

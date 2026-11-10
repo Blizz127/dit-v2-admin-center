@@ -1,6 +1,6 @@
-const form = document.querySelector('#login');
-const error = document.querySelector('#error');
-const workspace = document.querySelector('#workspace');
+const form = document.getElementById('login');
+const error = document.getElementById('error');
+const workspace = document.getElementById('workspace');
 let currentSnapshot = null;
 let loadedSource = null;
 let sourceLoading = false;
@@ -167,27 +167,27 @@ function resetPanelSession() {
   resetBotDraft();
   selectedBotId = null; selectedLearningId = null;
   replyBotId = null;
-  document.querySelector('#reply-correlation').value = '';
-  document.querySelector('#reply-count').textContent = 'Select a bot to view reply examples.';
-  document.querySelector('#model-call-availability').value = '';
-  document.querySelector('#model-call-coverage').textContent = 'Metric coverage unknown.';
-  document.querySelector('#data-coverage').replaceChildren();
-  document.querySelector('#bot-identity').value = '';
-  document.querySelector('#bot-activity-engine').value = '';
-  document.querySelector('#bot-activity-sources').replaceChildren(); botActivitySearch.clear();
-  document.querySelector('#bot-activity-label').textContent = ''; document.querySelector('#bot-activity-note').textContent = '';
-  document.querySelector('#bot-activity-search').value = '';
-  document.querySelector('#bot-activity-coverage').textContent = 'Coverage unknown.';
-  document.querySelector('#bot-activity-count').textContent = '';
-  document.querySelector('#bot-activity').replaceChildren();
-  document.querySelector('#baseline-conformance').replaceChildren();
+  document.getElementById('reply-correlation').value = '';
+  document.getElementById('reply-count').textContent = 'Select a bot to view reply examples.';
+  document.getElementById('model-call-availability').value = '';
+  document.getElementById('model-call-coverage').textContent = 'Metric coverage unknown.';
+  document.getElementById('data-coverage').replaceChildren();
+  document.getElementById('bot-identity').value = '';
+  document.getElementById('bot-activity-engine').value = '';
+  document.getElementById('bot-activity-sources').replaceChildren(); botActivitySearch.clear();
+  document.getElementById('bot-activity-label').textContent = ''; document.getElementById('bot-activity-note').textContent = '';
+  document.getElementById('bot-activity-search').value = '';
+  document.getElementById('bot-activity-coverage').textContent = 'Coverage unknown.';
+  document.getElementById('bot-activity-count').textContent = '';
+  document.getElementById('bot-activity').replaceChildren();
+  document.getElementById('baseline-conformance').replaceChildren();
   clearRosterGapSelection();
-  document.querySelector('#roster-gaps').replaceChildren();
+  document.getElementById('roster-gaps').replaceChildren();
   ledgerBotId = null; correlationFilter = '';
-  document.querySelector('#correlation').value = '';
-  document.querySelector('#ledger').replaceChildren();
-  document.querySelector('#ledger-filter').textContent = 'No ledger snapshot loaded in this session.';
-  document.querySelector('#ledger-count').textContent = 'Ledger example count unknown.';
+  document.getElementById('correlation').value = '';
+  document.getElementById('ledger').replaceChildren();
+  document.getElementById('ledger-filter').textContent = 'No ledger snapshot loaded in this session.';
+  document.getElementById('ledger-count').textContent = 'Ledger example count unknown.';
   assignmentBotId = null; assignmentPage = 0; assignmentPages = 0;
   assignmentNavigation('Select a bot to view loaded assignment examples.');
   for (const [id, prompt] of [['bot-inspector', 'Select a bot to inspect.'],
@@ -209,13 +209,13 @@ function item(parent, title, detail, meta) {
 }
 function resetContextCapture() {
   contextCaptureVersion++;
-  const panel = document.querySelector('#context-capture');
+  const panel = document.getElementById('context-capture');
   if (panel) { panel.replaceChildren(); panel.textContent = 'Not requested in this session.'; }
-  const button = document.querySelector('#context-capture-load');
+  const button = document.getElementById('context-capture-load');
   if (button) button.disabled = false;
 }
 function renderContextCapture(data) {
-  const panel = document.querySelector('#context-capture');
+  const panel = document.getElementById('context-capture');
   panel.replaceChildren();
   if (data.status === 'Not configured' && data.capture === null) { panel.textContent = 'No offline capture configured.'; return; }
   const capture = data.capture, receipt = capture?.contextReceipt, binding = capture?.statusBinding, view = binding?.View;
@@ -286,7 +286,7 @@ function renderContextCapture(data) {
 async function loadContextCapture() {
   if (!token || workspace.hidden) return;
   const id = ++contextCaptureVersion, requestToken = token, session = sessionVersion;
-  const panel = document.querySelector('#context-capture'), button = document.querySelector('#context-capture-load');
+  const panel = document.getElementById('context-capture'), button = document.getElementById('context-capture-load');
   const current = () => id === contextCaptureVersion && panelSessionCurrent(requestToken, session);
   panel.replaceChildren(); panel.textContent = 'Loading configured offline capture…'; button.disabled = true;
   try {
@@ -298,16 +298,16 @@ async function loadContextCapture() {
     if (current()) { panel.replaceChildren(); panel.textContent = 'Offline capture unavailable. Previous packet content has been cleared.'; }
   } finally { if (current()) button.disabled = false; }
 }
-document.querySelector('#context-capture-load')?.addEventListener('click', loadContextCapture);
+document.getElementById('context-capture-load')?.addEventListener('click', loadContextCapture);
 function resetDeliveryCapture() {
   deliveryCaptureVersion++;
-  const panel = document.querySelector('#delivery-capture');
+  const panel = document.getElementById('delivery-capture');
   if (panel) { panel.replaceChildren(); panel.textContent = 'Not requested in this session.'; }
-  const button = document.querySelector('#delivery-capture-load');
+  const button = document.getElementById('delivery-capture-load');
   if (button) button.disabled = false;
 }
 function renderDeliveryCapture(data) {
-  const panel = document.querySelector('#delivery-capture');
+  const panel = document.getElementById('delivery-capture');
   panel.replaceChildren();
   if (data?.schema !== 'dit.delivery-correlation-report.v1' || data.evidenceKind !== 'synthetic'
       || data.nativeDeliveryVerified !== false || data.deliveredInGame !== null || data.replayAuthorized !== false
@@ -346,7 +346,7 @@ function renderDeliveryCapture(data) {
 async function loadDeliveryCapture() {
   if (!token || workspace.hidden) return;
   const id = ++deliveryCaptureVersion, requestToken = token, session = sessionVersion;
-  const panel = document.querySelector('#delivery-capture'), button = document.querySelector('#delivery-capture-load');
+  const panel = document.getElementById('delivery-capture'), button = document.getElementById('delivery-capture-load');
   const current = () => id === deliveryCaptureVersion && panelSessionCurrent(requestToken, session);
   panel.replaceChildren(); panel.textContent = 'Loading configured delivery evidence…'; button.disabled = true;
   try {
@@ -358,9 +358,9 @@ async function loadDeliveryCapture() {
     if (current()) { panel.replaceChildren(); panel.textContent = 'Delivery evidence unavailable. Previous content has been cleared.'; }
   } finally { if (current()) button.disabled = false; }
 }
-document.querySelector('#delivery-capture-load')?.addEventListener('click', loadDeliveryCapture);
+document.getElementById('delivery-capture-load')?.addEventListener('click', loadDeliveryCapture);
 function renderInteraction(data, source) {
-  const panel = document.querySelector('#interaction-status');
+  const panel = document.getElementById('interaction-status');
   panel.replaceChildren();
   if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('unavailable');
   const switches = data.switches && typeof data.switches === 'object' && !Array.isArray(data.switches) ? data.switches : {};
@@ -393,9 +393,9 @@ async function loadInteraction() {
   if (!token || workspace.hidden) return;
   const requestToken = token, session = sessionVersion;
   const id = ++interactionVersion;
-  const panel = document.querySelector('#interaction-status');
+  const panel = document.getElementById('interaction-status');
   panel.replaceChildren();
-  if (document.querySelector('#data-source').value !== 'hub' || sourceLoading || loadedSource !== 'hub') {
+  if (document.getElementById('data-source').value !== 'hub' || sourceLoading || loadedSource !== 'hub') {
     panel.textContent = 'Load the selected hub source successfully before requesting this read-only check. Synthetic preview is available separately.';
     return;
   }
@@ -425,9 +425,9 @@ async function loadHubHealth() {
   if (!token || workspace.hidden) return;
   const requestToken = token, session = sessionVersion;
   const id = ++healthVersion;
-  const panel = document.querySelector('#hub-health');
+  const panel = document.getElementById('hub-health');
   panel.replaceChildren();
-  if (document.querySelector('#data-source').value !== 'hub') { panel.textContent = 'Select configured hub data before requesting this read-only check.'; return; }
+  if (document.getElementById('data-source').value !== 'hub') { panel.textContent = 'Select configured hub data before requesting this read-only check.'; return; }
   if (sourceLoading || loadedSource !== 'hub') { panel.textContent = 'Load the selected hub source successfully before requesting this read-only check.'; return; }
   panel.textContent = 'Checking hub services…';
   try {
@@ -447,7 +447,7 @@ async function loadBridge() {
   if (bridgePending || !token || workspace.hidden) return;
   bridgePending = true;
   const requestToken = token, session = sessionVersion;
-  const panel = document.querySelector('#bridge-status');
+  const panel = document.getElementById('bridge-status');
   try {
     const response = await fetch('/api/bridge-status', {headers: {Authorization: `Bearer ${requestToken}`}, cache: 'no-store'});
     if (!response.ok) throw new Error('unavailable');
@@ -458,14 +458,14 @@ async function loadBridge() {
       .map(key => [key, routingText(received[key], 'unknown')]));
     panel.replaceChildren();
     item(panel, `Unit: ${data.unit} · ${data.substate}`, `Result: ${data.result} · Fault marker: ${data.marker} · Classification: ${data.markerReason || 'unknown'}`, `${data.source} · Observed: ${data.observedAt || 'unknown'} · Marker absence does not prove delivery`);
-    const focus = document.querySelector('#ffxi-focus-bridge');
+    const focus = document.getElementById('ffxi-focus-bridge');
     focus.replaceChildren();
     item(focus, `Bridge: ${data.unit} · ${data.substate}`, `Fault marker: ${data.marker} · Classification: ${data.markerReason || 'unknown'}`, `${data.source} · Observed: ${data.observedAt || 'unknown'} · Not proof of delivery`);
   } catch (_) {
     if (!panelSessionCurrent(requestToken, session)) return;
     panel.replaceChildren();
     panel.textContent = 'Bridge status unknown; read-only observation unavailable.';
-    const focus = document.querySelector('#ffxi-focus-bridge');
+    const focus = document.getElementById('ffxi-focus-bridge');
     focus.replaceChildren();
     focus.textContent = 'Bridge observation unknown; delivery remains unverified.';
   }
@@ -518,8 +518,8 @@ function renderCoordinatorPanels() {
   });
 }
 function renderQuotaHistory() {
-  const panel = document.querySelector('#quota-history');
-  const window = document.querySelector('#quota-window').value;
+  const panel = document.getElementById('quota-history');
+  const window = document.getElementById('quota-window').value;
   panel.replaceChildren();
   const records = observationRows(currentSnapshot.quotaHistory, panel).filter(q => !window || q.window === window);
   if (!records.length) item(panel, 'No matching observations', 'Quota history for this filter is unknown.', 'No account refresh is performed.');
@@ -528,8 +528,8 @@ function renderQuotaHistory() {
     `Observed: ${routingText(q.observedAt)} · Cached Codex state; may be stale`));
 }
 function renderLeadTimeline() {
-  const panel = document.querySelector('#lead-timeline');
-  const filter = document.querySelector('#timeline-kind').value;
+  const panel = document.getElementById('lead-timeline');
+  const filter = document.getElementById('timeline-kind').value;
   const kinds = {watcher: ['Watcher alert', 'Watcher classification'], task: ['Task status'], session: ['Session activity'], commit: ['Checkout commit']};
   panel.replaceChildren();
   observationRows(currentSnapshot.leadTimeline, panel).forEach(t => {
@@ -549,7 +549,7 @@ function uniqueRecord(rows, id) {
   return matches.length === 1 ? matches[0] : null;
 }
 function renderIssueCoverage() {
-  const panel = document.querySelector('#issue-coverage');
+  const panel = document.getElementById('issue-coverage');
   panel.replaceChildren();
   const groups = new Map();
   observationRows(currentSnapshot.issues, panel).forEach(issue => {
@@ -560,17 +560,17 @@ function renderIssueCoverage() {
   for (const [scope, count] of groups) item(panel, scope, `${count} loaded issue records`, 'Not a complete incident count; check each source and timestamp.');
 }
 function renderIssues() {
-  const panel = document.querySelector('#issues');
-  const scope = document.querySelector('#issue-scope').value;
-  const status = document.querySelector('#issue-status').value;
-  const selectedOnly = document.querySelector('#issue-selected-bot').checked;
+  const panel = document.getElementById('issues');
+  const scope = document.getElementById('issue-scope').value;
+  const status = document.getElementById('issue-status').value;
+  const selectedOnly = document.getElementById('issue-selected-bot').checked;
   const selectedExists = selectedBotId !== null && Boolean(uniqueRecord(currentSnapshot.bots, selectedBotId));
-  const query = (document.querySelector('#issue-search').value || '').trim().toLowerCase();
+  const query = (document.getElementById('issue-search').value || '').trim().toLowerCase();
   panel.replaceChildren();
   const rows = observationRows(currentSnapshot.issues, panel);
   const count = Array.isArray(currentSnapshot.issues) && rows.length === currentSnapshot.issues.length ? rows.length : 'Unknown';
   const records = rows.filter(i => (!scope || i.scope === scope) && (!status || i.status === status) && (!selectedOnly || (selectedExists && i.botId === selectedBotId)) && (!query || `${routingText(i.title)} ${routingText(i.detail)}`.toLowerCase().includes(query)));
-  document.querySelector('#issue-count').textContent = `Showing ${records.length} of ${count} loaded issue records; coverage may be incomplete.`;
+  document.getElementById('issue-count').textContent = `Showing ${records.length} of ${count} loaded issue records; coverage may be incomplete.`;
   if (!records.length) item(panel, 'No matching issues', selectedOnly && !selectedExists ? 'Select a bot in the loaded roster to use this filter.' : 'No matching records in the loaded data.', 'This does not establish a healthy state.');
   records.forEach(i => {
     item(panel, routingText(i.title), routingText(i.detail), `${routingText(i.scope)} · ${routingText(i.status)} · ${routingText(i.source)} · ${routingText(i.timeLabel, 'Updated')}: ${routingText(i.updatedAt, 'unknown')}`);
@@ -614,7 +614,7 @@ function renderIssues() {
 function inspectLearning(id) {
   selectedLearningId = id;
   updateLearningCount(filteredLearning());
-  const panel = document.querySelector('#learning-inspector');
+  const panel = document.getElementById('learning-inspector');
   panel.replaceChildren();
   const need = uniqueRecord(currentSnapshot.learning, id);
   renderLearningEvidence(need);
@@ -649,7 +649,7 @@ function mapLearningEvidence(need, review = null) {
   });
 }
 function renderLearningEvidence(need, review = null) {
-  const panel = document.querySelector('#learning-evidence');
+  const panel = document.getElementById('learning-evidence');
   panel.replaceChildren();
   if (!need) {
     item(panel, 'No learning record selected', 'Select a loaded FFXI need to review evidence requirements.', 'No evidence assessment is available.');
@@ -685,23 +685,23 @@ function previewLearningEvidence() {
   ]});
 }
 function renderLearningArtifacts() {
-  const panel = document.querySelector('#learning-artifacts');
-  const game = document.querySelector('#learning-game').value;
+  const panel = document.getElementById('learning-artifacts');
+  const game = document.getElementById('learning-game').value;
   panel.replaceChildren();
   const rows = observationRows(currentSnapshot.learningArtifacts, panel).filter(a => !game || a.game === game);
   if (!rows.length) item(panel, 'No artifact examples', 'No matching synthetic records.', 'This does not establish real artifact coverage.');
   rows.forEach(a => item(panel, `${routingText(a.game)} · ${routingText(a.kind)} · ${routingText(a.name)}`, `Validation: ${routingText(a.validation)} · Adoption: ${routingText(a.adoption)} · Demonstrated outcome: ${routingText(a.outcome)}`, `Version: ${routingText(a.version, 'unknown')} · ${routingText(a.source)} · Observed: ${routingText(a.observedAt, 'unknown')}`));
 }
 function renderLearningPlan() {
-  const panel = document.querySelector('#learning-plan');
-  const game = document.querySelector('#learning-game').value;
+  const panel = document.getElementById('learning-plan');
+  const game = document.getElementById('learning-game').value;
   panel.replaceChildren();
   const rows = observationRows(currentSnapshot.learningPlan, panel).filter(p => !game || p.game === game);
   if (!rows.length) item(panel, 'No planning topics', 'No topics for this filter.', 'This does not establish coverage.');
   rows.forEach(p => item(panel, `${routingText(p.game)} · ${routingText(p.topic)}`, routingText(p.next), `Evidence: ${routingText(p.evidence)} · Datasets: ${routingText(p.datasets)} · Policy: ${routingText(p.policy)} · ${routingText(p.source)}`));
 }
 function renderLearningCoverage() {
-  const panel = document.querySelector('#learning-coverage');
+  const panel = document.getElementById('learning-coverage');
   panel.replaceChildren();
   const all = observationRows(currentSnapshot.learning, panel);
   const complete = Array.isArray(currentSnapshot.learning) && all.length === currentSnapshot.learning.length;
@@ -715,11 +715,11 @@ function usableLearningRows() {
   return Array.isArray(currentSnapshot.learning) ? currentSnapshot.learning.filter(l => l && typeof l === 'object' && !Array.isArray(l)) : [];
 }
 function filteredLearning() {
-  const game = document.querySelector('#learning-game').value;
-  const status = document.querySelector('#learning-status').value;
-  const attention = document.querySelector('#learning-attention').checked;
+  const game = document.getElementById('learning-game').value;
+  const status = document.getElementById('learning-status').value;
+  const attention = document.getElementById('learning-attention').checked;
   const attentionStatuses = new Set(['Needs evidence', 'Needs inventory', 'unverified', 'failed', 'canceled', 'cancelled']);
-  const query = (document.querySelector('#learning-search').value || '').trim().toLowerCase();
+  const query = (document.getElementById('learning-search').value || '').trim().toLowerCase();
   return usableLearningRows().filter(l => (!game || l.game === game) && (!status || l.status === status) && (!attention || attentionStatuses.has(l.status)) && (!query || `${l.topic} ${l.reason || ''}`.toLowerCase().includes(query)));
 }
 function updateLearningCount(records) {
@@ -728,10 +728,10 @@ function updateLearningCount(records) {
   const selectedHidden = selectedLearningId !== null && !selectedMissing && !records.some(l => l.id === selectedLearningId);
   const supplied = currentSnapshot.learning;
   const total = Array.isArray(supplied) && usableLearningRows().length === supplied.length ? supplied.length : 'Unknown total';
-  document.querySelector('#learning-count').textContent = `Showing ${records.length} of ${total} loaded learning records; coverage may be incomplete.${selectedAmbiguous ? ' Selected learning identity is ambiguous; scoped inspection is unavailable.' : selectedMissing ? ' Selected need is no longer in the loaded data.' : selectedHidden ? ' Selected need is outside this filtered list; its inspector remains selected.' : ''}`;
+  document.getElementById('learning-count').textContent = `Showing ${records.length} of ${total} loaded learning records; coverage may be incomplete.${selectedAmbiguous ? ' Selected learning identity is ambiguous; scoped inspection is unavailable.' : selectedMissing ? ' Selected need is no longer in the loaded data.' : selectedHidden ? ' Selected need is outside this filtered list; its inspector remains selected.' : ''}`;
 }
 function renderLearning() {
-  const panel = document.querySelector('#learning');
+  const panel = document.getElementById('learning');
   panel.replaceChildren();
   observationRows(currentSnapshot.learning, panel);
   const records = filteredLearning();
@@ -754,10 +754,10 @@ async function loadHubTrace(correlation) {
   if (!token || workspace.hidden) return;
   const requestToken = token, session = sessionVersion;
   const id = ++traceVersion;
-  const panel = document.querySelector('#hub-trace');
+  const panel = document.getElementById('hub-trace');
   panel.replaceChildren();
   if (!/^[A-Za-z0-9_.:-]{1,128}$/.test(correlation)) { panel.textContent = 'Enter a correlation ID using letters, numbers, dot, dash, underscore or colon.'; return; }
-  const game = document.querySelector('#trace-game').value;
+  const game = document.getElementById('trace-game').value;
   if (!['ffxi', 'swtor'].includes(game)) { panel.textContent = 'Choose a supported game.'; return; }
   panel.textContent = 'Loading read-only trace…';
   try {
@@ -775,11 +775,11 @@ async function loadHubTrace(correlation) {
   } catch (_) { if (id === traceVersion && panelSessionCurrent(requestToken, session)) panel.textContent = 'Hub trace unavailable; no delivery or outcome can be inferred.'; }
 }
 function renderLedger() {
-  const panel = document.querySelector('#ledger');
+  const panel = document.getElementById('ledger');
   panel.replaceChildren();
-  const count = document.querySelector('#ledger-count');
+  const count = document.getElementById('ledger-count');
   count.textContent = 'Ledger example count unknown.';
-  document.querySelector('#ledger-filter').textContent = correlationFilter
+  document.getElementById('ledger-filter').textContent = correlationFilter
     ? `Synthetic ledger filter applied: ${correlationFilter}.${ledgerBotId !== null ? ' Pinned bot ID: ' + ledgerBotId + '.' : ''} Game selection applies to hub trace only.`
     : 'Synthetic ledger: all loaded examples. Game selection applies to hub trace only.';
   if (ledgerBotId !== null && !uniqueRecord(currentSnapshot.bots, ledgerBotId)) {
@@ -796,7 +796,7 @@ function renderLedger() {
   records.forEach(e => item(panel, `${routingText(e.bot)} · ${routingText(e.request)}`, `Result: ${routingText(e.result)} · Verification: ${routingText(e.verification)}`, `Correlation: ${routingText(e.correlationId)}`));
 }
 function renderBotCoverage() {
-  const panel = document.querySelector('#bot-coverage');
+  const panel = document.getElementById('bot-coverage');
   panel.replaceChildren();
   const all = observationRows(currentSnapshot.bots, panel);
   const complete = Array.isArray(currentSnapshot.bots) && all.length === currentSnapshot.bots.length;
@@ -818,8 +818,8 @@ function releaseRosterGapDownload() {
 function clearRosterGapSelection() {
   releaseRosterGapDownload();
   rosterRecordIndex = null;
-  document.querySelector('#roster-gap-detail').replaceChildren();
-  document.querySelector('#roster-gap-detail').textContent = 'Select a loaded roster gap for record details.';
+  document.getElementById('roster-gap-detail').replaceChildren();
+  document.getElementById('roster-gap-detail').textContent = 'Select a loaded roster gap for record details.';
 }
 const rosterGapFields = ['id', 'name', 'game', 'status', 'character', 'level', 'bodyKind', 'source', 'observedAt'];
 function rosterGapReport(snapshot, selectedIndex) {
@@ -886,7 +886,7 @@ function appendRosterGapComparison(detail, report) {
   copy.setAttribute('aria-label', 'Gap report JSON for local copy'); detail.append(copy);
 }
 function renderRosterGaps() {
-  const panel = document.querySelector('#roster-gaps');
+  const panel = document.getElementById('roster-gaps');
   panel.replaceChildren();
   const snapshot = currentSnapshot;
   if (!Array.isArray(snapshot.bots)) {
@@ -908,16 +908,16 @@ function renderRosterGaps() {
     button.textContent = `Review gap in snapshot row ${index + 1}`;
     button.addEventListener('click', () => {
       if (currentSnapshot !== snapshot) return;
-      const detail = document.querySelector('#roster-gap-detail'); detail.replaceChildren();
+      const detail = document.getElementById('roster-gap-detail'); detail.replaceChildren();
       item(detail, `Snapshot row ${index + 1} · ${routingText(bot.name)}`, `${reason} · Reported ID: ${routingText(bot.id)}`,
         `Game: ${routingText(bot.game)} · Source: ${routingText(bot.source, 'Source unknown')} · Observed: ${routingText(bot.observedAt)} · This row is not a verified native identity; no goals, replies or other evidence are joined.`);
       const show = document.createElement('button'); show.type = 'button'; show.textContent = 'Show matching roster row';
       show.addEventListener('click', () => {
         if (currentSnapshot !== snapshot) return;
         rosterRecordIndex = index;
-        document.querySelector('#bot-game').value = '';
-        document.querySelector('#bot-search').value = '';
-        document.querySelector('#bot-identity').value = 'unavailable';
+        document.getElementById('bot-game').value = '';
+        document.getElementById('bot-search').value = '';
+        document.getElementById('bot-identity').value = 'unavailable';
         renderBots(); focusWorkspaceTarget('bots');
       });
       detail.append(show);
@@ -929,9 +929,9 @@ function renderRosterGaps() {
   if (!gaps) item(panel, 'No loaded roster identity gaps', 'Every supplied record has a unique nonblank ID, or the list is empty.', 'This does not verify native identity, presence or complete roster coverage.');
 }
 function filteredBots() {
-  const game = document.querySelector('#bot-game').value;
-  const identity = document.querySelector('#bot-identity').value;
-  const query = (document.querySelector('#bot-search').value || '').trim().toLowerCase();
+  const game = document.getElementById('bot-game').value;
+  const identity = document.getElementById('bot-identity').value;
+  const query = (document.getElementById('bot-search').value || '').trim().toLowerCase();
   return (Array.isArray(currentSnapshot.bots) ? currentSnapshot.bots : []).filter((b, index) => b && typeof b === 'object' && !Array.isArray(b)
     && (!game || b.game === game)
     && (rosterRecordIndex === null || rosterRecordIndex === index)
@@ -944,7 +944,7 @@ function updateBotCount(bots) {
   const selectedHidden = selectedBotId !== null && !selectedMissing && !bots.some(b => b.id === selectedBotId);
   const supplied = currentSnapshot.bots;
   const total = Array.isArray(supplied) && usableBotRows().length === supplied.length ? supplied.length : 'Unknown total';
-  document.querySelector('#bot-count').textContent = `Showing ${bots.length} of ${total} loaded roster records; coverage and presence may be unknown.${rosterRecordIndex !== null ? ' Pinned snapshot row: ' + (rosterRecordIndex + 1) + '.' : ''}${selectedAmbiguous ? ' Selected bot identity is ambiguous; scoped inspection is unavailable.' : selectedMissing ? ' Selected bot is no longer in the loaded data.' : selectedHidden ? ' Selected bot is outside this filtered roster; its inspector remains selected.' : ''}`;
+  document.getElementById('bot-count').textContent = `Showing ${bots.length} of ${total} loaded roster records; coverage and presence may be unknown.${rosterRecordIndex !== null ? ' Pinned snapshot row: ' + (rosterRecordIndex + 1) + '.' : ''}${selectedAmbiguous ? ' Selected bot identity is ambiguous; scoped inspection is unavailable.' : selectedMissing ? ' Selected bot is no longer in the loaded data.' : selectedHidden ? ' Selected bot is outside this filtered roster; its inspector remains selected.' : ''}`;
 }
 function renderPresenceExamples(data) {
   const panel = document.getElementById('presence-examples'); panel.replaceChildren();
@@ -958,7 +958,7 @@ function renderPresenceExamples(data) {
     `Still needed: ${row.missing} · Live presence: Unknown · Synthetic review only; not attached to a selected bot.`));
 }
 function renderBots() {
-  const panel = document.querySelector('#bots');
+  const panel = document.getElementById('bots');
   const bots = filteredBots();
   panel.replaceChildren();
   observationRows(currentSnapshot.bots, panel);
@@ -967,7 +967,7 @@ function renderBots() {
   else bots.forEach(botItem);
 }
 function renderSafety() {
-  const panel = document.querySelector('#safety-records');
+  const panel = document.getElementById('safety-records');
   panel.replaceChildren();
   const rows = currentSnapshot.safetyRecords;
   if (!Array.isArray(rows) || rows.some(r => !r || typeof r !== 'object' || Array.isArray(r))) {
@@ -983,19 +983,19 @@ function renderSafety() {
 function showBotLedgerExample(bot, correlationId) {
   correlationFilter = correlationId;
   ledgerBotId = bot.id;
-  document.querySelector('#correlation').value = correlationId;
-  if (['FFXI', 'SWTOR'].includes(bot.game)) document.querySelector('#trace-game').value = bot.game.toLowerCase();
-  traceVersion++; document.querySelector('#hub-trace').replaceChildren();
+  document.getElementById('correlation').value = correlationId;
+  if (['FFXI', 'SWTOR'].includes(bot.game)) document.getElementById('trace-game').value = bot.game.toLowerCase();
+  traceVersion++; document.getElementById('hub-trace').replaceChildren();
   renderLedger(); focusWorkspaceTarget('ledger');
 }
 function renderReplySource() {
-  const panel = document.querySelector('#reply-source');
+  const panel = document.getElementById('reply-source');
   panel.replaceChildren();
   if (replyBotId !== selectedBotId) {
     replyBotId = selectedBotId;
-    document.querySelector('#reply-correlation').value = '';
+    document.getElementById('reply-correlation').value = '';
   }
-  const count = document.querySelector('#reply-count');
+  const count = document.getElementById('reply-count');
   count.textContent = 'Reply example count unknown.';
   if (!selectedBotId) { item(panel, 'No bot selected', 'Select a bot to inspect reply examples.', 'No live reply data is connected.'); return; }
   const bot = uniqueRecord(currentSnapshot.bots, selectedBotId);
@@ -1006,7 +1006,7 @@ function renderReplySource() {
   const complete = Array.isArray(supplied) && usable.length === supplied.length;
   if (!complete) item(panel, 'Reply evidence coverage unknown', 'Missing, malformed or unscoped examples are withheld.', 'Usable scoped examples remain visible; source, fallback and delivery are not inferred.');
   const rows = usable.filter(r => r.botId === selectedBotId);
-  const correlation = document.querySelector('#reply-correlation').value.trim();
+  const correlation = document.getElementById('reply-correlation').value.trim();
   const filtered = rows.filter(r => !correlation || r.correlationId === correlation);
   count.textContent = `Showing ${filtered.length} of ${complete ? rows.length : 'Unknown total'} loaded examples for this bot; actual reply coverage is unknown.`;
   if (!filtered.length) item(panel, correlation ? 'No matching correlation' : 'No matching reply evidence',
@@ -1023,7 +1023,7 @@ function renderReplySource() {
   });
 }
 function renderOwnerAttention(data) {
-  const panel = document.querySelector('#owner-attention');
+  const panel = document.getElementById('owner-attention');
   panel.replaceChildren();
   if (!data || !Array.isArray(data.items) || data.items.some(row => !row || typeof row !== 'object' || Array.isArray(row))) {
     item(panel, 'Owner-decision coverage unknown', 'No usable decision list was supplied in this snapshot.',
@@ -1036,10 +1036,10 @@ function renderOwnerAttention(data) {
     `Created: ${routingText(a.createdAt, 'unknown')} · Expires: ${routingText(a.expiresAt, 'unknown')} · Coordinator approval record`));
 }
 function renderAudit() {
-  const panel = document.querySelector('#audit');
+  const panel = document.getElementById('audit');
   panel.replaceChildren();
   if (!Array.isArray(currentSnapshot.audit)) {
-    document.querySelector('#audit-count').textContent = 'Loaded audit example count unknown; no live audit source is connected.';
+    document.getElementById('audit-count').textContent = 'Loaded audit example count unknown; no live audit source is connected.';
     item(panel, 'Audit example coverage unknown', 'No usable audit example list was supplied in this snapshot.',
       'Missing data does not establish whether real admin actions occurred.');
     return;
@@ -1049,28 +1049,28 @@ function renderAudit() {
   const partial = usable.length !== supplied.length;
   if (partial) item(panel, 'Audit example coverage unknown', 'Malformed rows were omitted; usable examples are retained.',
     'The loaded total is Unknown. Missing data does not establish whether real admin actions occurred.');
-  const query = (document.querySelector('#audit-search').value || '').trim().toLowerCase();
+  const query = (document.getElementById('audit-search').value || '').trim().toLowerCase();
   const rows = usable.filter(a => !query || [a.actor, a.action, a.scope, a.result]
     .some(value => typeof value === 'string' && value.toLowerCase().includes(query)));
-  document.querySelector('#audit-count').textContent = `Showing ${rows.length} of ${partial ? 'Unknown total' : supplied.length} loaded audit examples; no live audit source is connected.`;
+  document.getElementById('audit-count').textContent = `Showing ${rows.length} of ${partial ? 'Unknown total' : supplied.length} loaded audit examples; no live audit source is connected.`;
   if (!rows.length) item(panel, usable.length ? 'No matching audit examples' : partial ? 'No usable audit examples' : 'No audit examples loaded',
     'This view does not establish whether real admin actions occurred.', 'Read-only examples; no live audit source is connected.');
   rows.forEach(a => item(panel, `${routingText(a.action, 'Action unknown')} · ${routingText(a.scope, 'Scope unknown')}`,
     routingText(a.result), `${routingText(a.actor, 'Actor unknown')} · ${routingText(a.at, 'unknown time')} · ${routingText(a.source, 'Source unknown')}`));
 }
 function renderRoutingAudit() {
-  const panel = document.querySelector('#routing-audit');
+  const panel = document.getElementById('routing-audit');
   panel.replaceChildren();
   const supplied = currentSnapshot.routingAudit;
   const rows = observationRows(supplied, panel);
-  const filter = document.querySelector('#routing-audit-scope').value;
-  const outcomeFilter = document.querySelector('#routing-audit-outcome').value;
+  const filter = document.getElementById('routing-audit-scope').value;
+  const outcomeFilter = document.getElementById('routing-audit-outcome').value;
   const outcome = row => ['applied', 'rejected'].includes(row.outcome) ? row.outcome : 'unknown';
   const outcomeLabels = {applied: 'Simulated application', rejected: 'Simulated rejection', unknown: 'Unknown'};
   const selected = rows.filter(row => (!filter || row.scopeKind === filter)
     && (!outcomeFilter || outcome(row) === outcomeFilter));
   const count = Array.isArray(supplied) && supplied.length === rows.length ? rows.length : 'Unknown';
-  document.querySelector('#routing-audit-count').textContent = `Showing ${selected.length} of ${count} loaded synthetic events; actual audit coverage is unknown.`;
+  document.getElementById('routing-audit-count').textContent = `Showing ${selected.length} of ${count} loaded synthetic events; actual audit coverage is unknown.`;
   if (!selected.length) item(panel, 'No matching model-switch examples', 'No real audit conclusion is available.', 'No model switching is connected.');
   const version = value => Number.isSafeInteger(value) && value >= 0 ? value : 'Unknown';
   selected.forEach(row => {
@@ -1106,9 +1106,9 @@ function renderRoutingAudit() {
   });
 }
 function assignmentNavigation(message) {
-  document.querySelector('#assignment-count').textContent = message;
-  document.querySelector('#assignment-prev').setAttribute('aria-disabled', String(assignmentPage <= 0 || assignmentPages === 0));
-  document.querySelector('#assignment-next').setAttribute('aria-disabled', String(assignmentPage + 1 >= assignmentPages));
+  document.getElementById('assignment-count').textContent = message;
+  document.getElementById('assignment-prev').setAttribute('aria-disabled', String(assignmentPage <= 0 || assignmentPages === 0));
+  document.getElementById('assignment-next').setAttribute('aria-disabled', String(assignmentPage + 1 >= assignmentPages));
 }
 function changeAssignmentPage(delta) {
   const next = assignmentPage + delta;
@@ -1117,7 +1117,7 @@ function changeAssignmentPage(delta) {
   renderAssignments();
 }
 function renderAssignments() {
-  const panel = document.querySelector('#assignment-history');
+  const panel = document.getElementById('assignment-history');
   panel.replaceChildren();
   if (assignmentBotId !== selectedBotId) { assignmentPage = 0; assignmentBotId = selectedBotId; }
   assignmentPages = 0;
@@ -1234,10 +1234,10 @@ function inspectBot(id) {
   resetBotDraft();
   updateBotCount(filteredBots());
   renderSafety();
-  if (document.querySelector('#issue-selected-bot').checked) renderIssues();
+  if (document.getElementById('issue-selected-bot').checked) renderIssues();
   renderAssignments();
   renderReplySource();
-  const panel = document.querySelector('#bot-inspector');
+  const panel = document.getElementById('bot-inspector');
   panel.replaceChildren();
   const bot = uniqueRecord(currentSnapshot.bots, id);
   if (!bot) { panel.textContent = recordsForId(currentSnapshot.bots, id).length > 1
@@ -1254,7 +1254,7 @@ function inspectBot(id) {
   issuesButton.textContent = 'View explicitly linked bot issues';
   issuesButton.addEventListener('click', () => {
     for (const id of ['issue-scope', 'issue-status', 'issue-search']) document.getElementById(id).value = '';
-    document.querySelector('#issue-selected-bot').checked = true;
+    document.getElementById('issue-selected-bot').checked = true;
     renderIssues(); focusWorkspaceTarget('issues');
   });
   panel.lastElementChild.append(issuesButton);
@@ -1297,7 +1297,7 @@ function metricNumber(value) {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0;
 }
 function renderDataCoverage() {
-  const panel = document.querySelector('#data-coverage');
+  const panel = document.getElementById('data-coverage');
   panel.replaceChildren();
   for (const [key, label, target] of [['bots', 'Bot roster', 'bots'], ['learning', 'Learning needs', 'learning'], ['modelCalls', 'Model call metrics', 'model-calls']]) {
     const supplied = currentSnapshot[key];
@@ -1378,9 +1378,9 @@ function renderModelComparison(rows) {
   }
 }
 function renderModelCalls() {
-  const panel = document.querySelector('#model-calls');
+  const panel = document.getElementById('model-calls');
   panel.replaceChildren();
-  const coverage = document.querySelector('#model-call-coverage');
+  const coverage = document.getElementById('model-call-coverage');
   coverage.textContent = 'Metric coverage unknown.';
   const calls = currentSnapshot.modelCalls;
   for (const [key, label, note] of [['evaluatorSnapshot', 'Evaluator snapshot', 'Offline file import; not live hub data or a bake-off.'],
@@ -1403,7 +1403,7 @@ function renderModelCalls() {
   if (rows.length !== calls.length) item(panel, 'Model call coverage', 'Unknown for omitted malformed rows', 'Valid supplied examples are shown below; coverage is incomplete.');
   const fields = [['latencyMs', 'Latency'], ['cost', 'Cost'], ['quality', 'Quality']];
   const complete = row => fields.every(([key]) => metricNumber(row[key]));
-  const filter = document.querySelector('#model-call-availability').value;
+  const filter = document.getElementById('model-call-availability').value;
   const selected = rows.filter(row => !filter || (filter === 'complete' ? complete(row) : !complete(row)));
   renderModelComparison(selected);
   coverage.textContent = `Showing ${selected.length} of ${rows.length === calls.length ? rows.length : 'Unknown total'} loaded examples. Numeric fields supplied among ${rows.length} usable rows: `
@@ -1807,7 +1807,7 @@ function renderBaselineConformance() {
   }
 }
 function renderSpendExample() {
-  const panel = document.querySelector('#spend-example');
+  const panel = document.getElementById('spend-example');
   panel.replaceChildren();
   const candidate = currentSnapshot.spendExample;
   const spend = candidate && typeof candidate === 'object' && !Array.isArray(candidate) ? candidate : {};
@@ -1817,7 +1817,7 @@ function renderSpendExample() {
     `${routingText(spend.source, 'Source unknown')} · ${routingText(spend.attribution, 'Attribution unknown')} · Observed: ${routingText(spend.fetchedAt)} · Separate ledgers are not reconciled.`);
 }
 function botItem(bot) {
-  const parent = document.querySelector('#bots');
+  const parent = document.getElementById('bots');
   item(parent, `${routingText(bot.name)} · ${routingText(bot.game)}`, rosterDetails(bot), `${routingText(bot.source, 'Source unknown')} · Observed: ${routingText(bot.observedAt, 'unknown')}`);
   const row = parent.lastElementChild;
   const inspect = document.createElement('button');
@@ -1972,43 +1972,43 @@ async function load() {
     error.textContent = unauthorized ? 'Token was not accepted.' : 'Could not load the workspace.';
   }
 }
-form.addEventListener('submit', e => { e.preventDefault(); resetPanelSession(); token = document.querySelector('#token').value; document.querySelector('#token').value = ''; load(); });
-document.querySelector('#refresh').addEventListener('click', load);
-document.querySelector('#model-call-availability').addEventListener('change', () => { if (currentSnapshot) renderModelCalls(); });
-document.querySelector('#bot-activity-engine').addEventListener('change', () => { if (currentSnapshot) renderBotActivity(); });
-document.querySelector('#bot-activity-search').addEventListener('input', () => { if (currentSnapshot) renderBotActivity(); });
-document.querySelector('#reply-correlation').addEventListener('input', () => { if (currentSnapshot) renderReplySource(); });
-document.querySelector('#reply-reset').addEventListener('click', () => {
-  document.querySelector('#reply-correlation').value = '';
+form.addEventListener('submit', e => { e.preventDefault(); resetPanelSession(); token = document.getElementById('token').value; document.getElementById('token').value = ''; load(); });
+document.getElementById('refresh').addEventListener('click', load);
+document.getElementById('model-call-availability').addEventListener('change', () => { if (currentSnapshot) renderModelCalls(); });
+document.getElementById('bot-activity-engine').addEventListener('change', () => { if (currentSnapshot) renderBotActivity(); });
+document.getElementById('bot-activity-search').addEventListener('input', () => { if (currentSnapshot) renderBotActivity(); });
+document.getElementById('reply-correlation').addEventListener('input', () => { if (currentSnapshot) renderReplySource(); });
+document.getElementById('reply-reset').addEventListener('click', () => {
+  document.getElementById('reply-correlation').value = '';
   if (currentSnapshot) renderReplySource();
 });
-document.querySelector('#assignment-prev').addEventListener('click', () => changeAssignmentPage(-1));
-document.querySelector('#assignment-next').addEventListener('click', () => changeAssignmentPage(1));
-document.querySelector('#audit-search').addEventListener('input', () => { if (currentSnapshot) renderAudit(); });
-document.querySelector('#routing-audit-scope').addEventListener('change', () => { if (currentSnapshot) renderRoutingAudit(); });
-document.querySelector('#routing-audit-outcome').addEventListener('change', () => { if (currentSnapshot) renderRoutingAudit(); });
-document.querySelector('#routing-audit-reset').addEventListener('click', () => {
-  document.querySelector('#routing-audit-scope').value = '';
-  document.querySelector('#routing-audit-outcome').value = '';
+document.getElementById('assignment-prev').addEventListener('click', () => changeAssignmentPage(-1));
+document.getElementById('assignment-next').addEventListener('click', () => changeAssignmentPage(1));
+document.getElementById('audit-search').addEventListener('input', () => { if (currentSnapshot) renderAudit(); });
+document.getElementById('routing-audit-scope').addEventListener('change', () => { if (currentSnapshot) renderRoutingAudit(); });
+document.getElementById('routing-audit-outcome').addEventListener('change', () => { if (currentSnapshot) renderRoutingAudit(); });
+document.getElementById('routing-audit-reset').addEventListener('click', () => {
+  document.getElementById('routing-audit-scope').value = '';
+  document.getElementById('routing-audit-outcome').value = '';
   if (currentSnapshot) renderRoutingAudit();
 });
-document.querySelector('#audit-reset').addEventListener('click', () => {
-  document.querySelector('#audit-search').value = '';
+document.getElementById('audit-reset').addEventListener('click', () => {
+  document.getElementById('audit-search').value = '';
   if (currentSnapshot) renderAudit();
 });
-document.querySelector('#bridge-refresh').addEventListener('click', loadBridge);
-document.querySelector('#hub-health-refresh').addEventListener('click', loadHubHealth);
-document.querySelector('#interaction-refresh').addEventListener('click', loadInteraction);
-document.querySelector('#interaction-preview').addEventListener('click', previewInteraction);
+document.getElementById('bridge-refresh').addEventListener('click', loadBridge);
+document.getElementById('hub-health-refresh').addEventListener('click', loadHubHealth);
+document.getElementById('interaction-refresh').addEventListener('click', loadInteraction);
+document.getElementById('interaction-preview').addEventListener('click', previewInteraction);
 if (typeof setInterval === 'function') setInterval(() => { if (document.visibilityState !== 'hidden') loadBridge(); }, 15000);
-document.querySelector('#data-source').addEventListener('change', () => { traceVersion++; healthVersion++; interactionVersion++; document.querySelector('#interaction-status').replaceChildren(); document.querySelector('#interaction-status').textContent = 'Not requested.'; document.querySelector('#hub-trace').replaceChildren(); document.querySelector('#hub-health').textContent = 'Not requested.'; return load(); });
-document.querySelector('#quota-window').addEventListener('change', () => { if (currentSnapshot) renderQuotaHistory(); });
-document.querySelector('#timeline-kind').addEventListener('change', () => { if (currentSnapshot) renderLeadTimeline(); });
-document.querySelector('#show-routing').addEventListener('click', () => {
-  document.querySelector('#bots').querySelectorAll('details').forEach(panel => { panel.open = true; });
+document.getElementById('data-source').addEventListener('change', () => { traceVersion++; healthVersion++; interactionVersion++; document.getElementById('interaction-status').replaceChildren(); document.getElementById('interaction-status').textContent = 'Not requested.'; document.getElementById('hub-trace').replaceChildren(); document.getElementById('hub-health').textContent = 'Not requested.'; return load(); });
+document.getElementById('quota-window').addEventListener('change', () => { if (currentSnapshot) renderQuotaHistory(); });
+document.getElementById('timeline-kind').addEventListener('change', () => { if (currentSnapshot) renderLeadTimeline(); });
+document.getElementById('show-routing').addEventListener('click', () => {
+  document.getElementById('bots').querySelectorAll('details').forEach(panel => { panel.open = true; });
 });
-document.querySelector('#hide-routing').addEventListener('click', () => {
-  document.querySelector('#bots').querySelectorAll('details').forEach(panel => { panel.open = false; });
+document.getElementById('hide-routing').addEventListener('click', () => {
+  document.getElementById('bots').querySelectorAll('details').forEach(panel => { panel.open = false; });
 });
 document.getElementById('bot-draft-form').addEventListener('submit', previewBotDraft);
 document.getElementById('bot-draft-cancel').addEventListener('click', resetBotDraft);
@@ -2020,101 +2020,101 @@ for (const id of ['bot-draft-goals', 'bot-draft-personality']) {
     document.getElementById('bot-draft-status').textContent = 'Draft changed. Preview again to review; nothing is saved or applied.';
   });
 }
-document.querySelector('#clear-bot').addEventListener('click', () => {
+document.getElementById('clear-bot').addEventListener('click', () => {
   selectedBotId = null;
   resetBotDraft();
   if (currentSnapshot) updateBotCount(filteredBots());
-  const panel = document.querySelector('#bot-inspector');
+  const panel = document.getElementById('bot-inspector');
   panel.replaceChildren(); panel.textContent = 'No bot selected.';
-  if (currentSnapshot) { renderAssignments(); renderReplySource(); renderSafety(); if (document.querySelector('#issue-selected-bot').checked) renderIssues(); }
+  if (currentSnapshot) { renderAssignments(); renderReplySource(); renderSafety(); if (document.getElementById('issue-selected-bot').checked) renderIssues(); }
 });
-document.querySelector('#ffxi-evidence').addEventListener('click', () => {
-  document.querySelector('#trace-game').value = 'ffxi';
-  document.querySelector('#correlation').value = '';
+document.getElementById('ffxi-evidence').addEventListener('click', () => {
+  document.getElementById('trace-game').value = 'ffxi';
+  document.getElementById('correlation').value = '';
   correlationFilter = ''; ledgerBotId = null; traceVersion++;
-  document.querySelector('#hub-trace').replaceChildren();
+  document.getElementById('hub-trace').replaceChildren();
   if (currentSnapshot) renderLedger();
   focusWorkspaceTarget('trace-search');
 });
-document.querySelector('#ffxi-bots').addEventListener('click', () => {
+document.getElementById('ffxi-bots').addEventListener('click', () => {
   rosterRecordIndex = null;
-  document.querySelector('#bot-search').value = '';
-  document.querySelector('#bot-identity').value = '';
-  document.querySelector('#bot-game').value = 'FFXI';
+  document.getElementById('bot-search').value = '';
+  document.getElementById('bot-identity').value = '';
+  document.getElementById('bot-game').value = 'FFXI';
   if (currentSnapshot) renderBots();
   focusWorkspaceTarget('bots');
 });
-document.querySelector('#bot-game').addEventListener('change', () => { rosterRecordIndex = null; if (currentSnapshot) renderBots(); });
-document.querySelector('#bot-identity').addEventListener('change', () => { rosterRecordIndex = null; if (currentSnapshot) renderBots(); });
-document.querySelector('#bot-search').addEventListener('input', () => { rosterRecordIndex = null; if (currentSnapshot) renderBots(); });
-document.querySelector('#bot-reset').addEventListener('click', () => {
+document.getElementById('bot-game').addEventListener('change', () => { rosterRecordIndex = null; if (currentSnapshot) renderBots(); });
+document.getElementById('bot-identity').addEventListener('change', () => { rosterRecordIndex = null; if (currentSnapshot) renderBots(); });
+document.getElementById('bot-search').addEventListener('input', () => { rosterRecordIndex = null; if (currentSnapshot) renderBots(); });
+document.getElementById('bot-reset').addEventListener('click', () => {
   rosterRecordIndex = null;
-  document.querySelector('#bot-game').value = '';
-  document.querySelector('#bot-search').value = '';
-  document.querySelector('#bot-identity').value = '';
+  document.getElementById('bot-game').value = '';
+  document.getElementById('bot-search').value = '';
+  document.getElementById('bot-identity').value = '';
   if (currentSnapshot) renderBots();
 });
-document.querySelector('#ffxi-issues').addEventListener('click', () => {
+document.getElementById('ffxi-issues').addEventListener('click', () => {
   for (const id of ['issue-status', 'issue-search']) document.getElementById(id).value = '';
-  document.querySelector('#issue-selected-bot').checked = false;
-  document.querySelector('#issue-scope').value = 'FFXI';
+  document.getElementById('issue-selected-bot').checked = false;
+  document.getElementById('issue-scope').value = 'FFXI';
   if (currentSnapshot) renderIssues();
   focusWorkspaceTarget('issues');
 });
-document.querySelector('#issue-scope').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
-document.querySelector('#issue-status').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
-document.querySelector('#issue-selected-bot').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
-document.querySelector('#issue-search').addEventListener('input', () => { if (currentSnapshot) renderIssues(); });
-document.querySelector('#issue-reset').addEventListener('click', () => {
+document.getElementById('issue-scope').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
+document.getElementById('issue-status').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
+document.getElementById('issue-selected-bot').addEventListener('change', () => { if (currentSnapshot) renderIssues(); });
+document.getElementById('issue-search').addEventListener('input', () => { if (currentSnapshot) renderIssues(); });
+document.getElementById('issue-reset').addEventListener('click', () => {
   for (const id of ['issue-scope', 'issue-status', 'issue-search']) document.getElementById(id).value = '';
-  document.querySelector('#issue-selected-bot').checked = false;
+  document.getElementById('issue-selected-bot').checked = false;
   if (currentSnapshot) renderIssues();
 });
 function showGameLearning(game) {
   for (const id of ['learning-status', 'learning-search']) document.getElementById(id).value = '';
-  document.querySelector('#learning-attention').checked = false;
-  document.querySelector('#learning-game').value = game;
+  document.getElementById('learning-attention').checked = false;
+  document.getElementById('learning-game').value = game;
   if (currentSnapshot) { renderLearningPlan(); renderLearningArtifacts(); renderLearning(); }
   focusWorkspaceTarget('learning');
 }
-document.querySelector('#ffxi-learning').addEventListener('click', () => showGameLearning('FFXI'));
-document.querySelector('#clear-learning').addEventListener('click', () => {
+document.getElementById('ffxi-learning').addEventListener('click', () => showGameLearning('FFXI'));
+document.getElementById('clear-learning').addEventListener('click', () => {
   selectedLearningId = null;
-  const panel = document.querySelector('#learning-inspector');
+  const panel = document.getElementById('learning-inspector');
   panel.replaceChildren(); panel.textContent = 'Select a learning need for details.';
   renderLearningEvidence(null);
   if (currentSnapshot) updateLearningCount(filteredLearning());
 });
-document.querySelector('#learning-evidence-preview').addEventListener('click', previewLearningEvidence);
-document.querySelector('#learning-evidence-selected').addEventListener('click', () => {
+document.getElementById('learning-evidence-preview').addEventListener('click', previewLearningEvidence);
+document.getElementById('learning-evidence-selected').addEventListener('click', () => {
   renderLearningEvidence(uniqueRecord(currentSnapshot?.learning, selectedLearningId));
 });
-document.querySelector('#learning-game').addEventListener('change', () => { if (currentSnapshot) { renderLearningPlan(); renderLearningArtifacts(); renderLearning(); } });
-document.querySelector('#learning-status').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
-document.querySelector('#learning-attention').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
-document.querySelector('#learning-search').addEventListener('input', () => { if (currentSnapshot) renderLearning(); });
-document.querySelector('#learning-reset').addEventListener('click', () => {
+document.getElementById('learning-game').addEventListener('change', () => { if (currentSnapshot) { renderLearningPlan(); renderLearningArtifacts(); renderLearning(); } });
+document.getElementById('learning-status').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
+document.getElementById('learning-attention').addEventListener('change', () => { if (currentSnapshot) renderLearning(); });
+document.getElementById('learning-search').addEventListener('input', () => { if (currentSnapshot) renderLearning(); });
+document.getElementById('learning-reset').addEventListener('click', () => {
   for (const id of ['learning-game', 'learning-status', 'learning-search']) document.getElementById(id).value = '';
-  document.querySelector('#learning-attention').checked = false;
+  document.getElementById('learning-attention').checked = false;
   if (currentSnapshot) { renderLearningPlan(); renderLearningArtifacts(); renderLearning(); }
 });
 for (const id of ['trace-game', 'correlation']) {
   document.getElementById(id).addEventListener(id === 'correlation' ? 'input' : 'change', () => {
-    traceVersion++; document.querySelector('#hub-trace').replaceChildren();
+    traceVersion++; document.getElementById('hub-trace').replaceChildren();
   });
 }
-document.querySelector('#trace-search').addEventListener('submit', e => {
-  e.preventDefault(); ledgerBotId = null; correlationFilter = document.querySelector('#correlation').value.trim();
+document.getElementById('trace-search').addEventListener('submit', e => {
+  e.preventDefault(); ledgerBotId = null; correlationFilter = document.getElementById('correlation').value.trim();
   if (currentSnapshot) renderLedger();
-  if (document.querySelector('#data-source').value === 'hub') {
+  if (document.getElementById('data-source').value === 'hub') {
     if (sourceLoading || loadedSource !== 'hub') {
-      traceVersion++; document.querySelector('#hub-trace').replaceChildren();
-      document.querySelector('#hub-trace').textContent = 'Load the selected hub source successfully before requesting a hub trace.';
+      traceVersion++; document.getElementById('hub-trace').replaceChildren();
+      document.getElementById('hub-trace').textContent = 'Load the selected hub source successfully before requesting a hub trace.';
     } else loadHubTrace(correlationFilter);
   }
 });
-document.querySelector('#trace-clear').addEventListener('click', () => {
-  correlationFilter = ''; ledgerBotId = null; document.querySelector('#correlation').value = ''; traceVersion++; document.querySelector('#hub-trace').replaceChildren();
+document.getElementById('trace-clear').addEventListener('click', () => {
+  correlationFilter = ''; ledgerBotId = null; document.getElementById('correlation').value = ''; traceVersion++; document.getElementById('hub-trace').replaceChildren();
   if (currentSnapshot) renderLedger();
 });
 if (token) load();
