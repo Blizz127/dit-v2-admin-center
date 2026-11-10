@@ -1335,3 +1335,37 @@ about 08:25Z (for the intermediate r25 build `21855c33`, also undelivered and
 superseded by this one) and again at 09:30Z. Nothing was written to Alienware.
 The latest delivered preview is still **bd47f803**. No real FFXI post-H1 or
 SWTOR bot-event export has arrived.
+
+## Delivered: preview 7dc8b10f (source 0ca43aa)
+
+Private folder **Alienware → Downloads → DIT-Admin-Center-Preview-7dc8b10f**.
+Separate-connection readback at **2026-11-10T20:41:39Z** matched both files
+(the first readback attempt hung and was terminated at 30 s; the second
+succeeded):
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 597620 | `7dc8b10f4177d463b124ef55db07e34663d9b5caa65f70877aa647398ad6e2b3` | 600 |
+| READ-ME-FIRST.txt | 1166 | `28757b557a1774bba21851a9dadcb0b6c991dbbc260ee66b6f27809308260bd8` | 600 |
+
+Local package: `build/DIT-Admin-Center-Preview-7dc8b10f/`.
+
+**Change:** same as prepared `939cc496`, with the `/fb` citation moved to the
+newest packet, r83 (`76aa11e6`, README read once: source-only gear-catalog
+increment, no runtime or live claim). The command list is unchanged. The live
+FFXI Forever build recorded in the handoff directory is still rc8; newer rc
+kits there are offline candidates. Statuses stay **Built**. This preview
+supersedes delivered `bd47f803`; `939cc496` and `21855c33` were never
+delivered.
+
+**Verification:** full suite at `0ca43aa`: 634 Python tests and every
+`tests/*.test.js` script passed. The exact delivered HTML passed all 191
+simulated-DOM startup assertions, zero transport attempts (construction 482 ms,
+completion wait 1,282 ms); receipt `build/fb-r83-startup-smoke.log`. Native
+browser/keyboard checks were not run; the game was not tested here.
+
+**Delivery and rollback:** destination checked absent, then created with
+exclusive file creation; readback in `build/fb-r83-delivery-readback.txt`.
+`bd47f803` and earlier previews remain. No live game/hub deployment,
+save/player change, service operation, access change or public release
+occurred.
