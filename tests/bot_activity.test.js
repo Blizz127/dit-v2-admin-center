@@ -440,6 +440,45 @@ setImmediate(() => {
   assert.equal(d2.children[5].children[0].textContent, 'Advice (Unknown)', 'a non-list advice field is Unknown, not empty');
   assert.match(d2.children[5].children[1].textContent, /Unknown \(missing or malformed in the export\)/);
 
+  // Producer loss is disclosed per error report; reader omissions and other event types stay separate.
+  const lossReport = {ts: '2026-11-09T05:00:00Z', type: 'error', severity: 2, reason: 'LOG_DROPPED',
+    summary: 'bot event rows were dropped', reportedDropped: 27};
+  const renderLossReports = events => {
+    setSnapshot(sourceFor('dit-bot-event-v1', {...ditSource,
+      coverage: {...ditSource.coverage, records: events.length, omitted: 0},
+      bots: [{...ditBots[0], actorId: 'bot_events', events}]})); render();
+    const row = sectionsOf()[1].children[5].children[0];
+    toggleDetails(row.children[3]);
+    return row.children[3].children[1].children.map(li => li.textContent);
+  };
+  const beforeLossSnapshots = requests.length;
+  for (const reportedDropped of [undefined, null, '27', -1, 1.5, true, [], {}, Number.MAX_SAFE_INTEGER + 1]) {
+    const line = renderLossReports([{...lossReport, reportedDropped}])[0];
+    assert.ok(line.includes('Producer-reported dropped rows: Unknown'), 'missing or unusable loss counts remain Unknown');
+    assert.ok(!line.includes('Producer-reported dropped rows: 0'), 'Unknown does not become zero');
+  }
+  for (const reportedDropped of [0, 27, Number.MAX_SAFE_INTEGER]) {
+    assert.ok(renderLossReports([{...lossReport, reportedDropped}])[0].includes(
+      `Producer-reported dropped rows: ${reportedDropped} (this report; not summed)`));
+  }
+  const separateReports = renderLossReports([lossReport, {...lossReport}, {...lossReport, reportedDropped: 9}]);
+  assert.equal(separateReports.length, 3);
+  for (const [index, count] of [27, 27, 9].entries()) {
+    assert.ok(separateReports[index].includes(`Producer-reported dropped rows: ${count} (this report; not summed)`),
+      'overlapping reports remain separate events');
+  }
+  const unrelatedLossFields = renderLossReports([
+    {...lossReport, type: 'decision'}, {...lossReport, type: 'refused'}, {...lossReport, reason: 'LOG_CAP'},
+  ]);
+  assert.ok(unrelatedLossFields.every(line => !line.includes('Producer-reported dropped rows:')),
+    'an unrelated row cannot opt into a producer-loss claim by supplying the field');
+  renderLossReports([{...lossReport, reportedDropped: null}]);
+  assert.ok(renderLossReports([lossReport])[0].includes('Producer-reported dropped rows: 27 (this report; not summed)'),
+    'a recovered snapshot replaces Unknown with the supplied report count');
+  assert.match(sectionsOf()[1].children[2].textContent, /Omitted malformed: 0/, 'producer loss never changes reader omission count');
+  assert.equal(requests.length, beforeLossSnapshots, 'loss-report rendering and recovery make no transport requests');
+  setSnapshot(multi); render();
+
   // A missing or malformed escape count map is unknown evidence, not a recorded zero.
   const hearthSummaryPrefix = 'Doing: AttackAnything Makrura Shellhide · Pulls: 578 · XP-gain rows: 9 · Pulls per XP-gain row: 64.2 · Hearthstone escapes (stuck): ';
   const renderHearthBot = bot => {

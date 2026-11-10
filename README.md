@@ -354,6 +354,11 @@ examples; the parity tracker is unchanged in either mode. These samples test
 import/display readiness, not live bot behavior. Real reviewed exports must
 replace the captured inputs and provenance before any new live-evidence claim.
 
+DIT bot-event coverage also flags retained `LOG_DROPPED` report rows separately
+from malformed rows omitted by the reader. Each report's event shows its
+producer-reported dropped count, or Unknown if the count is missing or invalid.
+Reports may overlap and are never summed into a loss total or reader omissions.
+
 The HTTP-handler portion can be checked independently of jsdom:
 
 ```sh

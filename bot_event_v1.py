@@ -29,6 +29,8 @@ Rules enforced here:
   cannot label a newer area. Without any supplied area ID, a standalone area name keeps the ID unknown.
 - A refused row with details.intent "chat", voiced false and a known drop_reason (SWTOR's shape for a dropped
   non-AI line) counts in the bot's chat drops.
+- An error/LOG_DROPPED row exposes a safe nonnegative integer details.dropped as reportedDropped, or None
+  when missing/invalid. Counts are per report, never summed or added to reader omissions; reports may overlap.
 - Duplicate keys, NaN and Infinity are refused. Lines over MAX_LINE are refused unparsed.
 - Symlinked files and directories are refused. Only regular files are opened, and a FIFO is never
   waited on. A refused file is skipped, and the other files still load.
@@ -71,6 +73,7 @@ MAX_DEATHS = 50
 MAX_RECENT = 8
 MAX_LEVEL = 255
 MAX_SESSION = 2 ** 63 - 1
+MAX_REPORTED_DROPPED = 2 ** 53 - 1  # Preserve exact numeric display in JavaScript.
 MAX_OPTIONS = 16
 
 # Schema values, copied from dit.bot_event.v1.schema.json. tests/test_bot_event_v1.py checks each one.
@@ -305,12 +308,16 @@ def _row(data):
         # SWTOR logs a dropped non-AI line as a refused row with intent chat; it counts as a chat drop.
         chat = {'channel': _bounded(details.get('channel'), CHAT_CHANNEL), 'voiced': False,
                 'dropReason': details['drop_reason']}
+    reported_dropped = details.get('dropped') if kind == 'error' and data.get('reason') == 'LOG_DROPPED' else None
+    if not _int(reported_dropped, 0, MAX_REPORTED_DROPPED):
+        reported_dropped = None
     return {'game': data['game'], 'actorId': data['actor_id'], 'ts': data['ts'], 'type': kind,
             'severity': data['severity'], 'reason': data.get('reason'), 'summary': data.get('summary'),
             'level': data.get('level'), 'area': data.get('area'), 'action': action, 'result': result,
             'advice': advice, 'killer': killer, 'recent': recent, 'chat': chat,
             'name': _label(details.get('actor_key'), NAME_RE), 'areaName': _label(details.get('area_name'), AREA_NAME_RE),
-            'ability': _label(details.get('ability'), TOKEN_RE), 'discipline': _label(details.get('discipline'), TOKEN_RE)}
+            'ability': _label(details.get('ability'), TOKEN_RE), 'discipline': _label(details.get('discipline'), TOKEN_RE),
+            'reportedDropped': reported_dropped}
 
 
 def _parse(line):
@@ -343,7 +350,8 @@ def _project(key, entries):
     area = next((row['area'] for row in newest if row['area'] is not None), None)
     area_name = next((row['areaName'] for row in newest if row['area'] == area and row['areaName'] is not None), None)
     events = [{'ts': row['ts'], 'type': row['type'], 'severity': row['severity'], 'reason': row['reason'],
-               'summary': row['summary'], 'action': row['action'], 'result': row['result'], 'ability': row['ability']}
+               'summary': row['summary'], 'action': row['action'], 'result': row['result'], 'ability': row['ability'],
+               'reportedDropped': row['reportedDropped']}
               for row in newest[:MAX_EVENTS]]
     deaths = [{'ts': row['ts'], 'killer': row['killer'], 'recentDecisions': row['recent']}
               for row in newest if row['type'] == 'death'][:MAX_DEATHS]
@@ -511,8 +519,12 @@ def _read(directory):
         parts.append('Files refused: ' + ', '.join(f'{count} {why}' for why, count in sorted(refused.items())) + '.')
     if len(groups) > len(bots):
         parts.append(f'Showing the {len(bots)} most recently active of {len(groups)} bots.')
+    loss_reports = sum(parsed['type'] == 'error' and parsed['reason'] == 'LOG_DROPPED' for _, parsed in rows)
+    if loss_reports:
+        parts.append(f'Producer-reported log loss: {loss_reports} LOG_DROPPED rows. '
+                     'Counts are per report and may overlap; reader omissions are separate.')
     parts.append('Rows are checked against dit.bot_event.v1 (BOT_BRAIN_STANDARD 6.3, 6.5). Details beyond the '
-                 'summary and the decision, death and advice fields are not shown.')
+                 'summary, decision, death, advice, chat, label and reported log-loss fields are not shown.')
     return bots, _coverage('Loaded', len(rows), omitted, ' '.join(parts), read_count, games, span, by_reason)
 
 

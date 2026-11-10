@@ -233,7 +233,7 @@ class BotEventTests(unittest.TestCase):
         for private in ('owner_party', 'camp', 'rest_at', 'radius', 'fields', 'tank'):
             self.assertNotIn(private, text)
         self.assertEqual(set(bots[0]['events'][0]),
-                         {'ts', 'type', 'severity', 'reason', 'summary', 'action', 'result', 'ability'})
+                         {'ts', 'type', 'severity', 'reason', 'summary', 'action', 'result', 'ability', 'reportedDropped'})
 
     # Required fields, types, enums, lengths and patterns
 
@@ -766,6 +766,64 @@ class BotEventTests(unittest.TestCase):
         self.assertEqual(zoey['chat'], {'voiced': 0, 'dropped': 2, 'byReason': {'NOT_AI': 1, 'NO_LISTENER': 1}})
         self.assertEqual(vorrak['chat']['voiced'], 1)
 
+    def test_producer_log_loss_counts_stay_per_report_including_zero_and_safe_limit(self):
+        values = [0, 27, 27, 2 ** 53 - 1]
+        bots, coverage = self.run_rows(*[
+            base(actor_id='bot_events', event_type='error', reason='LOG_DROPPED',
+                 details={'dropped': value, 'day': '2026-11-08'}) for value in values
+        ])
+        self.assertEqual((coverage['records'], coverage['omitted']), (4, 0))
+        self.assertEqual(bots[0]['counts'], {'error': 4})
+        self.assertEqual([event['reportedDropped'] for event in bots[0]['events']], list(reversed(values)),
+                         'duplicate or overlapping reports retain their individual counts; no sum or deduplication')
+        self.assertIn('Producer-reported log loss: 4 LOG_DROPPED rows. Counts are per report and may overlap; reader omissions are separate.',
+                      coverage['reason'])
+        self.assertNotIn('54', coverage['reason'], 'coverage reports marker count, not the sum of two 27-row reports')
+
+    def test_producer_log_loss_missing_or_invalid_count_preserves_accepted_unknown_report(self):
+        bad_values = [MISSING, None, False, True, -1, 1.5, '27', [], {}, 2 ** 53]
+        for value in bad_values:
+            with self.subTest(value=value):
+                details = {'day': '2026-11-08'}
+                if value is not MISSING:
+                    details['dropped'] = value
+                row = base(actor_id='bot_events', event_type='error', reason='LOG_DROPPED', details=details)
+                parsed = events._parse(encode(row))
+                self.assertIsNone(parsed['reportedDropped'])
+                bots, coverage = self.run_rows(row)
+                self.assertEqual((coverage['records'], coverage['omitted'], coverage['omittedByReason']), (1, 0, {}))
+                self.assertIsNone(bots[0]['events'][0]['reportedDropped'])
+                self.assertIn('Producer-reported log loss: 1 LOG_DROPPED rows.', coverage['reason'],
+                              'an unknown report count must not erase the report or imply zero lost rows')
+
+    def test_producer_log_loss_does_not_attach_to_other_event_kinds_or_reasons(self):
+        rows = [base(event_type=kind, reason=reason, details={'dropped': 27})
+                for kind, reason in [('decision', 'LOG_DROPPED'), ('refused', 'LOG_DROPPED'),
+                                     ('error', 'LOG_CAP'), ('error', None)]]
+        bots, coverage = self.run_rows(*rows)
+        self.assertEqual((coverage['records'], coverage['omitted']), (4, 0))
+        self.assertTrue(all(event['reportedDropped'] is None for event in bots[0]['events']))
+        self.assertNotIn('Producer-reported log loss:', coverage['reason'])
+
+    def test_producer_log_loss_warning_survives_bot_and_event_caps(self):
+        rows = [
+            base(actor_id='hidden-writer', ts='2026-11-09T05:00:00.000Z', event_type='error',
+                 reason='LOG_DROPPED', details={'dropped': 27}),
+            base(actor_id='visible-writer', ts='2026-11-09T05:00:01.000Z', event_type='error',
+                 reason='LOG_DROPPED', details={'dropped': 27}),
+            base(actor_id='visible-writer', ts='2026-11-09T05:00:02.000Z'),
+            'not json',
+        ]
+        with patch.object(events, 'MAX_BOTS', 1), patch.object(events, 'MAX_EVENTS', 1):
+            bots, coverage = self.run_rows(*rows)
+        self.assertEqual((coverage['records'], coverage['omitted'], coverage['omittedByReason']),
+                         (3, 1, {'invalid_json': 1}))
+        self.assertEqual([bot['actorId'] for bot in bots], ['visible-writer'])
+        self.assertEqual([event['type'] for event in bots[0]['events']], ['decision'])
+        self.assertIsNone(bots[0]['events'][0]['reportedDropped'])
+        self.assertIn('Producer-reported log loss: 2 LOG_DROPPED rows. Counts are per report and may overlap; reader omissions are separate.',
+                      coverage['reason'], 'both accepted reports count even when neither event is displayed')
+
     def test_labels_must_match_their_patterns_or_stay_hidden(self):
         sentence = 'hello there, this is a whole sentence that a player typed'
         bot = self.accepted(base(details={'intent': 'rotation_pick', 'actor_key': sentence, 'area_name': 'x' * 65,
@@ -871,7 +929,7 @@ class BotEventTests(unittest.TestCase):
         parsed = events._parse(json.dumps(base()).encode())
         self.assertEqual(set(parsed), {'game', 'actorId', 'ts', 'type', 'severity', 'reason', 'summary', 'level',
                                        'area', 'action', 'result', 'advice', 'killer', 'recent', 'chat', 'name',
-                                       'areaName', 'ability', 'discipline'})
+                                       'areaName', 'ability', 'discipline', 'reportedDropped'})
 
 
 if __name__ == '__main__':

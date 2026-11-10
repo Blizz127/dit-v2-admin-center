@@ -1543,6 +1543,11 @@ function botActivityChat(chat) {
   const reasons = botActivityCounts(chat.byReason);
   return ` · Chat: voiced ${chat.voiced}, dropped ${chat.dropped}${chat.dropped > 0 && reasons !== 'Unknown' ? ` (${reasons})` : ''}`;
 }
+function botActivityLogLoss(event) {
+  if (event.type !== 'error' || event.reason !== 'LOG_DROPPED') return '';
+  const count = Number.isSafeInteger(event.reportedDropped) && event.reportedDropped >= 0 ? event.reportedDropped : 'Unknown';
+  return `Producer-reported dropped rows: ${count} (this report; not summed)`;
+}
 function botActivityDitRow(panel, bot) {
   const named = botActivityPart(bot.name), place = botActivityPart(bot.areaName), spec = botActivityPart(bot.discipline, ' · Discipline: ');
   item(panel, `${named ? `${named} (${shown(bot.actorId)})` : shown(bot.actorId)} · ${shown(bot.game)}`,
@@ -1551,7 +1556,8 @@ function botActivityDitRow(panel, bot) {
   const row = panel.lastElementChild;
   botActivityList(row, 'Events', bot.events, e => ({text: botActivityJoin([
     botActivityPart(e.ts), botActivityPart(e.type), botActivityPart(e.severity, 'severity '), botActivityPart(e.reason),
-    botActivityPart(e.action, 'action '), botActivityPart(e.ability, 'ability '), botActivityPart(e.result, 'result '), botActivityPart(e.summary)])}));
+    botActivityPart(e.action, 'action '), botActivityPart(e.ability, 'ability '), botActivityPart(e.result, 'result '),
+    botActivityPart(e.summary), botActivityLogLoss(e)])}));
   botActivityList(row, 'Deaths', bot.deaths, d => ({
     text: botActivityJoin([botActivityPart(d.ts), `Killer: ${routingText(d.killer, 'Unknown')}`]),
     child: botActivityNested(d.recentDecisions, botActivityAlternativeLimit, 'Recent decisions before death', r => ({text: botActivityJoin([

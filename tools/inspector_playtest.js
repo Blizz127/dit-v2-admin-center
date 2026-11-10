@@ -492,6 +492,15 @@ try {
     && readinessPanels[1].textContent.includes('NO_LISTENER 1')
     && readinessPanels[1].textContent.includes('NOT_AI 1'),
     'Readiness view exposes FFXI timing measurements and SWTOR rotation/chat-drop samples');
+  const lossRow = [...readinessPanels[1].querySelectorAll('.row')]
+    .find(row => row.firstElementChild.textContent === 'bot_events · swtor');
+  const lossEvents = lossRow.querySelector('details');
+  lossEvents.open = true;
+  await settle(() => lossEvents.children.length === 2);
+  check(readinessPanels[1].textContent.includes('Omitted malformed: 0')
+    && readinessPanels[1].textContent.includes('Producer-reported log loss: 1 LOG_DROPPED rows.')
+    && lossEvents.textContent.includes('Producer-reported dropped rows: 27 (this report; not summed)'),
+    'SWTOR producer-reported log loss stays visible and separate from reader omissions');
   check(textOf('baseline-conformance') === baselineText
     && textOf('parity-sample-note').includes('not live evidence'),
     'Synthetic readiness samples do not promote or replace parity evidence');
