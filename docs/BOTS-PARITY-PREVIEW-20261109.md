@@ -598,3 +598,34 @@ checks remain NOT RUN; no full suite or live game/hub changes.
 
 **Rollback:** preceding preview `bb887867` remains available; only the new
 private folder was added.
+
+## Prepared: preview 693e952a (source 43b2777) — delivery unconfirmed
+
+Checkpoint **2026-11-10T00:06:41Z**. The legacy Forever importer now supplies
+the oldest/newest retained event timestamps, before bot/decision display caps
+and after malformed/duplicate-ID omissions. These are separate from the
+manifest export timestamp. Empty, off and unreadable sources have null bounds.
+
+Local package: `build/DIT-Admin-Center-Preview-693e952a/`.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 546398 | `693e952a60ffb96f33ac07d04bf1f4bf605680f16a1ab96689d0bf453e691da9` | 600 |
+| READ-ME-FIRST.txt | 695 | `04134bcfd981169ae89eee08da59c75d082eee1a1c24e52fe81aaa5acf555712` | 600 |
+
+**Verification:** 53 focused importer/backend tests passed. The exact artifact
+passed 178 simulated-DOM startup assertions (construction 872 ms, completion
+wait 6,832 ms), zero transport attempts. No native browser/keyboard verification
+or full suite is claimed.
+
+**Delivery blocker:** the exclusive-folder/transfer command timed out connecting
+to `alienware-bazzite:22` (exit 255). One subsequent read-only destination check
+also timed out (exit 255). Destination creation/partial transfer state is
+unknown; no remote hashes or final delivery are claimed. No further write retry,
+device wake/restart or alternate publishing route was attempted.
+
+**Next step when reachable:** read back the exact destination
+`~/Downloads/DIT-Admin-Center-Preview-693e952a/` before completing any missing
+files from the hash-checked local package. Preserve unexpected/mismatched remote
+content, and verify both remote hashes/sizes/modes after completion.
+Latest confirmed delivered preview remains **acfa9efd**; its rollback is intact.
