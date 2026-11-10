@@ -1057,3 +1057,45 @@ checks and the full suite were not run; no live behavior or native UI claim.
 exclusively; a separate connection verified hashes, sizes and mode 600.
 `e132f3c9` and earlier previews remain available. No live game/hub deployment,
 save/player change, service operation, access change or public release occurred.
+
+## Delivered: preview 80f9a6a7 (source 4e7875f)
+
+Private folder **Alienware → Downloads → DIT-Admin-Center-Preview-80f9a6a7**.
+Independent remote readback at **2026-11-10T02:58:27Z** matched both files:
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 596979 | `80f9a6a759a535028fa2b29f3ddc8bf9da8236c536882b46ff4bdfb981f62845` | 600 |
+| READ-ME-FIRST.txt | 1267 | `00b0e3ca7986225f08edfe2762349ee548b4d1d875665a554d7fafda17d0d936` | 600 |
+
+Local package: `build/DIT-Admin-Center-Preview-80f9a6a7/`.
+
+**Change:** **Bot activity sample → Synthetic FFXI import with skipped lines**
+shows three different line exclusions. A disposable copy of the unchanged
+fictional 52-line FFXI sample receives one malformed `act` line, one unknown
+bot-event shape and one unrelated line. The normal reader returns 52 accepted,
+one omitted malformed, one unrecognized and one ignored line. The two bots,
+their events, timing measurements and accepted event bounds remain unchanged;
+the later rejected timestamps do not extend the accepted range.
+
+Returning to complete readiness clears all three counts and restores the exact
+source data. SWTOR, WoW, Vanilla and parity evidence stay unchanged from complete
+readiness, with no requests. The earlier incomplete SWTOR option remains usable.
+These are synthetic cases; real FFXI post-H1 and SWTOR exports remain necessary
+for live conclusions. This preview supersedes `532ab9a9` for owner playtesting.
+
+**Focused verification:** six fixture checks and three selected builder checks
+passed. They cover exact exclusion categories, accepted-event preservation,
+observation bounds, fixture integrity, source separation, unique IDs, embedded
+asset/CSP binding and JavaScript compilation. Both original fixture SHA-256s
+remain unchanged. The exact delivered HTML passed all 191 simulated-DOM startup
+assertions on its first run, zero transport attempts (construction 632 ms,
+completion wait 1,505 ms). Four new assertions cover the partial FFXI view,
+retained data, unaffected sources and recovery. Receipt:
+`build/partial-ffxi-readiness-startup-smoke.log`. Native browser/keyboard checks
+and the full suite were not run; no live behavior or native UI claim.
+
+**Delivery and rollback:** exact destination checked absent, then created
+exclusively; a separate connection verified hashes, sizes and mode 600.
+`532ab9a9` and earlier previews remain available. No live game/hub deployment,
+save/player change, service operation, access change or public release occurred.
