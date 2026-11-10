@@ -975,3 +975,44 @@ checks and the full suite were not run.
 exclusively; separate readback verified hashes, sizes and mode 600. `7bc2948e`
 and earlier previews remain available. No live game/hub deployment, save/player
 change, service operation, access change, browser launch or public release.
+
+## Delivered: preview e132f3c9 (source 69e247c)
+
+Private folder **Alienware → Downloads → DIT-Admin-Center-Preview-e132f3c9**.
+Independent remote readback at **2026-11-10T02:33:41Z** matched both files:
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 571364 | `e132f3c9810a484902e4d05f685b59207c6b7d753af495770097aabc9588942c` | 600 |
+| READ-ME-FIRST.txt | 1081 | `2d219952cf0561e6212622a6eeea572ac3fed5329cb32cebfe45eaf3e0e2427d` | 600 |
+
+Local package: `build/DIT-Admin-Center-Preview-e132f3c9/`.
+
+**Change:** 198 fixed-ID document lookups in the app and 13 in the preview driver
+now use `getElementById`. This removes repeated selector scans in rendering and
+the assertion reporter without caching elements or changing rendering order.
+All 103 distinct targeted app IDs occur exactly once in the template. The diff
+was checked to contain only these substitutions; compound/dynamic selectors,
+all assertions, and the five-second progress/ten-second total deadlines remain
+unchanged. This preview supersedes `36a5fdac` for owner playtesting.
+
+**Diagnostic evidence:** a CPU-profile run of the preceding `36a5fdac` artifact
+reached 156 passing checks before the ten-second deadline (construction 1,471 ms,
+completion wait 10,529 ms; zero runtime errors or transport attempts). The log
+and profile remain at `build/readiness-startup-profile.log` and
+`build/readiness-startup-20261110.cpuprofile`. Repeated ID selector/tree traversal
+work was prominent in that profile. Profiling overhead and shared-host load
+mean this is a diagnostic, not a controlled performance comparison.
+
+**Focused verification:** source-race, overview-failure, partial-assignment and
+selector UI scripts passed. Two builder checks passed for embedded assets,
+unique IDs, source fingerprints, CSP script binding and JavaScript compilation.
+The exact delivered HTML passed all 183 simulated-DOM startup assertions on its
+first run, zero transport attempts (construction 750 ms, completion wait
+2,478 ms), recorded in `build/direct-id-startup-smoke.log`. Native browser and
+keyboard checks and the full suite were not run; no native performance claim.
+
+**Delivery and rollback:** exact destination checked absent, then created
+exclusively; a separate connection verified hashes, sizes and mode 600.
+`36a5fdac` and earlier previews remain available. No live game/hub deployment,
+save/player change, service operation, access change or public release occurred.
