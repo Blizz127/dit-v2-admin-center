@@ -46,6 +46,7 @@ class ForeverBotlogTests(unittest.TestCase):
         activity, coverage = result
         self.assertEqual(activity, [])
         self.assertEqual((coverage['status'], coverage['records'], coverage['omitted']), ('Unavailable', 0, None))
+        self.assertEqual((coverage['from'], coverage['to']), (None, None))
         self.assertIn('nothing imported', coverage['reason'])
         if text:
             self.assertIn(text, coverage['reason'])
@@ -59,6 +60,7 @@ class ForeverBotlogTests(unittest.TestCase):
                 self.assertEqual(activity, [])
                 self.assertEqual(coverage['status'], 'Not configured')
                 self.assertEqual((coverage['records'], coverage['omitted']), (0, 0))
+                self.assertEqual((coverage['from'], coverage['to']), (None, None))
                 self.assertIn(botlog.ENV, coverage['reason'])
 
     def test_from_env_loads_the_named_directory(self):
@@ -70,6 +72,9 @@ class ForeverBotlogTests(unittest.TestCase):
     def test_fixture_projects_bots_most_recently_active_first(self):
         activity, coverage = botlog.load(FIXTURE)
         self.assertEqual((coverage['status'], coverage['records'], coverage['omitted']), ('Loaded', 20, 0))
+        self.assertEqual((coverage['from'], coverage['to']),
+                         ('2026-11-01T10:00:00Z', '2026-11-01T10:04:31Z'))
+        self.assertNotIn(self.manifest['exportedAtUtc'], (coverage['from'], coverage['to']))
         self.assertEqual([a['botGuid'] for a in activity], ['1003', '1002', '1001'])
         self.assertEqual([a['lastEventAt'] for a in activity],
                          ['2026-11-01T10:04:31Z', '2026-11-01T10:03:40Z', '2026-11-01T10:02:20Z'])
@@ -151,8 +156,12 @@ class ForeverBotlogTests(unittest.TestCase):
             row['id'], row['ts'] = 700 + i, f'2026-11-01 10:10:{i:02d}'
             row['details']['action'] = f'act{i}'
             events.append(row)
-        decisions = self.bot(self.write(events=events)[0], 1001)['decisions']
+        activity, coverage = self.write(events=events)
+        decisions = self.bot(activity, 1001)['decisions']
         self.assertEqual([d['action'] for d in decisions], [f'act{i}' for i in range(11, 3, -1)])
+        self.assertEqual((coverage['from'], coverage['to']),
+                         ('2026-11-01T10:10:00Z', '2026-11-01T10:10:11Z'))
+        self.assertNotIn(coverage['from'], [d['ts'] for d in decisions], 'range includes retained events below the decision display cap')
 
     def test_death_carries_killer_and_recent_decisions(self):
         activity, _ = botlog.load(FIXTURE)
@@ -215,12 +224,42 @@ class ForeverBotlogTests(unittest.TestCase):
         self.assertEqual(activity[0]['botGuid'], '2204')
         self.assertEqual(activity[-1]['botGuid'], '2005')
         self.assertIn('Showing the 200 most recently active of 205 bots', coverage['reason'])
+        self.assertEqual((coverage['from'], coverage['to']),
+                         ('2026-11-01T11:00:00Z', '2026-11-01T11:03:24Z'))
+        self.assertNotIn('2000', [a['botGuid'] for a in activity], 'the earliest retained event belongs to an undisplayed bot')
 
     def test_ordering_compares_parsed_times_not_text(self):
         events = [self.event(1, bot_guid=1, ts='2026-11-01 10:00:00.5'), self.event(2, bot_guid=2, ts='2026-11-01T10:00:00Z'),
                   self.event(3, bot_guid=3, ts='2026-11-01 10:00:00.25')]
-        activity, _ = self.write(events=events)
+        activity, coverage = self.write(events=events)
         self.assertEqual([a['botGuid'] for a in activity], ['1', '3', '2'])
+        self.assertEqual((coverage['from'], coverage['to']),
+                         ('2026-11-01T10:00:00Z', '2026-11-01T10:00:00.5Z'))
+
+    def test_observed_range_keeps_microsecond_extremes_in_unsorted_mixed_formats(self):
+        events = [self.event(1, bot_guid=1, ts='2026-11-01T10:00:00.123457Z'),
+                  self.event(2, bot_guid=2, ts='2026-11-01 10:00:00.123'),
+                  self.event(3, bot_guid=1, ts='2026-11-01 10:00:00.123456')]
+        _, coverage = self.write(events=events)
+        self.assertEqual((coverage['from'], coverage['to']),
+                         ('2026-11-01T10:00:00.123Z', '2026-11-01T10:00:00.123457Z'))
+
+    def test_observed_range_excludes_malformed_and_duplicate_id_extremes(self):
+        events = [self.event(3, bot_guid=1001, ts='1900-01-01 00:00:00'),
+                  self.event(1, ts='2026-11-01 10:00:00.000001'),
+                  self.event(4, ts='1899-01-01 00:00:00', severity=9),
+                  self.event(3, bot_guid=1002, ts='2099-01-01 00:00:00'),
+                  self.event(2, ts='2026-11-01T10:00:01.5Z'),
+                  self.event(5, ts='2100-01-01 00:00:00', severity=9)]
+        _, coverage = self.write(events=events)
+        self.assertEqual((coverage['records'], coverage['omitted']), (2, 4))
+        self.assertEqual((coverage['from'], coverage['to']),
+                         ('2026-11-01T10:00:00.000001Z', '2026-11-01T10:00:01.5Z'))
+
+    def test_empty_export_has_no_observed_range_even_with_a_valid_manifest(self):
+        activity, coverage = self.write(events=[])
+        self.assertEqual((activity, coverage['status'], coverage['records']), ([], 'Loaded', 0))
+        self.assertEqual((coverage['from'], coverage['to']), (None, None))
 
     # Timestamps
 
@@ -233,6 +272,7 @@ class ForeverBotlogTests(unittest.TestCase):
                 activity, coverage = self.write(events=[self.event(1, ts=raw)])
                 self.assertEqual(coverage['omitted'], 0)
                 self.assertEqual(activity[0]['lastEventAt'], expected)
+                self.assertEqual((coverage['from'], coverage['to']), (expected, expected))
 
     def test_other_timestamp_forms_are_omitted(self):
         for raw in ('2026-11-01T10:00:00', '2026-11-01 10:00:00Z', '2026-11-01T10:00:00+00:00', '2026-13-01 10:00:00',
@@ -240,6 +280,7 @@ class ForeverBotlogTests(unittest.TestCase):
             with self.subTest(raw=raw):
                 activity, coverage = self.write(events=[self.event(1, ts=raw)])
                 self.assertEqual((activity, coverage['records'], coverage['omitted']), ([], 0, 1))
+                self.assertEqual((coverage['from'], coverage['to']), (None, None))
 
     # Manifest
 
@@ -567,7 +608,10 @@ class OverviewSwitchTests(unittest.TestCase):
             off = overview({})
             on = overview({'DIT_FOREVER_BOTLOG_DIR': str(fixture)})
         self.assertEqual((off['botActivity']['coverage']['status'], off['botActivity']['bots']), ('Not configured', []))
+        self.assertEqual((off['botActivity']['coverage']['from'], off['botActivity']['coverage']['to']), (None, None))
         self.assertEqual(on['botActivity']['coverage']['status'], 'Loaded')
+        self.assertEqual((on['botActivity']['coverage']['from'], on['botActivity']['coverage']['to']),
+                         ('2026-11-01T10:00:00Z', '2026-11-01T10:04:31Z'))
         self.assertEqual(len(on['botActivity']['bots']), 3)
 
     def test_overview_source_failure_is_isolated_and_generic(self):

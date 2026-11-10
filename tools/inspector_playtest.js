@@ -63,6 +63,8 @@ try {
   const activityFixture = fixture.botActivity, baselineFixture = fixture.baselineConformance;
   const activityCoverage = textOf('bot-activity-coverage');
   const baselineText = textOf('baseline-conformance');
+  check(activityCoverage.includes(`Observed event range: ${activityFixture.coverage.from} to ${activityFixture.coverage.to} (UTC; offline export)`),
+    'Legacy Forever coverage shows retained event bounds separately from its export timestamp');
   check(document.querySelectorAll('#bot-activity-sources .bot-source').length === 3 && baselineText.includes('Bots parity'),
     'Startup renders all additional bot sources and the supplied parity evidence');
   const vanillaExport = activityFixture.sources.find(source => source.id === 'wow-vanilla-playerbots');

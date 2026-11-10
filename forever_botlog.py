@@ -306,7 +306,8 @@ def _project(guid, rows, identity):
 
 
 def _unavailable(reason):
-    return [], {'status': 'Unavailable', 'records': 0, 'omitted': None, 'reason': reason + '; nothing imported.'}
+    return [], {'status': 'Unavailable', 'records': 0, 'omitted': None, 'from': None, 'to': None,
+                'reason': reason + '; nothing imported.'}
 
 
 def _lines(raw, limit, field):
@@ -361,6 +362,10 @@ def load(directory):
         seen[row['id']] = seen.get(row['id'], 0) + 1
     kept = [row for row in rows if seen[row['id']] == 1]
     duplicate_omitted = len(rows) - len(kept)
+    # Event observation bounds cover all retained rows, including bots hidden by
+    # the display cap. The manifest's export time is a different observation.
+    first = min(kept, key=lambda row: row['moment'])['ts'] if kept else None
+    last = max(kept, key=lambda row: row['moment'])['ts'] if kept else None
     by_bot = {}
     for row in kept:
         by_bot.setdefault(row['guid'], []).append(row)
@@ -380,7 +385,7 @@ def load(directory):
         notes.append(f'{len(clash)} bot guid(s) have conflicting rows in bots.jsonl; their identity is withheld.')
     if duplicate_omitted:
         notes.append(f'{duplicate_omitted} event rows share an id with another row and were all omitted.')
-    return shown, {'status': 'Loaded', 'records': len(kept), 'omitted': omitted,
+    return shown, {'status': 'Loaded', 'records': len(kept), 'omitted': omitted, 'from': first, 'to': last,
                    'reason': ' '.join([
                        f"Forever bot log export taken {meta['exportedAt']} ({revision}): an exported log, not live; "
                        'timestamps are read as UTC.',
@@ -393,6 +398,6 @@ def load(directory):
 def from_env(environ=None):
     directory = (os.environ if environ is None else environ).get(ENV)
     if not directory:
-        return [], {'status': 'Not configured', 'records': 0, 'omitted': 0,
+        return [], {'status': 'Not configured', 'records': 0, 'omitted': 0, 'from': None, 'to': None,
                     'reason': f"Set {ENV} to a local exported Forever bot log directory to import it."}
     return load(directory)
