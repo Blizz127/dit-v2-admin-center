@@ -763,3 +763,36 @@ wait 7,027 ms). No full suite was run.
 local browser was found. Private delivery remains blocked by the previously
 observed Alienware endpoint timeout. The package is prepared locally, not copied
 or verified remotely; latest confirmed delivered preview remains **acfa9efd**.
+
+## Prepared: preview 325142a5 (source 53e43f6) — next delivery candidate
+
+Checkpoint **2026-11-10T01:23:36Z**. This candidate supersedes `5322d9d1` for
+the next private delivery and retains preceding pending reader/UI fixes.
+Earlier packages and any unknown partial destination remain untouched.
+No Alienware retry or publication was attempted.
+
+Local package: `build/DIT-Admin-Center-Preview-325142a5/`.
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 546775 | `325142a5944e4c2e27b3dcfbfeeb3c48671b9ff2567d563841a1c929f426023a` | 600 |
+| READ-ME-FIRST.txt | 779 | `0cc3c1b6ee72a75178dd3870e6dac4146f125be94a81e203f70bcb1faca89596` | 600 |
+
+**Change:** DIT bot-event area labels must come from a row with the last
+observed area ID. Previously, a transition from area A to B without a new
+readable name returned B's ID alongside A's name, and the UI preferred that
+stale name. The new projection leaves B's label unknown until a matching label
+exists. Earlier labels for the same ID remain usable, including prior visits;
+unscoped labels cannot relabel a known area. With no supplied area ID, a
+standalone label retains an unknown ID. No record counts or game state change.
+
+**Verification:** 12 focused reader tests passed: eight new area-attribution
+regressions plus existing writer, label, latest-area and timestamp-ordering
+cases. The exact packaged HTML passed 178 simulated-DOM startup assertions,
+zero transport attempts (construction 851 ms, completion wait 6,498 ms).
+No full suite was run. Native browser/keyboard checks remain NOT RUN.
+
+**Delivery:** blocked by the previously observed Alienware endpoint timeout.
+The package is prepared locally, not copied or verified remotely; latest
+confirmed delivered preview remains **acfa9efd**. No live game, player save,
+level-sync, device or push action occurred.
