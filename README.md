@@ -390,6 +390,12 @@ the relevant evidence. Counts cover supplied parity rows before filters;
 Built, Partly live, Unknown and Not applicable remain separate. The documented
 tracker date is not a current live observation.
 
+For FFXI, FFXI Forever and SWTOR, expand the selected game's **owner playtest
+checklist** to review eight acceptance scenarios and their required evidence.
+Each step shows the related tracker statuses and citations. The plan follows
+the game's own travel, recovery and mount rules; it records no results and
+cannot change statuses or enable advice. Use existing authorized play sessions.
+
 **Synthetic SWTOR import with a malformed row** retains the same valid events
 while showing one reader omission separately from the producer's 27-row loss
 report. Returning to the complete readiness sample clears that omission;

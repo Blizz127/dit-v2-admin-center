@@ -71,10 +71,24 @@ const waitFor = async condition => {
   doc.getElementById('refresh').click();
   await waitFor(() => doc.getElementById('updated').textContent.startsWith('Snapshot generated'));
   verifySelected(); assert.equal(selector.value, 'selected');
+  const game = doc.getElementById('baseline-game');
+  game.value = 'SWTOR'; game.dispatchEvent(new dom.window.Event('change', {bubbles: true}));
+  let checklist = doc.getElementById('baseline-playtest-checklist');
+  assert.ok(checklist);
+  assert.equal(checklist.querySelectorAll(':scope > ol > li').length, 8);
+  assert.match(checklist.textContent, /revive and regroup/);
+  assert.match(checklist.textContent, /already authorized and enabled/);
+  assert.doesNotMatch(checklist.textContent, /accepts a Raise/);
+  assert.equal(checklist.querySelectorAll('input, button, form').length, 0);
+  game.value = 'FFXI Forever (Rust)'; game.dispatchEvent(new dom.window.Event('change', {bubbles: true}));
+  checklist = doc.getElementById('baseline-playtest-checklist');
+  assert.match(checklist.textContent, /rented chocobo/);
+  assert.match(checklist.textContent, /accepts a Raise/);
+  assert.match(checklist.textContent, /Existing evidence:/);
   assert.equal(errors.length, 0, errors.join('; '));
   assert.equal(attempts.length, 0, 'No network transports');
   assert.equal(doc.documentElement.dataset.keyboardPlaytest, 'not-run');
-  console.log('PASS: selected exports start selected, omit unselected sources, recover after sample switches and refresh, preserve parity evidence; zero transports. Simulated DOM only.');
+  console.log('PASS: selected exports omit unselected sources, survive switches/refresh, preserve parity evidence, and render game-scoped playtest plans; zero transports. Simulated DOM only.');
 })().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => {
   dom.window.close(); for (const url of urls) URL.revokeObjectURL(url);
 });
