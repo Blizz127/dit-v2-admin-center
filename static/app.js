@@ -1788,15 +1788,83 @@ function baselineCell(game, row, rowIds, gameIds) {
   const evidence = hasEvidence ? cell.evidence.slice(0, 500) : 'No evidence supplied';
   return {status: hasEvidence && baselineStatuses.includes(cell.status) ? cell.status : 'Unknown', evidence};
 }
+function baselinePlaytestScenarios(game) {
+  if (!['FFXI (LSB)', 'FFXI Forever (Rust)', 'SWTOR'].includes(game)) return null;
+  const swtor = game === 'SWTOR', forever = game === 'FFXI Forever (Rust)';
+  return [
+    {title: 'Invite and follow', rows: ['p-01', 'p-02', 'p-07'],
+      step: swtor ? 'Invite the squad and cross three area boundaries, including walking and one available taxi, shuttle or ship transfer. Look for every bot to arrive within 30 seconds each time, with the squad intact.'
+        : `Invite the bots and cross three zone boundaries by walking and one available ${forever ? 'era-correct transport, such as a boat' : 'teleport or transport'}. Look for every bot to arrive within 30 seconds each time, with the party intact.`,
+      evidence: 'Timestamped owner and bot arrivals for all three transfers, exact bot IDs and party membership before and after.'},
+    {title: 'Ten pulls and party roles', rows: ['p-03', 'p-04', 'p-05'],
+      step: swtor ? 'Fight 10 appropriate pulls. Watch tank threat, healing, resource recovery between fights and abilities appropriate to each squad role, discipline and level.'
+        : `Fight 10 pulls at an appropriate camp${forever ? ' in the level-appropriate West Sarutabaruta area' : ''}. Watch the tank hold hate, the healer keep the party up and rest for MP, and each bot use job- and level-appropriate abilities.`,
+      evidence: 'A bounded log of all 10 pulls showing actors, abilities, targets, healing and between-pull recovery; record failures as well as successes.'},
+    {title: 'Death and recovery', rows: ['p-05'],
+      step: swtor ? 'Observe a bot death during normal play, then its revive and regroup with the squad. Check that it is ready before rejoining combat.'
+        : 'Observe a bot death during normal play. Check that it accepts a Raise offered within 60 seconds; otherwise it releases and rejoins the party within 5 minutes, without pulling while weakened.',
+      evidence: swtor ? 'Death, revive and regroup timestamps, bot identity and subsequent combat state.'
+        : 'Death, Raise or release, return-to-party and weakness-state timestamps for the same bot.'},
+    {title: 'Owner orders', rows: ['p-08'],
+      step: 'Using only commands already available to the owner, try stay, follow, assist, attack, pull, rest, a stance, focus heal and dismiss. Check each requested action and any AI-worded acknowledgement or silence.',
+      evidence: 'Correlated owner request, target bot, resulting action and native acknowledgement if any. An acknowledgement alone does not prove execution.'},
+    {title: 'Mount and dismount', rows: ['p-06'],
+      step: swtor ? 'During an authorized mounted journey, check that every bot uses its class mount or speeder and dismounts to fight.'
+        : forever ? 'During an era-correct journey, check that every bot uses a rented chocobo and dismounts to fight.'
+        : 'Mount or travel a long distance; check that every bot uses its available chocobo or mount and dismounts to fight.',
+      evidence: 'Mount, movement and combat-dismount observations for each bot, with times and exact actor IDs.'},
+    {title: 'Quest or mission step', rows: ['p-10'],
+      step: swtor ? 'Complete one available class-story or planet-quest step with the squad present and helping.'
+        : `Complete one available ${forever ? 'era-correct ' : ''}quest or mission step with the bots present and helping.`,
+      evidence: 'Scoped objective and starting state, bot participation, and observed quest or mission progress after the step.'},
+    {title: 'Talk and memory', rows: ['p-11'],
+      step: swtor ? 'Use whisper and group chat with a bot. Check that relevant AI replies remember the last few lines in this conversation.'
+        : 'Send a /tell and a party message to a bot. Check that relevant AI replies remember the last few lines in this conversation.',
+      evidence: 'Exact bot and channel, scoped conversation turns and native reply observations; wording generation alone does not prove speech.'},
+    {title: 'AI tactics', rows: ['p-12'],
+      step: 'Only when advice is already authorized and enabled, inspect at least one applied goal, tactic or rotation advice record and its reason. Use an already-authorized advice-off session to check that bots still play correctly. Leave unavailable runs unverified; this checklist does not enable or switch advice.',
+      evidence: 'Scoped advice request, chosen legal option, applied outcome and reason, plus the separate advice-off gameplay observation.'},
+  ];
+}
+function renderBaselinePlaytest(panel, rows, game, rowIds, gameIds) {
+  const scenarios = baselinePlaytestScenarios(game.game);
+  if (!scenarios) {
+    const note = document.createElement('p'); note.className = 'muted';
+    note.textContent = 'No owner playtest checklist supplied for this game.'; panel.append(note);
+    return;
+  }
+  const details = document.createElement('details'); details.id = 'baseline-playtest-checklist';
+  const summary = document.createElement('summary'); summary.textContent = `${game.game} owner playtest checklist · 8 scenarios`;
+  const note = document.createElement('p'); note.className = 'muted';
+  note.textContent = 'Owner acceptance plan, 2026-11-09. Use only an existing authorized playtest session after readiness is confirmed by the game lead; preserve player and release holds. These are planned checks, not completed results. This checklist records nothing and never changes tracker statuses.';
+  const list = document.createElement('ol');
+  for (const scenario of scenarios) {
+    const entry = document.createElement('li'), heading = document.createElement('strong'); heading.textContent = scenario.title;
+    const step = document.createElement('p'); step.textContent = scenario.step;
+    const evidence = document.createElement('p'); evidence.textContent = `Evidence needed: ${scenario.evidence}`;
+    const mappings = document.createElement('ul'); mappings.setAttribute('aria-label', `${scenario.title}: existing parity evidence`);
+    for (const id of scenario.rows) {
+      const row = rows.find(candidate => candidate.group === 'parity' && candidate.id === id);
+      const cell = row ? baselineCell(game, row, rowIds, gameIds) : {status: 'Unknown', evidence: 'No usable parity row supplied'};
+      const line = document.createElement('li');
+      const behavior = row && rowIds.get(id) === 1 ? row.behavior.slice(0, 500) : 'Behavior identity missing or ambiguous';
+      line.textContent = `${id} · ${behavior} — ${cell.status}. Existing evidence: ${cell.evidence}`;
+      mappings.append(line);
+    }
+    entry.append(heading, step, evidence, mappings); list.append(entry);
+  }
+  details.append(summary, note, list); panel.append(details);
+}
 function renderBaselineSummary(rows, games, rowIds, gameIds, incomplete) {
   const panel = document.getElementById('baseline-summary'); panel.replaceChildren();
   if (!document.getElementById('baseline-game').value) {
-    panel.textContent = 'Select one game to review its supplied parity counts.';
+    panel.textContent = 'Select one game to review its supplied parity counts and owner playtest plan.';
     return;
   }
   const parity = rows.filter(row => row.group === 'parity');
   if (!parity.length || !games.length) {
     panel.textContent = 'Parity counts: Unknown. No usable parity rows for the selected game; this is not a completed goal.';
+    if (games.length) renderBaselinePlaytest(panel, rows, games[0], rowIds, gameIds);
     return;
   }
   const counts = Object.fromEntries(baselineStatuses.map(status => [status, 0]));
@@ -1804,6 +1872,7 @@ function renderBaselineSummary(rows, games, rowIds, gameIds, incomplete) {
   const order = ['Verified live', 'Partly live', 'Built', 'Designed', 'Not started', 'Unknown', 'Not applicable', 'Reference', 'Sim-measured', 'Unit-tested'];
   item(panel, `${games[0].game} · supplied parity counts`, order.map(status => `${status}: ${counts[status]}`).join(' · '),
     `${parity.length} supplied parity rows before group/status filters. ${incomplete ? 'Total coverage Unknown: malformed, repeated or omitted entries. ' : ''}Counts describe documented evidence, not current behavior or goal completion.`);
+  renderBaselinePlaytest(panel, rows, games[0], rowIds, gameIds);
 }
 function renderBaselineConformance() {
   const panel = document.getElementById('baseline-conformance');

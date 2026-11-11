@@ -135,6 +135,90 @@ const reset = () => get('baseline-reset').listeners.click();
   assert.match(text('baseline-summary'), /Parity counts: Unknown/);
   assert.equal(get('baseline-status').disabled, true);
 
+  // The owner's eight acceptance scenarios are scoped by exact game name and
+  // remain read-only plans, with existing evidence shown beside each scenario.
+  const planTracker = {
+    source: 'Synthetic acceptance-plan fixture', asOf: '2026-11-11',
+    rows: Array.from({length: 12}, (_, index) => ({id: `p-${String(index + 1).padStart(2, '0')}`, group: 'parity', behavior: `Parity area ${index + 1}`})),
+    games: ['FFXI (LSB)', 'FFXI Forever (Rust)', 'SWTOR', 'Other game'].map(game => ({game, owner: 'Synthetic lead', cells: {
+      'p-01': {status: 'Verified live', evidence: `${game} party receipt`},
+      'p-02': {status: 'Partly live', evidence: `${game} transfer receipt`},
+      'p-12': {status: 'Built', evidence: `${game} advice code only`},
+    }})),
+  };
+  const planBefore = JSON.stringify(planTracker);
+  await refresh({baselineConformance: planTracker});
+  const planRequests = requestCount();
+  const checklist = () => get('baseline-summary').children.find(child => child.id === 'baseline-playtest-checklist');
+  const scenarios = () => checklist().children[2].children;
+  change('baseline-game', 'FFXI (LSB)');
+  assert.equal(scenarios().length, 8);
+  assert.deepEqual(scenarios().map(row => row.children[0].textContent), [
+    'Invite and follow', 'Ten pulls and party roles', 'Death and recovery', 'Owner orders',
+    'Mount and dismount', 'Quest or mission step', 'Talk and memory', 'AI tactics',
+  ]);
+  assert.match(checklist().children[1].textContent, /existing authorized playtest session/);
+  assert.match(checklist().children[1].textContent, /planned checks, not completed results/);
+  assert.match(checklist().children[1].textContent, /records nothing and never changes tracker statuses/);
+  assert.match(scenarios()[0].children[1].textContent, /three zone boundaries/);
+  assert.match(scenarios()[0].children[1].textContent, /30 seconds/);
+  assert.match(scenarios()[0].children[3].textContent, /p-01 · Parity area 1 — Verified live.*FFXI \(LSB\) party receipt/);
+  assert.match(scenarios()[0].children[3].textContent, /p-02 · Parity area 2 — Partly live/);
+  assert.match(scenarios()[1].children[1].textContent, /10 pulls/);
+  assert.match(scenarios()[1].children[1].textContent, /rest for MP/);
+  assert.match(scenarios()[2].children[1].textContent, /Raise offered within 60 seconds/);
+  assert.match(scenarios()[2].children[1].textContent, /within 5 minutes/);
+  assert.match(scenarios()[2].children[1].textContent, /without pulling while weakened/);
+  assert.match(scenarios()[2].children[3].textContent, /p-05 · Parity area 5 — Unknown/);
+  assert.match(scenarios()[3].children[1].textContent, /commands already available to the owner/);
+  assert.match(scenarios()[6].children[1].textContent, /\/tell and a party message/);
+  assert.match(scenarios()[7].children[1].textContent, /already authorized and enabled/);
+  assert.match(scenarios()[7].children[1].textContent, /does not enable or switch advice/);
+  assert.match(scenarios()[7].children[3].textContent, /p-12 · Parity area 12 — Built.*advice code only/);
+  for (const scenario of scenarios()) assert.match(scenario.children[2].textContent, /^Evidence needed: /);
+  const unfilteredPlan = checklist().textContent;
+  change('baseline-group', 'dit'); change('baseline-status', 'Built');
+  assert.equal(checklist().textContent, unfilteredPlan, 'view filters cannot hide checklist evidence or mark a scenario done');
+
+  change('baseline-game', 'FFXI Forever (Rust)');
+  assert.match(scenarios()[0].children[1].textContent, /era-correct transport, such as a boat/);
+  assert.match(scenarios()[1].children[1].textContent, /West Sarutabaruta/);
+  assert.match(scenarios()[4].children[1].textContent, /rented chocobo/);
+  assert.match(scenarios()[5].children[1].textContent, /era-correct quest or mission/);
+  assert.doesNotMatch(scenarios()[0].children[3].textContent, /FFXI \(LSB\) party receipt/);
+  change('baseline-game', 'SWTOR');
+  assert.match(scenarios()[0].children[1].textContent, /taxi, shuttle or ship/);
+  assert.match(scenarios()[1].children[1].textContent, /resource recovery/);
+  assert.match(scenarios()[2].children[1].textContent, /revive and regroup/);
+  assert.doesNotMatch(scenarios()[2].children[1].textContent, /Raise|weakness|weakened/);
+  assert.match(scenarios()[4].children[1].textContent, /mount or speeder/);
+  assert.match(scenarios()[5].children[1].textContent, /class-story or planet-quest/);
+  assert.match(scenarios()[6].children[1].textContent, /whisper and group chat/);
+  change('baseline-game', 'Other game');
+  assert.equal(checklist(), undefined);
+  assert.match(text('baseline-summary'), /No owner playtest checklist supplied for this game/);
+  assert.equal(requestCount(), planRequests, 'reviewing plans issues no requests');
+  assert.equal(JSON.stringify(planTracker), planBefore, 'checklist leaves tracker records unchanged');
+
+  const ambiguousPlan = clone(planTracker);
+  ambiguousPlan.rows.push({id: 'p-01', group: 'parity', behavior: 'Duplicate party'});
+  ambiguousPlan.rows = ambiguousPlan.rows.filter(row => row.id !== 'p-02');
+  await refresh({baselineConformance: ambiguousPlan}); change('baseline-game', 'SWTOR');
+  assert.match(scenarios()[0].children[3].textContent, /p-01 · Behavior identity missing or ambiguous — Unknown/);
+  assert.match(scenarios()[0].children[3].textContent, /p-02 · Behavior identity missing or ambiguous — Unknown/);
+  assert.doesNotMatch(scenarios()[0].children[3].textContent, /SWTOR party receipt|transfer receipt/);
+  const ambiguousGamePlan = clone(planTracker); ambiguousGamePlan.games.push(clone(ambiguousGamePlan.games[2]));
+  await refresh({baselineConformance: ambiguousGamePlan});
+  assert.match(scenarios()[0].children[3].textContent, /p-01 · Parity area 1 — Unknown/);
+  assert.doesNotMatch(scenarios()[0].children[3].textContent, /SWTOR party receipt/);
+  await refresh({baselineConformance: {...planTracker, rows: []}});
+  assert.equal(scenarios().length, 8, 'known plan survives absent tracker rows without inventing results');
+  assert.match(scenarios()[0].children[3].textContent, /No usable parity row supplied/);
+  await refresh({baselineConformance: null}); assert.equal(checklist(), undefined);
+  await refresh({baselineConformance: planTracker}); change('baseline-game', 'SWTOR');
+  assert.match(scenarios()[0].children[3].textContent, /SWTOR party receipt/);
+  reset(); assert.equal(checklist(), undefined, 'all-games reset removes per-game plans');
+
   const literal = clone(tracker); literal.games[0].game = '<img src=x onerror=alert(1)>';
   literal.asOf = '<script>not a date</script>'; literal.games[0].cells['p-0'].evidence = '<img src=x onerror=alert(2)>';
   await refresh({baselineConformance: literal}); change('baseline-game', literal.games[0].game);
@@ -150,5 +234,5 @@ const reset = () => get('baseline-reset').listeners.click();
   assert.equal(text('baseline-summary'), '');
   assert.equal(text('baseline-conformance'), '');
   assert.equal(text('baseline-count'), 'Conformance coverage unknown.');
-  console.log('PASS: per-game parity filters/counts, evidence preservation, ambiguous/missing input, refresh recovery and session reset; local simulated DOM only.');
+  console.log('PASS: per-game parity filters/counts, evidence preservation, ambiguous/missing input, refresh recovery, scoped owner playtest plans and session reset; local simulated DOM only.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
