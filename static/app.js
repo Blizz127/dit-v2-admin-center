@@ -180,7 +180,7 @@ function resetPanelSession() {
   document.getElementById('bot-activity-coverage').textContent = 'Coverage unknown.';
   document.getElementById('bot-activity-count').textContent = '';
   document.getElementById('bot-activity').replaceChildren();
-  document.getElementById('baseline-conformance').replaceChildren();
+  resetBaselineConformance();
   clearRosterGapSelection();
   document.getElementById('roster-gaps').replaceChildren();
   ledgerBotId = null; correlationFilter = '';
@@ -1760,31 +1760,101 @@ const baselineStatuses = ['Reference', 'Sim-measured', 'Unit-tested', 'Designed'
 const baselineStatusClass = {'Reference': 'reference', 'Sim-measured': 'sim-measured', 'Unit-tested': 'unit-tested', 'Designed': 'designed',
   'Not started': 'not-started', 'Not applicable': 'not-applicable', 'Verified live': 'verified-live', 'Partly live': 'partly-live', 'Built': 'built', 'Unknown': 'unknown'};
 const baselineGroups = [['parity', 'Bots parity (owner goal 2026-11-09)'], ['forever', 'WoW Forever operating model'], ['dit', 'DIT improvements'], [null, 'Group unknown']];
+function resetBaselineConformance() {
+  for (const id of ['baseline-game', 'baseline-group', 'baseline-status']) {
+    document.getElementById(id).value = '';
+    document.getElementById(id).disabled = true;
+  }
+  baselineGameOptions([]);
+  document.getElementById('baseline-conformance').replaceChildren();
+  document.getElementById('baseline-summary').replaceChildren();
+  document.getElementById('baseline-count').textContent = 'Conformance coverage unknown.';
+}
+function baselineGameOptions(games) {
+  const control = document.getElementById('baseline-game'), selected = control.value;
+  control.replaceChildren();
+  const all = document.createElement('option'); all.value = ''; all.textContent = 'All games'; control.append(all);
+  const names = [...new Set(games.map(game => game.game))];
+  for (const name of names) {
+    const option = document.createElement('option'); option.value = name; option.textContent = name; control.append(option);
+  }
+  control.value = names.includes(selected) ? selected : '';
+  return Boolean(selected && !names.includes(selected));
+}
+function baselineCell(game, row, rowIds, gameIds) {
+  const cells = plainObject(game.cells) ? game.cells : {};
+  const cell = Object.hasOwn(cells, row.id) && plainObject(cells[row.id]) && rowIds.get(row.id) === 1 && gameIds.get(game.game) === 1 ? cells[row.id] : null;
+  const hasEvidence = cell && typeof cell.evidence === 'string' && cell.evidence.trim();
+  const evidence = hasEvidence ? cell.evidence.slice(0, 500) : 'No evidence supplied';
+  return {status: hasEvidence && baselineStatuses.includes(cell.status) ? cell.status : 'Unknown', evidence};
+}
+function renderBaselineSummary(rows, games, rowIds, gameIds, incomplete) {
+  const panel = document.getElementById('baseline-summary'); panel.replaceChildren();
+  if (!document.getElementById('baseline-game').value) {
+    panel.textContent = 'Select one game to review its supplied parity counts.';
+    return;
+  }
+  const parity = rows.filter(row => row.group === 'parity');
+  if (!parity.length || !games.length) {
+    panel.textContent = 'Parity counts: Unknown. No usable parity rows for the selected game; this is not a completed goal.';
+    return;
+  }
+  const counts = Object.fromEntries(baselineStatuses.map(status => [status, 0]));
+  for (const row of parity) counts[baselineCell(games[0], row, rowIds, gameIds).status]++;
+  const order = ['Verified live', 'Partly live', 'Built', 'Designed', 'Not started', 'Unknown', 'Not applicable', 'Reference', 'Sim-measured', 'Unit-tested'];
+  item(panel, `${games[0].game} · supplied parity counts`, order.map(status => `${status}: ${counts[status]}`).join(' · '),
+    `${parity.length} supplied parity rows before group/status filters. ${incomplete ? 'Total coverage Unknown: malformed, repeated or omitted entries. ' : ''}Counts describe documented evidence, not current behavior or goal completion.`);
+}
 function renderBaselineConformance() {
   const panel = document.getElementById('baseline-conformance');
   panel.replaceChildren();
   const data = currentSnapshot?.baselineConformance;
   if (!plainObject(data) || !Array.isArray(data.rows) || !Array.isArray(data.games)) {
+    resetBaselineConformance();
+    document.getElementById('baseline-summary').textContent = 'Parity counts: Unknown. No usable tracker is loaded.';
     item(panel, 'Baseline conformance', 'Unknown', 'Missing or malformed baselineConformance; no behavior is shown as present.');
     return;
   }
-  const rows = data.rows.filter(row => plainObject(row) && typeof row.id === 'string' && row.id.trim() && typeof row.behavior === 'string' && row.behavior.trim()).slice(0, 40);
-  const games = data.games.filter(g => plainObject(g) && typeof g.game === 'string' && g.game.trim()).slice(0, 20);
-  const ids = new Map();
-  rows.forEach(row => ids.set(row.id, (ids.get(row.id) || 0) + 1));
+  const validText = value => typeof value === 'string' && value.trim() && value.length <= 500;
+  const rows = data.rows.filter(row => plainObject(row) && validText(row.id) && validText(row.behavior)).slice(0, 40);
+  const games = data.games.filter(g => plainObject(g) && validText(g.game)).slice(0, 20);
+  // Count identities over the full supplied collections: filters and display
+  // limits must never make an ambiguous identity appear unique.
+  const rowIds = new Map(), gameIds = new Map();
+  for (const row of data.rows) if (plainObject(row) && validText(row.id)) rowIds.set(row.id, (rowIds.get(row.id) || 0) + 1);
+  for (const game of data.games) if (plainObject(game) && validText(game.game)) gameIds.set(game.game, (gameIds.get(game.game) || 0) + 1);
+  const omitted = rows.length !== data.rows.length || games.length !== data.games.length;
+  const repeated = [...rowIds.values(), ...gameIds.values()].some(count => count > 1);
+  const incomplete = omitted || repeated;
+  const selectionLost = baselineGameOptions(games);
+  for (const id of ['baseline-game', 'baseline-group', 'baseline-status']) document.getElementById(id).disabled = !rows.length || !games.length;
+  const groupControl = document.getElementById('baseline-group'), statusControl = document.getElementById('baseline-status');
+  if (!['', 'parity', 'forever', 'dit', 'unknown'].includes(groupControl.value)) groupControl.value = '';
+  if (!['', 'needs-live', ...baselineStatuses].includes(statusControl.value)) statusControl.value = '';
+  const selectedGames = document.getElementById('baseline-game').value ? games.filter(game => game.game === document.getElementById('baseline-game').value) : games;
+  const matchesStatus = status => !statusControl.value || (statusControl.value === 'needs-live'
+    ? !['Verified live', 'Reference', 'Not applicable'].includes(status) : status === statusControl.value);
+  const filteredRows = rows.filter(row => (!groupControl.value || (groupControl.value === 'unknown'
+    ? !['parity', 'forever', 'dit'].includes(row.group) : row.group === groupControl.value))
+    && selectedGames.some(game => matchesStatus(baselineCell(game, row, rowIds, gameIds).status)));
   item(panel, 'Baseline conformance source', routingText(data.source, 'Source unknown'),
-    `${rows.length} behaviors · ${games.length} games${rows.length !== data.rows.length || games.length !== data.games.length ? ' · Malformed entries omitted; coverage incomplete' : ''}`);
+    `${rows.length} behaviors · ${games.length} games${omitted ? ' · Malformed entries omitted; coverage incomplete' : ''}${repeated ? ' · Repeated identities; affected statuses Unknown' : ''} · Documented tracker date: ${routingText(data.asOf, 'Unknown').slice(0, 100)}; not a freshness or live check.`);
+  document.getElementById('baseline-count').textContent = !rows.length || !games.length
+    ? 'Conformance coverage Unknown: no usable behaviors or games. An empty table does not establish completion.'
+    : `${selectionLost ? 'Previous game selection unavailable; showing all supplied games. ' : ''}Showing ${filteredRows.length} of ${rows.length} supplied behaviors across ${selectedGames.length} displayed game columns.${incomplete ? ' Total coverage Unknown.' : ''} Local filters only; no requests or status changes.`;
+  renderBaselineSummary(rows, selectedGames, rowIds, gameIds, incomplete);
   if (!rows.length || !games.length) item(panel, 'No usable conformance rows or games', 'Unknown', 'An empty table does not mean no bot has these behaviors.');
+  else if (!filteredRows.length) item(panel, 'No behaviors match these filters', 'No matching supplied rows', 'Clear the filters to review other documented evidence; this does not establish completion.');
   for (const [group, label] of baselineGroups) {
-    const groupRows = rows.filter(row => group ? row.group === group : !['parity', 'forever', 'dit'].includes(row.group));
-    if (!groupRows.length || !games.length) continue;
+    const groupRows = filteredRows.filter(row => group ? row.group === group : !['parity', 'forever', 'dit'].includes(row.group));
+    if (!groupRows.length || !selectedGames.length) continue;
     const region = document.createElement('div'); region.className = 'model-samples';
     region.setAttribute('role', 'region'); region.setAttribute('aria-label', label); region.setAttribute('tabindex', '0');
     const heading = document.createElement('h4'); heading.textContent = label;
     const table = document.createElement('table'), caption = document.createElement('caption');
     caption.textContent = `${label}. Status reflects the evidence cited for each cell; Unknown means not supplied.`;
     const head = document.createElement('thead'), headings = document.createElement('tr');
-    for (const text of ['Behavior', ...games.map(g => `${g.game} · ${routingText(g.owner, 'Owner unknown')}`)]) {
+    for (const text of ['Behavior', ...selectedGames.map(g => `${g.game} · ${routingText(g.owner, 'Owner unknown')}`)]) {
       const cell = document.createElement('th'); cell.setAttribute('scope', 'col'); cell.textContent = text; headings.append(cell);
     }
     head.append(headings);
@@ -1792,11 +1862,8 @@ function renderBaselineConformance() {
     for (const row of groupRows) {
       const tr = document.createElement('tr'), name = document.createElement('th');
       name.setAttribute('scope', 'row'); name.textContent = row.behavior.slice(0, 500); tr.append(name);
-      for (const g of games) {
-        const cells = plainObject(g.cells) ? g.cells : {};
-        const cell = Object.hasOwn(cells, row.id) && plainObject(cells[row.id]) && ids.get(row.id) === 1 ? cells[row.id] : null;
-        const status = cell && baselineStatuses.includes(cell.status) ? cell.status : 'Unknown';
-        const evidence = cell ? routingText(cell.evidence, 'No evidence supplied').slice(0, 500) : 'No evidence supplied';
+      for (const g of selectedGames) {
+        const {status, evidence} = baselineCell(g, row, rowIds, gameIds);
         const td = document.createElement('td'), strong = document.createElement('strong'), small = document.createElement('small');
         strong.className = `baseline-status baseline-${baselineStatusClass[status]}`;
         strong.textContent = status; small.textContent = evidence;
@@ -1978,6 +2045,13 @@ document.getElementById('refresh').addEventListener('click', load);
 document.getElementById('model-call-availability').addEventListener('change', () => { if (currentSnapshot) renderModelCalls(); });
 document.getElementById('bot-activity-engine').addEventListener('change', () => { if (currentSnapshot) renderBotActivity(); });
 document.getElementById('bot-activity-search').addEventListener('input', () => { if (currentSnapshot) renderBotActivity(); });
+for (const id of ['baseline-game', 'baseline-group', 'baseline-status']) {
+  document.getElementById(id).addEventListener('change', () => { if (currentSnapshot) renderBaselineConformance(); });
+}
+document.getElementById('baseline-reset').addEventListener('click', () => {
+  for (const id of ['baseline-game', 'baseline-group', 'baseline-status']) document.getElementById(id).value = '';
+  if (currentSnapshot) renderBaselineConformance();
+});
 document.getElementById('reply-correlation').addEventListener('input', () => { if (currentSnapshot) renderReplySource(); });
 document.getElementById('reply-reset').addEventListener('click', () => {
   document.getElementById('reply-correlation').value = '';
