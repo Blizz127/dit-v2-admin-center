@@ -5,11 +5,13 @@ import copy
 import hashlib
 import html as html_escape
 import json
+import os
 from pathlib import Path
 import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
+MAX_ARTIFACT_BYTES = 16 * 1024 * 1024
 sys.path.insert(0, str(ROOT))
 from r10_projection import project_learning
 from operation_sources import read as read_operation_sources
@@ -23,6 +25,7 @@ from ffxi_botsv2_log import read as read_ffxi_botsv2
 from bot_event_v1 import read as read_bot_event
 from vanilla_botlog import read as read_vanilla_botlog
 from local_evidence import read_bytes, read_json
+from tools.selected_bot_exports import read_selected_exports
 
 
 def fixture_json(path, expected):
@@ -149,7 +152,7 @@ def source_fingerprints():
              'r10_projection.py', 'tests/fixtures/learning-evidence-e8c81be.json',
              'tests/fixtures/assignment-pages.json',
              'tests/fixtures/party-greeting-review.json', 'tools/review_party_greeting.py',
-             'tools/inspector_playtest.js', 'tools/preview_progress.js', 'tools/assignment_keyboard_playtest.js', 'tools/build_inspector_playtest.py',
+             'tools/inspector_playtest.js', 'tools/preview_progress.js', 'tools/assignment_keyboard_playtest.js', 'tools/build_inspector_playtest.py', 'tools/selected_bot_exports.py',
              'forever_botlog.py', 'tests/fixtures/forever-botlog/manifest.json', 'tests/fixtures/forever-botlog/bots.jsonl',
              'tests/fixtures/forever-botlog/events.jsonl', 'baseline_conformance.py', 'data/fixtures/baseline-conformance.json',
              'ffxi_botsv2_log.py', 'tests/fixtures/ffxi-botsv2/bots-v2-j1234-20261109.log', 'bot_event_v1.py', 'human_feel.py', 'vanilla_botlog.py',
@@ -201,7 +204,9 @@ def party_review_html():
             'old rows do not prove a new reply. All four model-origin results remain Unknown.</p></details>')
 
 
-def build():
+def build(*, ffxi_log=None, bot_events_dir=None, forever_dir=None, vanilla_log=None):
+    selected = read_selected_exports(ffxi_log=ffxi_log, bot_events_dir=bot_events_dir,
+                                     forever_dir=forever_dir, vanilla_log=vanilla_log)
     html = (ROOT / 'static/index.html').read_text()
     css = (ROOT / 'static/style.css').read_text()
     app = (ROOT / 'static/app.js').read_text()
@@ -211,10 +216,12 @@ def build():
     readiness_data = json.dumps(parity_readiness_sources()).replace('<', '\\u003c')
     partial_readiness_data = json.dumps(parity_partial_readiness_source()).replace('<', '\\u003c')
     partial_ffxi_data = json.dumps(parity_partial_ffxi_readiness_source()).replace('<', '\\u003c')
+    selected_data = json.dumps(selected, allow_nan=False).replace('<', '\\u003c')
     script = ('(async function () {\nconst fixture = ' + data + ';\nconst assignmentFixtures = ' + assignment_data
               + ';\nconst parityReadinessSources = ' + readiness_data
               + ';\nconst parityPartialReadinessSource = ' + partial_readiness_data
               + ';\nconst parityPartialFfxiReadinessSource = ' + partial_ffxi_data
+              + ';\nconst selectedExports = ' + selected_data
               + ';\n' + driver.replace('/* APPLICATION */', app) + '\n})();')
     if '</script' in script.lower() or '</style' in css.lower():
         raise ValueError('Unsafe inline asset terminator')
@@ -230,6 +237,10 @@ def build():
     html = html.replace('LOCAL · MIXED SOURCES', 'OFFLINE · SYNTHETIC', 1)
     html = html.replace('<strong>Local workspace.</strong> Check each data source below; synthetic fallback is labeled. Hub access is read-only, and model controls are unavailable.',
                         '<strong>Synthetic preview.</strong> Explore the layout with fictional records. No live connection or token is used. Model controls stay disabled. <a href="#harness-results">Preview checks ↓</a>', 1)
+    if selected is not None:
+        html = html.replace('OFFLINE · SYNTHETIC', 'OFFLINE · EXPORT REVIEW', 1)
+        html = html.replace('<strong>Synthetic preview.</strong> Explore the layout with fictional records.',
+                            '<strong>Offline export review.</strong> After the startup checks, Bot activity opens your selected exports. Other panels retain labeled examples and documented tracker evidence.', 1)
     html = html.replace('<form id="login" class="login-panel">', '<form id="login" class="login-panel" hidden>', 1)
     html = html.replace('Try configured read-only hub', 'Simulated hub responses (offline)', 1)
     html = html.replace('Select the hub to request read-only roster and learning data. Missing feeds fall back to examples. Model controls remain disabled.',
@@ -239,10 +250,17 @@ def build():
                  '<option value="exports">Recorded exports and schema examples</option>'
                  '<option value="readiness">Synthetic FFXI + SWTOR readiness</option>'
                  '<option value="partial">Synthetic SWTOR import with a malformed row</option>'
-                 '<option value="partial-ffxi">Synthetic FFXI import with skipped lines</option></select>'
+                 '<option value="partial-ffxi">Synthetic FFXI import with skipped lines</option>'
+                 + ('<option value="selected">Selected offline exports</option>' if selected is not None else '') + '</select>'
                  '<p id="parity-sample-note" class="muted" role="status">Readiness samples are fictional; '
                  'they do not verify live bot behavior. Parity tracker evidence is unchanged.</p></div>')
     html = html.replace('<div class="bot-source" id="bot-source-wow">', readiness + '<div class="bot-source" id="bot-source-wow">', 1)
+    if selected is not None:
+        details = '<details id="selected-export-provenance"><summary>Selected export projection fingerprints</summary><p>SHA-256 identifies the imported display data, not raw-file bytes, source identity or live verification. Input paths and unparsed lines are not included.</p><ul>'
+        for source in selected['sources']:
+            details += '<li>' + html_escape.escape(source['label']) + ': ' + html_escape.escape(source['projectionSha256'] or 'Off — no export selected') + '</li>'
+        details += '</ul></details>'
+        html = html.replace('<div class="bot-source" id="bot-source-wow">', details + '<div class="bot-source" id="bot-source-wow">', 1)
     report = ('<details class="panel preview-report" id="harness-results"><summary>Preview verification &amp; source details</summary>'
               '<h2>Offline synthetic inspector playtest</h2><p id="harness-status" role="status" aria-live="polite">NOT RUN — waiting for browser JavaScript.</p>'
               '<ol id="harness-checks"></ol><p>No server, token file, account or game is used. Runtime test data is synthetic. Dated deployment handoffs are labeled separately and are not live observations. Browser results apply only to this artifact, not the running service. Reload this file to rerun.</p></details>')
@@ -260,17 +278,34 @@ def build():
     provenance = '<details id="harness-provenance"><summary>Artifact source fingerprints</summary><p>SHA256 of local inputs at generation; not a deployment revision or browser result.</p><pre>' + fingerprints + '</pre></details>'
     html = html.replace('<ol id="harness-checks"></ol>', '<ol id="harness-checks"></ol>' + provenance, 1)
     html = html.replace('</body>', '<script>' + script + '</script></body>')
+    if len(html.encode('utf-8')) > MAX_ARTIFACT_BYTES:
+        raise ValueError('Preview exceeds the 16 MiB artifact limit; select a smaller export window.')
     return html
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, default=ROOT / 'build/inspector-playtest.html')
+    parser.add_argument('--ffxi-log', type=Path, help='Explicit offline FFXI Bots V2 log')
+    parser.add_argument('--bot-events-dir', type=Path, help='Explicit offline dit.bot_event.v1 JSONL directory')
+    parser.add_argument('--forever-dir', type=Path, help='Explicit offline WoW Forever predecessor export directory')
+    parser.add_argument('--vanilla-log', type=Path, help='Explicit offline WoW Vanilla playerbot CSV')
     args = parser.parse_args()
     try:
-        content = build()
+        content = build(ffxi_log=args.ffxi_log, bot_events_dir=args.bot_events_dir,
+                        forever_dir=args.forever_dir, vanilla_log=args.vanilla_log)
     except (OSError, ValueError, TypeError, KeyError, RecursionError):
-        parser.exit(1, 'Synthetic preview inputs unavailable; no artifact written.\n')
+        parser.exit(1, 'Preview inputs unavailable; no artifact written.\n')
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(content)
+    if any(value is not None for value in (args.ffxi_log, args.bot_events_dir, args.forever_dir, args.vanilla_log)):
+        # Selected exports may contain private evidence. Never overwrite an earlier
+        # report (or a symlink); create owner-only output independently of umask.
+        try:
+            fd = os.open(args.output, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        except OSError:
+            parser.exit(1, 'Output cannot be created exclusively; no artifact written.\n')
+        with os.fdopen(fd, 'w', encoding='utf-8') as output:
+            output.write(content)
+    else:
+        args.output.write_text(content)
     print(f'Created {args.output}; open locally in a browser. Browser checks have NOT run.')

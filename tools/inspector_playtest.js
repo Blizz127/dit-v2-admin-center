@@ -469,14 +469,17 @@ try {
     const partialSource = paritySample.value === 'partial' ? parityPartialReadinessSource
       : paritySample.value === 'partial-ffxi' ? parityPartialFfxiReadinessSource : null;
     const readiness = paritySample.value === 'readiness' || partialSource !== null;
-    const activity = structuredClone(activityFixture);
+    const selected = paritySample.value === 'selected' && selectedExports !== null;
+    const activity = structuredClone(selected ? selectedExports : activityFixture);
     if (readiness) activity.sources = activity.sources.map(source =>
       structuredClone(source.id === partialSource?.id ? partialSource
         : parityReadinessSources.find(sample => sample.id === source.id) || source));
     fixture.botActivity = activity;
     currentSnapshot.botActivity = structuredClone(activity);
     renderBotActivity();
-    paritySampleNote.textContent = partialSource
+    paritySampleNote.textContent = selected
+      ? 'Selected offline exports only in Bot activity. Unselected sources stay Off. Other panels retain examples and documented tracker evidence; no live verification or automatic parity change.'
+      : partialSource
       ? `Synthetic incomplete ${partialSource.id === 'ffxi-lsb' ? 'FFXI' : 'SWTOR'} import; not live evidence. Other source data and parity tracker evidence are unchanged from complete readiness.`
       : readiness
       ? 'Synthetic FFXI post-H1 and SWTOR writer samples; not live evidence. Parity tracker evidence is unchanged.'
@@ -613,6 +616,17 @@ try {
   check(location.hash === '#view-overview' && document.activeElement.id === 'view-overview'
     && document.getElementById('nav-overview').getAttribute('aria-current') === 'location',
     'Preview landing fragment, DOM focus and selected section agree on Overview');
+  if (selectedExports !== null) {
+    paritySample.value = 'selected';
+    const beforeSelected = requests.length;
+    paritySample.dispatchEvent(new Event('change', {bubbles: true}));
+    check(JSON.stringify(currentSnapshot.botActivity) === JSON.stringify(selectedExports)
+      && textOf('baseline-conformance') === baselineText && requests.length === beforeSelected,
+      'Selected offline exports replace every activity source without requests or parity promotion');
+    check(selectedExports.sources.every(source => source.coverage.status === 'Loaded'
+      || (source.coverage.status === 'Off' && source.bots.length === 0)),
+      'Unselected export sources stay Off without example fallback');
+  }
   if (!previewProgress.finish()) throw new Error('Local preview check limit reached; reload to retry.');
   document.getElementById('harness-status').textContent = 'PASS — automatic DOM checks completed with synthetic data. Native keyboard check is separate and has NOT RUN.';
   document.documentElement.dataset.playtest = 'passed';

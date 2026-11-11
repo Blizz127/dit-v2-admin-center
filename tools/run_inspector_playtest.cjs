@@ -2,6 +2,7 @@
 // A missing dependency is an error, never a skipped/passing browser check.
 const path = require('node:path');
 const crypto = require('node:crypto');
+const fs = require('node:fs');
 const {performance} = require('node:perf_hooks');
 const {execFileSync} = require('node:child_process');
 const root = path.resolve(__dirname, '..');
@@ -31,10 +32,20 @@ class OfflineResources extends ResourceLoader {
 const errors = [];
 const virtualConsole = new VirtualConsole();
 virtualConsole.on('jsdomError', error => errors.push(error.message));
-// Generate in memory; this imports only the pure projection, never server.py.
-const html = execFileSync(process.env.PYTHON || 'python3', ['-c',
-  'from tools.build_inspector_playtest import build; print(build(), end="")'],
-  {cwd: root, encoding: 'utf8', timeout: 10000, maxBuffer: 2 * 1024 * 1024});
+// Default: generate in memory without server.py. An explicit artifact lets the
+// same offline runtime verify the exact selected-export bytes being delivered.
+const args = process.argv.slice(2);
+let html;
+if (args.length) {
+  if (args.length !== 2 || args[0] !== '--artifact') throw new Error('Usage: run_inspector_playtest.cjs [--artifact PATH]');
+  const info = fs.lstatSync(args[1]);
+  if (!info.isFile() || info.size > 16 * 1024 * 1024) throw new Error('Artifact must be a regular file of at most 16 MiB');
+  html = fs.readFileSync(args[1], 'utf8');
+} else {
+  html = execFileSync(process.env.PYTHON || 'python3', ['-c',
+    'from tools.build_inspector_playtest import build; print(build(), end="")'],
+    {cwd: root, encoding: 'utf8', timeout: 10000, maxBuffer: 2 * 1024 * 1024});
+}
 const objectUrls = new Set();
 const constructionStarted = performance.now();
 const dom = new JSDOM(html, {

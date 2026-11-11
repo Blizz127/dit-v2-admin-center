@@ -331,8 +331,9 @@ If the module is outside this checkout's resolution path, set
 `DIT_JSDOM_MODULE` to its existing absolute package path. The runner never
 downloads dependencies. Missing jsdom exits **2 (BLOCKED)**; assertion failures,
 runtime errors and attempted transports exit nonzero. Success prints JSON with
-the completed check count and zero transport attempts. It always regenerates
-from current source in memory, rather than relying on a stale build artifact.
+the completed check count and zero transport attempts. With no arguments it
+regenerates current source in memory. Use `--artifact /absolute/path/to/report.html`
+to check the exact bytes of a previously built report, including selected exports.
 
 Node and DOM network transports are blocked independently of the HTML CSP.
 jsdom checks DOM events and rendering logic; it does not establish browser
@@ -353,6 +354,41 @@ as synthetic. Switching back restores the original recorded exports and schema
 examples; the parity tracker is unchanged in every mode. These samples test
 import/display readiness, not live bot behavior. Real reviewed exports must
 replace the captured inputs and provenance before any new live-evidence claim.
+
+### Review selected offline bot exports
+
+Build a portable owner review from explicitly supplied exports without starting
+a server or configuring hub access:
+
+```sh
+python3 tools/build_inspector_playtest.py \
+  --ffxi-log /absolute/path/to/exported-bots-v2.log \
+  --bot-events-dir /absolute/path/to/exported-bot-events \
+  --output build/selected-export-review.html
+```
+
+Each source argument is optional; omit it when that export is unavailable.
+`--forever-dir` accepts an exported WoW Forever predecessor directory and
+`--vanilla-log` accepts an exported WoW Vanilla playerbot CSV. Only supplied
+paths are read; environment switches do not select inputs for this command.
+The existing bounded parsers produce the display data. Missing sources stay
+**Off**, and an unreadable supplied source refuses the build. Reader omissions
+remain visible. No raw export is copied into the repository or artifact.
+Input paths and unparsed lines are excluded; accepted bot names and event
+details remain in the private report. Only use exports approved for the viewer.
+
+The output is a new file with mode 600, capped at 16 MiB; existing files and
+symlinks are never overwritten. After the synthetic startup checks, **Bot activity sample** opens
+**Selected offline exports**. Other panels retain labeled examples and the
+documented conformance tracker. Switching samples and refreshing cannot promote
+parity status. Projection fingerprints identify the imported display data, not
+raw-file bytes or producer authenticity. Native browser checks remain separate.
+
+In **Baseline bot style conformance**, select a game to see distinct parity
+counts, then filter by behavior group or **Needs live verification** to retain
+the relevant evidence. Counts cover supplied parity rows before filters;
+Built, Partly live, Unknown and Not applicable remain separate. The documented
+tracker date is not a current live observation.
 
 **Synthetic SWTOR import with a malformed row** retains the same valid events
 while showing one reader omission separately from the producer's 27-row loss
