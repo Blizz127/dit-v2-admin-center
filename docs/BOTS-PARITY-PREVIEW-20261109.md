@@ -1403,3 +1403,36 @@ checks were not run.
 **Not delivered:** `ssh alienware-bazzite` returned `Connection timed out` at
 about 13:57Z. Nothing was written to Alienware. The latest delivered preview is
 still **7dc8b10f**. No real FFXI post-H1 or SWTOR bot-event export has arrived.
+
+## Delivered: preview 69810fda (source 8ae0267)
+
+The prepared package above was delivered unchanged after the owner handoff.
+Private folder **Alienware → Downloads → DIT-Admin-Center-Preview-69810fda**.
+Separate-connection readback at **2026-11-11T18:52:20Z** matched both files:
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 597625 | `69810fda481aa0f9171ca2ca1937b18e6250c56a473d108184cb285d9b7b1f2b` | 600 |
+| READ-ME-FIRST.txt | 1239 | `f589a98c922f843cf3dd6cab168606a8cc47271aab09b4243e5aa27c40aa2446` | 600 |
+
+**Verification:** local hashes and sizes were checked before transfer. The
+original 13:56:18Z tool result records 191 simulated-DOM checks, zero transport
+attempts and this exact HTML hash; a copy is retained at
+`build/swtor-c102-startup-smoke-original.json`. The full suite result and its
+initial socket-timeout failures remain as recorded in the prepared entry above.
+No build or test suite was repeated during delivery. Native browser/keyboard
+checks and live gameplay were not run.
+
+**Delivery and rollback:** the destination was absent, then created with mode
+700; files were written with exclusive creation. Transfer log:
+`build/swtor-c102-delivery-20261111-transfer.txt`; independent readback:
+`build/swtor-c102-delivery-20261111-readback.txt`. This supersedes delivered
+`7dc8b10f` for owner previewing; that folder and earlier previews remain.
+
+**Remaining evidence:** one read-only check still found FFXI export 7 newest.
+No concrete SWTOR export directory is documented or configured here, so this
+turn did not establish whether a first real export exists elsewhere. Real
+post-H1 FFXI and SWTOR exports are still required for live conclusions.
+No game/server deployment, player/save change, native device run or public
+release occurred. Git push remains held under the latest submitted instruction;
+the saved terminal's unsubmitted `push` text was not treated as authorization.

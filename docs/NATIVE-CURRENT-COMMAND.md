@@ -1,10 +1,10 @@
 # Current local preview verification commands
 
-UI checkpoint: `0ca43aa` (native /fb source through r83 in conformance; prior features retained).
-Delivered preview: `7dc8b10f`, **597620 bytes**.
-Local artifact: `build/DIT-Admin-Center-Preview-7dc8b10f/Admin-Center-Synthetic-Preview.html`.
-SHA-256: `7dc8b10f4177d463b124ef55db07e34663d9b5caa65f70877aa647398ad6e2b3`.
-Private copy: Alienware → Downloads → `DIT-Admin-Center-Preview-7dc8b10f`.
+UI checkpoint: `8ae0267` (SWTOR c102 client heal rows in squad combat conformance; prior features retained).
+Delivered preview: `69810fda`, **597625 bytes**.
+Local artifact: `build/DIT-Admin-Center-Preview-69810fda/Admin-Center-Synthetic-Preview.html`.
+SHA-256: `69810fda481aa0f9171ca2ca1937b18e6250c56a473d108184cb285d9b7b1f2b`.
+Private copy: Alienware → Downloads → `DIT-Admin-Center-Preview-69810fda`.
 
 ## Executed DOM fallback
 
@@ -16,10 +16,11 @@ DIT_JSDOM_MODULE="$PWD/build/dom-runtime/node_modules/jsdom" timeout 30 node too
 
 Actual result: **191 checks passed**, zero transport attempts,
 artifact hash as above, `nativeKeyboard: not-run`.
-Measured DOM construction: 482 ms; completion wait: 1282 ms. The runner generates
+Measured DOM construction: 2390 ms; completion wait: 6433 ms. The runner generates
 the current source in memory; a later source change produces a different hash.
-The recorded run passed on its first attempt. See the
-[delivery receipt](BOTS-PARITY-PREVIEW-20261109.md#delivered-preview-7dc8b10f-source-0ca43aa)
+The recorded DOM run passed at 2026-11-11T13:56:18Z; it was not rerun for the
+18:52Z delivery of the same bytes. See the
+[delivery receipt](BOTS-PARITY-PREVIEW-20261109.md#delivered-preview-69810fda-source-8ae0267)
 for focused checks and independent delivery hash readback. These timings are not a native-browser
 benchmark. Runner checkpoints
 `68af3bb`, `95afcee`, `a3034f6` use a monotonic five-second no-assertion-progress
@@ -73,8 +74,8 @@ On an authorized host with existing Chromium/Node selected through
 `DIT_CHROMIUM` / `DIT_NODE`:
 
 ```sh
-python3 tools/run_headless_playtest.py --expected-artifact-sha256 7dc8b10f4177d463b124ef55db07e34663d9b5caa65f70877aa647398ad6e2b3
-python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 7dc8b10f4177d463b124ef55db07e34663d9b5caa65f70877aa647398ad6e2b3
+python3 tools/run_headless_playtest.py --expected-artifact-sha256 69810fda481aa0f9171ca2ca1937b18e6250c56a473d108184cb285d9b7b1f2b
+python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 69810fda481aa0f9171ca2ca1937b18e6250c56a473d108184cb285d9b7b1f2b
 ```
 
 The previous Chromium attempt against artifact `96d4b70e` exited 2 before browser
