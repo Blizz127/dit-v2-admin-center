@@ -11,10 +11,16 @@ and 3 retain their contract holds. Continuing down the table finds producer or
 measurement dependencies in rows 4–8 and completed offline wiring in row 9.
 Native visual/keyboard/save verification remains separate for all rows.
 
+The [November 11 source recheck](COMPLETION-STATUS-20261111.md) distinguishes
+existing hub command-catalog and goal APIs from the Admin-specific scoped
+control contract still needed here. It also records the newer local
+parity/export review and owner playtest-plan surfaces. No live completion is
+inferred from those additions.
+
 | # | Panel | Existing offline surface | Remaining gap / next action |
 | --- | --- | --- | --- |
 | 1 | Bots, games, status | Roster filters, exact-ID inspector, ambiguity report and shared synthetic presence-review cases (`7a16041`) | Authoritative native identity, realm/instance scope and fresh presence observations are still missing. Offline review is implemented; live presence remains Unknown. |
-| 2 | Per-bot controls | Goals/memory/personality inspection and bounded page-local draft review | Upstream bot-command contract and implementation remain unresolved. No start/stop/pause or draft-save route exists; mock POST remains 405. |
+| 2 | Per-bot controls | Goals/memory/personality inspection and bounded page-local draft review | The Admin-specific scoped command contract remains unresolved. Hub catalog and admin goal APIs exist in source, but are not an authorized start/stop/pause or draft-save adapter for this app; mock POST remains 405. |
 | 3 | LLM choice | Disabled per-bot/global selectors, scoped assignment examples and audit review | Compatible routing/write contract remains unresolved; examples never apply model changes. Controls remain disabled. |
 | 4 | Call logging / bake-off | Exact model/purpose/source comparison, bounded finite means, expandable supplied samples, and off-by-default evaluator and proposed bake-off imports (`DIT_EVALUATOR_SNAPSHOT_FILE`, `DIT_BAKEOFF_RUN_DIR`) | No hub bake-off producer exists (hub lead, Nov 3). Evaluator export gaps: (a) run ID and input hash; (b) game/actor attribution; (c) time-to-first-token; (d) rubric name and evaluator version on scores; (e) delivery outcome and fallback eligibility; (f) any live or recorded runs. Live `attempts` has cost/tokens only. Building a producer is an owner decision. Synthetic fixtures are not a measured bake-off. |
 | 5 | Action/evidence ledger | Exact scope/correlation filters and separate request/result/verification; optional authenticated synthetic decision/inbox correlation through `DIT_DELIVERY_CAPTURE_FILE` and `/api/delivery-capture` | Authoritative scoped execution and native speech receipts must come from the producer. Publication is not delivery; the API supplies no verifier/replay control and actual delivery stays Unknown. |

@@ -1476,3 +1476,43 @@ Receipts: `build/admin-export-review-20261111-r1-{synthetic,export}-smoke.json`,
 exclusive, mode 700; prior preview 69810fda remains for rollback. Source commits
 are d90c113 (parity review) and 7424eb6 (export builder). No git push or live
 service/game/data/access change occurred.
+
+## Delivered: preview d9bea515 (source 115f896)
+
+Private folder **Alienware → Downloads → DIT-Admin-Center-Preview-d9bea515**.
+Open **Admin-Center-Export-Review.html**, select FFXI, FFXI Forever or SWTOR in
+Baseline bot style conformance, and expand its owner playtest checklist.
+Independent readback at **2026-11-11T19:15:33Z** verified:
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 613528 | `d9bea515d1345ef21704c029e057c89e4af4ab6e1908ea0d06755a8d2efcc945` | 600 |
+| Admin-Center-Export-Review.html | 721709 | `9bba56728f0528e4e0011e70d232d4e64c94c1a093fcad40eaae5a74326de3b8` | 600 |
+| READ-ME-FIRST.txt | 1331 | `2b46015ed6d5006675261f66b859adafb2e39679d0362ba72fa11872554dfdaf` | 600 |
+
+**Change:** eight game-specific acceptance scenarios show steps, required
+evidence and the corresponding tracker citations. SWTOR uses revive/resource/
+speeder terms; FFXI Forever uses era-correct travel and rented chocobos. Advice
+checks apply only in already-authorized sessions. Missing or ambiguous evidence
+stays Unknown; the checklist stores no results and changes no status or control.
+The earlier parity filters and explicit export builder remain included.
+
+**Verification:** focused parity/activity tests and the generated export-review
+switch/refresh/checklist DOM check passed. The exact packaged synthetic HTML
+passed 191 DOM checks (construction/completion 1472/3945 ms); the export-review
+HTML passed 193 (1332/3737 ms). Both had zero transport attempts. The unchanged
+export-builder Python checks remain those recorded for 22566d3e. No full suite,
+native browser/keyboard, download or live-game check was run.
+
+**Inputs and rollback:** still existing FFXI export 7, not post-H1; no SWTOR
+export supplied. This supersedes 22566d3e, which remains alongside 69810fda.
+Directory creation and file writes were exclusive; directory mode 700.
+Receipts are `build/admin-export-review-20261111-r2-{synthetic,export}-smoke.json`,
+`build/admin-export-review-20261111-r2-release.json`,
+`build/admin-export-review-20261111-r2-transfer.txt`, and
+`build/admin-export-review-20261111-r2-readback.json`.
+
+Source 37feb41 implements the checklist; 115f896 adds the generated-page check
+and instructions. The [completion checkpoint](COMPLETION-STATUS-20261111.md)
+records current hub-source dependencies. This release does not complete live
+controls, provision access or verify the bots. Nothing was pushed to git.

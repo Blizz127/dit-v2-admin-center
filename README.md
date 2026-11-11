@@ -85,6 +85,11 @@ See [docs/BRIEF.md](docs/BRIEF.md) for the full brief, security rules and first 
 
 ## Status
 
+The [November 11 completion checkpoint](docs/COMPLETION-STATUS-20261111.md)
+records the new export/parity review workflow and a fresh source check of the
+remaining hub contracts. Local evidence review is usable; live controls and
+native acceptance remain incomplete.
+
 A local scaffold is available. Optional read-only hub integration has been implemented and tested against an isolated stub; trusted SSH access to the hub host is verified. Live reads lack an authorized read-only credential (hub lead, November 3): every hub `/v1/control/*` route accepts only the hub administrator token, which also authorizes writes. Lifting project policy pauses does not authorize substituting that token or changing access. A reader token accepted on control GETs would require the owning hub lead's access work; exported snapshots/offline copies already work without it. Do not configure the administrator token for this app. Exported snapshots can be reviewed instead by setting `HUB_SNAPSHOT_DIR` (off when unset; feeds and times are labeled as an export, not live; see [snapshot import](docs/HUB-SNAPSHOT-IMPORT.md)). All operational controls are unavailable. See [architecture](docs/ARCHITECTURE.md), [mock API](docs/API.md), and [learning and issues](docs/LEARNING-AND-ISSUES.md).
 
 Run with Python 3 (no third-party dependencies):
@@ -340,9 +345,9 @@ jsdom checks DOM events and rendering logic; it does not establish browser
 layout or CSP enforcement, HTTP authentication, or running-service behavior.
 This workspace's installed module is `build/dom-runtime/node_modules/jsdom`;
 use `DIT_JSDOM_MODULE="$PWD/build/dom-runtime/node_modules/jsdom"` when running
-the command above. The recorded check for delivered preview `22566d3e` passed
+the command above. The recorded check for delivered preview `d9bea515` passed
 all 191 assertions with zero transport attempts. See the
-[release receipt](docs/BOTS-PARITY-PREVIEW-20261109.md#delivered-preview-22566d3e-source-7424eb6)
+[release receipt](docs/BOTS-PARITY-PREVIEW-20261109.md#delivered-preview-d9bea515-source-115f896)
 for the exact artifact hash and verification limits. Native browser and keyboard
 checks remain NOT RUN.
 

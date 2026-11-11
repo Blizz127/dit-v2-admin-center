@@ -1,27 +1,28 @@
 # Current local preview verification commands
 
-UI checkpoint: `7424eb6` (per-game parity review and explicit offline-export builder; prior features retained).
-Delivered preview: `22566d3e`, **606586 bytes**.
-Local artifact: `build/DIT-Admin-Center-Preview-22566d3e/Admin-Center-Synthetic-Preview.html`.
-SHA-256: `22566d3ea4d523fd94d102282c6920987c87af4d7ec50aa6bde46a1b91f5ae34`.
-Private copy: Alienware → Downloads → `DIT-Admin-Center-Preview-22566d3e`.
+UI checkpoint: `115f896` (per-game parity, owner playtest plans and explicit offline-export builder; prior features retained).
+Delivered preview: `d9bea515`, **613528 bytes**.
+Local artifact: `build/DIT-Admin-Center-Preview-d9bea515/Admin-Center-Synthetic-Preview.html`.
+SHA-256: `d9bea515d1345ef21704c029e057c89e4af4ab6e1908ea0d06755a8d2efcc945`.
+Private copy: Alienware → Downloads → `DIT-Admin-Center-Preview-d9bea515`.
 
 ## Executed DOM fallback
 
 From this checkout with the pinned local tool dependency:
 
 ```sh
-DIT_JSDOM_MODULE="$PWD/build/dom-runtime/node_modules/jsdom" timeout 30 node tools/run_inspector_playtest.cjs
+DIT_JSDOM_MODULE="$PWD/build/dom-runtime/node_modules/jsdom" timeout 30 node tools/run_inspector_playtest.cjs --artifact "$PWD/build/DIT-Admin-Center-Preview-d9bea515/Admin-Center-Synthetic-Preview.html"
 ```
 
 Actual result: **191 checks passed**, zero transport attempts,
 artifact hash as above, `nativeKeyboard: not-run`.
-Measured DOM construction: 1980 ms; completion wait: 8488 ms. The runner generates
-the current source in memory; a later source change produces a different hash.
-The exact packaged HTML passed before the 2026-11-11T19:11:46Z delivery.
+Measured DOM construction: 1472 ms; completion wait: 3945 ms. The command reads
+the exact packaged HTML. Without --artifact the runner generates current source
+in memory; a later source change then produces a different hash.
+The exact packaged HTML passed before the 2026-11-11T19:15:33Z delivery.
 The companion Admin-Center-Export-Review.html passed 193 checks using FFXI export 7;
 its separate hash and receipt are recorded below. See the
-[delivery receipt](BOTS-PARITY-PREVIEW-20261109.md#delivered-preview-22566d3e-source-7424eb6)
+[delivery receipt](BOTS-PARITY-PREVIEW-20261109.md#delivered-preview-d9bea515-source-115f896)
 for focused checks and independent delivery hash readback. These timings are not a native-browser
 benchmark. Runner checkpoints
 `68af3bb`, `95afcee`, `a3034f6` use a monotonic five-second no-assertion-progress
@@ -75,8 +76,8 @@ On an authorized host with existing Chromium/Node selected through
 `DIT_CHROMIUM` / `DIT_NODE`:
 
 ```sh
-python3 tools/run_headless_playtest.py --expected-artifact-sha256 22566d3ea4d523fd94d102282c6920987c87af4d7ec50aa6bde46a1b91f5ae34
-python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 22566d3ea4d523fd94d102282c6920987c87af4d7ec50aa6bde46a1b91f5ae34
+python3 tools/run_headless_playtest.py --expected-artifact-sha256 d9bea515d1345ef21704c029e057c89e4af4ab6e1908ea0d06755a8d2efcc945
+python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 d9bea515d1345ef21704c029e057c89e4af4ab6e1908ea0d06755a8d2efcc945
 ```
 
 The previous Chromium attempt against artifact `96d4b70e` exited 2 before browser
