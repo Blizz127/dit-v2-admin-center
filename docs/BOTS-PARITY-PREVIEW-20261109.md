@@ -1369,3 +1369,37 @@ exclusive file creation; readback in `build/fb-r83-delivery-readback.txt`.
 `bd47f803` and earlier previews remain. No live game/hub deployment,
 save/player change, service operation, access change or public release
 occurred.
+
+## Prepared: preview 69810fda (source 8ae0267) — not delivered
+
+| File | Bytes | SHA-256 |
+| --- | ---: | --- |
+| Admin-Center-Synthetic-Preview.html | 597625 | `69810fda481aa0f9171ca2ca1937b18e6250c56a473d108184cb285d9b7b1f2b` |
+| READ-ME-FIRST.txt | 1239 | `f589a98c922f843cf3dd6cab168606a8cc47271aab09b4243e5aa27c40aa2446` |
+
+Local package: `build/DIT-Admin-Center-Preview-69810fda/`.
+
+**Change:** SWTOR cell p-04 now says live release c102 (2026-11-11 06:18:04Z)
+makes squad bot heals use the client's standard healing rows. Evidence: every
+`private_squad*.py` and `private_solo_squad.py` module is byte-identical
+between `integrated/c56/tree` (release kt) and `integrated/c127/tree` (live
+c127, 11:32:03Z), but `private_squad.py` takes `heal_amount` from
+`private_companion_roles`, which since c102 reads `standard_healing(level)`
+when `SWTOR_HEAL_STANDARD_TABLE` is on (it is `True` in c127). Other shared
+modules the squad imports also changed (`private_combat`,
+`private_companion_combat`, `private_effects`, `private_hydra`,
+`private_learned_abilities`, `private_warrior_abilities_v2`, `private_world`
+and others); their effect on squad behaviour was not traced here. The status
+stays **Built**. The SWTOR game was not run by this lane.
+
+**Verification:** full suite at `8ae0267`: 634 Python tests and every
+`tests/*.test.js` script passed. On the first run two timing-based tests in
+`test_http_socket_deadline` failed while load average was about 250; that
+module and then the full suite passed on rerun. The exact HTML passed all 191
+simulated-DOM startup assertions, zero transport attempts (construction
+2,390 ms, completion wait 6,433 ms, under heavy load). Native browser/keyboard
+checks were not run.
+
+**Not delivered:** `ssh alienware-bazzite` returned `Connection timed out` at
+about 13:57Z. Nothing was written to Alienware. The latest delivered preview is
+still **7dc8b10f**. No real FFXI post-H1 or SWTOR bot-event export has arrived.
