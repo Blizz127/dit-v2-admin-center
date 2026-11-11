@@ -1436,3 +1436,43 @@ post-H1 FFXI and SWTOR exports are still required for live conclusions.
 No game/server deployment, player/save change, native device run or public
 release occurred. Git push remains held under the latest submitted instruction;
 the saved terminal's unsubmitted `push` text was not treated as authorization.
+
+## Delivered: preview 22566d3e (source 7424eb6)
+
+Private folder **Alienware → Downloads → DIT-Admin-Center-Preview-22566d3e**.
+Independent readback at **2026-11-11T19:11:46Z** verified:
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 606586 | `22566d3ea4d523fd94d102282c6920987c87af4d7ec50aa6bde46a1b91f5ae34` | 600 |
+| Admin-Center-Export-Review.html | 714767 | `ed687f0da353543ccfd2d71efa3926fdc31e7cfab576fff734e0ba0a7c0ec41e` | 600 |
+| READ-ME-FIRST.txt | 1239 | `6b812af510b4ed8324da0af02d46ce6783b33e913b0f909c0e8fb8bf5ab4bd46` | 600 |
+
+**Changes:** game/group/status filters and per-game parity counts retain cited
+evidence and distinguish Built, Partly live, Verified live, Unknown and Not
+applicable. Missing evidence or repeated identities withhold positive statuses.
+Explicit export inputs now build a private portable report with the existing
+parsers. Unselected sources stay Off. Input paths and unparsed lines are not
+embedded; accepted bot/event fields remain private report content. Projection
+fingerprints identify display data, not producer authenticity or raw file bytes.
+
+**Inputs:** the export-review page uses existing FFXI export 7 from November 9,
+not a post-H1 capture. No SWTOR export was supplied. Its other activity sources
+stay Off; other panels retain labeled examples and dated tracker evidence.
+
+**Verification:** eight selected-export Python tests, eight existing artifact
+tests, the parity review and bot-activity JS checks, and the generated export
+switch/refresh DOM check passed. The latter initially closed its DOM before an
+asynchronous refresh finished; the test now awaits completion and passed on
+rerun. Exact synthetic HTML passed 191 DOM checks; exact export-review HTML
+passed 193; both made zero transport attempts. Construction/completion waits
+were 1980/8488 ms and 2890/9198 ms respectively. Full suite, native browser,
+native keyboard and gameplay checks were not run.
+
+Receipts: `build/admin-export-review-20261111-r1-{synthetic,export}-smoke.json`,
+`build/admin-export-review-20261111-r1-release.json`,
+`build/admin-export-review-20261111-r1-transfer.txt`, and
+`build/admin-export-review-20261111-r1-readback.json`. Destination creation was
+exclusive, mode 700; prior preview 69810fda remains for rollback. Source commits
+are d90c113 (parity review) and 7424eb6 (export builder). No git push or live
+service/game/data/access change occurred.

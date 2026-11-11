@@ -1,10 +1,10 @@
 # Current local preview verification commands
 
-UI checkpoint: `8ae0267` (SWTOR c102 client heal rows in squad combat conformance; prior features retained).
-Delivered preview: `69810fda`, **597625 bytes**.
-Local artifact: `build/DIT-Admin-Center-Preview-69810fda/Admin-Center-Synthetic-Preview.html`.
-SHA-256: `69810fda481aa0f9171ca2ca1937b18e6250c56a473d108184cb285d9b7b1f2b`.
-Private copy: Alienware → Downloads → `DIT-Admin-Center-Preview-69810fda`.
+UI checkpoint: `7424eb6` (per-game parity review and explicit offline-export builder; prior features retained).
+Delivered preview: `22566d3e`, **606586 bytes**.
+Local artifact: `build/DIT-Admin-Center-Preview-22566d3e/Admin-Center-Synthetic-Preview.html`.
+SHA-256: `22566d3ea4d523fd94d102282c6920987c87af4d7ec50aa6bde46a1b91f5ae34`.
+Private copy: Alienware → Downloads → `DIT-Admin-Center-Preview-22566d3e`.
 
 ## Executed DOM fallback
 
@@ -16,11 +16,12 @@ DIT_JSDOM_MODULE="$PWD/build/dom-runtime/node_modules/jsdom" timeout 30 node too
 
 Actual result: **191 checks passed**, zero transport attempts,
 artifact hash as above, `nativeKeyboard: not-run`.
-Measured DOM construction: 2390 ms; completion wait: 6433 ms. The runner generates
+Measured DOM construction: 1980 ms; completion wait: 8488 ms. The runner generates
 the current source in memory; a later source change produces a different hash.
-The recorded DOM run passed at 2026-11-11T13:56:18Z; it was not rerun for the
-18:52Z delivery of the same bytes. See the
-[delivery receipt](BOTS-PARITY-PREVIEW-20261109.md#delivered-preview-69810fda-source-8ae0267)
+The exact packaged HTML passed before the 2026-11-11T19:11:46Z delivery.
+The companion Admin-Center-Export-Review.html passed 193 checks using FFXI export 7;
+its separate hash and receipt are recorded below. See the
+[delivery receipt](BOTS-PARITY-PREVIEW-20261109.md#delivered-preview-22566d3e-source-7424eb6)
 for focused checks and independent delivery hash readback. These timings are not a native-browser
 benchmark. Runner checkpoints
 `68af3bb`, `95afcee`, `a3034f6` use a monotonic five-second no-assertion-progress
@@ -74,8 +75,8 @@ On an authorized host with existing Chromium/Node selected through
 `DIT_CHROMIUM` / `DIT_NODE`:
 
 ```sh
-python3 tools/run_headless_playtest.py --expected-artifact-sha256 69810fda481aa0f9171ca2ca1937b18e6250c56a473d108184cb285d9b7b1f2b
-python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 69810fda481aa0f9171ca2ca1937b18e6250c56a473d108184cb285d9b7b1f2b
+python3 tools/run_headless_playtest.py --expected-artifact-sha256 22566d3ea4d523fd94d102282c6920987c87af4d7ec50aa6bde46a1b91f5ae34
+python3 tools/run_keyboard_playtest.py --routing-audit --gap-export --draft-review --expected-artifact-sha256 22566d3ea4d523fd94d102282c6920987c87af4d7ec50aa6bde46a1b91f5ae34
 ```
 
 The previous Chromium attempt against artifact `96d4b70e` exited 2 before browser
