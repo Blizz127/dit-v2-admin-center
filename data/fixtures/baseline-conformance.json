@@ -369,7 +369,7 @@
         },
         "p-04": {
           "status": "Built",
-          "evidence": "release kc live 11-09 10:48:48Z (integrator 072376da), not yet seen: 0 humans. Tank taunts the owner's attacker, dps/heal wait for the opener, heal tiers. Guard/Intercede, absorbs, dispels and stealth not done. Release kt (live 11-10 04:19:57Z) adds per-role reaction delays and press jitter."
+          "evidence": "release kc live 11-09 10:48:48Z, not yet seen: 0 humans. Tank taunts owner's attacker, dps/heal wait for opener, heal tiers. Guard/Intercede, absorbs, dispels, stealth not done. Live kt (11-10 04:19:57Z): role reaction delays, press jitter. Live c102 (11-11 06:18:04Z): heals use client heal rows."
         },
         "p-05": {
           "status": "Built",
