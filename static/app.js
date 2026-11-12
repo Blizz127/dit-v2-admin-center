@@ -1548,23 +1548,39 @@ function botActivityLogLoss(event) {
   const count = Number.isSafeInteger(event.reportedDropped) && event.reportedDropped >= 0 ? event.reportedDropped : 'Unknown';
   return `Producer-reported dropped rows: ${count} (this report; not summed)`;
 }
+function botActivityContext(record) {
+  const text = (value, limit) => typeof value === 'string' && value.trim() && value.length <= limit * 2 &&
+    Array.from(value).length <= limit ? value : 'Unknown';
+  const supplied = record.sessionSeq;
+  // Importers use decimal strings for the full signed 64-bit generation range.
+  // Legacy numeric values are usable only when JavaScript represents them exactly.
+  const decimal = typeof supplied === 'string' ? supplied : Number.isSafeInteger(supplied) && supplied >= 0 ? String(supplied) : '';
+  const generation = /^(0|[1-9][0-9]{0,18})$/.test(decimal) &&
+    (decimal.length < 19 || decimal <= '9223372036854775807') ? decimal : 'Unknown';
+  return `Correlation: ${text(record.correlationId, 128)} · Session generation: ${generation} · Target: ${text(record.target, 64)}`;
+}
 function botActivityDitRow(panel, bot) {
   const named = botActivityPart(bot.name), place = botActivityPart(bot.areaName), spec = botActivityPart(bot.discipline, ' · Discipline: ');
   item(panel, `${named ? `${named} (${shown(bot.actorId)})` : shown(bot.actorId)} · ${shown(bot.game)}`,
-    `Doing: ${shown(bot.doing)} · Level: ${shown(bot.level)} · Area: ${place || shown(bot.area)}${spec}`,
+    `Last recorded decision: ${shown(bot.doing)} · Level: ${shown(bot.level)} · Area: ${place || shown(bot.area)}${spec}`,
     `Last event: ${shown(bot.lastEventAt)} · Counts by type: ${botActivityCounts(bot.counts)}${botActivityChat(bot.chat)}`);
   const row = panel.lastElementChild;
   botActivityList(row, 'Events', bot.events, e => ({text: botActivityJoin([
-    botActivityPart(e.ts), botActivityPart(e.type), botActivityPart(e.severity, 'severity '), botActivityPart(e.reason),
+    botActivityPart(e.ts), botActivityPart(e.type), botActivityContext(e), botActivityPart(e.severity, 'severity '), botActivityPart(e.reason),
     botActivityPart(e.action, 'action '), botActivityPart(e.ability, 'ability '), botActivityPart(e.result, 'result '),
     botActivityPart(e.summary), botActivityLogLoss(e)])}));
   botActivityList(row, 'Deaths', bot.deaths, d => ({
-    text: botActivityJoin([botActivityPart(d.ts), `Killer: ${routingText(d.killer, 'Unknown')}`]),
+    text: botActivityJoin([botActivityPart(d.ts), botActivityContext(d), `Killer: ${routingText(d.killer, 'Unknown')}`]),
     child: botActivityNested(d.recentDecisions, botActivityAlternativeLimit, 'Recent decisions before death', r => ({text: botActivityJoin([
       botActivityPart(r.action, 'action '), botActivityPart(r.reason, 'reason ')])}))}));
   botActivityList(row, 'Advice', bot.advice, a => ({text: botActivityJoin([
-    botActivityPart(a.ts), botActivityPart(a.kind), botActivityPart(a.chosen, 'chosen '), botActivityPart(a.outcome, 'outcome '),
+    botActivityPart(a.ts), botActivityPart(a.kind), botActivityContext(a), botActivityPart(a.chosen, 'chosen '), botActivityPart(a.outcome, 'outcome '),
     botActivityPart(a.reason)])}));
+  if (Array.isArray(bot.advice) && bot.advice.length) {
+    const note = document.createElement('p');
+    note.textContent = 'Advice outcomes record choices; movement, damage and healing need separate action evidence.';
+    row.append(note);
+  }
   botActivityFeelNote(row, bot);
 }
 // Vanilla playerbots: XP-gain rows are a kill signal, not a complete kill count.

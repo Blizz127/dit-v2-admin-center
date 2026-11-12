@@ -31,6 +31,8 @@ const toggleDetails = (details, open = true) => {
   details.listeners.toggle({target: details});
 };
 const openLists = row => row.children.filter(child => child.tag === 'details').forEach(details => toggleDetails(details));
+const activityList = (row, label) => row.children.find(child => child.tag === 'details' &&
+  child.children[0]?.textContent.startsWith(`${label} (`));
 
 const decision = {ts: '2026-01-01T00:00:01Z', engine: 'noncombat', trigger: 'low health', action: 'eat food', reason: 'hp below 40%',
   relevance: 60, band: 'NORMAL', effective: 61, alternatives: [
@@ -396,17 +398,84 @@ setImmediate(() => {
   // bot_event rows: counts by type, events, deaths with recent decisions, advice with outcome; malformed rows are Unknown.
   const [d1, d2] = dit.children[5].children;
   assert.equal(d1.children[0].textContent, '2001 · swtor');
-  assert.equal(d1.children[1].textContent, 'Doing: Accept mission · Level: 12 · Area: Coruscant');
+  assert.equal(d1.children[1].textContent, 'Last recorded decision: Accept mission · Level: 12 · Area: Coruscant');
   assert.equal(d1.children[2].textContent, 'Last event: 2026-11-09T05:00:00Z · Counts by type: decision 2, advice 1, death 1');
-  const [ditEvents, ditDeaths, ditAdvice] = d1.children.slice(3);
+  const [ditEvents, ditDeaths, ditAdvice] = ['Events', 'Deaths', 'Advice'].map(label => activityList(d1, label));
   assert.equal(ditEvents.children.length, 1, 'DIT event bodies also wait until opened');
   openLists(d1); openLists(d2);
-  assert.equal(ditEvents.children[1].children[0].textContent, '2026-11-09T05:00:00Z · advice · severity 1 · choice · action accept · result applied');
+  const unknownDitContext = 'Correlation: Unknown · Session generation: Unknown · Target: Unknown';
+  assert.equal(ditEvents.children[1].children[0].textContent,
+    `2026-11-09T05:00:00Z · advice · ${unknownDitContext} · severity 1 · choice · action accept · result applied`);
   assert.equal(ditDeaths.children[0].textContent, 'Deaths (1)');
-  assert.equal(ditDeaths.children[1].children[0].textContent, '2026-11-09T04:50:00Z · Killer: Gundark');
+  assert.equal(ditDeaths.children[1].children[0].textContent, `2026-11-09T04:50:00Z · ${unknownDitContext} · Killer: Gundark`);
   assert.deepEqual(ditDeaths.children[1].children[0].children[0].children.map(li => li.textContent), ['action attack · reason pull', 'Unknown']);
-  assert.equal(ditAdvice.children[1].children[0].textContent, '2026-11-09T05:00:00Z · mission · chosen accept · outcome applied · ok');
-  assert.equal(d2.children[1].textContent, 'Doing: <script>alert(2)</script> · Level: Unknown · Area: Unknown');
+  assert.equal(ditAdvice.children[1].children[0].textContent,
+    `2026-11-09T05:00:00Z · mission · ${unknownDitContext} · chosen accept · outcome applied · ok`);
+  for (const list of [ditEvents, ditDeaths, ditAdvice]) {
+    const text = list.children[1].children[0].textContent;
+    for (const label of ['Correlation', 'Session generation', 'Target']) {
+      assert.ok(text.includes(`${label}: Unknown`), `older snapshots without ${label} retain an explicit Unknown`);
+    }
+  }
+  assert.ok(everything(d1).includes('Advice outcomes record choices; movement, damage and healing need separate action evidence.'),
+    'advice disposition must be distinguished from proof of a native action or effect');
+  assert.equal(d2.children[1].textContent, 'Last recorded decision: <script>alert(2)</script> · Level: Unknown · Area: Unknown');
+
+  // Existing producer correlation, login generation and target identify evidence; no outcome is promoted.
+  const renderDitContext = contexts => {
+    const container = new Element('div');
+    context.botActivityDitRow(container, {...ditBots[0],
+      events: contexts.map(fields => ({...ditBots[0].events[0], ...fields})),
+      deaths: contexts.map(fields => ({...ditBots[0].deaths[0], ...fields})),
+      advice: contexts.map(fields => ({...ditBots[0].advice[0], ...fields})),
+    });
+    const row = container.children[0];
+    openLists(row);
+    return ['Events', 'Deaths', 'Advice'].map(label => ({label,
+      lines: activityList(row, label).children[1].children.map(li => li.textContent)}));
+  };
+  const beforeContextRendering = requests.length;
+  const distinctContexts = [
+    {correlationId: 'request-a', sessionSeq: '0', target: 'target-a'},
+    {correlationId: 'request-b', sessionSeq: '9223372036854775807', target: 'target-b'},
+    {correlationId: 'request-legacy', sessionSeq: 0, target: 'target-legacy'},
+  ];
+  for (const {label, lines} of renderDitContext(distinctContexts)) {
+    assert.equal(lines.length, distinctContexts.length, `${label}: otherwise identical records remain distinct`);
+    for (const [index, fields] of distinctContexts.entries()) {
+      assert.ok(lines[index].includes(`Correlation: ${fields.correlationId}`), `${label}: request identity is retained`);
+      assert.ok(lines[index].includes(`Session generation: ${fields.sessionSeq}`), `${label}: generation is exact, including zero and 64-bit maximum`);
+      assert.ok(lines[index].includes(`Target: ${fields.target}`), `${label}: target is retained`);
+      assert.ok(!lines[index].includes('Session generation: 9223372036854776000'), '64-bit generations must never be rounded through Number');
+    }
+  }
+  for (const invalid of [undefined, null, '', '  ', 0, false, [], {}]) {
+    for (const {label, lines} of renderDitContext([{correlationId: invalid, sessionSeq: '7', target: invalid}])) {
+      assert.ok(lines[0].includes('Correlation: Unknown'), `${label}: malformed correlation is Unknown`);
+      assert.ok(lines[0].includes('Target: Unknown'), `${label}: malformed target is Unknown`);
+      assert.ok(lines[0].includes('Session generation: 7'), `${label}: malformed adjacent fields do not erase valid generation`);
+    }
+  }
+  for (const sessionSeq of [undefined, null, '', ' ', '-1', '1.5', '+1', '1e3', '00', ' 1 ',
+    '9223372036854775808', -1, 0.5, NaN, Infinity, true, [], {}, Number.MAX_SAFE_INTEGER + 1]) {
+    for (const {label, lines} of renderDitContext([{correlationId: 'request-valid', sessionSeq, target: 'target-valid'}])) {
+      assert.ok(lines[0].includes('Session generation: Unknown'), `${label}: malformed or unsafe generation ${String(sessionSeq)} is Unknown`);
+      assert.ok(lines[0].includes('Correlation: request-valid') && lines[0].includes('Target: target-valid'),
+        `${label}: an unknown generation does not erase supplied correlation and target`);
+    }
+  }
+  const literalContext = {correlationId: '<img src=x onerror=alert(7)>', sessionSeq: '7', target: '<svg onload=alert(8)>'};
+  for (const {label, lines} of renderDitContext([literalContext])) {
+    assert.ok(lines[0].includes(`Correlation: ${literalContext.correlationId}`), `${label}: correlation markup stays literal text`);
+    assert.ok(lines[0].includes(`Target: ${literalContext.target}`), `${label}: target markup stays literal text`);
+  }
+  const unicodeContext = {correlationId: '🧭'.repeat(128), sessionSeq: '7', target: '🎯'.repeat(64)};
+  for (const {label, lines} of renderDitContext([unicodeContext])) {
+    assert.ok(lines[0].includes(`Correlation: ${unicodeContext.correlationId}`), `${label}: schema character limits count Unicode code points`);
+    assert.ok(lines[0].includes(`Target: ${unicodeContext.target}`), `${label}: full valid Unicode target is retained`);
+  }
+  assert.deepEqual(htmlWrites, [], 'context strings never become HTML');
+  assert.equal(requests.length, beforeContextRendering, 'rendering evidence context never requests live data');
   // Vanilla playerbots: observed pull/XP rows, repeated pulls without recorded XP or loot, and hearthstone reasons.
   const [v1, v2] = sectionsOf()[2].children[5].children;
   assert.equal(v1.children[3].children.length, 1, 'Vanilla event bodies also wait until opened');
@@ -435,10 +504,10 @@ setImmediate(() => {
   assert.equal(d2.children[0].textContent, 'Kade (2002) · ffxi-forever');
   // Chat totals appear only for a bot with chat rows; a bot without the field (d1, an older snapshot) shows none.
   assert.equal(d2.children[2].textContent, 'Last event: Unknown · Counts by type: Unknown · Chat: voiced 3, dropped 2 (NO_LISTENER 2)');
-  assert.equal(d2.children[3].children[0].textContent, 'Events (0)');
-  assert.match(d2.children[3].children[1].textContent, /Events: none in the export/);
-  assert.equal(d2.children[5].children[0].textContent, 'Advice (Unknown)', 'a non-list advice field is Unknown, not empty');
-  assert.match(d2.children[5].children[1].textContent, /Unknown \(missing or malformed in the export\)/);
+  assert.equal(activityList(d2, 'Events').children[0].textContent, 'Events (0)');
+  assert.match(activityList(d2, 'Events').children[1].textContent, /Events: none in the export/);
+  assert.equal(activityList(d2, 'Advice').children[0].textContent, 'Advice (Unknown)', 'a non-list advice field is Unknown, not empty');
+  assert.match(activityList(d2, 'Advice').children[1].textContent, /Unknown \(missing or malformed in the export\)/);
 
   // Producer loss is disclosed per error report; reader omissions and other event types stay separate.
   const lossReport = {ts: '2026-11-09T05:00:00Z', type: 'error', severity: 2, reason: 'LOG_DROPPED',
@@ -448,8 +517,9 @@ setImmediate(() => {
       coverage: {...ditSource.coverage, records: events.length, omitted: 0},
       bots: [{...ditBots[0], actorId: 'bot_events', events}]})); render();
     const row = sectionsOf()[1].children[5].children[0];
-    toggleDetails(row.children[3]);
-    return row.children[3].children[1].children.map(li => li.textContent);
+    const list = activityList(row, 'Events');
+    toggleDetails(list);
+    return list.children[1].children.map(li => li.textContent);
   };
   const beforeLossSnapshots = requests.length;
   for (const reportedDropped of [undefined, null, '27', -1, 1.5, true, [], {}, Number.MAX_SAFE_INTEGER + 1]) {

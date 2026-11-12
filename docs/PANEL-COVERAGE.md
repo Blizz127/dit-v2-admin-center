@@ -1,5 +1,14 @@
 # Brief panel coverage — offline review, October 30
 
+November 12 evidence-context correction: DIT bot-event projections now retain
+the supplied correlation, target and exact decimal login generation in event,
+death and advice entries. Previously these validated fields were discarded,
+making otherwise identical requests from different sessions indistinguishable.
+Missing fields stay Unknown; unsafe numeric generations are withheld in the
+display. The last-recorded-decision label and advice note distinguish recorded
+choices from actual effects. This adds no live reader, action, identity join or
+parity promotion.
+
 This tracks mock UI coverage, not live capability or completion of upstream
 contracts. Review follows the nine features in BRIEF.md. Disabled writes remain
 intentional; a synthetic UI must not silently activate them.

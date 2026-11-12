@@ -218,6 +218,7 @@ class BotEventTests(unittest.TestCase):
         self.assertEqual(worker['counts'], {'decision': 1})
         hub = by_actor['2002']
         self.assertEqual(hub['advice'], [{'ts': advice['ts'], 'kind': 'rotation_profile', 'chosen': 'conserve_mp',
+                                          'correlationId': advice['correlation_id'], 'sessionSeq': '3', 'target': None,
                                           'outcome': 'applied', 'reason': advice['details']['reason']}])
         # The request, the response and the advice row describe one exchange.
         self.assertEqual(request['request_id'], advice['correlation_id'])
@@ -233,7 +234,31 @@ class BotEventTests(unittest.TestCase):
         for private in ('owner_party', 'camp', 'rest_at', 'radius', 'fields', 'tank'):
             self.assertNotIn(private, text)
         self.assertEqual(set(bots[0]['events'][0]),
-                         {'ts', 'type', 'severity', 'reason', 'summary', 'action', 'result', 'ability', 'reportedDropped'})
+                         {'ts', 'type', 'severity', 'reason', 'summary', 'action', 'result', 'ability', 'reportedDropped',
+                          'correlationId', 'sessionSeq', 'target'})
+
+    def test_distinct_advice_trace_context_survives_json_projection(self):
+        bot = self.only_bot(
+            advice_row(correlation_id='request-zero', session_seq=0, target='mob-a'),
+            advice_row(correlation_id='request-max', session_seq=events.MAX_SESSION, target='mob-b'))
+        exported = json.loads(json.dumps(bot))
+        expected = [('request-max', '9223372036854775807', 'mob-b'), ('request-zero', '0', 'mob-a')]
+        for collection in ('events', 'advice'):
+            self.assertEqual([(row['correlationId'], row['sessionSeq'], row['target'])
+                              for row in exported[collection]], expected)
+        self.assertEqual(exported['counts'], {'advice': 2})
+        self.assertTrue(all(row['outcome'] == 'applied' for row in exported['advice']))
+        self.assertIsNone(exported['doing'])  # Advice does not become a recorded native decision.
+
+    def test_missing_trace_context_and_death_context_are_not_invented(self):
+        missing = self.only_bot(base(correlation_id=MISSING, session_seq=MISSING, target=MISSING))
+        self.assertEqual({k: missing['events'][0][k] for k in ('correlationId', 'sessionSeq', 'target')},
+                         {'correlationId': None, 'sessionSeq': None, 'target': None})
+        death = self.only_bot(death_row(correlation_id='death-request', session_seq=events.MAX_SESSION,
+                                       target='<mob>'))
+        for collection in ('events', 'deaths'):
+            self.assertEqual({k: death[collection][0][k] for k in ('correlationId', 'sessionSeq', 'target')},
+                             {'correlationId': 'death-request', 'sessionSeq': '9223372036854775807', 'target': '<mob>'})
 
     # Required fields, types, enums, lengths and patterns
 
@@ -393,7 +418,8 @@ class BotEventTests(unittest.TestCase):
     def test_death_carries_killer_and_recent_decisions(self):
         bot = self.only_bot(death_row())
         self.assertEqual(bot['deaths'], [{'ts': DECISION_TS, 'killer': 'Gorax', 'recentDecisions': [
-            {'action': 'travel', 'reason': 'NO_PATH'}, {'action': 'pull', 'reason': None}]}])
+            {'action': 'travel', 'reason': 'NO_PATH'}, {'action': 'pull', 'reason': None}],
+            'correlationId': None, 'sessionSeq': '1', 'target': None}])
 
     def test_recent_decisions_accept_the_latest_eight_and_refuse_nine(self):
         eight = [{'action': f'act{n}', 'reason': 'R'} for n in range(8)]
@@ -425,7 +451,8 @@ class BotEventTests(unittest.TestCase):
         self.assertIsNone(self.only_bot(death_row({'killer': 9}))['deaths'][0]['killer'])
         row = death_row()
         row.pop('details')
-        self.assertEqual(self.only_bot(row)['deaths'][0], {'ts': DECISION_TS, 'killer': None, 'recentDecisions': []})
+        self.assertEqual(self.only_bot(row)['deaths'][0], {'ts': DECISION_TS, 'killer': None, 'recentDecisions': [],
+                                                       'correlationId': None, 'sessionSeq': '1', 'target': None})
 
     def test_deaths_are_newest_first_and_capped_at_fifty(self):
         rows = [death_row({'killer': f'k{n}'}, ts=f'2026-11-09T05:00:{n:02d}.000Z') for n in range(55)]
@@ -945,7 +972,8 @@ class BotEventTests(unittest.TestCase):
         parsed = events._parse(json.dumps(base()).encode())
         self.assertEqual(set(parsed), {'game', 'actorId', 'ts', 'type', 'severity', 'reason', 'summary', 'level',
                                        'area', 'action', 'result', 'advice', 'killer', 'recent', 'chat', 'name',
-                                       'areaName', 'ability', 'discipline', 'reportedDropped'})
+                                       'areaName', 'ability', 'discipline', 'reportedDropped',
+                                       'correlationId', 'sessionSeq', 'target'})
 
 
 if __name__ == '__main__':

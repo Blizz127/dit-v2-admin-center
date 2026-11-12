@@ -31,6 +31,9 @@ Rules enforced here:
   non-AI line) counts in the bot's chat drops.
 - An error/LOG_DROPPED row exposes a safe nonnegative integer details.dropped as reportedDropped, or None
   when missing/invalid. Counts are per report, never summed or added to reader omissions; reports may overlap.
+- Events, deaths and advice retain supplied correlation_id, target and session_seq. Login generation is
+  projected as an exact decimal string because the accepted 64-bit range exceeds JavaScript's safe integers.
+  These are record context, not identity joins, action verification or a life/death counter.
 - Duplicate keys, NaN and Infinity are refused. Lines over MAX_LINE are refused unparsed.
 - Symlinked files and directories are refused. Only regular files are opened, and a FIFO is never
   waited on. A refused file is skipped, and the other files still load.
@@ -313,6 +316,8 @@ def _row(data):
         reported_dropped = None
     return {'game': data['game'], 'actorId': data['actor_id'], 'ts': data['ts'], 'type': kind,
             'severity': data['severity'], 'reason': data.get('reason'), 'summary': data.get('summary'),
+            'correlationId': data.get('correlation_id'), 'target': data.get('target'),
+            'sessionSeq': str(data['session_seq']) if data.get('session_seq') is not None else None,
             'level': data.get('level'), 'area': data.get('area'), 'action': action, 'result': result,
             'advice': advice, 'killer': killer, 'recent': recent, 'chat': chat,
             'name': _label(details.get('actor_key'), NAME_RE), 'areaName': _label(details.get('area_name'), AREA_NAME_RE),
@@ -351,11 +356,14 @@ def _project(key, entries):
     area_name = next((row['areaName'] for row in newest if row['area'] == area and row['areaName'] is not None), None)
     events = [{'ts': row['ts'], 'type': row['type'], 'severity': row['severity'], 'reason': row['reason'],
                'summary': row['summary'], 'action': row['action'], 'result': row['result'], 'ability': row['ability'],
+               'correlationId': row['correlationId'], 'sessionSeq': row['sessionSeq'], 'target': row['target'],
                'reportedDropped': row['reportedDropped']}
               for row in newest[:MAX_EVENTS]]
-    deaths = [{'ts': row['ts'], 'killer': row['killer'], 'recentDecisions': row['recent']}
+    deaths = [{'ts': row['ts'], 'killer': row['killer'], 'recentDecisions': row['recent'],
+               'correlationId': row['correlationId'], 'sessionSeq': row['sessionSeq'], 'target': row['target']}
               for row in newest if row['type'] == 'death'][:MAX_DEATHS]
     advice = [{'ts': row['ts'], 'kind': row['advice']['kind'], 'chosen': row['advice']['choice'],
+               'correlationId': row['correlationId'], 'sessionSeq': row['sessionSeq'], 'target': row['target'],
                'outcome': row['advice']['outcome'], 'reason': row['advice']['reason']}
               for row in newest if row['type'] == 'advice'][:MAX_ADVICE]
     # Chat totals over every kept chat row: lines voiced, lines dropped, and the drops by reason. Never the text.

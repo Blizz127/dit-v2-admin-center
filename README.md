@@ -758,3 +758,11 @@ two synthetic reports and network disabled. The separate
 of eight publication/receipt states, including explicitly fabricated native
 matches. Both remain local artifacts with native browser NOT RUN; the
 [checklist](docs/CONTEXT-NATIVE-BROWSER-CHECKLIST.md) preserves device and live-game holds.
+
+DIT bot-event activity retains supplied `correlationId`, `target` and
+`sessionSeq` in events, deaths and advice. `sessionSeq` is an exact decimal
+string (or null), preserving the producer's full signed 64-bit login generation
+without JavaScript rounding. Missing context displays Unknown. The summary
+shows the last recorded decision; advice outcomes describe choices and require
+separate native action evidence. These fields do not create identity joins or
+promote parity status.

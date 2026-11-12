@@ -463,6 +463,21 @@ try {
   check(textOf('bot-activity-coverage') === activityCoverage && textOf('baseline-conformance') === baselineText
     && document.querySelectorAll('#bot-activity-sources .bot-source').length === 3,
     'Final preview restores the full bot exports and parity evidence after inspector scenarios');
+  const tracePanel = document.querySelectorAll('#bot-activity-sources .bot-source')[1];
+  const traceRow = [...tracePanel.querySelectorAll('.row')]
+    .find(row => row.firstElementChild.textContent === '2002 · ffxi_forever');
+  const traceAdvice = [...traceRow.querySelectorAll('details')]
+    .find(details => details.querySelector('summary').textContent.startsWith('Advice'));
+  traceAdvice.open = true;
+  await settle(() => traceAdvice.children.length === 2);
+  check(traceAdvice.textContent.includes('Correlation: adv-2002-0007')
+    && traceAdvice.textContent.includes('Session generation: 3')
+    && traceAdvice.textContent.includes('Target: Unknown')
+    && traceAdvice.textContent.includes('outcome applied'),
+    'Imported advice retains its supplied request and login-generation context in the packaged page');
+  check(traceRow.textContent.includes('Last recorded decision: Unknown')
+    && traceRow.textContent.includes('movement, damage and healing need separate action evidence'),
+    'Applied advice remains distinct from a recorded native decision and action evidence');
   const paritySample = document.getElementById('parity-sample');
   const paritySampleNote = document.getElementById('parity-sample-note');
   paritySample.addEventListener('change', () => {
