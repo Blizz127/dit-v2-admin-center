@@ -1,5 +1,11 @@
 # Owner goal (2026-11-09): FFXI, FFXI Forever and SWTOR bots at WoW Forever level, with DIT and AI
 
+**Current direction, November 12:** update WoW Forever to the latest upstream
+bot release and study it for the other games; improve FFXI Forever and bring
+SWTOR bots and the `/fb` interface online. The current upstream target is
+**0.1.35**. The November 9 reference and receipts below remain historical
+evidence, not proof of the newer target. See the owner extension at the end.
+
 ## Owner's words (Admin Center terminal, 2026-11-08/09)
 
 > this is what i want to see in all bots with dit integration using ai as it can
@@ -140,3 +146,92 @@ It builds on the live Python server (c30) first; Rust sw-squad mirrors it.
   - go on the population socket and the DIT driver.
 - **Commands:** only the bot's owner, like WoW Forever.
 - **Keep:** the custom FFXI content; replace only behaviours and chat.
+
+## Owner extension — 2026-11-12
+
+The owner reported poor FFXI Forever following, bots idle while the owner fought,
+an ineffective `/fb attack`/threat rescue, and a death. These are owner gameplay
+observations; the cause has not been reproduced by this lane. The owner then
+said **“deploy it”** about the pending follow/owner-defense increment, followed
+by a request to update WoW Forever bots and study them for “ff11 14 and swtor,”
+get SWTOR bots and `/fb` online, and keep improving FFXI Forever.
+
+### Latest reference
+
+GitHub's live REST `releases/latest` response on November 12 identifies stable
+[WoW Forever Bots v0.1.35](https://github.com/Karrz1/Karrz-playerbots-wow-forever/releases/tag/v0.1.35),
+published `2026-11-12T00:23:08Z`. The cached release-list page still showed
+0.1.34 and is not the version authority for this increment.
+
+- Source asset: `wow-forever-source-0.1.35.zip`, 53,988,946 bytes.
+- GitHub-published SHA256: `828c30f8f1bb7735a772abc62d55a07036d6291f97ad1fe0eb429c64d57836de`.
+- Use the actual release source asset. A shared or old tag commit alone does
+  not establish the contents of this release.
+- Preserve DIT integration and local fixes when updating WoW. Continue native
+  design reuse in other games; do not copy WoW assets, IDs, saves or code into
+  their implementations. Upstream release notes are not local gameplay proof.
+
+The exact source archive was downloaded separately for study and matched that
+size and SHA256. Provenance and selected-file hashes are retained under
+`/home/blizz/scratch-build/wow-forever-bot-reference-0135-20261112/`
+in `retrieval.json` and `selected-source-manifest.json`. Selected files were
+read without executing or building upstream code. This is reference study,
+not an installed WoW update.
+
+The first native design comparisons use these paths under
+`src/modules/PlayerbotV2` in the verified archive:
+
+| Source pattern | Native behavior to compare or implement |
+| --- | --- |
+| `Bot/States/State_InGroup.cpp` considers the owner's melee/casting target and attackers of party members | Join the owner's existing legal fight even when the owner is casting or has no melee victim. This pattern already existed in 0.1.33; compare the native integration instead of treating it as a new upstream feature. |
+| `Bot/States/State_InGroup.cpp` separates in-combat behavior from following and recognizes the owner's current transport | One movement controller should own the bot at a time. Joining a fight must not compete with the follow controller; transport transitions need explicit handling instead of chasing a moving deck across terrain. |
+| `Combat/Apl/ApTankThreat.h` selects eligible threats against party members and checks reach from actual known ability data | Prioritize rescuing the threatened owner/ally using the game's native abilities, target legality and cooldowns. Do not invent a generic taunt or copy WoW ranges/IDs. |
+| `Combat/Apl/HealClaimStore.h` releases a pending-heal claim when the native cast is refused | Other healers must not count a queued or refused heal as delivered. Track actual cast outcome, cancellation and expiry before suppressing another heal. |
+| `Fleet/CompanionRole.h` and `LfgRoleGap.h` distinguish owner role choices from inferred capabilities and unfilled party roles | Keep native role assignments authoritative, validate actual capabilities and show missing tank/healer coverage. A driver-inferred role alone does not establish a native tank. |
+
+These are implementation comparisons, not claims that the corresponding game
+feature is absent. Extend existing native behavior and focused checks where
+it already exists; keep AI off the immediate movement and survival path.
+
+### Existing owners and next increments
+
+| Target | Next increment and evidence boundary |
+| --- | --- |
+| WoW Forever | Existing `trinitycore-forever` task `c74bdf770f95` owns the update. The new latest-version request supersedes its older 0.1.33 target, not its inventory/sale integrity hold or player, backup, rollback and deployment exclusion checks. The last inspected receipt still had the older bot runtime; no new live version is claimed here. |
+| FFXI Forever | Existing FFXI/native and platform integrators retain the rc72 `299c` / matching driver pairing. Owner deployment approval supersedes the missing-successor-approval hold. The failed exact-runtime startup attempt and existing correction still require a real successful result; release only at zero humans with backup and paired rollback. Do not redeploy the already-installed rc70/2051 pair. |
+| SWTOR | Existing `swtor-preservation` owner brings the bots and owner-facing `/fb` interface online through its current server and command path. Extend existing squad controls instead of creating another control authority. Verify the client's actual command transport, owner/target validation and real action outcome. Deploy only at zero players with a backup and unchanged progress. |
+| “14” | No FFXIV project/runtime was found in the configured project registry or current task records. An owner clarification is pending; do not silently equate this new request with FFXI Forever or create a competing lane. Work on the other three targets continues. |
+
+The inspected SWTOR c149/20261112a receipt already has the invited squad engine
+and `.squad` / `!squad` / `.squadbar` controls enabled. No `/fb` alias was found
+in the inspected command modules. Its native client test is unrun; receipt
+readback is not a fresh gameplay check. Extend these controls and the current
+c150 work rather than rebuilding them. Unsolicited off-duty bots and
+`SWTOR_BOT_ADVICE` remain explicitly off; native test-account/device activation,
+the encounter-scaling choice and existing recovery/stronghold pauses remain
+held. The new request does not silently resolve those earlier restrictions.
+
+### Focused behavior checks
+
+1. Follow the owner, then join the owner's valid fight without requiring an
+   extra attack order. Test the owner initiating combat before receiving a hit
+   separately from rescuing an owner who is already being attacked. rc72's
+   owner-hit defense does not by itself prove proactive assistance.
+2. Confirm an explicit attack command reaches the native handler with the
+   intended current target and produces an actual action or a visible reason
+   for refusal. Server chat parsing alone does not prove direct client slash
+   command support.
+3. Verify native tank/healer roles, legal available abilities and real threat
+   rescue/healing; an inferred driver role or command acknowledgement is not
+   execution evidence.
+4. Resume following after combat and area transfer; clear stale targets after
+   death/respawn. Preserve explicit Stay/Rest and owner cancellation.
+5. Keep immediate party behavior working with AI absent or late. The hub advice
+   endpoint exists in source, but no applied advice exchange was established
+   for the installed Forever path. Any advice integration uses offered legal
+   options and native revalidation through the existing authorized route.
+
+Use focused build/startup checks and a quick smoke of the changed behavior,
+then hand the private increment to the owner. None of these requests authorizes
+progress resets, new credentials/access, spending, public release or git pushes.
+No tracker cell is promoted merely because an update was requested or queued.
