@@ -1516,3 +1516,39 @@ Source 37feb41 implements the checklist; 115f896 adds the generated-page check
 and instructions. The [completion checkpoint](COMPLETION-STATUS-20261111.md)
 records current hub-source dependencies. This release does not complete live
 controls, provision access or verify the bots. Nothing was pushed to git.
+
+## Delivered preview 40bb2489 (source a1840aa)
+
+Delivered to Alienware `~/Downloads/DIT-Admin-Center-Preview-40bb2489/`.
+Independent readback at **2026-11-12T06:49:25Z** verified:
+
+| File | Bytes | SHA-256 | Mode |
+| --- | ---: | --- | --- |
+| Admin-Center-Synthetic-Preview.html | 618515 | `40bb248996e8342a0db89d4b147cddfb16f9ba8da8e55ebf726f3117e444ff58` | 600 |
+| Admin-Center-Export-Review.html | 726696 | `feb371a864bdbbb507c1fd4c5c6981a181e9bebcdfc8915b3b532ea33eadbd40` | 600 |
+| READ-ME-FIRST.txt | 1364 | `f89441f7f9027c7d403ca22cd38290818aa9e2f6cd3fd85a23501128e330eea0` | 600 |
+
+**Change:** imported DIT events, deaths and advice preserve supplied correlation
+IDs, targets and login generations. Generations are exact decimal strings,
+including the signed 64-bit maximum; malformed or absent context displays
+Unknown. The summary says Last recorded decision, and advice explicitly needs
+separate action evidence. This adds no identity join, live read or status change.
+
+**Verification:** 78 importer tests, 8 selected-export tests and the focused
+activity display check passed. Final exact packaged HTML passed 193 synthetic /
+195 export DOM checks, zero transport attempts (construction/completion:
+1032/3542 ms and 1327/4619 ms). The changed feature is exercised in the packaged
+page using existing schema examples. Initial importer verification caught one
+outdated expected field allowlist, corrected before passing. An earlier parallel
+export smoke hit the ten-second total limit at 174 checks with zero runtime
+errors/transport attempts; the final artifacts passed sequentially without
+changing the harness limits. Native browser, keyboard, download, gameplay and
+full-suite checks were not run.
+
+**Inputs and rollback:** still FFXI export 7, not post-H1; no new SWTOR export
+was supplied. Preview `d9bea515` remains on Alienware. New directory creation
+and file writes were exclusive; directory mode 700. Receipts are
+`build/trace-context-20261112-r2-{synthetic,export}-smoke.json`,
+`build/trace-context-20261112-release.json`,
+`build/trace-context-20261112-transfer.json` and
+`build/trace-context-20261112-readback.json`. No game/hub deployment or git push.

@@ -1,5 +1,13 @@
 # Admin Center completion checkpoint — 2026-11-11
 
+November 12 update: source `a1840aa`, private preview **40bb2489**, preserves
+correlation, target and exact login generation in imported event/death/advice
+records. Alienware delivery was independently verified at 06:49:25Z; see the
+[release receipt](BOTS-PARITY-PREVIEW-20261109.md#delivered-preview-40bb2489-source-a1840aa).
+The version-pinned bot behavior study is complete in `164a3d3` and consumed by
+existing implementation owners. Neither addition closes the live-contract,
+native-verification or real-export dependencies below.
+
 Assignment: owner relay `bb5ec07bb0ebb6fd`, continue autonomously toward the
 Admin Center brief while preserving explicit access, data, player and push
 restrictions. The application is **not complete as a live control center**.
