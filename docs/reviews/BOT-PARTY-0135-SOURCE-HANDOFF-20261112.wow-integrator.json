@@ -1,0 +1,81 @@
+{
+  "artifact_kind": "additive_integrator_result",
+  "date": "2026-11-12",
+  "owner_scope": "bot-update-owner-20261112-061630",
+  "existing_task": "c74bdf770f95",
+  "relationship": "Attachment to the completed source study only. No source retarget, supersession, new task, implementation intake, writer or release gate.",
+  "original_handoff": {
+    "path": "BOT-PARTY-0135-SOURCE-HANDOFF-20261112.json",
+    "sha256": "9be79ca38ac3f8d1a1e0e15972527806306909e29e6f81420818b1d7f271b401",
+    "unchanged": true,
+    "already_consumed_by_integrator": true
+  },
+  "candidate": {
+    "version": "WoW Forever Bots 0.1.35 with local DIT/guard integration",
+    "commit": "e5e7c3a4006ed5040b5711a29d4517803261f74a",
+    "tree": "bb3fb45a0ac57e923ad230d771d8f5774943d84e",
+    "worktree": "/home/blizz/build/tcf-local/src-70790-0135",
+    "bundle": "/home/blizz/scratch/forever-bots-0135-20261112/candidate-source-only.bundle",
+    "bundle_bytes": 467643,
+    "bundle_sha256": "1bb03930f4de9b59d1d778a5c7aa819de39cd11b570dba5b330cd05908f1c674",
+    "state": "Source prepared, not installed. This candidate is distinct from the upstream archive reference and from every target game's native runtime evidence."
+  },
+  "reported_integrator_deltas": [
+    "Saved per-owner boss tactics and Zul'Gurub mechanics.",
+    "Exact companion-class choice while preserving local fixed persona identity.",
+    "Future-level gift-gear decisions and staged trade delivery.",
+    "Gathering, reach-memory and swim-follow changes.",
+    "Optional external file-bridge source; enable/actions remain off."
+  ],
+  "retained_local_behavior": [
+    "AiOnly retains the existing DIT routing.",
+    "Pending external-bridge speech is not recorded as delivery.",
+    "New scripted raid/trade paths remain gated; new raid chatter defaults off.",
+    "Bridge/actions remain off; no provider/model activation follows from this result."
+  ],
+  "retained_verification": {
+    "performed_by": "Existing WoW integrator; independently audited in the supplied coordinator review.",
+    "review_recorded_at": "2026-11-12T06:58:27.987901+00:00",
+    "review_path": "/home/blizz/.local/share/devbox-coordinator-state/workspace/records/bot-update-owner-20261112-061630/wow-0135-candidate/review.json",
+    "review_sha256": "aa172c255959a8c87bf7446c4bdbded2581b2041f1377f8c9f1c4f19a61a3bed",
+    "prepared_evidence_hashes_verified_by_coordinator": 17,
+    "focused_actual_header_checks": {
+      "assertions": 933,
+      "cases": 47,
+      "result": "PASS",
+      "scope": "Candidate BotTrade, Gathering, ReachMemory and BotSwim actual-header checks through four existing test files.",
+      "rerun_by_admin_lane": false,
+      "limitations": "Not complete module translation-unit compilation, full server linking/build, configured startup, inventory transaction proof, actual movement, migration correctness or native-client gameplay."
+    }
+  },
+  "preserved_dependencies_at_review": {
+    "migration": {
+      "file": "sql/playerbot_v2/0039_owner_tactics.sql",
+      "sha256": "2a1393a5f7b482424de4c22b1d39edd9795a869021a891336ad308149cbabf08",
+      "new_live_table": "characters.playerbot_v2_owner_tactics",
+      "live_authorized": false,
+      "owner_only": true,
+      "boundary": "Startup auto-applies pending numbered SQL. Earlier 0038 approval does not cover 0039; no boot against live data, skipped migration or fabricated ledger entry is authorized by this attachment."
+    },
+    "remaining": [
+      "Compatible builder dependency closure and full server build.",
+      "Configured startup against authorized isolated disposable data.",
+      "Supported whole-operation wake/sleep/deploy maintenance exclusion.",
+      "Existing inventory/sale safety hold; the partial-stack clone-after-credit source finding is not a proven diagnosis of the original incident.",
+      "Fresh player/login boundary, backup, compatible rollback and exact deployment readback if applicable preceding gates clear.",
+      "Actual authorized retail-client route/login/gameplay."
+    ],
+    "plan_path": "/home/blizz/scratch/forever-bots-0135-20261112/MIGRATION-AND-DEPLOY-PLAN.txt",
+    "plan_sha256": "d459a90d51009ad43e3f4c5b78d2fdadbf1f4f66fd408aef5f15de2ff5606cfa",
+    "rollback": "Preserve player progress and preferences; no DROP TABLE or restoration of an old database over newer progress is authorized."
+  },
+  "admin_attachment_checks": {
+    "scope": "Rehashed the supplied bundle, deployment plan and coordinator review; all three match the supplied pins. Read the saved source receipt/review and preserved the original handoff digest.",
+    "source_changes_or_retarget": "NONE",
+    "test_or_build_reruns": "NONE",
+    "live_access_or_deployment": "NONE",
+    "provider_or_credential_actions": "NONE",
+    "new_target_intakes": "NONE",
+    "parity_promotion": "NONE"
+  }
+}

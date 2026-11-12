@@ -200,6 +200,13 @@ It includes 20 focused acceptance cases as a selection menu, not a new release
 suite. Its [offline validation receipt](../reviews/BOT-PARTY-0135-SOURCE-HANDOFF-20261112.validation.json)
 covers source hashes, reference lines and listed contract fields, not gameplay.
 
+An [additive WoW integrator result](../reviews/BOT-PARTY-0135-SOURCE-HANDOFF-20261112.wow-integrator.json)
+records candidate `e5e7c3a`, its exact source-only bundle and the retained
+933-assertion/47-case actual-header result. The original handoff and reference
+pins remain unchanged. This is not an installed update or native behavior
+evidence for any target. Migration 0039 remains owner-only and unapproved;
+builder, maintenance, inventory/sale and actual-client dependencies remain.
+
 Two concrete boundaries from that study: FFXI's existing owner-hit defense
 cannot prove proactive assistance before a hit, and SWTOR's dot/bang command
 transport intentionally excludes client-parsed slash commands. A `/fb` parser
