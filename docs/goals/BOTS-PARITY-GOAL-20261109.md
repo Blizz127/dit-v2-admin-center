@@ -207,6 +207,13 @@ pins remain unchanged. This is not an installed update or native behavior
 evidence for any target. Migration 0039 remains owner-only and unapproved;
 builder, maintenance, inventory/sale and actual-client dependencies remain.
 
+An [additive formation/control source answer](../reviews/BOT-PARTY-0135-SOURCE-HANDOFF-20261112.formation-controls.json)
+answers SWTOR's four follow-up questions: shape geometry, fallback/rally,
+stop timing and target clearing, and distance/spacing coupling. It records
+exact upstream member hashes and line ranges, including discrepancies between
+the docs and implementation. It preserves the original 22-file study and
+does not establish native SWTOR c151 behavior or slash-command transport.
+
 Two concrete boundaries from that study: FFXI's existing owner-hit defense
 cannot prove proactive assistance before a hit, and SWTOR's dot/bang command
 transport intentionally excludes client-parsed slash commands. A `/fb` parser

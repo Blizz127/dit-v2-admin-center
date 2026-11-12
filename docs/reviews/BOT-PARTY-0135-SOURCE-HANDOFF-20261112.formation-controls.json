@@ -1,0 +1,263 @@
+{
+  "artifact_kind": "additive_source_answers",
+  "date": "2026-11-12",
+  "owner_scope": "bot-update-owner-20261112-061630",
+  "request_origin": "SWTOR lead via coordinator message52c8bd817b2e7d48",
+  "delivery_message": "bb5ec07bb0ebb6fd",
+  "relationship": "Answers four missing-source questions only; supplements the completed 22-file handoff, supersedes none of its files, pins or target intakes. Coordinator relays once to existing SWTOR owner.",
+  "archive": {
+    "path": "/home/blizz/scratch-build/wow-forever-bot-reference-0135-20261112/wow-forever-source-0.1.35.zip",
+    "version": "0.1.35",
+    "sha256": "828c30f8f1bb7735a772abc62d55a07036d6291f97ad1fe0eb429c64d57836de",
+    "member_prefix": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/"
+  },
+  "citation_format": "Each citation file is relative to archive.member_prefix; inclusive one-based lines are decoded with splitlines. Source hashes are SHA256 of exact raw ZIP member bytes, not normalized text.",
+  "answers": [
+    {
+      "question": "Q1: Slot geometry and wedge versus arrow",
+      "answer": "Arrow, wedge and v parse to the same FormationType::Wedge; there is no separate arrow shape. The owner-follow path uses ComputeOwnerSlotOffset, distinct from the older ComputeFormationOffset used by immediate follow commands.",
+      "citations": [
+        {"file": "Bot/Formation.cpp", "lines": [202, 219]},
+        {"file": "Bot/BotCommandParser.cpp", "lines": [1202, 1219]},
+        {"file": "Bot/States/State_InGroup.cpp", "lines": [1211, 1275]}
+      ],
+      "owner_geometry": {
+        "conventions": "All lengths are upstream WoW yards. i is zero-based rank/GUID-sorted index, N is eligible bot count, F is Tank+Melee count, s is effective slot spacing (see Q4). Forward f is positive ahead, lateral l positive left. Output radius=hypot(f,l), angle=atan2(l,f) normalized to [0,2pi); world angle adds owner facing. GUID-based jitter is stable, not a per-tick random draw; GUID zero disables it.",
+        "ordering": "State_InGroup counts online same-map bot members except the leader, orders Tank, Melee, Ranged, Healer then ascending GUID, and computes index rather than using the manually pinned formation_slot. Owner formation runs only with behavior_formation on, no member in combat, owner/leader anchor, no temporary unreachable-slot fallback and no nearby avoid-circle exclusion.",
+        "circle": "Ring r starts at 0: base radius s*(1.2+0.95*r), capacity max(3,floor(2*pi*radius/s)); fill inner rings first. Let m be actual members in this ring and p its local index. step=2*pi/m; angle=pi+step*(p+0.5*(r%2))+J(21,0.25*step); radius gains J(22,0.2*s). Convert radius/angle to local f,l. Slot 0 is nominally behind. Radii grow with spacing and ring count; this is not the legacy fixed 12-yard circle.",
+        "wedge_arrow": "8 slots per layer: layer=floor(i/8), k=i%8, j=floor(k/2)+1, side=+1 for even k else -1. f=-s*(0.9*j+1.7*layer)+J(23,0.15*s); l=side*s*(0.85*j+0.45*(layer%2))+J(24,0.15*s). Four positions on each arm per layer, owner at the tip.",
+        "line": "width=clamp(ceil(sqrt(1.5*N)),4,8). Front group is i<F; its group size is F and position i, otherwise size N-F and position i-F. front_rows=ceil(F/width); row=(front?0:front_rows)+floor(position/width); row_start=floor(position/width)*width; row_n=min(width,group_size-row_start). l=(position-row_start-(row_n-1)/2)*s+(row%2?0.25*s:0)+J(26,0.15*s); f=-s*(1+1.1*row)-(front?0:0.5*s)+J(25,0.2*s).",
+        "column": "lanes=1 for N<=8, 2 for N<=24, otherwise 3; lane=i%lanes, row=floor(i/lanes). f=-s*(row+1)+J(27,0.15*s); l=(lane-(lanes-1)/2)*0.9*s+J(28,0.1*s).",
+        "free_tight_spread": "Normal owner path leaves Free as plain follow; maps stored Spread and Tight types to Circle, with Tight effective spacing capped at 1.9 yards. The normal formation command accepts circle/ring, arrow/wedge/v, line, column/col and none/free; bare tight is a spacing preset, not a new shape.",
+        "citations": [
+          {"file": "Bot/Formation.cpp", "lines": [116, 200]},
+          {"file": "Bot/Formation.h", "lines": [55, 86]},
+          {"file": "Bot/States/State_InGroup.cpp", "lines": [1225, 1275]},
+          {"file": "Bot/BotCommandParser.cpp", "lines": [806, 835]},
+          {"file": "Bot/BotCommandParser.cpp", "lines": [2693, 2709]}
+        ]
+      },
+      "legacy_geometry": {
+        "definition": "ComputeFormationOffset(type,slot,D) uses the pinned/default follow distance D and uint8 slot; these formulas must not be substituted for the active owner geometry above.",
+        "shapes": [
+          "Free: radius D, angle 0. Tight: radius 1.5, angle 0.",
+          "Spread: r=floor(slot/16), radius=8+4*r, angle=2*pi*((slot%16)+0.5*(r%2))/16. The nearby 8-slot/45-degree comment is stale; implementation has 16 slots/22.5-degree base steps.",
+          "Line: rank=floor((slot+1)/2), side=+1 for odd slot else -1; vector (-D,side*rank*4), converted with hypot/atan2.",
+          "Column: radius=D+4*slot, angle 0.",
+          "Wedge: slot0 radius D, angle0; others vector (-D-2*rank,side*rank*3) with same rank/side as Line.",
+          "Circle: fixed radius12, angle=2*pi*(slot%12)/12."
+        ],
+        "angle_caution": "FormationOffset header comments at lines36-38 label zero behind, whereas the owner-helper contract and world-coordinate arithmetic label zero ahead. Record the literal legacy output angles; do not infer tested movement orientation from the conflicting comments.",
+        "citations": [
+          {"file": "Bot/Formation.cpp", "lines": [12, 99]},
+          {"file": "Bot/Formation.h", "lines": [33, 48]},
+          {"file": "Bot/Formation.h", "lines": [69, 76]},
+          {"file": "Bot/States/State_InGroup.cpp", "lines": [1265, 1268]}
+        ]
+      }
+    },
+    {
+      "question": "Q2: Fall back/rally leashes and termination",
+      "docs": "BOT_COMMANDS says fall back drops targets, reforms at rally and stays until attack/pull/resume; follow returns to following. Rally saves where the owner stands; with none, fallback uses owner position.",
+      "implementation": [
+        "OrderFallback requires a registered living bot on the sender map. It uses a saved rally only on that map and within 150 yards horizontally of the owner at command time, otherwise captures owner position. This path does not check rally age. Rally itself is a saved point, not a separate timed movement order; setting a new rally replans an already-active fallback immediately.",
+        "Re-form slots use same-rank group order: tanks 4 yards toward the fight and 4 yards apart, melee at rally with 3-yard lateral gaps, ranged/healers on a 10-yard rear arc with 5.5-yard arc gaps. Front points toward the living owned-bot centroid if more than 5 yards from rally, else owner facing. Unreachable slots try half offset then rally centre. Tank run endpoint is 3 yards behind its slot, with a reachability fallback.",
+        "At dispatch, StopAttackIntent drops attack/selection; non-healers also cancel cast; pets receive follow; a run intent is queued. Fallback replaces manual mode, owner-follow, pull-back and owner-use. Run phase ends within 2.5 horizontal yards of its run endpoint; tank then steps forward into its slot. Arrival does not end the fallback plan.",
+        "After arrival kRallyReach=15, kLeash=20, kRangedReach=30 yards, measured in the XY plane from rally centre. A live mob within 15 yards is eligible. A non-tank may also accept one within 30 yards if it attacks a member at rally (living online same-map member within20; self within20; own pet explicitly qualifies). Bot position beyond20, missing victim, or disallowed victim causes attack stop/return. Therefore the 20-yard test is the BOT leash, not a universal victim cutoff; a permitted ranged victim can be 20-30 yards away.",
+        "No eligible fight: return to slot when more than4 horizontal yards away and not casting. Hazards may defer the walk; they do not cancel the plan. Dead bots skip FallbackTick without clearing it there. No fallback timeout is tested: started_ms is used to log arrival, and active fallback is passed to GroupFight with age0.",
+        "Release-owner-lead orders clear the plan (including accepted attack/pull/assist/tank/resume/run paths); follow replaces it when OwnerFollowHold is enabled; stay/hold explicitly clear it. Leaving its map or disabling Behavior.Fallback clears it. Stop itself does not clear this plan, and arrival does not clear the saved rally point.",
+        "Do not confuse fall back with pull back: OrderPullBack accepts a saved rally only when timestamp is nonzero, age<=10 minutes, same map and within60 horizontal yards of owner. Its separate PullBackTick declares30-second approach/retreat timeout and300-second hold cap. Those are not fallback timers."
+      ],
+      "citations": [
+        {"file": "BOT_COMMANDS.md", "lines": [257, 260]},
+        {"file": "Bot/BotCommandParser.cpp", "lines": [335, 470]},
+        {"file": "Bot/BotCommandParser.cpp", "lines": [657, 680]},
+        {"file": "Bot/BotCommandParser.cpp", "lines": [2879, 2897]},
+        {"file": "Bot/BotCommandParser.cpp", "lines": [3351, 3366]},
+        {"file": "Bot/BotCommandParser.cpp", "lines": [3764, 3813]},
+        {"file": "Bot/BotCommandParser.cpp", "lines": [4985, 4989]},
+        {"file": "Bot/BotCommandParser.cpp", "lines": [5156, 5174]},
+        {"file": "Bot/BotAI.cpp", "lines": [37, 42]},
+        {"file": "Bot/BotAI.cpp", "lines": [711, 715]},
+        {"file": "Bot/BotAI.cpp", "lines": [771, 773]},
+        {"file": "Bot/BotAI.cpp", "lines": [894, 899]},
+        {"file": "Bot/BotAI.h", "lines": [893, 947]},
+        {"file": "Bot/States/Rules/PrologueRules.cpp", "lines": [868, 1015]},
+        {"file": "Bot/States/Rules/PrologueRules.cpp", "lines": [1032, 1064]}
+      ]
+    },
+    {
+      "question": "Q3: Stop window and target clearing",
+      "docs": "Section5 says stop/flee/follow/stay/pull back from the last10 seconds (or during the fight) wins over automatic group combat.",
+      "implementation": [
+        "The corresponding constant is GroupFight::kOrderWinsMs=10000 milliseconds. OrderHolds uses age<=10000 for Stop/Flee/PullBack/Fallback. Only Follow/Stay additionally use the given-during-this-fight condition (fight_age>0 and order_age<fight_age). The docs parenthetical is broader than this implementation.",
+        "The stop handler queues StopAttackIntent and pet follow, closes the15-second owner attack/pull order window, and exits a current manual Engage. Disengage also exits any manual mode. Stop is described there as a single-shot combat break; it does not install OwnerCommand::Disengage or stamp a new10-second stop hold. BotAI maps an already-manual Disengage to GroupFight::Stop, or treats NoFight stance as Stop with age0. Thus the10-second constant is source evidence for the gate, not proof that every stop transport arms it.",
+        "Distinct chat-pause path: BotChatReactor recognizes bare party stop and sets chat_pause_until_ms=now+12000 (kChatPauseMs), not10000; it excludes messages beginning semicolon, dot or slash. OnPartyChat invokes it before command routing. This is a voluntary-action chat pause, not the GroupFight order timestamp.",
+        "Yes, once executed: StopAttackIntent is dispatched to API::stop_attack, which calls AttackStop, stops hunter autorepeat and explicitly SetSelection(ObjectGuid::Empty). This clears the bot current selected target; current manual Engage target is also cleared by exit_manual. It is not a blanket erasure of focus/other preferences, all casts or every movement order.",
+        "StopAttackIntent defaults clear_ghost_combat=false; ordinary stop does not force CombatStop or reset live threat/combat references. Clearing selection does not establish a lasting no-reengagement guarantee. Native execution and transport remain untested."
+      ],
+      "citations": [
+        {"file": "BOT_COMMANDS.md", "lines": [192, 198]},
+        {"file": "Bot/GroupFight.h", "lines": [29, 34]},
+        {"file": "Bot/GroupFight.h", "lines": [76, 115]},
+        {"file": "Bot/BotCommandParser.cpp", "lines": [5156, 5174]},
+        {"file": "Bot/BotAI.cpp", "lines": [861, 901]},
+        {"file": "Bot/BotAI.h", "lines": [717, 725]},
+        {"file": "Bot/BotAI.h", "lines": [873, 879]},
+        {"file": "Bot/BotChatReactor.cpp", "lines": [571, 578]},
+        {"file": "Bot/BotChatReactor.cpp", "lines": [603, 607]},
+        {"file": "Bot/BotChatReactor.cpp", "lines": [670, 678]},
+        {"file": "Bot/BotChatReactor.cpp", "lines": [725, 763]},
+        {"file": "PlayerbotV2.cpp", "lines": [4389, 4418]},
+        {"file": "Bot/BotIntent.h", "lines": [40, 40]},
+        {"file": "Bot/BotIntentExecutor.cpp", "lines": [274, 275]},
+        {"file": "Api/PlayerbotAPI.cpp", "lines": [4091, 4129]}
+      ]
+    },
+    {
+      "question": "Q4: Distance, spacing, radii and defaults",
+      "docs": "Section6 lists spacing tight/close/spread as about2.5/4(default)/8 yards, and distance1-20 (or follow distance) as setting both follow distance and spacing.",
+      "implementation": [
+        "DistanceOrder accepts distance <n> and follow distance <n>, clamps the parsed number to2..20 yards (so requested1 becomes2), writes both follow_distance and exact spacing_yards override, flags a refollow, and saves follow distance in squad state. Numeric spacing itself is memory-only. This is distinct from legacy follow_distance/followdistance/fd, which clamps0..40, zero clears, and updates only follow distance.",
+        "Initial preset is Close=4 yards, numeric spacing override0, initial formation Free. Presets Tight=2.5, Close=4, Spread=8. A later spacing preset clears the numeric spacing override, but does not reset the independently pinned follow_distance. A later distance command overrides the preset wherever spacing_yards is read.",
+        "Normal owner formation uses s=clamp(0.75*spacing_yards,1.8,9) yards; stored Tight shape further caps s at1.9. Thus Close4 -> s3, tight2.5 ->1.875, spread8 ->6; distance2 ->1.8 and distance12..20 ->9. The value is geometric spacing input, not necessarily exact pairwise distance after shape/jitter.",
+        "Circle base radius for ring r is s*(1.2+0.95*r), with radial jitter up to0.2*s. Default Close gives first ring base3.6 yards, then6.45,9.3,...; first-ring capacity floor(2*pi*1.2)=7, with actual occupancy controlling angular steps. Arrow/line/column scale their forward/lateral components by s. There is no common formation-radius field or universal4-yard radius.",
+        "Plain follow uses pinned distance directly; otherwise State_InGroup uses role defaults9 yards ranged/healers or3.5 melee, plus stable +/-20% variation. A pin starts recall slack at1.5*distance; final owner-slot slack is max(6,slot_radius+3), or without active slot max(previous_slack,offset_radius+4). Therefore documented4 yards is the default spacing preset, not the universal unpinned follow distance.",
+        "Raid spacing scale reads spacing_yards/4 without the owner-follow0.75 multiplier or9-yard cap. Legacy ComputeFormationOffset has separate fixed-radius rules as recorded under Q1; immediate BuildFollowIntent still calls that helper. These upstream distinctions should remain explicit when adapting a native target."
+      ],
+      "citations": [
+        {"file": "BOT_COMMANDS.md", "lines": [241, 251]},
+        {"file": "Bot/BotCommandParser.cpp", "lines": [768, 803]},
+        {"file": "Bot/BotCommandParser.cpp", "lines": [806, 818]},
+        {"file": "Bot/BotCommandParser.cpp", "lines": [2711, 2719]},
+        {"file": "Bot/BotCommandParser.cpp", "lines": [3207, 3237]},
+        {"file": "Bot/BotCommandParser.cpp", "lines": [1202, 1219]},
+        {"file": "Bot/BotAI.h", "lines": [743, 766]},
+        {"file": "Bot/BotAI.h", "lines": [3570, 3570]},
+        {"file": "Bot/BotAI.h", "lines": [3605, 3609]},
+        {"file": "Bot/Formation.h", "lines": [55, 61]},
+        {"file": "Bot/Formation.cpp", "lines": [137, 198]},
+        {"file": "Bot/States/State_InGroup.cpp", "lines": [1188, 1201]},
+        {"file": "Bot/States/State_InGroup.cpp", "lines": [1229, 1275]}
+      ]
+    }
+  ],
+  "preserved_files": [
+    {
+      "path": "/home/blizz/dev/dit-v2-admin-center/docs/reviews/BOT-PARTY-0135-SOURCE-HANDOFF-20261112.json",
+      "sha256": "9be79ca38ac3f8d1a1e0e15972527806306909e29e6f81420818b1d7f271b401"
+    },
+    {
+      "path": "/home/blizz/dev/dit-v2-admin-center/docs/reviews/BOT-PARTY-0135-SOURCE-HANDOFF-20261112.validation.json",
+      "sha256": "9c94fec57ca705ffc1673980d2919160cf8adf13c683756a047f10d0def0fc55"
+    },
+    {
+      "path": "/home/blizz/dev/dit-v2-admin-center/docs/reviews/BOT-PARTY-0135-SOURCE-HANDOFF-20261112.wow-integrator.json",
+      "sha256": "2b964f4d8670e5f138b4861e81d3988dfdbe355edcd392338d092c7f55560e3b"
+    },
+    {
+      "path": "/home/blizz/scratch-build/wow-forever-bot-reference-0135-20261112/selected-source-manifest.json",
+      "sha256": "b652c89434d63854d8fc0ba9fd047851625e1efd18df30e33ee96b49b66904d9"
+    }
+  ],
+  "boundaries": [
+    "Static upstream source evidence only. No source execution, upstream installer, build, tests, server startup, deployment or gameplay performed.",
+    "No target-game rules or units assumed. SWTOR c151 remains with its existing lead; slash transport remains inferred and native untested.",
+    "Original selected 22-file manifest, handoff and validation remain unchanged. No target intake, helper restart, new worker, runtime/permission/hold change or provider action.",
+    "Existing live Admin access/export blocker and FFXIV owner clarification remain unchanged."
+  ],
+  "sources": {
+    "Api/PlayerbotAPI.cpp": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/Api/PlayerbotAPI.cpp",
+      "sha256": "9fa0bdd6bcdf8f0174143b1187c93637b61c5c7bc34623e8a9f5656832c0408c",
+      "bytes": 618899,
+      "line_count": 11560
+    },
+    "BOT_COMMANDS.md": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/BOT_COMMANDS.md",
+      "sha256": "f3dbb276d519dac430e7016f3e443edc5103ece66b64c2a343e43dbfbd730f49",
+      "bytes": 46922,
+      "line_count": 490
+    },
+    "Bot/BotAI.cpp": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/Bot/BotAI.cpp",
+      "sha256": "36d4c560377e0d73e5fb739b21d2ef47a77d06837ad08ec3c422a6b1fd34670a",
+      "bytes": 72861,
+      "line_count": 1363
+    },
+    "Bot/BotAI.h": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/Bot/BotAI.h",
+      "sha256": "64277b4648e3448afa2c5d6ba67b7bc99d0bb80650991492edefb2e7da693385",
+      "bytes": 349053,
+      "line_count": 5767
+    },
+    "Bot/BotChatReactor.cpp": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/Bot/BotChatReactor.cpp",
+      "sha256": "1ef4cd20053b2834944362d264e7af53ea116ab2f7571f40c00192b157f907b9",
+      "bytes": 110635,
+      "line_count": 2191
+    },
+    "Bot/BotCommandParser.cpp": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/Bot/BotCommandParser.cpp",
+      "sha256": "19f31b5f60dbfbb4519cb5dc7c34931ed745ddf9188694ae68419c203b47d42d",
+      "bytes": 483622,
+      "line_count": 9947
+    },
+    "Bot/BotIntent.h": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/Bot/BotIntent.h",
+      "sha256": "07ed74061b22a3f157c2a74203cb3ac3f995fd27ce7c2d697830c03ce384d811",
+      "bytes": 47881,
+      "line_count": 837
+    },
+    "Bot/BotIntentExecutor.cpp": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/Bot/BotIntentExecutor.cpp",
+      "sha256": "9ab73d006765edbe0d4c618784a5d2206833ef559c77b4981444bee88db8fba8",
+      "bytes": 69178,
+      "line_count": 1092
+    },
+    "Bot/Formation.cpp": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/Bot/Formation.cpp",
+      "sha256": "03c3967e3070d8022f609475c24d20b8a435f39a7d0f6757412cfefbeb49c608",
+      "bytes": 11084,
+      "line_count": 237
+    },
+    "Bot/Formation.h": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/Bot/Formation.h",
+      "sha256": "d88c1a47afd406f2655cc565d1f419621b22145798d14ca34536450eb201714c",
+      "bytes": 5402,
+      "line_count": 107
+    },
+    "Bot/GroupFight.h": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/Bot/GroupFight.h",
+      "sha256": "04cbbde0ba45d196b96b97c954a4e169665fdab3d3d606ac11d902cf6302d892",
+      "bytes": 12887,
+      "line_count": 239
+    },
+    "Bot/States/Rules/PrologueRules.cpp": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/Bot/States/Rules/PrologueRules.cpp",
+      "sha256": "29dc0cc104f2cb462d283e740296bfc290c68a4d414fd69d96dd5b40dd003dc7",
+      "bytes": 92527,
+      "line_count": 1635
+    },
+    "Bot/States/State_InGroup.cpp": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/Bot/States/State_InGroup.cpp",
+      "sha256": "a710ef5a6df45ea3b52c39842b27c1677219cd76de85e7506993613a524e42c5",
+      "bytes": 107040,
+      "line_count": 1756
+    },
+    "PlayerbotV2.cpp": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/PlayerbotV2.cpp",
+      "sha256": "4433b6802ae2734934fda177057a3c41417e81faf33d72cf6f62537a3e24cda4",
+      "bytes": 282592,
+      "line_count": 5299
+    }
+  },
+  "verification": {
+    "archive_digest": "PASS against supplied 828c30f8 pin",
+    "source_members_hashed": 14,
+    "citation_ranges_checked": 55,
+    "range_integrity": "PASS; every cited inclusive range exists in the exact hashed member",
+    "protected_file_digests": "PASS; all 4 unchanged",
+    "scope": "Hash/range/JSON integrity and manual source reading only; not behavioral test evidence."
+  }
+}
