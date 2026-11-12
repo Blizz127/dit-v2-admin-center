@@ -1,0 +1,257 @@
+{
+  "artifact_kind": "source_study_handoff",
+  "format_version": 1,
+  "date": "2026-11-12",
+  "status": "source mapping and proposed acceptance cases; no target implementation or gameplay verification",
+  "scope_record": "/home/blizz/.local/share/devbox-coordinator-state/workspace/records/bot-update-owner-20261112-061630/scope.json",
+  "delivery": "Evidence for existing coordinator message bb5ec07bb0ebb6fd and existing implementation intakes; no new dispatch or release gate.",
+  "reference": {
+    "name": "WoW Forever Bots / PlayerbotV2 by Karrz",
+    "version": "0.1.35",
+    "release_url": "https://github.com/Karrz1/Karrz-playerbots-wow-forever/releases/tag/v0.1.35",
+    "published_at": "2026-11-12T00:23:08Z",
+    "archive": "/home/blizz/scratch-build/wow-forever-bot-reference-0135-20261112/wow-forever-source-0.1.35.zip",
+    "bytes": 53988946,
+    "sha256": "828c30f8f1bb7735a772abc62d55a07036d6291f97ad1fe0eb429c64d57836de",
+    "selected_root": "/home/blizz/scratch-build/wow-forever-bot-reference-0135-20261112/selected/src/modules/PlayerbotV2",
+    "selected_manifest": "/home/blizz/scratch-build/wow-forever-bot-reference-0135-20261112/selected-source-manifest.json",
+    "selected_manifest_sha256": "b652c89434d63854d8fc0ba9fd047851625e1efd18df30e33ee96b49b66904d9",
+    "baseline_archive": "/home/blizz/scratch/forever-refresh-20261109/wow-forever-source-0.1.33.zip",
+    "baseline_bytes": 52966583,
+    "baseline_sha256": "8ed3810b3f1b04bdc049b705aaa38ace2311e5830c0f68b3ab8c0d493861c6e0",
+    "comparison": "Both archives rehashed; all 22 selected members verified byte-for-byte against 0.1.35 archive; newline-normalized comparison flags independently checked against 0.1.33 archive.",
+    "reuse": "Native design reuse with attribution. Preserve upstream credits to agatho, Karrz, ike3, VMaNGOS and cMaNGOS. Do not copy WoW code, identifiers, assets, maps, saves or game rules into the other bodies. No upstream code was executed."
+  },
+  "source_roots": {
+    "wow": {
+      "kind": "verified_archive_members",
+      "path": "/home/blizz/scratch-build/wow-forever-bot-reference-0135-20261112/selected/src/modules/PlayerbotV2"
+    },
+    "ffxi": {
+      "kind": "git_commit",
+      "repository": "/home/blizz/dev/ffxi/forever-player-hpp-rest-r106",
+      "commit": "299c8b2a357214c79e0f9456f043361397784f66",
+      "prefix": "server/crates/xi-map/src/",
+      "state": "rc72 candidate source, not a deployment receipt"
+    },
+    "driver": {
+      "kind": "git_commit",
+      "repository": "/home/blizz/dev/dit-forever-fb-control-platform-20261111",
+      "commit": "582c80102204b70355653d7e4da400c6f6658c21",
+      "prefix": "tools/ffxi/forever_population/driver/",
+      "state": "matching candidate driver source, not a deployment receipt"
+    },
+    "swtor": {
+      "kind": "release_manifest",
+      "path": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/integrated/c149/tree",
+      "manifest": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/release-20261112a-c149/packet-20261112a/MANIFEST-dk-quest-fixes.json",
+      "manifest_sha256": "9449518bf4ea17bfefb5da8257b28831b6744d9f4f91fae1d49aa850fc5036dd",
+      "archive": "/home/blizz/scratch/swtor-lanes/warrior-1-50/goal-1to50-20261107/release-20261112a-c149/swtor-c149-source.tar.gz",
+      "archive_bytes": 20351140,
+      "archive_sha256": "bbe84233f4ebee0ee455ba591d6e16d8cb326237fe32dca546af6d3abadc2d2a",
+      "state": "c149/20261112a source baseline, not a fresh live observation; existing c150 work remains with its owner"
+    },
+    "dit": {
+      "kind": "git_commit",
+      "repository": "/home/blizz/dev/dit-forever-baseline-20261108",
+      "commit": "bde601a623105963d0c9574192db5e9ddee8e151",
+      "prefix": "docs/architecture/schemas/"
+    },
+    "hub": {
+      "kind": "git_commit",
+      "repository": "/home/blizz/dev/dit-hub-r5q-20261109",
+      "commit": "0ce5113effdcf9204874eecb6ea0ffdf88f6ab10",
+      "prefix": "src/Dit.HumanBehavior.Neuronetwork.Hub/",
+      "state": "source inspection only; live route/configuration not queried"
+    }
+  },
+  "behavior_map": [
+    {
+      "id": "proactive_assist",
+      "sources": ["wow:Bot/States/State_InGroup.cpp:754", "wow:Bot/States/State_InGroup.cpp:983", "wow:Bot/States/State_InGroup.cpp:993"],
+      "since_0133": "Core melee/caster/member-threat assistance already existed; do not call this a new 0.1.35 feature.",
+      "contract": "Follow is a travel intent, not sufficient grounds to suppress an admitted existing party fight. Recognize actual native combat commitment, including a caster/ranged owner without a melee-victim pointer. Selection alone is not a combat trigger.",
+      "do_not_copy": "WoW stance details, distances, target priority or encounter rules over a game's explicit Stay/Rest/claim restrictions."
+    },
+    {
+      "id": "movement_authority",
+      "sources": ["wow:Bot/States/State_InGroup.cpp:1327", "wow:Bot/States/State_InGroup.cpp:1371", "wow:Bot/States/State_InGroup.cpp:1490", "wow:Bot/States/State_InGroup.cpp:584", "wow:Api/PlayerbotMovement.cpp:751"],
+      "since_0133": "Single movement ownership predates 0.1.35. Transport hold and consistent three-dimensional swim settling are selected changes versus 0.1.33.",
+      "contract": "Only one admitted activity controls movement. Follow/formation must yield to current combat, explicit approach/pull, rooting or a committed crossing; measure actual movement progress before recovery. Resume only a still-valid underlying travel intent.",
+      "do_not_copy": "Teleport recovery, WoW transport IDs, cross-zone permissions or distances. Use the native authorized transfer path."
+    },
+    {
+      "id": "tank_rescue",
+      "sources": ["wow:Combat/Apl/ApTankThreat.h:40", "wow:Combat/Apl/ApTankThreat.h:100", "wow:Combat/Apl/Apl_Classic_Warrior.cpp:812", "wow:Combat/Apl/Apl_Classic_Warrior.cpp:831"],
+      "since_0133": "Selected threat and warrior files are unchanged after newline normalization.",
+      "contract": "Use actual native role, learned abilities, current threatened party member, legal target, range and cooldown. A failed or unavailable taunt does not itself require abandoning otherwise legal ordinary combat. Record threat/action outcome separately from the attempted ability.",
+      "do_not_copy": "WoW taunt semantics, ability IDs, ranks, enmity calculations or guarantees of threat transfer."
+    },
+    {
+      "id": "healing_outcomes",
+      "sources": ["wow:Combat/Apl/ApClassicHeal.h:612", "wow:Combat/Apl/ApClassicHeal.h:680", "wow:Combat/Apl/HealClaimStore.h:65", "wow:Bot/BotIntentExecutor.cpp:145"],
+      "since_0133": "Failed-cast claim release predates 0.1.35; rejecting zero-HP patients despite an alive flag is a selected 0.1.35 change.",
+      "contract": "Use current native HP, life, range and cast state. Any incoming-heal reservation is provisional and must be released or expired for the matching failed/cancelled cast; other healers must not treat it as delivered healing.",
+      "do_not_copy": "WoW heal estimates, timing constants, resurrection rules or reservation infrastructure where a game does not need it."
+    },
+    {
+      "id": "roles_and_capability",
+      "sources": ["wow:Fleet/CompanionRole.h:36", "wow:LfgRoleGap.h:74", "wow:LfgRoleGap.h:126"],
+      "since_0133": "Owner role precedence is unchanged; the selected role-gap file changed. Compare capability-aware party filling rather than blindly porting it.",
+      "contract": "Keep owner/native role assignment distinct from inferred capability. Validate whether the bot can perform the role and expose missing coverage; inference cannot silently grant a native role or ability.",
+      "do_not_copy": "WoW classes/specs or role coverage into FFXI jobs, SWTOR disciplines or an unidentified FFXIV runtime."
+    }
+  ],
+  "immediate_vs_advice": {
+    "native_immediate": [
+      "Authenticate current owner/party and validate binding, session, life, order and target identities.",
+      "Arbitrate Follow versus an admitted fight and handle movement/transfer through native rules.",
+      "Choose legal current combat, threat-rescue, healing and cancellation actions without a network/model dependency.",
+      "Observe native execution/refusal; discard stale episodes and resume only a current underlying order."
+    ],
+    "optional_advice": [
+      "Recommend a high-level party tactic, goal or rotation profile from options offered by the body.",
+      "Keep the deterministic default running while advice is unavailable, pending or late.",
+      "Revalidate choice membership, request identity, TTL and dependent native facts before changing a later decision."
+    ],
+    "advice_cannot": [
+      "Create an authenticated command, target permission, owner-hit receipt, combat epoch or role assignment.",
+      "Override Stay/Rest, newer orders, target claims, range, cooldown, death, transfer or access restrictions.",
+      "Turn a proposed choice or accepted request into proof that an action occurred."
+    ],
+    "sources": ["hub:AdviceApi.cs:51", "hub:AdviceApi.cs:66", "hub:AdviceApi.cs:124", "hub:AdviceApi.cs:159"],
+    "runtime_limit": "The guarded hub route exists in pinned source. Its existence is not proof of a deployed/enabled route or an applied advice exchange in a target body. SWTOR's explicit advice-off restriction remains."
+  },
+  "targets": {
+    "ffxi_forever": {
+      "implementation_owner": "Existing FFXI/native and ffxi-platform owners; no new intake or writer.",
+      "already_present": [
+        {"fact": "Default Follow is admitted once after native join/summon; reconnect or no order does not recreate it.", "sources": ["ffxi:population/fb_orders.rs:220"]},
+        {"fact": "Explicit Attack captures selection and revalidates current owner/session/selection, target life and claim before replacing work.", "sources": ["ffxi:session/fb_orders.rs:55", "ffxi:population/fb_orders.rs:278", "ffxi:population/fb_orders.rs:310", "ffxi:population/fb_orders.rs:373"]},
+        {"fact": "Temporary owner-hit defense is admitted over Follow/None with native hit provenance and a surviving owner; it resumes only still-current underlying Follow.", "sources": ["ffxi:world/newbot_defense.rs:99", "ffxi:population/fb_defense.rs:67", "ffxi:population/fb_defense.rs:113"]},
+        {"fact": "Native damage producers include melee and qualifying direct-primary/radial spell/TP damage. DoT, zero/protected damage and lethal owner damage do not establish these receipts.", "sources": ["ffxi:mobs/owner_defense.rs:1", "ffxi:mobs/owner_defense.rs:12"]},
+        {"fact": "Support already requires an explicit Attack, bounded Pull fight or exact defense episode, plus native role/ability/party/life/range checks.", "sources": ["ffxi:population/owned_combat.rs:48", "ffxi:population/owned_combat.rs:118", "ffxi:population/owned_combat.rs:142"]},
+        {"fact": "Driver 582 leaves orders and unordered defaults to native code; observed roles are native projections.", "sources": ["driver:brain.py:501", "driver:owner_party.py:156"]}
+      ],
+      "gap": "No automatic native Follow-to-assist trigger for the owner's proactive combat was found at 299c/582. This is a pinned source gap, not a reproduced diagnosis of the reported death. Existing default Follow/owner-hit defense work must not be duplicated.",
+      "existing_input_seams": [
+        {"fact": "Accepted Engage establishes fight.engaged, fight.target and fight.state_target; native disengage clears them.", "sources": ["ffxi:session/fight.rs:674", "ffxi:session/fight.rs:701", "ffxi:session/fight.rs:724"]},
+        {"fact": "Native cast Aim::Mob and admitted cast are session-local. Published world cast identity/life/HP is not an owner-combat-target feed.", "sources": ["ffxi:session/magic.rs:74", "ffxi:session/magic.rs:92", "ffxi:world/cast.rs:17"]},
+        {"fact": "Native party-claimed or party-enmity living targets and personal threats provide established combat facts for ranged/caster assistance.", "sources": ["ffxi:mobs/pop_claim.rs:101", "ffxi:mobs/pop_claim.rs:117"]},
+        {"fact": "Owner, stable party_uid and revision establish binding; names or leadership do not confer ownership.", "sources": ["ffxi:world/bot_owner.rs:15", "ffxi:world/bot_owner.rs:33"]},
+        {"fact": "Existing control and defense identities include binding_revision, epoch, generations/life epochs, mob incarnation and original order/control sequence.", "sources": ["ffxi:fb/control.rs:13", "ffxi:world/bot_control.rs:25", "ffxi:world/newbot_defense.rs:30"]},
+        {"fact": "Per-bot driver observations do not supply accepted owner attack/cast/victim facts; a new client/DIT protocol is not needed for a native implementation.", "sources": ["driver:protocol.py:80"]}
+      ],
+      "proposed_increment": "A bounded native owner-combat episode alongside temporary defense: consume authenticated current combat/party facts, preserve actual Follow, use normal target/claim/mesh/readiness/difficulty admission, include the new episode explicitly in support admission, then complete/cancel using current control identities.",
+      "forbidden_shortcuts": ["Do not manufacture NativeOwnerHit.", "Do not synthesize an owner /fb attack command.", "Do not inherit defense's difficulty-policy exception for proactive assist.", "Do not re-enable a legacy driver camp/auto-pull loop."],
+      "policy_sources": ["ffxi:population/intents.rs:575", "ffxi:population/intents.rs:592", "ffxi:population/intents.rs:606", "ffxi:population/intents.rs:1303"],
+      "acceptance": [
+        {"id": "XI-01", "status": "proposed_not_run", "setup": "Living current owner/bot binding; actual local Follow; legal reachable mob; no owner damage yet.", "input": "Owner native Engage succeeds. Negative control: select another mob without engaging.", "expect": "Proposed increment joins the actual fight before owner HP loss; selection-only control stays in Follow. Record native movement/action and identities. 299c has no automatic trigger."},
+        {"id": "XI-02", "status": "proposed_not_run", "setup": "Owner has no melee victim; current binding/Follow and legal target.", "input": "Native ranged/spell action establishes party claim/enmity before incoming damage. Repeat with selection/cancelled cast and no established fight.", "expect": "Join established combat using native facts; cancelled selection without a fight must not pull another mob. Automatic path absent in 299c."},
+        {"id": "XI-03", "status": "proposed_not_run", "setup": "Current binding and visible selected target.", "input": "Existing /fb attack; then vary changed selection, foreign claim, dead target or native policy/readiness failure.", "expect": "Admitted request installs one intended encounter and produces actual native action. Refusal preserves authority and records the real reason; no target substitution or defense exception. Actual client transport must be observed separately."},
+        {"id": "XI-04", "status": "proposed_not_run", "setup": "Current Stay or Rest order.", "input": "Owner attacks/takes a qualifying hit; deliver old pending combat facts. Then issue a newly accepted owner command.", "expect": "No automatic override/rearm of Stay or Rest. New accepted authority may replace old work; a refused command must not silently replace it."},
+        {"id": "XI-05", "status": "proposed_not_run", "setup": "Pending/current encounter.", "input": "Change binding/order epoch/session generation/life, or kill and respawn the target using the same numeric ID.", "expect": "Old action/support/Follow is not resurrected; exact old episode becomes terminal. Record identity mismatch and refusal/cancellation, not just numeric target ID."},
+        {"id": "XI-06", "status": "proposed_not_run", "setup": "Eligible current encounter, living threatened owner, actual Tank role and real native Provoke kit.", "input": "Attempt rescue; repeat with unavailable recast/ability/role or dead victim; include needed native healing during repeated same-target updates.", "expect": "Only eligible native ability use; never claim threat transfer from an attempt. Ordinary combat may continue. Healing/support state is not reset by repeated same-target Engage."},
+        {"id": "XI-07", "status": "proposed_not_run", "setup": "Valid Follow suspended for one admitted encounter.", "input": "Target dies/withdraws; repeat with a newer accepted Stay/Rest/Attack during cleanup and replay old target facts.", "expect": "Resume only original still-current Follow. Newer order wins; no respawn attack, camp loop or duplicate episode."}
+      ]
+    },
+    "swtor": {
+      "implementation_owner": "Existing swtor-preservation owner; coordinator already routes one bot/interface intake. Do not replay obsolete task routing or duplicate c150 travel/cooldown work.",
+      "already_present": [
+        {"fact": "Owner chat, explicit invitations and orders already use one squad handler; explicit attack target precedes passive/DIT decisions.", "sources": ["swtor:private_squad.py:446", "swtor:private_squad.py:475", "swtor:private_squad_orders.py:161", "swtor:private_squad_orders.py:431"]},
+        {"fact": "Current target selection filters living engaged hostiles and can use recent hit/ability-press evidence; that is not proof of the client's current plain-click selection.", "sources": ["swtor:private_squad.py:1016", "swtor:private_squad.py:1027", "swtor:private_squad_orders.py:119", "swtor:private_combat.py:2803"]},
+        {"fact": "Existing movement arbitration chooses order/combat/follow; behavior already includes taxi hold/landing, revive regroup and stuck catch-up.", "sources": ["swtor:private_squad.py:969", "swtor:private_squad.py:1083", "swtor:private_squad_behavior.py:98"]},
+        {"fact": "DPS opening, owner-threat priority, taunt holder, enemy aim and incoming swing redirection already have native seams.", "sources": ["swtor:private_squad_behavior.py:207", "swtor:private_squad_behavior.py:220", "swtor:private_squad.py:1245", "swtor:private_squad.py:1345", "swtor:private_squad.py:1361", "swtor:private_squad.py:1517"]},
+        {"fact": "Healing precedes attacking; native heal completion rejects absent/dead/full recipients. A shared heal-claim system was not established by this inspection and should not be added merely to mirror WoW.", "sources": ["swtor:private_squad.py:1152", "swtor:private_squad.py:1432", "swtor:private_squad.py:1466"]},
+        {"fact": "Role swaps validate class capability and refuse in combat; roster/pick already exist.", "sources": ["swtor:private_squad_behavior.py:408", "swtor:private_squad.py:281", "swtor:private_squad.py:328"]}
+      ],
+      "transport_gap": "The chat command bridge deliberately accepts dot/bang prefixes and excludes slash commands parsed by the client. A /fb parser alias alone cannot establish a working native interface. Determine what the authorized actual client/front end sends; route supported controls through the existing handler.",
+      "transport_sources": ["swtor:private_chatgw_commands.py:60", "swtor:private_chatgw_commands.py:100", "swtor:private_chatgw_commands.py:323", "swtor:private_chatgw_commands.py:360", "swtor:private_chatgw_commands.py:426"],
+      "ownership": "The selected character is bound by the existing chat route. Squad registration is restricted to an allowed Sith Warrior account. Roster/help must not summon; explicit invitation is required. Preserve this scope rather than interpreting interface work as permission to broaden access.",
+      "ownership_sources": ["swtor:private_squad.py:195", "swtor:private_squad.py:618", "swtor:private_squad.py:635", "swtor:private_squad.py:656", "swtor:private_squad_native.py:99"],
+      "existing_advice_transport": "private_bot_advice.py uses swtor.squad.advice_request -> swtor.squad.advice file envelopes. Reuse the existing translation/correlation boundary, not a new endpoint. Local defaults run immediately. Accepted adapter advice/native_delivery_succeeded is not combat or healing effect proof.",
+      "advice_sources": ["swtor:private_bot_advice.py:8", "swtor:private_bot_advice.py:199", "swtor:private_bot_advice.py:349", "swtor:private_bot_advice.py:407", "swtor:private_bot_advice_switches.py:10"],
+      "preserved_holds": ["Advice remains explicitly off.", "No unsolicited off-duty bodies; invitation-only membership.", "No test-account/device/login activation inferred.", "Do not reopen recovery/Strongholds pauses or change the unresolved encounter-scaling choice.", "Keep player XP, credits, loot, progress and normal deployment protections."],
+      "acceptance": [
+        {"id": "SW-01", "status": "proposed_not_run", "setup": "Existing authorized command route and selected character; supported client/front end.", "input": "Capture actual /fb control transport and normalize supported commands into the existing squad handler; vary wrong route, malformed input and foreign selected character.", "expect": "Exactly one owner-bound command reaches the existing handler, or no action with a real refusal. A parser-only fixture does not prove client slash transport."},
+        {"id": "SW-02", "status": "proposed_not_run", "setup": "Allowed native account/class, no invited squad; separately an unauthorized account/class.", "input": "Roster/help, explicit invite, duplicate invite, dismiss/reinvite.", "expect": "Roster/help never spawns. Invite adds permitted membership once. Unauthorized scope refuses. Dismiss clears pending orders/reactions; reinvite cannot replay an old pull."},
+        {"id": "SW-03", "status": "proposed_not_run", "setup": "Invited squad and legal current hostile; distinguish recent ability target from actual selected-target transport.", "input": "Attack; change target during reaction delay or use dead/friendly/despawned/CC target. Try stale/foreign command.", "expect": "Only current legal target is acted upon; explicit attack has its existing precedence over passive. No selection-proof claim based only on a cached ability target."},
+        {"id": "SW-04", "status": "proposed_not_run", "setup": "Invited squad following a living owner.", "input": "Owner melee/casting engagement, then encounter completion; repeat during existing Stay/Pull/taxi intent.", "expect": "Correct hostile receives actual damage; follow does not drag fighters away. Completion resumes native follow/rest while other valid movement authority is preserved."},
+        {"id": "SW-05", "status": "proposed_not_run", "setup": "Eligible tank/healer, enemy attacking owner and an injured living recipient.", "input": "Taunt/heal; repeat with cooldown, KO, refusal/cancellation, expiry and unsupported role swap.", "expect": "Observe actual enemy aim and damage recipient for rescue; actual HP effect for healing. Refused/cancelled heals count as zero. Healer preserves healing priority; unsupported roles refuse."},
+        {"id": "SW-06", "status": "proposed_not_run", "setup": "Invited membership and pending orders.", "input": "Death, area transfer, taxi landing, relog and revive; replay old generation/Area work.", "expect": "Old bodies/orders are destroyed once and stale work cannot execute. Only invited membership restores. Regroup works without altered player progress/XP/credits/loot."},
+        {"id": "SW-07", "status": "proposed_not_run", "setup": "Existing advice switch remains off.", "input": "Perform local follow/combat/heal; inspect isolated response fixtures for unknown/duplicate/late/stale/illegal advice without enabling runtime advice.", "expect": "No advice broker activation; native behavior continues. Unavailable/invalid advice cannot authorize an action. Speech without fresh AI provenance stays silent."}
+      ],
+      "lifecycle_sources": ["swtor:private_squad.py:392", "swtor:private_squad.py:798", "swtor:private_squad.py:817", "swtor:private_squad_orders.py:315"],
+      "event_sources": ["swtor:private_bot_events.py:39", "swtor:private_bot_events.py:57", "swtor:private_bot_events.py:173", "swtor:private_bot_events.py:375", "swtor:private_bot_events.py:387", "swtor:private_bot_events.py:408", "swtor:private_dit_ai_provenance.py:41"]
+    },
+    "ffxiv_unassigned": {
+      "status": "Target clarification pending; no registered runtime/owner found. Proposed adapter criteria only: unassigned, unimplemented, unverified.",
+      "runtime_or_protocol": "None assumed. No production game identifier, command spelling, server API, client route, account, source tree or job kit is invented by this study.",
+      "next_dependency": "Consume the existing owner clarification and actual runtime/owner mapping before implementation. Do not repeat the question or create a lane.",
+      "reference_sources": ["wow:Bot/States/State_InGroup.cpp:556", "wow:Bot/States/State_InGroup.cpp:754", "wow:Bot/States/State_InGroup.cpp:1309", "wow:Combat/Apl/ApTankThreat.h:92", "wow:Combat/Apl/HealClaimStore.h:65", "wow:Fleet/CompanionRole.h:34"],
+      "acceptance": [
+        {"id": "XIV-01", "status": "proposed_not_run_unassigned", "setup": "A future identified native runtime with authenticated owner/companion/party relation.", "input": "Valid command, another player's command, spoofed display name and obsolete ownership; change authority before execution.", "expect": "Only current native authority can affect the companion; refusal causes no action. Anchor selection alone is not authentication evidence."},
+        {"id": "XIV-02", "status": "proposed_not_run_unassigned", "setup": "Current owner and legal native travel path.", "input": "Follow and authorized transfer; Stay/dismiss or another admitted movement activity interrupts.", "expect": "Observe actual arrival/position and current anchor after revalidation, not merely accepted transfer dispatch. Native movement authority and legal travel are preserved."},
+        {"id": "XIV-03", "status": "proposed_not_run_unassigned", "setup": "Current native party and lawful stance/order; reachable legitimate fight.", "input": "Owner melee/caster fight or hostile attacking a party member; unrelated selected enemy and obsolete-party negative controls.", "expect": "Only legitimate current party combat triggers assistance, with actual native action/engagement observed. Selection alone does not grant pull authority."},
+        {"id": "XIV-04", "status": "proposed_not_run_unassigned", "setup": "Native supported role and eligible threatened/injured party member.", "input": "Rescue/heal with valid abilities; repeat with CC, other tank assignment, refusal, cancellation and unavailable resources.", "expect": "Observe actual victim/HP effect. Only matching failed-heal reservation is released; another still-running heal remains represented. No copied WoW ability/role assumptions."},
+        {"id": "XIV-05", "status": "proposed_not_run_unassigned", "setup": "Pending action/advice and current native lifecycle identity.", "input": "Stay/dismiss, ownership/party/world change, death or target invalidation.", "expect": "Dependent work is cancelled/refused and cannot execute later; recovery uses current native mechanics. Login session_seq alone is not a life/death fence."},
+        {"id": "XIV-06", "status": "proposed_not_run_unassigned", "setup": "Deterministic party loop; hypothetical advice exercised only in an assigned isolated adapter fixture.", "input": "Disabled/unavailable/malformed/late/stale advice, unknown choice, mismatched request, expired TTL and default option that became illegal.", "expect": "Immediate behavior continues. Only current offered legal options may influence a later decision; fallback is revalidated too. This case does not authorize enabling a route/account/provider."}
+      ]
+    }
+  },
+  "evidence_contract": {
+    "status": "Mapping to existing contracts and explicit producer gaps, not a newly activated wire protocol or a claim that every target emits every fact.",
+    "schemas": [
+      {"id": "dit.bot_event.v1", "source": "dit:dit.bot_event.v1.schema.json:7", "sha256": "45a5b7931836d52dc70d90968645a24e8d7575b5aa9b39d841b2bcb87f540c42"},
+      {"id": "dit.decision_advice.v1.request", "source": "dit:dit.decision_advice.v1.request.schema.json:6", "sha256": "584e6c68f73595c9b681d14d761085bc0e13244ed745f0ca9f14a97e9c513c9d"},
+      {"id": "dit.decision_advice.v1.response", "source": "dit:dit.decision_advice.v1.response.schema.json:5", "sha256": "b39a4689613c611141a3a8163a157797ca2fb0c0ded1c11f35ef01c43ad0e731"}
+    ],
+    "immediate_event_fields": {
+      "required_envelope": ["schema", "game", "actor_id", "ts", "event_type", "severity"],
+      "existing_optional_context": ["session_seq", "area", "pos", "target", "reason", "summary", "correlation_id", "details"],
+      "semantics": "actor_id is the stable bot identifier within its game; session_seq is login generation, not a death counter. Preserve native binding, life, world and target identities when correlating observations; do not overload session_seq.",
+      "details": "Existing event-specific details can describe decision intent/action/fields/alternatives or death context. Agree actual adapter fields with its owner rather than assuming these facts are already emitted. No chat text, credentials or account data."
+    },
+    "advice_request_fields": ["schema", "game", "request_id", "actor_id", "party_id", "kind", "snapshot_seq", "snapshot", "options", "default_option", "deadline_ms"],
+    "advice_request_semantics": "Use the existing actor or party subject appropriate to the request. Snapshot facts are bounded native facts. Options are an array of legal choices; default_option must refer to one. The body's default continues during pending advice.",
+    "advice_response_fields": ["request_id", "choice", "reason", "ttl_s", "route"],
+    "advice_event": {
+      "event_type": "advice",
+      "correlation": "correlation_id equals request_id",
+      "details_fields": ["kind", "options", "default_option", "choice", "reason", "route", "outcome"],
+      "options_type": "integer count, not the request's options array",
+      "outcomes": ["applied", "NO_ADVICE", "TIMEOUT", "INVALID_OPTION", "STALE", "REVALIDATE_FAIL"],
+      "limit": "applied means accepted advice, not movement arrival, landed healing, damage or threat transfer. Native effect evidence remains separate."
+    },
+    "minimum_correlated_facts": [
+      "Before: current authenticated authority and public character/bot identity, binding/party/world/life context, current order, actual combat trigger, target life/incarnation/claim, roles and relevant native resources/cooldowns.",
+      "Admission: actual command or native trigger received, accepted/refused with native reason and current control identity; distinguish cursor selection from established combat.",
+      "Action: admitted native movement/attack/support attempt, exact current target and terminal cancellation/refusal/result. Queued intent is not execution.",
+      "After: observed native engagement, target victim/health or arrival/position, attributable to the action; newer orders and lifecycle changes remain authoritative.",
+      "Advice, if already authorized: correlated bounded request, native offered choices/default, response disposition, then separate native execution/result evidence."
+    ],
+    "gaps_and_semantic_checks": [
+      "Schemas do not establish authenticated authority, valid party/world scope, complete lifecycle identity, action completion or transfer arrival.",
+      "The advice event conditional constrains details/correlation_id when present but does not itself require their presence. Missing disposition/correlation is incomplete evidence even if schema-valid.",
+      "Option uniqueness/nonempty IDs, default membership, response-request matching and dependent-state freshness require semantic validation. Hub AdviceApi.Parse/Validate implements some of these; each body still validates execution.",
+      "Response TTL is optional in the schema. An adapter must document/test its bounded omission policy for a non-null choice; missing TTL cannot imply unlimited validity.",
+      "Open snapshot/details and direct text-key exclusions do not enforce recursive privacy or full payload bounds. Emit bounded native facts, never raw player chat/accounts or secrets.",
+      "The older standard's transport paragraph still calls the shared advice endpoint proposed; pinned hub0ce5113e already implements it. Neither document nor source establishes deployed enablement."
+    ]
+  },
+  "acceptance_policy": {
+    "selection": "This is a case menu, not a new mandatory full suite or independent-review/release gate. Choose focused cases covering the changed behavior and essential authority/data protections; use the existing build/startup smoke and owner playtest workflow.",
+    "timing": "Use the game's existing measured/configured reaction and transfer bounds. Record elapsed time; this study does not invent a universal tick rate or promise a response deadline.",
+    "proof": "Separate received command, admission, selected intent, executed action and observed effect. Missing native/client evidence remains unverified.",
+    "live": "Only existing owners perform authorized live checks. Preserve zero-player maintenance, backup/rollback, progress, source/device/account/access, feature and owner-choice holds."
+  },
+  "verification": {
+    "receipt": "BOT-PARTY-0135-SOURCE-HANDOFF-20261112.validation.json",
+    "scope": "Offline source identity, citation resolution and contract field consistency only. These checks are not game behavior tests or a release gate.",
+    "runtime_tests": "NOT RUN",
+    "game_builds": "NOT RUN",
+    "live_access_or_deployment": "NONE",
+    "provider_or_credentials": "NONE",
+    "new_target_dispatches": "NONE"
+  }
+}

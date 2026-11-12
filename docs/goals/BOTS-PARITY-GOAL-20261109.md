@@ -193,6 +193,19 @@ These are implementation comparisons, not claims that the corresponding game
 feature is absent. Extend existing native behavior and focused checks where
 it already exists; keep AI off the immediate movement and survival path.
 
+The completed [version-pinned source handoff](../reviews/BOT-PARTY-0135-SOURCE-HANDOFF-20261112.json)
+maps these patterns to native FFXI `299c` / driver `582`, SWTOR c149 and the
+existing DIT schemas, with proposed FFXIV adapter criteria kept unassigned.
+It includes 20 focused acceptance cases as a selection menu, not a new release
+suite. Its [offline validation receipt](../reviews/BOT-PARTY-0135-SOURCE-HANDOFF-20261112.validation.json)
+covers source hashes, reference lines and listed contract fields, not gameplay.
+
+Two concrete boundaries from that study: FFXI's existing owner-hit defense
+cannot prove proactive assistance before a hit, and SWTOR's dot/bang command
+transport intentionally excludes client-parsed slash commands. A `/fb` parser
+alias alone therefore cannot establish a working SWTOR interface. The already
+dispatched implementation owners retain both work items.
+
 ### Existing owners and next increments
 
 | Target | Next increment and evidence boundary |

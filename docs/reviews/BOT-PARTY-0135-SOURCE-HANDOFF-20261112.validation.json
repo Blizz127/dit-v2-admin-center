@@ -1,0 +1,220 @@
+{
+  "checked_at": "2026-11-12T06:31:33.496320+00:00",
+  "artifact": "BOT-PARTY-0135-SOURCE-HANDOFF-20261112.json",
+  "artifact_sha256": "9be79ca38ac3f8d1a1e0e15972527806306909e29e6f81420818b1d7f271b401",
+  "scope": "Offline source identity, citation line bounds and listed existing contract fields/enums; not full JSON Schema validation, runtime behavior or deployment.",
+  "archives_verified": 3,
+  "selected_members_and_baseline_comparisons": 22,
+  "source_citations_resolved": 112,
+  "unique_source_files": 40,
+  "proposed_case_counts": {
+    "ffxi_forever": 7,
+    "swtor": 7,
+    "ffxiv_unassigned": 6
+  },
+  "source_files": {
+    "dit:dit.bot_event.v1.schema.json": {
+      "sha256": "45a5b7931836d52dc70d90968645a24e8d7575b5aa9b39d841b2bcb87f540c42",
+      "bytes": 7995,
+      "lines": 344
+    },
+    "dit:dit.decision_advice.v1.request.schema.json": {
+      "sha256": "584e6c68f73595c9b681d14d761085bc0e13244ed745f0ca9f14a97e9c513c9d",
+      "bytes": 1874,
+      "lines": 36
+    },
+    "dit:dit.decision_advice.v1.response.schema.json": {
+      "sha256": "b39a4689613c611141a3a8163a157797ca2fb0c0ded1c11f35ef01c43ad0e731",
+      "bytes": 865,
+      "lines": 16
+    },
+    "driver:brain.py": {
+      "sha256": "5d189d0afa4b8166cf6bab3a06b16f378ed2ca3d74c002a4fb128f8fb0ae3427",
+      "bytes": 43831,
+      "lines": 926
+    },
+    "driver:owner_party.py": {
+      "sha256": "0ffbad9436f0f6679dac691c47a94beeddc8a38208b61b435f7caadff6e24840",
+      "bytes": 23750,
+      "lines": 420
+    },
+    "driver:protocol.py": {
+      "sha256": "c03ac2b1673d61e117f4c2faa30eade9256670ffa34e25489b2c20221fd1ea06",
+      "bytes": 22877,
+      "lines": 546
+    },
+    "ffxi:fb/control.rs": {
+      "sha256": "6783c2188a2ee223bd2b1300310f6c0fb27f9a8fd62b16d83802271e909a8c03",
+      "bytes": 16478,
+      "lines": 372
+    },
+    "ffxi:mobs/owner_defense.rs": {
+      "sha256": "bc6dc11e4206dc900764b875a4211547404eab6ad30e7c4b76d9fa81621921ae",
+      "bytes": 7606,
+      "lines": 162
+    },
+    "ffxi:mobs/pop_claim.rs": {
+      "sha256": "b2e2103aef3222830be01232fa591f7a8f82a0d411c08ba09532d7cef4f4edd4",
+      "bytes": 6850,
+      "lines": 140
+    },
+    "ffxi:population/fb_defense.rs": {
+      "sha256": "2b49697457541d02193e9d54bd2716afcf984cfaf27d9c68df3c6c829d1da493",
+      "bytes": 9354,
+      "lines": 155
+    },
+    "ffxi:population/fb_orders.rs": {
+      "sha256": "144f30a6c5b016763e4d3d1c473c05927b3144f77ea056f4e52ce0a6a6e95b0a",
+      "bytes": 27176,
+      "lines": 466
+    },
+    "ffxi:population/intents.rs": {
+      "sha256": "15c634a38a9a374edbf615cbd3dfcc1df9a18018b5f836e78bb6c7ff7e8253b7",
+      "bytes": 64985,
+      "lines": 1361
+    },
+    "ffxi:population/owned_combat.rs": {
+      "sha256": "fa215d5030d57b775f25db4153488702134971ad3371c43718731d56ff1c49a3",
+      "bytes": 8841,
+      "lines": 180
+    },
+    "ffxi:session/fb_orders.rs": {
+      "sha256": "e96a287b4034c02bbbebb4db6fbef0be5b87ed55e67cebbbe405e05fcb7c48ed",
+      "bytes": 15290,
+      "lines": 245
+    },
+    "ffxi:session/fight.rs": {
+      "sha256": "02b06894914c2cfd2c8cba39e3d5ebc5a3aee78ea266b3a2b79bf181759492dd",
+      "bytes": 95212,
+      "lines": 1730
+    },
+    "ffxi:session/magic.rs": {
+      "sha256": "be72ab63780dcbff26433be06e22e6d844cb9b27b3ffac43bb7dc20e529e272b",
+      "bytes": 60300,
+      "lines": 1127
+    },
+    "ffxi:world/bot_control.rs": {
+      "sha256": "031b342c7f048dc3fd54efa0a73a656008a1bd6f3b092e04fa1f0d462ff43c05",
+      "bytes": 19508,
+      "lines": 363
+    },
+    "ffxi:world/bot_owner.rs": {
+      "sha256": "a9545cbe5eb9842059c5930d1d1390017b965f385329a61ba91656554e0246ea",
+      "bytes": 17716,
+      "lines": 381
+    },
+    "ffxi:world/cast.rs": {
+      "sha256": "7d638279941f6e1b9943321be010a51a25b2537e9c4b5fbd3216cae11fad9cc1",
+      "bytes": 6881,
+      "lines": 150
+    },
+    "ffxi:world/newbot_defense.rs": {
+      "sha256": "bf830a05a8ac6cee222f5c951254d1af065856d6663c7327186709ae54c18bfe",
+      "bytes": 11548,
+      "lines": 217
+    },
+    "hub:AdviceApi.cs": {
+      "sha256": "3a55359a017d2309a731a34f4e75dda2323bcedb1d4bf3045f931ce691c8efa3",
+      "bytes": 11418,
+      "lines": 168
+    },
+    "swtor:private_bot_advice.py": {
+      "sha256": "764a0c267342b87be8167f602c828706e3d0e63b17cc4829266656416280aaa6",
+      "bytes": 25753,
+      "lines": 443
+    },
+    "swtor:private_bot_advice_switches.py": {
+      "sha256": "8d4d5d20a313a2f1ae21705efa47cff6bd2fce213c2ba82b86cb05b5510fdb2f",
+      "bytes": 1604,
+      "lines": 17
+    },
+    "swtor:private_bot_events.py": {
+      "sha256": "429cae256c092d92f11fe24d96929eebb7308629d83bf2529dc612a3b3c5b165",
+      "bytes": 24695,
+      "lines": 434
+    },
+    "swtor:private_chatgw_commands.py": {
+      "sha256": "cfdeb4ddd5e16376a0dc2bdfc565a83afeb14af9c87450388228570808ef2da3",
+      "bytes": 23129,
+      "lines": 467
+    },
+    "swtor:private_combat.py": {
+      "sha256": "b0313eb38577c2208ede342ca4614a1ccd1b43c56e789f5b4da267861ee54468",
+      "bytes": 375576,
+      "lines": 5753
+    },
+    "swtor:private_dit_ai_provenance.py": {
+      "sha256": "028652f50efe5523b46e3a6ab7bbdf6b8a9ecc21a94d5c6473bb3e7aeb0450ce",
+      "bytes": 3215,
+      "lines": 53
+    },
+    "swtor:private_squad.py": {
+      "sha256": "4a1d92c349a465e32254717be79d8136855380146ba61ebfefa1181b05f5e094",
+      "bytes": 99135,
+      "lines": 1586
+    },
+    "swtor:private_squad_behavior.py": {
+      "sha256": "a6565ab06ffd9ccf279bb4dd895bb8772e4cada81e7540f5d32b91d2d60244b0",
+      "bytes": 26916,
+      "lines": 431
+    },
+    "swtor:private_squad_native.py": {
+      "sha256": "704cc53b248d41c68c8fc9d023c2b0d825f811abd1bf0d9fddb379d7a402475f",
+      "bytes": 5935,
+      "lines": 131
+    },
+    "swtor:private_squad_orders.py": {
+      "sha256": "9f234ac93272ee16a9d7740c6687a5160671ddcbcc64e3d9efcab232e72e1048",
+      "bytes": 29150,
+      "lines": 495
+    },
+    "wow:Api/PlayerbotMovement.cpp": {
+      "sha256": "e288eda3c317dd3edc3b9848f4c714338bcc2ef4d795bea6ac3b03be93624e0c",
+      "bytes": 39566,
+      "lines": 908
+    },
+    "wow:Bot/BotIntentExecutor.cpp": {
+      "sha256": "9ab73d006765edbe0d4c618784a5d2206833ef559c77b4981444bee88db8fba8",
+      "bytes": 69178,
+      "lines": 1092
+    },
+    "wow:Bot/States/State_InGroup.cpp": {
+      "sha256": "a710ef5a6df45ea3b52c39842b27c1677219cd76de85e7506993613a524e42c5",
+      "bytes": 107040,
+      "lines": 1756
+    },
+    "wow:Combat/Apl/ApClassicHeal.h": {
+      "sha256": "ae08b0566a25ed1077238c70db3742264e227a4f681da5cbb7c08ed357bea7bb",
+      "bytes": 94006,
+      "lines": 1829
+    },
+    "wow:Combat/Apl/ApTankThreat.h": {
+      "sha256": "472256cb9f2b3c2a73e0503f2647dd68366b29460c2568261ee7dd7db4003a1f",
+      "bytes": 13202,
+      "lines": 289
+    },
+    "wow:Combat/Apl/Apl_Classic_Warrior.cpp": {
+      "sha256": "e7733c81b100017cd1e017e2b81edb3b6feacd3bd5db957fe057c75d1424532c",
+      "bytes": 52715,
+      "lines": 1050
+    },
+    "wow:Combat/Apl/HealClaimStore.h": {
+      "sha256": "a056caca4927a0e8ca5ee4f920b62b47e2802444832626df8d9fe2df703d091d",
+      "bytes": 3145,
+      "lines": 83
+    },
+    "wow:Fleet/CompanionRole.h": {
+      "sha256": "80a748c2c285de358fa088b9f5d61e713626e282a7ca5fc5b941b7efa90c940c",
+      "bytes": 3826,
+      "lines": 72
+    },
+    "wow:LfgRoleGap.h": {
+      "sha256": "8486cc3cab5e9f42138cda2339ba5d1a93b2149ce5b1fda5f52a8791e49a6b6e",
+      "bytes": 7110,
+      "lines": 148
+    }
+  },
+  "runtime_tests": "NOT RUN",
+  "game_builds": "NOT RUN",
+  "live_access_or_deployment": "NONE"
+}
