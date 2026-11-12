@@ -1,0 +1,278 @@
+{
+  "kind": "additive_slot_place_source_answer",
+  "date": "2026-11-12",
+  "owner_scope": "bot-update-owner-20261112-061630",
+  "relationship": "Supplements completed 89488dd/Q1-Q4 only. Supersedes no pins, answers, checks or target intakes. Q5 follow-duration is already answered by coordinator and is not repeated here.",
+  "archive": {
+    "path": "/home/blizz/scratch-build/wow-forever-bot-reference-0135-20261112/wow-forever-source-0.1.35.zip",
+    "sha256": "828c30f8f1bb7735a772abc62d55a07036d6291f97ad1fe0eb429c64d57836de",
+    "member_prefix": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/"
+  },
+  "citation_format": "ID:start-end denotes inclusive one-based lines in sources[ID].member; SHA256 hashes exact raw member bytes. Formulas describe static source, not executed behavior.",
+  "slot": {
+    "numbering": "slot <n> is zero-based, command range 0..15 inclusive, initial formation_slot=0. It assigns the addressed bot(s) the same requested slot, not successive squad positions. No argument produces usage, not an implicit reassignment.",
+    "parsing": "SplitArgs collects digit-only uint64 tokens, optionally with g/s/c suffix (multipliers 10000/100/1); other tokens including -1, +1 and decimals are ignored. slot uses the FIRST collected number, narrows it to int, then clamps negative int to0 or int>15 to15. Thus ordinary slot16 ->15; slot-1 alone is usage, not a negative clamp. stoull overflow is dropped. Huge uint64-to-int narrowing and suffix multiplication are not safe evidence that every oversized input clamps to15; native/compiler behavior is untested.",
+    "assignment": "Sets formation_slot and saves squad state. If owner_command==Follow and owner_target is nonempty, queues BuildFollowIntent immediately, using legacy ComputeFormationOffset; no manual-mode-expiry check occurs in this slot branch. regroup reissues BuildFollowIntent if an owner target exists. Slot assignment neither reorders other bots nor chooses a placement index.",
+    "automatic": "Ordinary Follow calls AutoAssignFormationSlot then persists. It keeps a unique slot; on collision, picks the first free index0..15 among registered AIs returned by BotsOwnedBy(owner.account_id). If all16 are used, collision remains. Despite its active-Follow comment, this helper does not filter those other AIs by current Follow mode or living state. A manual pin can therefore change on a later Follow collision.",
+    "scope": "Dispatch resolves one or multiple addressed bots then calls the same authorized single-bot handler; slot is not a group-wide reservation. Active owner-follow geometry independently recomputes rank/GUID indices (G), so slot does not pin that index. Placement likewise ignores formation_slot; its log uses i+1/count, which is a one-based display distinct from slot <n>.",
+    "refs": [
+      "D:245-249",
+      "C:129-198",
+      "C:1154-1219",
+      "C:2369-2406",
+      "C:2542-2551",
+      "C:3165-3205",
+      "C:3344-3356",
+      "C:2274-2311",
+      "A:3605-3608",
+      "G:1238-1268"
+    ]
+  },
+  "placement": {
+    "docs": "BOT_COMMANDS line125 describes fixed positions, optional selectors, here/target/cursor and return after fights. Add-on lists eight shapes and tight/normal/wide. This is manual world-position placement with Stay, not moving owner-follow Formation or immediate legacy FollowIntent.",
+    "gap": {
+      "yards": {
+        "tight": 2.5,
+        "normal": 4,
+        "wide": 8,
+        "omitted": 4
+      },
+      "aliases": {
+        "tight": [
+          "small"
+        ],
+        "normal": [
+          "medium",
+          "close",
+          "empty"
+        ],
+        "wide": [
+          "big",
+          "spaced"
+        ]
+      },
+      "limits": "Slots clamps a directly supplied numeric gap to1..20 yards, but these commands accept gap words, not arbitrary numeric yards. No owner-formation 0.75 scaling or GUID jitter is applied. Default shape in the add-on is circle; the server rejects a missing/unknown shape, despite its initial local enum being Circle. Gap is not exact pairwise separation for every shape.",
+      "refs": [
+        "P:71-77",
+        "P:119-128",
+        "C:2178-2186",
+        "L:17-35"
+      ]
+    },
+    "frame": "n is selected bot count, capped40; n=0 produces no slots. f is forward and l is left; angles radians, all lengths upstream WoW yards. CEN below subtracts each axis bounding-box midpoint, NOT the centroid. ROW(n,w,h,v) emits row=floor(i/w), start=row*w, m=min(w,n-start): f=-row*v; l=(i-start-(m-1)/2)*h. These are pre-anchor coordinates; here/target shifts and path fallback below can change final positions.",
+    "shapes": [
+      {
+        "shape": "close",
+        "aliases": [
+          "clump",
+          "stack"
+        ],
+        "geometry": "Start at (0,0). Let h=max(1.5,0.6*gap). Rings r=1,2,... have capacity6*r; take=min(capacity,remaining). For k=0..take-1, a=2*pi*k/take+(r odd?0:pi/capacity), slot=(r*h*cos(a),r*h*sin(a)). No CEN step. Ring radial increments are1.5/2.4/4.8 yards for tight/normal/wide; slot0 is centre, not the front despite the broad header comment.",
+        "refs": [
+          "P:131-147"
+        ]
+      },
+      {
+        "shape": "circle",
+        "aliases": [
+          "ring"
+        ],
+        "geometry": "For n=1: (max(min_radius,4),0). Otherwise R=clamp(n*gap/(2*pi),max(min_radius,3),35); slots at a=2*pi*k/n, (R*cos(a),R*sin(a)), starting ahead. No CEN. One ring, unlike active owner-follow concentric rings.",
+        "refs": [
+          "P:112-117",
+          "P:148-158"
+        ]
+      },
+      {
+        "shape": "arc",
+        "aliases": [
+          "half",
+          "halfcircle"
+        ],
+        "geometry": "For n=1: (max(min_radius,4),0). Otherwise R=clamp(n*gap/pi,max(min_radius,4),35). Angles=-pi/2+pi*k/(n-1), including both side endpoints; stable-sort using abs(a)<abs(b)-0.0001, so nearest the front is assigned first, approximately symmetric ties retain original order. Slots=(R*cos(a),R*sin(a)). No CEN; only the forward semicircle. Formula uses n, not n-1, for radius.",
+        "refs": [
+          "P:112-117",
+          "P:159-172"
+        ]
+      },
+      {
+        "shape": "spread",
+        "aliases": [
+          "far",
+          "apart",
+          "farapart",
+          "grid"
+        ],
+        "geometry": "width=ceil(sqrt(n)); cell=clamp(2.5*gap,6,12); ROW(n,width,cell,cell), then CEN. Tight produces6.25 yards, normal10, wide12. The code comment rounds tight to6; the formula gives6.25.",
+        "refs": [
+          "P:173-182"
+        ]
+      },
+      {
+        "shape": "line",
+        "aliases": [
+          "row"
+        ],
+        "geometry": "ROW(n,10,gap,gap), then CEN. Up to10 per row, up to4 rows for40 bots; the comment mentioning a second row does not impose a two-row maximum.",
+        "refs": [
+          "P:183-189"
+        ]
+      },
+      {
+        "shape": "column",
+        "aliases": [
+          "file",
+          "queue"
+        ],
+        "geometry": "lanes=1 if n<=10, 2 if n<=20, otherwise3. ROW(n,lanes,gap,gap), then CEN. These cutoffs differ from owner-follow column geometry.",
+        "refs": [
+          "P:190-197"
+        ]
+      },
+      {
+        "shape": "spear",
+        "aliases": [],
+        "geometry": "Tip(0,0); up to three head positions(-gap,(k-1)*gap), k=0..2; then rows r=2,3,... with shaft width2 for n<=12, 3 for n<=24, otherwise4, positions(-r*gap,(k-(width-1)/2)*0.9*gap). Stop at n and CEN all positions. Partial head/shaft rows keep the original k sequence before whole-shape centering.",
+        "refs": [
+          "P:198-210"
+        ]
+      },
+      {
+        "shape": "arrow",
+        "aliases": [
+          "wedge",
+          "v"
+        ],
+        "geometry": "Nine slots per V layer: layer=floor(i/9), k=i%9, back=1.6*gap*layer. k=0 ->(-back,0); otherwise j=floor((k+1)/2), sign=+1 for odd k else-1, slot=(-back-0.75*j*gap,sign*0.75*j*gap). CEN afterwards. Distinct from owner-follow eight-slot layers.",
+        "refs": [
+          "P:211-226"
+        ]
+      }
+    ],
+    "shape_refs": [
+      "P:21-51",
+      "P:83-109",
+      "P:119-128"
+    ],
+    "anchors": {
+      "here": "Default (also structured alias me): anchor is sender current XYZ, orientation is sender facing, min_radius=3. For non-ring shapes only, PushAhead raises minimum f to at least4 yards. Circle/Arc are exempt, so ring shapes go around the player. They are not all centred at the player after this shift.",
+      "target": "Structured aliases target/my target: selected in-world Unit on same map, not sender, not a Player in sender group, at most100 horizontal yards from sender. Handler does not require target hostility or alive state. Anchor=current target XYZ; forward points FROM target TOWARD sender. min_radius=combat reach+2; non-ring shapes shifted to f>=that clearance. Circle/Arc use min_radius and no forward shift.",
+      "cursor": "Structured aliases cursor/point/ping: saves latest request per sender for30000ms, then consumes next ground ping of any type or world marker. Pending entry is erased before expiry/point validation; now>deadline expires, equality is allowed. New cursor request replaces old. Bot selection and sender position/orientation are evaluated when the point arrives. Reject (x,y)==(0,0), or >100 horizontal yards from sender; if >1 yard away face sender->point (away from sender), else use sender facing. Anchor=point XYZ, min_radius=3, no PushAhead. CEN is still shape-specific (e.g. Arc is a forward semicircle, not centroid-centred).",
+      "transform": "x=ax+cos(o)*f-sin(o)*l; y=ay+sin(o)*f+cos(o)*l; initial z=anchor z. FallbackSlotReachable snaps to ground at most6 vertical yards from anchor, requires normal path ending within2 horizontal yards, and if anchor path exists requires slot path length<=anchor path+1.5*offset+5. If full slot fails, try half offset; if that fails use anchor itself without another reachability check. Thus final slots may overlap and here/target clearance can be lost; queued movement is not arrival evidence.",
+      "refs": [
+        "C:2133-2157",
+        "C:2193-2237",
+        "C:2274-2303",
+        "C:335-356",
+        "P:231-253",
+        "M:4291-4328",
+        "L:321-344"
+      ]
+    },
+    "selection_and_orders": {
+      "selection": "Requires sender session and group. Matches registered, controlled bots within that group, alive, same map, <=150 horizontal yards from anchor. Ownership-bound bots require matching owner; otherwise ControlsForGroupOrder resolves human controller. Select at most40 in group iteration order BEFORE sorting. Selectors OR together; none means all eligible bots. Names are case-insensitive. Role selectors tank(s), healer(s)/heal/heals, dps, melee (DPS only), ranged (DPS only); group1..8 maps to subgroup0..7; all/everyone/squad; the nine listed WoW classes singular/plural.",
+      "ordering": "PlaceRankOf orders tanks, melee, ranged, healers, then ascending GUID. It assigns selected bots to geometry vector indices independently of manual slot pins. No ownership or slot reassignment of other bots.",
+      "effect": "Queues a running MoveTo and manual Stay with kHoldPositionTtlMs=30*60*1000; pins each computed world return point, clears owner-follow, fallback, pull-back and owner-use. The source intention is return after fights, not proof of indefinite persistence or arrival. place follow/back/free dispatches ordinary Follow to chosen eligible bots. The response placed count is queued/intended action, not confirmed native movement.",
+      "refs": [
+        "C:2082-2128",
+        "C:2239-2311",
+        "C:2522-2540",
+        "A:700-701"
+      ]
+    },
+    "parser_transport": {
+      "text": "ApplyPlaceOrder lowercases whitespace-delimited text: exact verb place, then required ONE shape token. First recognized gap token except close is gap; first here/target/cursor token is anchor; other tokens become who selectors. Order after shape is flexible. close as gap and me/point/ping/my target as anchors work at structured PlaceBots level but are not these text-parser aliases. Literal far apart is not one alias: far selects Spread and apart becomes a selector. Extra/repeated/unrecognized gap/anchor words also become selectors; not necessarily a syntax error. Missing/unknown shape rejects. Text place is intercepted before normal per-bot addressing, so an unqualified whisper place can act on all eligible controlled group bots, not just recipient.",
+      "addon": "P.Fields sends chosen names with explicit shape/gap/anchor; initial circle/normal. UI refuses no selected names, limits sends to once per second, uses PLACE_REQ if ready, otherwise group-order text capped250 bytes (truncates names with warning). Server structured request takes first40 nonempty who fields, omitted who means all eligible (different from UI empty-selection refusal). Server answers a system line and PLACE_RESP; UI does not wait. Cursor uses a secure world-marker button or ground ping; no actual client or SWTOR slash transport was tested.",
+      "refs": [
+        "C:2160-2191",
+        "C:2329-2362",
+        "P:41-77",
+        "L:99-104",
+        "L:195-226",
+        "L:321-338",
+        "N:919-937"
+      ]
+    },
+    "refs": [
+      "D:125-125",
+      "L:17-35"
+    ]
+  },
+  "unknowns_and_limits": [
+    "Source-only reading; actual pathfinding, packet/client delivery, cursor UI, arrival and persistence across restart are untested. No upstream code executed or target implementation performed.",
+    "RingRadius clamps to min_radius..35 for n>1, while the n=1 special case has no35-yard cap. There is no local guard here for target-derived min_radius>35; do not assert that unusual case has safe35-yard behavior.",
+    "Parser integer narrowing/overflow quirks are source caveats, not a proposed SWTOR contract. No game-native units, IDs, authority, control or movement rules are inferred.",
+    "Existing SWTOR c152 owner retains implementation; range is already built and Q5 already answered. Admin access/contracts/export and all owner/source/runtime/release/FFXIV-choice holds remain unchanged."
+  ],
+  "preserved_files": [
+    {
+      "path": "/home/blizz/dev/dit-v2-admin-center/docs/reviews/BOT-PARTY-0135-SOURCE-HANDOFF-20261112.json",
+      "sha256": "9be79ca38ac3f8d1a1e0e15972527806306909e29e6f81420818b1d7f271b401"
+    },
+    {
+      "path": "/home/blizz/dev/dit-v2-admin-center/docs/reviews/BOT-PARTY-0135-SOURCE-HANDOFF-20261112.validation.json",
+      "sha256": "9c94fec57ca705ffc1673980d2919160cf8adf13c683756a047f10d0def0fc55"
+    },
+    {
+      "path": "/home/blizz/dev/dit-v2-admin-center/docs/reviews/BOT-PARTY-0135-SOURCE-HANDOFF-20261112.wow-integrator.json",
+      "sha256": "2b964f4d8670e5f138b4861e81d3988dfdbe355edcd392338d092c7f55560e3b"
+    },
+    {
+      "path": "/home/blizz/dev/dit-v2-admin-center/docs/reviews/BOT-PARTY-0135-SOURCE-HANDOFF-20261112.formation-controls.json",
+      "sha256": "9fad0e3dc861a295e4bcf68f0c02f130343d7690694c1439044f5db9f6b19995"
+    },
+    {
+      "path": "/home/blizz/scratch-build/wow-forever-bot-reference-0135-20261112/selected-source-manifest.json",
+      "sha256": "b652c89434d63854d8fc0ba9fd047851625e1efd18df30e33ee96b49b66904d9"
+    }
+  ],
+  "sources": {
+    "P": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/Bot/Placement.h",
+      "sha256": "50e91d870f6c24d8204bbb7cf2d9a414a96fde577c4da471aaf662416b1424e2",
+      "lines": 255
+    },
+    "C": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/Bot/BotCommandParser.cpp",
+      "sha256": "19f31b5f60dbfbb4519cb5dc7c34931ed745ddf9188694ae68419c203b47d42d",
+      "lines": 9947
+    },
+    "A": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/Bot/BotAI.h",
+      "sha256": "64277b4648e3448afa2c5d6ba67b7bc99d0bb80650991492edefb2e7da693385",
+      "lines": 5767
+    },
+    "G": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/Bot/States/State_InGroup.cpp",
+      "sha256": "a710ef5a6df45ea3b52c39842b27c1677219cd76de85e7506993613a524e42c5",
+      "lines": 1756
+    },
+    "L": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/Addon/ForeverBots/ForeverBots_Place.lua",
+      "sha256": "a9e4ce78e03907e80f8032932e4df2389da35c656c9e1be1f57280616b587842",
+      "lines": 359
+    },
+    "N": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/Session/AddonControl.cpp",
+      "sha256": "8b0b30aeebdf33da362d84f2b2e16049e62007dfa2103d6b8709503057d3eccd",
+      "lines": 1827
+    },
+    "M": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/PlayerbotV2.cpp",
+      "sha256": "4433b6802ae2734934fda177057a3c41417e81faf33d72cf6f62537a3e24cda4",
+      "lines": 5299
+    },
+    "D": {
+      "member": "wow-forever-source-0.1.35/src/modules/PlayerbotV2/BOT_COMMANDS.md",
+      "sha256": "f3dbb276d519dac430e7016f3e443edc5103ece66b64c2a343e43dbfbd730f49",
+      "lines": 490
+    }
+  },
+  "verification": {
+    "archive": "PASS supplied SHA256",
+    "member_hashes": 8,
+    "valid_inclusive_ranges": 47,
+    "preserved_records": 5,
+    "check_scope": "Static source reading plus exact-byte hash, range and JSON checks only; no behavioral tests/build/startup/gameplay."
+  }
+}
